@@ -14,7 +14,7 @@ if (!checkNodeVersion()) {
 
 process.on('uncaughtException', (err) => {
     if (err.errno === 'EADDRINUSE') {
-        logger.error(`Port is in use!\n${err}`)
+        logger.error(`Port ${conf.port} is in use!\n${err}`)
     } else {
         logger.error(`Uncaught exception!\n${err}`)
     }
