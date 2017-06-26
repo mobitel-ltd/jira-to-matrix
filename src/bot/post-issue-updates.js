@@ -6,43 +6,43 @@ const logger = require('simple-color-logger')()
 
 const helpers = {
     fieldNames: items => R.pipe(
-    R.map(R.prop('field')),
-    R.uniq
-  )(items || []),
+        R.map(R.prop('field')),
+        R.uniq
+    )(items || []),
 
     toStrings: items => items.reduce(
-    (result, item) => R.merge(result, { [item.field]: item.toString }),
-    {}
-  ),
+        (result, item) => R.merge(result, { [item.field]: item.toString }),
+        {}
+    ),
 }
 
 const composeText = ({ author, fields, formattedValues }) => {
     const messageHeader = () => `${author} ${t('issue_updated', null, author)}`
     const changesDescription = () => fields.map(
-    field => `${field}: ${formattedValues[field]}`
-  )
+        field => `${field}: ${formattedValues[field]}`
+    )
     return [messageHeader(author)]
-    .concat(changesDescription(fields, formattedValues))
-    .join('<br>')
+        .concat(changesDescription(fields, formattedValues))
+        .join('<br>')
 }
 
 async function postUpdateInfo(mclient, roomID, hook) {
     const { changelog, issue, user } = hook
     const fields = helpers.fieldNames(changelog.items)
     const formattedValues = Object.assign(
-    {},
-    helpers.toStrings(changelog.items),
-    await jira.issue.renderedValues(issue.key, fields)
-  )
+        {},
+        helpers.toStrings(changelog.items),
+        await jira.issue.renderedValues(issue.key, fields)
+    )
     const success = await mclient.sendHtmlMessage(
-    roomID,
-    t('issueHasChanged'),
-    composeText({
-        author: R.path(['displayName'], user),
-        fields,
-        formattedValues,
-    })
-  )
+        roomID,
+        t('issueHasChanged'),
+        composeText({
+            author: R.path(['displayName'], user),
+            fields,
+            formattedValues,
+        })
+    )
     if (success) {
         logger.info(`Posted updates to ${issue.key}`)
     }
@@ -71,9 +71,9 @@ async function rename(mclient, roomID, hook) {
         return
     }
     const success = await mclient.setRoomName(
-    roomID,
-    composeRoomName(hook.issue)
-  )
+        roomID,
+        composeRoomName(hook.issue)
+    )
     if (success) {
         logger.info(`Successfully renamed room ${getIssueKey(hook)}`)
     }
@@ -81,8 +81,8 @@ async function rename(mclient, roomID, hook) {
 
 async function postChanges({ mclient, body }) {
     if (
-    R.isEmpty(R.pathOr([], ['changelog', 'items'], body))
-  ) {
+        R.isEmpty(R.pathOr([], ['changelog', 'items'], body))
+    ) {
         return
     }
     const roomID = await mclient.getRoomId(getIssueKey(body))
@@ -95,11 +95,11 @@ async function postChanges({ mclient, body }) {
 }
 
 const shouldPostChanges = ({ body, mclient }) => Boolean(
-  typeof body === 'object'
-  && body.webhookEvent === 'jira:issue_updated'
-  && typeof body.changelog === 'object'
-  && typeof body.issue === 'object'
-  && mclient
+    typeof body === 'object'
+    && body.webhookEvent === 'jira:issue_updated'
+    && typeof body.changelog === 'object'
+    && typeof body.issue === 'object'
+    && mclient
 )
 
 async function middleware(req, res, next) {
