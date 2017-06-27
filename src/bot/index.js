@@ -9,6 +9,7 @@ const inviteNew = require('./invite-new-members').middleware
 const postComment = require('./post-comment').middleware
 const postIssueUpdates = require('./post-issue-updates').middleware
 const postEpicUpdates = require('./post-epic-updates')
+const postNewLinks = require('./post-new-links')
 
 function createApp(express) {
     const app = express.Router()
@@ -31,6 +32,9 @@ function createApp(express) {
     }
     if (features.epicUpdates.on()) {
         app.use(postEpicUpdates)
+    }
+    if (features.newLinks) {
+        app.use(postNewLinks)
     }
     return app
 }

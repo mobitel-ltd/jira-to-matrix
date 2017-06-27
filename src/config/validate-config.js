@@ -27,6 +27,7 @@ const schema = obj({
             field: string,
             fieldAlias: string,
         }),
+        newLinks: boolean,
     }),
     usersToIgnore: array(J.string()),
     testMode: obj({

@@ -21,5 +21,6 @@ module.exports = {
         ],
         'arrow-parens': [2, 'as-needed', { 'requireForBlockBody': true }],
         'quote-props': 0,
+        'dot-notation': 0,
     },
 }
