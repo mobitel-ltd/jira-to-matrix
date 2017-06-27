@@ -9,8 +9,6 @@ const { fp } = require('../utils')
 const { shouldPostChanges } = require('./post-issue-updates')
 const { epicUpdates: epicConf } = require('../config').features
 
-const getEpicKey = (issue, field) => R.path(['fields', field], issue)
-
 const epicRedisKey = epicID => `epic|${epicID}`
 
 async function isInEpic(epicID, issueID) {
@@ -34,10 +32,6 @@ async function saveToEpic(epicID, issueID) {
 }
 
 async function sendMessageNewIssue(mclient, epic, newIssue) {
-    const roomID = await mclient.getRoomId(epic.key)
-    if (!roomID) {
-        return undefined
-    }
     const values = fp.paths([
         'epic.fields.summary',
         'issue.key',
@@ -46,7 +40,7 @@ async function sendMessageNewIssue(mclient, epic, newIssue) {
     values['epic.ref'] = jira.issue.ref(epic.key)
     values['issue.ref'] = jira.issue.ref(newIssue.key)
     const success = await mclient.sendHtmlMessage(
-        roomID,
+        epic.roomID,
         t('newIssueInEpic'),
         marked(t('issueAddedToEpic', values))
     )
@@ -65,9 +59,35 @@ async function postNewIssue(epic, issue, mclient) {
     }
 }
 
-async function postEpicUpdates({ mclient, body }) {
-    const { issue } = body
-    const epicKey = getEpicKey(issue, epicConf.field)
+const getNewStatus = R.pipe(
+    R.pathOr([], ['changelog', 'items']),
+    R.filter(R.propEq('field', 'status')),
+    R.head,
+    R.prop('toString')
+)
+
+async function postStatusChanged(epic, hook, mclient) {
+    const status = getNewStatus(hook)
+    if (!status) {
+        return
+    }
+    const values = fp.paths([
+        'user.name',
+        'issue.key',
+        'issue.fields.summary',
+    ], hook)
+    values['issue.ref'] = jira.issue.ref(hook.issue.key)
+    values['status'] = status // eslint-disable-line dot-notation
+    await mclient.sendHtmlMessage(
+        epic.roomID,
+        t('statusHasChanged', values),
+        marked(t('statusHasChangedMessage', values, values['user.name']))
+    )
+}
+
+async function postEpicUpdates({ mclient, body: hook }) {
+    const { issue } = hook
+    const epicKey = R.path(['fields', epicConf.field], issue)
     if (!epicKey) {
         return
     }
@@ -75,9 +95,17 @@ async function postEpicUpdates({ mclient, body }) {
     if (!epic) {
         return
     }
+    const roomID = await mclient.getRoomId(epicKey)
+    if (!roomID) {
+        return
+    }
+    const epicPlus = R.assoc('roomID', roomID, epic)
 
     if (epicConf.newIssuesInEpic === 'on') {
-        await postNewIssue(epic, issue, mclient)
+        await postNewIssue(epicPlus, issue, mclient)
+    }
+    if (epicConf.issuesStatusChanged === 'on') {
+        await postStatusChanged(epicPlus, hook, mclient)
     }
 }
 
