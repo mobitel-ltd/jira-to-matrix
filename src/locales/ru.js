@@ -7,8 +7,8 @@ const dict = Object.freeze({
     comment_updated: 'изменил%{f} комментарий',
     issue_updated: 'изменил%{f} задачу',
     issueHasChanged: 'Задача изменена',
-    statusHasChanged: '%{issue.key} %{issue.fields.summary} теперь в статусе "%{status}"',
-    statusHasChangedMessage: '%{user.name} изменил%{f} статус задачи [%{issue.key} %{issue.fields.summary}](%{issue.ref}) на **%{status}**',
+    statusHasChanged: '%{issue.key} "%{issue.fields.summary}" теперь в статусе "%{status}"',
+    statusHasChangedMessage: '%{user.name} изменил%{f} статус задачи [%{issue.key} "%{issue.fields.summary}"](%{issue.ref}) на **%{status}**',
     newIssueInEpic: 'Новая задача в эпике',
     issueAddedToEpic: 'К эпику добавлена задача [%{issue.key} %{issue.fields.summary}](%{issue.ref})',
 })

@@ -63,12 +63,12 @@ const getNewStatus = R.pipe(
     R.pathOr([], ['changelog', 'items']),
     R.filter(R.propEq('field', 'status')),
     R.head,
-    R.prop('toString')
+    R.propOr(undefined, 'toString')
 )
 
 async function postStatusChanged(epic, hook, mclient) {
     const status = getNewStatus(hook)
-    if (!status) {
+    if (typeof status !== 'string') {
         return
     }
     const values = fp.paths([
