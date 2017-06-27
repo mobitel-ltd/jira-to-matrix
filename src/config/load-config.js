@@ -66,7 +66,12 @@ function composeConfig(getConfigFn) {
         userId: `@${config.matrix.user}:${config.matrix.domain}`,
     })
 
-    const version = '2017-06-23/2'
+    const version = '2017-06-27'
+
+    config.features.epicUpdates.on = () => (
+        config.features.epicUpdates.newIssuesInEpic === 'on'
+        || config.features.epicUpdates.issuesStatusChanged === 'on'
+    )
 
     return R.mergeAll([config, { matrix }, { version }])
 }

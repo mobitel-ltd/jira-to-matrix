@@ -1,4 +1,4 @@
-const conf = require('../config')
+const { features } = require('../config')
 const parse = require('./parse-incoming')
 const save = require('./save-incoming')
 const stopIf = require('./stop-if-user-ignored')
@@ -8,6 +8,7 @@ const postIssueDescription = require('./post-issue-description')
 const inviteNew = require('./invite-new-members').middleware
 const postComment = require('./post-comment').middleware
 const postIssueUpdates = require('./post-issue-updates').middleware
+const postEpicUpdates = require('./post-epic-updates')
 
 function createApp(express) {
     const app = express.Router()
@@ -15,18 +16,21 @@ function createApp(express) {
     app.use(save)
     app.use(stopIf)
     app.use(connectToMatrix)
-    if (conf.features.createRoom) {
+    if (features.createRoom) {
         app.use(createRoom)
         app.use(postIssueDescription)
     }
-    if (conf.features.inviteNewMembers) {
+    if (features.inviteNewMembers) {
         app.use(inviteNew)
     }
-    if (conf.features.postIssueUpdates) {
+    if (features.postIssueUpdates) {
         app.use(postIssueUpdates)
     }
-    if (conf.features.postComments) {
+    if (features.postComments) {
         app.use(postComment)
+    }
+    if (features.epicUpdates.on()) {
+        app.use(postEpicUpdates)
     }
     return app
 }

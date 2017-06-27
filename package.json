@@ -25,6 +25,7 @@
     "html-to-text": "^3.3.0",
     "joi": "^10.5.2",
     "lodash": "^4.17.4",
+    "marked": "^0.3.6",
     "matrix-js-sdk": "^0.7.12",
     "moment": "^2.18.1",
     "node-fetch": "^1.7.0",

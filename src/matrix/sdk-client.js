@@ -43,7 +43,7 @@ function addToNow(ms) {
 
 function initConnectionStore({ tokenTTL }) {
     const initialState = () => ({
-        client: undefined,
+        client: undefined, // could be actual client or Promise
         expires: undefined,
     })
 

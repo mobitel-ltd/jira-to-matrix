@@ -111,6 +111,7 @@ async function middleware(req, res, next) {
 }
 
 module.exports.middleware = middleware
+module.exports.shouldPostChanges = shouldPostChanges
 module.exports.forTests = {
     toStrings: helpers.toStrings,
     composeText,
