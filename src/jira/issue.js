@@ -1,3 +1,4 @@
+// @flow
 const R = require('ramda')
 const _ = require('lodash')
 const conf = require('../config')

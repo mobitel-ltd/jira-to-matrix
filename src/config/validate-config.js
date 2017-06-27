@@ -21,6 +21,12 @@ const schema = obj({
         inviteNewMembers: boolean,
         postComments: boolean,
         postIssueUpdates: boolean,
+        epicUpdates: obj({
+            newIssuesInEpic: ['on', 'off'],
+            issuesStatusChanged: ['on', 'off'],
+            field: string,
+            fieldAlias: string,
+        }),
     }),
     usersToIgnore: array(J.string()),
     testMode: obj({

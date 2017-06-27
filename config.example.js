@@ -11,6 +11,12 @@ module.exports = Object.freeze({
         inviteNewMembers: true,
         postComments: true,
         postIssueUpdates: true,
+        epicUpdates: {
+            newIssuesInEpic: 'on',
+            issuesStatusChanged: 'on',
+            field: 'customfield_10006',
+            fieldAlias: 'Epic Link',
+        },
     },
     // useful for testing, add a test user into production config
     usersToIgnore: ['jira_test'],
