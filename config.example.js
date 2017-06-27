@@ -17,6 +17,7 @@ module.exports = Object.freeze({
             field: 'customfield_10006',
             fieldAlias: 'Epic Link',
         },
+        newLinks: true,
     },
     // useful for testing, add a test user into production config
     usersToIgnore: ['jira_test'],

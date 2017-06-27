@@ -77,7 +77,7 @@ async function postStatusChanged(epic, hook, mclient) {
         'issue.fields.summary',
     ], hook)
     values['issue.ref'] = jira.issue.ref(hook.issue.key)
-    values['status'] = status // eslint-disable-line dot-notation
+    values['status'] = status
     await mclient.sendHtmlMessage(
         epic.roomID,
         t('statusHasChanged', values),
@@ -110,7 +110,7 @@ async function postEpicUpdates({ mclient, body: hook }) {
 }
 
 async function middleware(req, res, next) {
-    if (shouldPostChanges(req) && epicConf.on()) {
+    if (shouldPostChanges(req)) {
         await postEpicUpdates(req)
     }
     next()
