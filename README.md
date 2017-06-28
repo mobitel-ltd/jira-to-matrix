@@ -1,8 +1,5 @@
 # JIRA to Matrix bot  
 A bot (web-service) which listens to JIRA Webhooks and sends some stuff to Matrix.  
-___
-~~The project is in a rough shape and under active development.~~Fixed  
-It is deployed in a medium-size company.
 ### Features
 + Creates a room for every new issue;  
 + Invites new participants to the room;
@@ -14,6 +11,10 @@ It is deployed in a medium-size company.
 Make some config copying _config.example.js_. Run  
 `$ node . -c "path_to_config"`  
 It will say if something is wrong.  
+
+### Status
+~~The project is in a rough shape and under active development.~~Fixed  
+It is successfully deployed in a medium-size company.
+
 ___
 Developed with Node 8.1. Probably will work on any version having async/await. 
-
