@@ -28,6 +28,11 @@ const schema = obj({
             fieldAlias: string,
         }),
         newLinks: boolean,
+        postChangesToLinks: obj({
+            on: boolean,
+            // Not to post to closed issues (3 - id of status category "Done")
+            ignoreDestStatusCat: array(J.number().integer()),
+        }),
     }),
     usersToIgnore: array(J.string()),
     testMode: obj({

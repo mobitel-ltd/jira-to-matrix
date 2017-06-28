@@ -18,6 +18,11 @@ module.exports = Object.freeze({
             fieldAlias: 'Epic Link',
         },
         newLinks: true,
+        postChangesToLinks: {
+            on: true,
+            // Not to post to closed issues (3 - id of status category "Done")
+            ignoreDestStatusCat: [3],
+        },
     },
     // useful for testing, add a test user into production config
     usersToIgnore: ['jira_test'],

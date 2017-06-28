@@ -66,7 +66,7 @@ const getNewStatus = R.pipe(
     R.propOr(undefined, 'toString')
 )
 
-async function postStatusChanged(epic, hook, mclient) {
+async function postStatusChanged(roomID, hook, mclient) {
     const status = getNewStatus(hook)
     if (typeof status !== 'string') {
         return
@@ -79,7 +79,7 @@ async function postStatusChanged(epic, hook, mclient) {
     values['issue.ref'] = jira.issue.ref(hook.issue.key)
     values['status'] = status
     await mclient.sendHtmlMessage(
-        epic.roomID,
+        roomID,
         t('statusHasChanged', values),
         marked(t('statusHasChangedMessage', values, values['user.name']))
     )
@@ -105,7 +105,7 @@ async function postEpicUpdates({ mclient, body: hook }) {
         await postNewIssue(epicPlus, issue, mclient)
     }
     if (epicConf.issuesStatusChanged === 'on') {
-        await postStatusChanged(epicPlus, hook, mclient)
+        await postStatusChanged(roomID, hook, mclient)
     }
 }
 
@@ -116,4 +116,8 @@ async function middleware(req, res, next) {
     next()
 }
 
-module.exports = middleware
+module.exports = {
+    middleware,
+    postStatusChanged,
+    getNewStatus,
+}
