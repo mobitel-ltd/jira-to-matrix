@@ -13,7 +13,7 @@ Make some config copying _config.example.js_. Run
 It will say if something is wrong.  
 
 ### Status
-~~The project is in a rough shape and under active development.~~Fixed  
+~~The project is in a rough shape and under active development.~~ Fixed  
 It is successfully deployed in a medium-size company.
 
 ___
