@@ -33,9 +33,6 @@ function getGenderVerbEnding(fullName) {
 }
 
 function tValues(values, personName) {
-    if (!personName) {
-        return values
-    }
     const ending = getGenderVerbEnding(personName)
     return R.assoc('f', ending, values)
 }
