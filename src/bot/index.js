@@ -8,8 +8,9 @@ const postIssueDescription = require('./post-issue-description')
 const inviteNew = require('./invite-new-members').middleware
 const postComment = require('./post-comment').middleware
 const postIssueUpdates = require('./post-issue-updates').middleware
-const postEpicUpdates = require('./post-epic-updates')
+const postEpicUpdates = require('./post-epic-updates').middleware
 const postNewLinks = require('./post-new-links')
+const postLinkedChanges = require('./post-linked-changes')
 
 function createApp(express) {
     const app = express.Router()
@@ -35,6 +36,9 @@ function createApp(express) {
     }
     if (features.newLinks) {
         app.use(postNewLinks)
+    }
+    if (features.postChangesToLinks.on) {
+        app.use(postLinkedChanges)
     }
     return app
 }
