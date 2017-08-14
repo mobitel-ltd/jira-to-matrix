@@ -6,7 +6,6 @@ const { t } = require('../locales')
 const redis = require('../redis-client')
 const jira = require('../jira')
 const { fp } = require('../utils')
-const { shouldPostChanges } = require('./post-issue-updates')
 const { epicUpdates: epicConf } = require('../config').features
 
 const epicRedisKey = epicID => `epic|${epicID}`
@@ -108,6 +107,15 @@ async function postEpicUpdates({ mclient, body: hook }) {
         await postStatusChanged(roomID, hook, mclient)
     }
 }
+
+const shouldPostChanges = ({ body, mclient }) => Boolean(
+    typeof body === 'object'
+    && (body.webhookEvent === 'jira:issue_updated'
+    || body.webhookEvent === 'jira:issue_created')
+    && typeof body.changelog === 'object'
+    && typeof body.issue === 'object'
+    && mclient
+)
 
 async function middleware(req, res, next) {
     if (shouldPostChanges(req)) {
