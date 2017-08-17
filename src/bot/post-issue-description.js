@@ -42,20 +42,19 @@ function getPost(req) {
 }
 
 async function middleware(req, res, next) {
-    const post = getPost(req)
-
-    if (req.newRoomID && post && req.mclient) {
+    if (req.newRoomID && req.mclient) {
+        const post = getPost(req)
         const { issue } = req.body
         const formatted = Object.assign(
-      {},
-      { post },
-      await jira.issue.renderedValues(issue.id, ['description'])
-    )
+            {},
+            { post },
+            await jira.issue.renderedValues(issue.id, ['description'])
+        )
         await req.mclient.sendHtmlMessage(
-      req.newRoomID,
-      htmlToText(formatted),
-      formatted.post
-    )
+            req.newRoomID,
+            htmlToText(formatted),
+            formatted.post
+        )
     }
     next()
 }
