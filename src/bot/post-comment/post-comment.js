@@ -40,6 +40,7 @@ async function postComment(client, body) {
     }
     const message = `${headerText(body)}: <br>${pickRendered(issue, body.comment)}`
     const success = await client.sendHtmlMessage(room.roomId, htmlToString(message), message)
+    logger.info(`\n\tКомментарий : ${message}\n`)
     if (success) {
         logger.info(`Posted comment to ${issue.key} from ${_.get(body, 'comment.author.name')}`)
     }
