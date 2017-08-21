@@ -29,18 +29,20 @@ function headerText({ comment, webhookEvent }) {
 }
 
 async function postComment(client, body) {
+    logger.info('Вошли в функцию создания комментария')
     const issueID = jira.issue.extractID(JSON.stringify(body))
     const issue = await jira.issue.getFormatted(issueID)
     if (!issue) {
         return
     }
     const room = await client.getRoomByAlias(issue.key)
+    logger.info(`Комната для комментария : ${!!room}`)
     if (!room) {
         return
     }
     const message = `${headerText(body)}: <br>${pickRendered(issue, body.comment)}`
     const success = await client.sendHtmlMessage(room.roomId, htmlToString(message), message)
-    logger.info(`\n\tКомментарий : ${message}\n`)
+    logger.info(`Комментарий : ${success}`)
     if (success) {
         logger.info(`Posted comment to ${issue.key} from ${_.get(body, 'comment.author.name')}`)
     }

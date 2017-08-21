@@ -104,6 +104,7 @@ const shouldPostChanges = ({ body, mclient }) => Boolean(
 
 async function middleware(req, res, next) {
     const proceed = shouldPostChanges(req)
+    logger.info(`Обновить данные задачи: ${proceed}`)
     if (proceed) {
         await postChanges(req)
     }
