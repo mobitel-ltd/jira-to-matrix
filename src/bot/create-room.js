@@ -33,7 +33,12 @@ const shouldCreateRoom = R.allPass([
 ])
 
 async function middleware(req, res, next) {
-    logger.info(`Создать комнату: ${shouldCreateRoom(req.body)} \n`)
+    if (req.body.issue) {
+        logger.info(`Create room for issue ${req.body.issue.key}: ${shouldCreateRoom(req.body)}\n`)
+    } else {
+        logger.info(`Create room ${req.body.webhookEvent}: ${shouldCreateRoom(req.body)}\n`)
+    }
+
     if (shouldCreateRoom(req.body)) {
         req.newRoomID = await create(req.mclient, req.body.issue)
     }
