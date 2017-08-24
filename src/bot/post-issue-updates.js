@@ -104,6 +104,13 @@ const shouldPostChanges = ({ body, mclient }) => Boolean(
 
 async function middleware(req, res, next) {
     const proceed = shouldPostChanges(req)
+
+    if (req.body.issue) {
+        logger.info(`To update the data of the issue ${req.body.issue.key}: ${proceed}\n`)
+    } else {
+        logger.info(`To update the data ${req.body.webhookEvent}: ${proceed}\n`)
+    }
+
     if (proceed) {
         await postChanges(req)
     }
