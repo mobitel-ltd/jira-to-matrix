@@ -4,7 +4,7 @@ const logger = require('simple-color-logger')()
 const marked = require('marked')
 const redis = require('../redis-client')
 const jira = require('../jira')
-const { shouldPostChanges } = require('./post-issue-updates')
+// const { shouldPostChanges } = require('./post-issue-updates')
 const { t } = require('../locales')
 
 async function postLink(issue, relation, related, mclient) {
@@ -53,6 +53,17 @@ async function handleLinks({ mclient, body: hook }) {
         await handleLink(issueLink, mclient)
     })
 }
+
+const shouldPostChanges = ({ body, mclient }) => Boolean(
+    typeof body === 'object'
+    && (
+        body.webhookEvent === 'jira:issue_updated'
+        || body.webhookEvent === 'jira:issue_created'
+    )
+    && typeof body.changelog === 'object'
+    && typeof body.issue === 'object'
+    && mclient
+)
 
 async function middleware(req, res, next) {
     if (shouldPostChanges(req)) {
