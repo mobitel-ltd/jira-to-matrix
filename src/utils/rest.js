@@ -14,10 +14,10 @@ async function fetchJSON(url/*:string*/, basicAuth/*:string*/) {
         return undefined
     }
 
-    if (response) {
-        logger.info(response.__proto__.__proto__)
+    if (!!response.json) {
+        console.dir(response.__proto__.__proto__)
     } else {
-        logger.info(response)
+        console.dir(response)
     }
 
     const [parseErr, object] = await to(response.json())
