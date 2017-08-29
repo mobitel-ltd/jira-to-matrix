@@ -13,6 +13,13 @@ async function fetchJSON(url/*:string*/, basicAuth/*:string*/) {
         logger.error(`Error while getting ${url}:\n${err}`)
         return undefined
     }
+
+    if (response) {
+        logger.info(response.__proto__.__proto__)
+    } else {
+        logger.info(response)
+    }
+
     const [parseErr, object] = await to(response.json())
     if (parseErr) {
         logger.error(`Error while parsing JSON from ${url}:\n${parseErr}`)
