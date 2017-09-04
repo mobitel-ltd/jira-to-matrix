@@ -7,12 +7,15 @@
     "node": ">=7.10"
   },
   "scripts": {
+    "start": "node src/app.js",
+    "start-dev": "NODE_ENV=development node src/app.js",
+    "pretest": "eslint --quiet .",
     "test": "NODE_ENV=test jest --no-cache",
     "fix": "eslint src/**/*.js --fix"
   },
   "devDependencies": {
-    "eslint": "^3.19.0",
-    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint": "^4.5.0",
+    "eslint-config-google": "^0.9.1",
     "eslint-plugin-import": "^2.3.0",
     "jest": "^20.0.4"
   },

@@ -1,39 +1,50 @@
-const R = require('ramda')
-const fetch = require('node-fetch')
-const logger = require('simple-color-logger')()
-const to = require('await-to-js').default
+const R = require('ramda');
+const fetch = require('node-fetch');
+const logger = require('simple-color-logger')();
+const to = require('await-to-js').default;
 
-async function fetchJSON(url/*:string*/, basicAuth/*:string*/) {
+/**
+ * @param {String} url URL to JIRA API
+ * @param {String} basicAuth Authorization parameters for API
+ * @returns {Promise} ???
+ */
+async function fetchJSON(url, basicAuth) {
     const options = {
-        headers: { Authorization: basicAuth },
+        headers: {Authorization: basicAuth},
         timeout: 5000,
-    }
-    const [err, response] = await to(fetch(url, options))
+    };
+    const [err, response] = await to(fetch(url, options));
     if (err) {
-        logger.error(`Error while getting ${url}:\n${err}`)
-        return undefined
+        logger.error(`Error while getting ${url}:\n${err}`);
+        return undefined;
     }
-    const [parseErr, object] = await to(response.json())
+    logger.info(response._convert().toString());
+    try {
+        logger.info(JSON.parse(response._convert().toString()));
+    } catch (err) {
+        logger.error(err.message);
+    }
+    const [parseErr, object] = await to(response.json());
     if (parseErr) {
-        logger.error(`Error while parsing JSON from ${url}:\n${parseErr}`)
-        return undefined
+        logger.error(`Error while parsing JSON from ${url}:\n${parseErr}`);
+        return undefined;
     }
-    return object
+    return object;
 }
 
-function paramsToQueryString(params/*:Array<{}>*/) {
+function paramsToQueryString(params/* :Array<{}>*/) {
     const toStrings = R.map(R.pipe(
-    R.mapObjIndexed((value, key) => `${key}=${value}`),
-    R.values
-  ))
+        R.mapObjIndexed((value, key) => `${key}=${value}`),
+        R.values
+    ));
     return R.ifElse(
-    R.isEmpty,
-    R.always(''),
-    R.pipe(toStrings, R.join('&'), R.concat('?'))
-  )(params || [])
+        R.isEmpty,
+        R.always(''),
+        R.pipe(toStrings, R.join('&'), R.concat('?'))
+    )(params || []);
 }
 
 module.exports = {
     fetchJSON,
     paramsToQueryString,
-}
+};
