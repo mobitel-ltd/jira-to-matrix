@@ -1,1 +1,1 @@
-module.exports.rootDir = __dirname
+module.exports.rootDir = __dirname;

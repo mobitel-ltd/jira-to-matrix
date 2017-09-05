@@ -1,5 +1,5 @@
-const R = require('ramda')
-const names = require('ru-names')
+const R = require('ramda');
+const names = require('ru-names');
 
 /* spell-checker: disable */
 const dict = Object.freeze({
@@ -13,7 +13,7 @@ const dict = Object.freeze({
     issueAddedToEpic: 'К эпику добавлена задача [%{issue.key} %{issue.fields.summary}](%{issue.ref})',
     newLink: 'Новый линк',
     newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{ref})',
-})
+});
 /* spell-checker: enable */
 
 function getGenderVerbEnding(fullName) {
@@ -21,21 +21,21 @@ function getGenderVerbEnding(fullName) {
         R.split(/\s+/),
         R.map(R.pipe(R.trim, R.toLower)),
         R.reduce((result, part) => {
-            const gender = names[part]
-            return gender ? R.reduced(gender) : undefined
+            const gender = names[part];
+            return gender ? R.reduced(gender) : undefined;
         }, undefined)
-    )
+    );
     return R.pipe(
         R.ifElse(R.is(String), getGender, R.always(undefined)),
-        R.prop(R.__, { m: '', f: 'а' }),
+        R.prop(R.__, {m: '', f: 'а'}),
         R.defaultTo('(а)')
-    )(fullName)
+    )(fullName);
 }
 
 function tValues(values, personName) {
-    const ending = getGenderVerbEnding(personName)
-    return R.assoc('f', ending, values)
+    const ending = getGenderVerbEnding(personName);
+    return R.assoc('f', ending, values);
 }
 
-module.exports.dict = dict
-module.exports.tValues = tValues
+module.exports.dict = dict;
+module.exports.tValues = tValues;
