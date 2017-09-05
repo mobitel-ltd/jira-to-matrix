@@ -1,4 +1,4 @@
-const R = require('ramda')
+// const R = require('ramda')
 const jira = require('../jira')
 const { helpers } = require('../matrix')
 const logger = require('simple-color-logger')()
@@ -26,11 +26,17 @@ async function create(client, issue) {
     return response.room_id
 }
 
-const shouldCreateRoom = R.allPass([
-    R.is(Object),
-    R.propEq('webhookEvent', 'jira:issue_created'),
-    R.propIs(Object, 'issue'),
-])
+// const shouldCreateRoom = R.allPass([
+//     R.is(Object),
+//     R.propEq('webhookEvent', 'jira:issue_created'),
+//     R.propIs(Object, 'issue'),
+// ])
+
+const shouldCreateRoom = (body) => Boolean(
+    typeof body === 'object'
+    && body.webhookEvent === 'jira:issue_created'
+    && typeof body.issue === 'object'
+)
 
 async function middleware(req, res, next) {
     if (req.body.issue) {
