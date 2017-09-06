@@ -25,9 +25,9 @@ async function inviteNew(client, issue) {
 async function middleware(req, res, next) {
     if (
         typeof req.body === 'object' &&
-    req.body.webhookEvent === 'jira:issue_updated' &&
-    typeof req.body.issue === 'object' &&
-    req.mclient
+        req.body.webhookEvent === 'jira:issue_updated' &&
+        typeof req.body.issue === 'object' &&
+        req.mclient
     ) {
         await inviteNew(req.mclient, req.body.issue);
     }
