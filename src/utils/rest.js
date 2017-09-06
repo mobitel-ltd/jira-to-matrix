@@ -19,7 +19,9 @@ async function fetchJSON(url, basicAuth) {
         return undefined;
     }
 
-    logger.info(`response from jira have status: ${response.status}`)
+    logger.info(`response from jira have status: ${response.status}`,
+        `    \nUrl: ${url}; Options: ${options.headers.Authorization}`)
+
     const [parseErr, object] = await to(response.json())
 
     if (parseErr) {

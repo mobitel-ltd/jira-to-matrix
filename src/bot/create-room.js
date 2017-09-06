@@ -46,18 +46,18 @@ const shouldCreateRoom = (body) => Boolean(
 )
 
 async function middleware(req, res, next) {
-    if (req.body.issue) {
-        logger.info(`Create room for issue ${req.body.issue.key}: ${shouldCreateRoom(req.body)}\n`);
-    } else {
-        logger.info(`Create room ${req.body.webhookEvent}: ${shouldCreateRoom(req.body)}\n`);
-    }
-
     if (shouldCreateRoom(req.body)) {
         const issueID = jira.issue.extractID(JSON.stringify(req.body));
         const issue = await jira.issue.getFormatted(issueID);
-        const room = await req.mclient.getRoomId(issue.key);
-        if (!room) {
-            req.newRoomID = await create(req.mclient, req.body.issue);
+
+        if (issue) {
+            logger.info(`issue: ${Object.keys(issue)}`);
+            const room = await req.mclient.getRoomId(issue.key);
+            if (!room) {
+                req.newRoomID = await create(req.mclient, req.body.issue);
+            }
+        } else {
+            logger.info(`issue is  ${issue}`);
         }
     }
     next();
