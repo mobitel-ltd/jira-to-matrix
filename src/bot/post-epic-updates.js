@@ -112,9 +112,9 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     typeof body === 'object'
     && (
         body.webhookEvent === 'jira:issue_updated'
-        || body.webhookEvent === 'jira:issue_created'
+        || (body.webhookEvent === 'jira:issue_created' && typeof body.changelog === 'object')
     )
-    && typeof body.changelog === 'object'
+    // && typeof body.changelog === 'object'
     && typeof body.issue === 'object'
     && mclient
 );

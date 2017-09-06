@@ -34,7 +34,7 @@ async function create(client, issue) {
 
 const shouldCreateRoom = (body) => Boolean(
     typeof body === 'object'
-    && body.webhookEvent === 'jira:issue_created'
+    // && body.webhookEvent === 'jira:issue_created'
     && typeof body.issue === 'object'
 )
 
@@ -46,7 +46,12 @@ async function middleware(req, res, next) {
     }
 
     if (shouldCreateRoom(req.body)) {
-        req.newRoomID = await create(req.mclient, req.body.issue);
+        const issueID = jira.issue.extractID(JSON.stringify(req.body));
+        const issue = await jira.issue.getFormatted(issueID);
+        const room = await req.mclient.getRoomId(issue.key);
+        if (!room) {
+            req.newRoomID = await create(req.mclient, req.body.issue);
+        }
     }
     next();
 }
