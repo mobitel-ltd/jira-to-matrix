@@ -1,3 +1,4 @@
+
 const jira = require('../jira')
 const { helpers } = require('../matrix')
 const logger = require('simple-color-logger')()
@@ -24,6 +25,7 @@ async function create(client, issue) {
     logger.info(`Created room for ${issue.key}: ${response.room_id}`);
     return response.room_id;
 }
+
 
 const shouldCreateRoom = (body) => Boolean(
     typeof body === 'object'
