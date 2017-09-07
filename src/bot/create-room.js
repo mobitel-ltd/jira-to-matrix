@@ -1,14 +1,7 @@
-<<<<<<< HEAD
-const R = require('ramda');
-const jira = require('../jira');
-const {helpers} = require('../matrix');
-const logger = require('simple-color-logger')();
-=======
-// const R = require('ramda')
+
 const jira = require('../jira')
 const { helpers } = require('../matrix')
 const logger = require('simple-color-logger')()
->>>>>>> 1a25990... fix Ramda
 
 async function create(client, issue) {
     if (!client) {
@@ -33,32 +26,26 @@ async function create(client, issue) {
     return response.room_id;
 }
 
-// const shouldCreateRoom = R.allPass([
-//     R.is(Object),
-//     R.propEq('webhookEvent', 'jira:issue_created'),
-//     R.propIs(Object, 'issue'),
-// ])
 
 const shouldCreateRoom = (body) => Boolean(
     typeof body === 'object'
-    // && body.webhookEvent === 'jira:issue_created'
     && typeof body.issue === 'object'
+    && typeof body.issue.key
 )
 
 async function middleware(req, res, next) {
     if (shouldCreateRoom(req.body)) {
-        const issueID = jira.issue.extractID(JSON.stringify(req.body));
-        const issue = await jira.issue.getFormatted(issueID);
+        const issue = req.body.issue;            
+        logger.info(`issue: ${issue.key}`);
+        const room = await req.mclient.getRoomId(issue.key);
 
-        if (issue) {
-            logger.info(`issue: ${Object.keys(issue)}`);
-            const room = await req.mclient.getRoomId(issue.key);
-            if (!room) {
-                req.newRoomID = await create(req.mclient, req.body.issue);
-            }
+        if (!room) {
+            req.newRoomID = await create(req.mclient, req.body.issue);
         } else {
-            logger.info(`issue is  ${issue}`);
+            logger.info(`The issue ${issue.key} room is already`);
         }
+    } else if(req.body.webhookEvent === 'jira:issue_created') {
+        req.newRoomID = await create(req.mclient, req.body.issue);
     }
     next();
 }

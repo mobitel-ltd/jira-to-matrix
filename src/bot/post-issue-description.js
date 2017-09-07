@@ -14,7 +14,9 @@ function getTextIssue(req, address) {
     return text;
 }
 
-function getPost(req) {
+
+async function getPost(req) {
+
     const assigneeName = getTextIssue(req, 'assignee.displayName');
     const assigneeEmail = getTextIssue(req, 'assignee.emailAddress');
     const reporterName = getTextIssue(req, 'reporter.displayName');
@@ -22,6 +24,16 @@ function getPost(req) {
     const epicLink = getTextIssue(req, 'customfield_10006');
     const estimateTime = getTextIssue(req, 'reporter.timeestimate');
     const description = getTextIssue(req, 'description');
+
+
+    const epick = await jira.issue.getFormatted(epicLink);
+    let nameEpick;
+    if (typeof epick === 'object' && epick.key === epicLink) {
+        nameEpick = String(_.get(epick.renderedField, 'customfield_10005') 
+            || _.get(epick.fields, 'customfield_10005') 
+            || epicLink);
+    }
+
 
     const post = `
         Assignee: 
@@ -31,6 +43,7 @@ function getPost(req) {
             <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterName}
             <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterEmail}<br>
         <br>Epic link: 
+        <br>&nbsp;&nbsp;&nbsp;&nbsp;${nameEpick} (${epicLink})
             <br>&nbsp;&nbsp;&nbsp;&nbsp;\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>
         <br>Estimate time: 
             <br>&nbsp;&nbsp;&nbsp;&nbsp;${estimateTime}<br>
@@ -43,7 +56,8 @@ function getPost(req) {
 
 async function middleware(req, res, next) {
     if (req.newRoomID && req.mclient) {
-        const post = getPost(req);
+        const post = await getPost(req);
+
         const {issue} = req.body;
         const formatted = Object.assign(
             {},
