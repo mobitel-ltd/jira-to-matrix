@@ -13,7 +13,12 @@ async function fetchJSON(url/*:string*/, basicAuth/*:string*/) {
         logger.error(`Error while getting ${url}:\n${err}`)
         return undefined
     }
-    logger.info(`response from jira have status: ${response.status}`)
+    logger.info(response._convert().toString())
+    try {
+        logger.info(JSON.parse(response._convert().toString()))
+    } catch (err) {
+        logger.error(err.message)
+    }
     const [parseErr, object] = await to(response.json())
     if (parseErr) {
         logger.error(`Error while parsing JSON from ${url}:\n${parseErr}`)
