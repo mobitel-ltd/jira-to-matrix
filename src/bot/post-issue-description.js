@@ -2,10 +2,11 @@ const _ = require('lodash');
 const htmlToText = require('html-to-text').fromString;
 const jira = require('../jira');
 const logger = require('simple-color-logger')();
+const {t} = require('../locales');
 
 function getTextIssue(req, address) {
     const text = String(
-        _.get(req.body.issue.fields, address) || 'отсутствует'
+        _.get(req.body.issue.fields, address) || t('miss')
     ).trim();
 
     return text;
@@ -21,7 +22,7 @@ async function getPost(req) {
     const description = getTextIssue(req, 'description');
     let post;
 
-    if (epicLink !== 'отсутствует') {
+    if (epicLink !== t('miss')) {
         const epic = await jira.issue.getFormatted(epicLink);
         let nameEpic;
         if (typeof epic === 'object' && epic.key === epicLink) {

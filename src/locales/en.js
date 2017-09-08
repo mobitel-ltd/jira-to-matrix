@@ -10,6 +10,7 @@ const dict = Object.freeze({
     issueAddedToEpic: 'An issue [%{issue.key} %{issue.fields.summary}](%{issue.ref}) was added to the epic',
     newLink: 'New link',
     newLinkMessage: 'A new link. This issue **%{relation}** [%{key} "%{summary}"](%{ref})',
+    miss: 'missing',
 });
 
 module.exports.dict = dict;
