@@ -30,7 +30,7 @@ async function create(client, issue) {
 const shouldCreateRoom = (body) => Boolean(
     typeof body === 'object'
     && typeof body.issue === 'object'
-    && typeof body.issue.key
+    && body.issue.key
 )
 
 async function middleware(req, res, next) {

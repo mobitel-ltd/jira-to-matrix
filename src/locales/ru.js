@@ -13,6 +13,7 @@ const dict = Object.freeze({
     issueAddedToEpic: 'К эпику добавлена задача [%{issue.key} %{issue.fields.summary}](%{issue.ref})',
     newLink: 'Новый линк',
     newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{ref})',
+    miss: 'отсутствует',
 });
 /* spell-checker: enable */
 
