@@ -10,6 +10,7 @@ async function middleware(req, res, next) {
         client = await matrix.connect();
 
         if (count >= 10) {
+            count = 0;
             err = new Error('Could not connect to Matrix');
             break;
         }
