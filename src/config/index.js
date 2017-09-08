@@ -4,9 +4,7 @@ const {rootDir} = require('../constants');
 const validate = require('./validate-config.js');
 const {fp} = require('../utils');
 
-
-let confgigFilepath = '../../../config.js';
-
+let confgigFilepath = '../../config.js';
 if (process.env.NODE_ENV) {
     confgigFilepath = `../../config.${process.env.NODE_ENV}.js`;
 }

@@ -23,7 +23,6 @@ async function middleware(req, res, next) {
         req.mclient = client;
         next();
     }
-
 }
 
 module.exports = middleware;

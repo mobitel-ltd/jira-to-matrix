@@ -12,9 +12,7 @@ function getTextIssue(req, address) {
     return text;
 }
 
-
 async function getPost(req) {
-
     const assigneeName = getTextIssue(req, 'assignee.displayName');
     const assigneeEmail = getTextIssue(req, 'assignee.emailAddress');
     const reporterName = getTextIssue(req, 'reporter.displayName');
@@ -69,13 +67,13 @@ async function getPost(req) {
 async function middleware(req, res, next) {
     if (req.newRoomID && req.mclient) {
         const post = await getPost(req);
-
         const {issue} = req.body;
         const formatted = Object.assign(
             {},
             {post},
             await jira.issue.renderedValues(issue.id, ['description'])
         );
+        
         await req.mclient.sendHtmlMessage(
             req.newRoomID,
             htmlToText(formatted),
