@@ -23,7 +23,6 @@ async function fetchJSON(url, basicAuth) {
         `    \nUrl: ${url}; Options: ${options.headers.Authorization}`)
 
     const [parseErr, object] = await to(response.json())
-
     if (parseErr) {
         logger.error(`Error while parsing JSON from ${url}:\n${parseErr}`);
         return undefined;
