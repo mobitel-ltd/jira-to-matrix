@@ -11,7 +11,7 @@ const to = require('await-to-js').default;
 async function fetchJSON(url, basicAuth) {
     const options = {
         headers: {Authorization: basicAuth},
-        timeout: 5000,
+        timeout: 11000,
     };
     const [err, response] = await to(fetch(url, options));
     if (err) {
