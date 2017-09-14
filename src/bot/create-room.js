@@ -41,7 +41,7 @@ async function createRoomProject(client, project) {
     if (!response) {
         return undefined;
     }
-    logger.info(`Created room for ${project.key}: ${response.room_id}`);
+    logger.info(`Created room for project ${project.key}: ${response.room_id}`);
     return response.room_id;
 }
 
@@ -56,6 +56,14 @@ const checkEpic = (body) => Boolean(
     && typeof body.issue === 'object'
     && typeof body.issue.fields === 'object'
     && body.issue.fields.issuetype.name === 'Epic'
+)
+
+const checkProjectEvent = (body) => Boolean(
+    typeof body === 'object'
+    && (
+        body.webhookEvent === 'project_created'
+        || body.webhookEvent === 'project_updated'
+    )
 )
 
 async function middleware(req, res, next) {
@@ -73,11 +81,11 @@ async function middleware(req, res, next) {
         req.newRoomID = await create(req.mclient, req.body.issue);
     }
 
-    if (checkEpic(req.body)) {
-        logger.log('It\'s EPIC!!!');
+    if (checkEpic(req.body) || checkProjectEvent(req.body)) {
         const projectOpts = req.body.issue.fields.project;
         const roomProject = await req.mclient.getRoomId(projectOpts.key);
         if (!roomProject) {
+            logger.info(`Try to create a room for project ${projectOpts.key}`);
             const project = await jira.issue.getProject(projectOpts.id);
             const projectRoomId = createRoomProject(req.mclient, project);
         } else {
