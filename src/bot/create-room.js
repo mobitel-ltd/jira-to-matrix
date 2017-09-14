@@ -25,7 +25,6 @@ async function create(client, issue) {
     return response.room_id;
 }
 
-// ToDo fix options for project room
 async function createRoomProject(client, project) {
     if (!client) {
         return undefined;
@@ -68,20 +67,21 @@ async function middleware(req, res, next) {
         if (!room) {
             req.newRoomID = await create(req.mclient, issue);
         } else {
-            logger.info(`The issue ${issue.key} room is already`);
+            logger.info(`Room the issue ${issue.key} is already exists`);
         }
     } else if(req.body.webhookEvent === 'jira:issue_created') {
         req.newRoomID = await create(req.mclient, req.body.issue);
     }
 
     if (checkEpic(req.body)) {
-        console.log('It\'s EPIC!!!');
-        const projectId = req.body.issue.fields.project.id;
-        const roomProject = await req.mclient.getRoomId(projectId);
+        logger.log('It\'s EPIC!!!');
+        const projectOpts = req.body.issue.fields.project;
+        const roomProject = await req.mclient.getRoomId(projectOpts.key);
         if (!roomProject) {
-            const project = await jira.issue.getProject(projectId);
+            const project = await jira.issue.getProject(projectOpts.id);
             const projectRoomId = createRoomProject(req.mclient, project);
-            console.log(project)
+        } else {
+            logger.info(`Room for project ${projectOpts.key} is already exists`);
         }
     }
     next();
