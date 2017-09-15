@@ -73,19 +73,23 @@ async function middleware(req, res, next) {
         const room = await req.mclient.getRoomId(issue.key);
 
         if (!room) {
+            logger.info(`Start creating the room for  issue ${issue.key}`);
             req.newRoomID = await create(req.mclient, issue);
         } else {
             logger.info(`Room the issue ${issue.key} is already exists`);
         }
     } else if(req.body.webhookEvent === 'jira:issue_created') {
+        logger.info(`Start creating the room for  issue ${issue.key}`);
         req.newRoomID = await create(req.mclient, req.body.issue);
     }
 
     if (checkEpic(req.body) || checkProjectEvent(req.body)) {
         const projectOpts = req.body.issue.fields.project;
         const roomProject = await req.mclient.getRoomId(projectOpts.key);
+        
         if (!roomProject) {
             logger.info(`Try to create a room for project ${projectOpts.key}`);
+
             const project = await jira.issue.getProject(projectOpts.id);
             const projectRoomId = createRoomProject(req.mclient, project);
         } else {
