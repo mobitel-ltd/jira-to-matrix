@@ -32,7 +32,7 @@ async function createRoomProject(client, project) {
 
     const options = {
         room_alias_name: project.key,
-        invite: [helpers.userID(project.lead.key), helpers.userID('aa_makarov')],
+        invite: [helpers.userID(project.lead.key)],
         name: project.name,
         topic: jira.issue.refProject(project.key),
     };
