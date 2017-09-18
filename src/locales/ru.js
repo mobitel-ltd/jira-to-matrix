@@ -14,6 +14,10 @@ const dict = Object.freeze({
     newLink: 'Новый линк',
     newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{ref})',
     miss: 'отсутствует',
+    epicAddedToProject: 'К проекту добавлен эпик [%{issue.key} %{issue.fields.summary}](%{issue.ref})',
+    newEpicInProject: 'Новый эпик в проекте',
+    statusEpicChanged: 'Эпик изменён',
+    statusEpicChangedMessage: '%{user.name} изменил%{f} статус связанного эпика [%{issue.key} "%{issue.fields.summary}"](%{issue.ref}) на **%{status}**',
 });
 /* spell-checker: enable */
 
