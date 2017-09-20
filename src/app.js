@@ -7,10 +7,13 @@ const bot = require('./bot');
 const matrix = require('./matrix');
 const logger = require('simple-color-logger')();
 const {checkNodeVersion} = require('./utils');
+const config = require('../config.js');
 
 if (!checkNodeVersion()) {
     process.exit(1);
 }
+
+let client = connectToMatrix(matrix);
 
 process.on('uncaughtException', err => {
     if (err.errno === 'EADDRINUSE') {
@@ -25,6 +28,11 @@ const app = express();
 
 app.use(bodyParser.json({strict: false}));
 
+app.post('/', async function(req, res, next) {
+    req.mclient = await client;
+    next();
+});
+
 app.post('/', bot.createApp(express));
 
 // version, to verify deployment
@@ -33,6 +41,14 @@ app.get('/', (req, res) => {
 });
 // end any request for it not to hang
 app.use((req, res) => {
+    res.end();
+});
+
+app.use((err, req, res, next) => {
+    if (err) {
+        logger.info(err);
+        client = connectToMatrix(matrix);
+    }
     res.end();
 });
 
@@ -50,6 +66,15 @@ async function onExit() {
         return;
     }
     process.exit();
+}
+
+
+async function connectToMatrix(matrix) {
+    let client = await matrix.connect();
+    if (!client) {
+        client = await connectToMatrix(matrix);
+    }
+    return client;
 }
 
 process.on('exit', onExit);

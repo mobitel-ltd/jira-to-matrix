@@ -18,7 +18,7 @@ function createApp(express) {
     app.use(parse);
     app.use(save);
     app.use(stopIf);
-    app.use(connectToMatrix);
+    // app.use(connectToMatrix);
     if (features.createRoom) {
         app.use(createRoom);
         app.use(postIssueDescription);
