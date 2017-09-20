@@ -40,7 +40,7 @@ api.getRoomId = client => (
 
 api.getRoomByAlias = client => (
     async function getRoomByAlias(alias) {
-        const roomID = await this.getRoomId(alias);
+        const roomID = await client.getRoomIdForAlias(`#${alias}:${conf.matrix.domain}`);
         if (!roomID) {
             return undefined;
         }
@@ -116,6 +116,7 @@ api.setRoomTopic = client => (
 module.exports = sdkConnect => (
     async function connect() {
         const matrixClient = await sdkConnect();
+        await matrixClient.clearStores();
         if (!matrixClient) {
             return undefined;
         }
