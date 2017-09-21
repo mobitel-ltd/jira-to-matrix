@@ -116,10 +116,10 @@ api.setRoomTopic = client => (
 module.exports = sdkConnect => (
     async function connect() {
         const matrixClient = await sdkConnect();
-        await matrixClient.clearStores();
         if (!matrixClient) {
             return undefined;
         }
+        await matrixClient.clearStores();
         return R.map(closer => closer(matrixClient))(api);
     }
 );
