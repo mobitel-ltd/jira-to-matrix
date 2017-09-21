@@ -99,7 +99,7 @@ queuePush.on('notEmpty', async function() {
         success = await queueHandler(lastReq, client, queue);
     }
 
-    if (success || !client) {
+    if (!success || !client) {
         client = await connectToMatrix(matrix);
     }
 });
