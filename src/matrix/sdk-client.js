@@ -91,7 +91,7 @@ function initConnector(config) {
         if (store.clientExpired()) {
             await disconnect(); // eslint-disable-line no-use-before-define
         }
-        store.setNewClient(createClient(config));
+        // store.setNewClient(createClient(config));
         return store.getClient();
     }
 
