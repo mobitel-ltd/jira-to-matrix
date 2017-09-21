@@ -85,13 +85,13 @@ function initConnector(config) {
 
     async function connect() {
         const client = store.getClient();
-        if (client && !store.clientExpired()) {
+        if (client) {
             return client;
         }
-        if (store.clientExpired()) {
-            await disconnect(); // eslint-disable-line no-use-before-define
-        }
-        // store.setNewClient(createClient(config));
+        // if (store.clientExpired()) {
+        //     await disconnect();
+        // }
+        store.setNewClient(createClient(config));
         return store.getClient();
     }
 
