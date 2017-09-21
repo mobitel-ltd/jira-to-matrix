@@ -102,7 +102,7 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-async function middleware(req, res, next) {
+async function middleware(req) {
     const proceed = shouldPostChanges(req);
 
     if (req.body.issue) {
@@ -114,7 +114,6 @@ async function middleware(req, res, next) {
     if (proceed) {
         await postChanges(req);
     }
-    next();
 }
 
 module.exports.middleware = middleware;

@@ -68,11 +68,10 @@ const shouldPostChanges = (body) => Boolean(
     )
 )
 
-async function middleware(req, res, next) {
+async function middleware(req) {
     if (shouldPostChanges(req.body)) {
         await postProjectUpdates(req);
     }
-    next();
 }
 
 module.exports = middleware;

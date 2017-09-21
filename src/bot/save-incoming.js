@@ -3,7 +3,7 @@ const redis = require('../redis-client');
 const conf = require('../config');
 const logger = require('simple-color-logger')();
 
-async function save(req, res, next) {
+async function save(req) {
     if (!req.jiraKey) {
         return;
     }
@@ -13,7 +13,6 @@ async function save(req, res, next) {
     if (err) {
         logger.error(`Error while saving to redis:\n${err.message}`);
     }
-    next();
 }
 
 module.exports = save;
