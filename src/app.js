@@ -35,9 +35,9 @@ app.post('/', async function(req, res, next) {
     if (client) {
         req.mclient = await client;
     } else {
-        res.end();
+        next(new Error('Matrix client is not exist'));
     }
-    
+
     next();
 });
 
@@ -55,7 +55,7 @@ app.use((req, res) => {
 app.use(async function(err, req, res, next) {
     if (err) {
         logger.info(err);
-        client = connectToMatrix(matrix);
+        client = await connectToMatrix(matrix);
     }
     res.end();
 });
