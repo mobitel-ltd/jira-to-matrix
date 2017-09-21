@@ -8,7 +8,10 @@ const matrix = require('./matrix');
 const logger = require('simple-color-logger')();
 const {checkNodeVersion} = require('./utils');
 const config = require('../config.js');
-const queue = require('./queue');
+const queue = require('./queue').queue;
+const queueHandler = require('./queue').handler;
+const EventEmitter = require('events');
+const queuePush = new EventEmitter();
 
 if (!checkNodeVersion()) {
     process.exit(1);
@@ -31,17 +34,15 @@ app.use(bodyParser.json({strict: false}));
 
 app.post('/', async function(req, res, next) {
     queue.push(req.body);
-
-    if (client) {
-        req.mclient = await client;
-    } else {
+    if (!client) {
         next(new Error('Matrix client is not exist'));
     }
-
     next();
 });
 
-app.post('/', bot.createApp(express));
+setInterval(checkQueue, 0);
+
+// app.post('/', bot.createApp(express));
 
 // version, to verify deployment
 app.get('/', (req, res) => {
@@ -55,7 +56,6 @@ app.use((req, res) => {
 app.use(async function(err, req, res, next) {
     if (err) {
         logger.info(err);
-        client = await connectToMatrix(matrix);
     }
     res.end();
 });
@@ -84,6 +84,25 @@ async function connectToMatrix(matrix) {
     }
     return client;
 }
+
+function checkQueue() {
+    if (queue.length > 0) {
+        queuePush.emit('notEmpty');
+    }
+}
+
+queuePush.on('notEmpty', async function() {
+    const lastReq = queue[queue.length - 1];
+    let success;
+    if (client) {
+        queue.pop();
+        success = await queueHandler(lastReq, client, queue);
+    }
+
+    if (success || !client) {
+        client = await connectToMatrix(matrix);
+    }
+});
 
 process.on('exit', onExit);
 process.on('SIGINT', onExit);
