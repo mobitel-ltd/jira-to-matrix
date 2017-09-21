@@ -8,6 +8,7 @@ const matrix = require('./matrix');
 const logger = require('simple-color-logger')();
 const {checkNodeVersion} = require('./utils');
 const config = require('../config.js');
+const queue = require('./queue');
 
 if (!checkNodeVersion()) {
     process.exit(1);
@@ -29,7 +30,14 @@ const app = express();
 app.use(bodyParser.json({strict: false}));
 
 app.post('/', async function(req, res, next) {
-    req.mclient = await client;
+    queue.push(req.body);
+
+    if (client) {
+        req.mclient = await client;
+    } else {
+        res.end();
+    }
+    
     next();
 });
 
@@ -44,7 +52,7 @@ app.use((req, res) => {
     res.end();
 });
 
-app.use((err, req, res, next) => {
+app.use(async function(err, req, res, next) {
     if (err) {
         logger.info(err);
         client = connectToMatrix(matrix);
