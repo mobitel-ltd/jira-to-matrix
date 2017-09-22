@@ -39,7 +39,11 @@ async function handler(body, client, queue) {
         if (features.postChangesToLinks.on) {
             await bot.postLinkedChanges(req);
         }
-        logger.info(`Successful processing of the hook for ${body.key}`);
+        if (body.issue) {
+            logger.info(`Successful processing of the hook for ${body.issue}`);
+        } else {
+            logger.info(`Successful processing`);
+        }
 
         return true;
     } catch (err) {
