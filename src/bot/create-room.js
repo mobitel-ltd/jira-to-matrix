@@ -66,7 +66,9 @@ const checkProjectEvent = (body) => Boolean(
     )
 )
 
+
 async function middleware(req) {
+
     if (shouldCreateRoom(req.body)) {
         const issue = req.body.issue;            
         logger.info(`issue: ${issue.key}`);
