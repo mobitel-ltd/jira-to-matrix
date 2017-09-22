@@ -68,7 +68,6 @@ const checkProjectEvent = (body) => Boolean(
 
 
 async function middleware(req) {
-
     if (shouldCreateRoom(req.body)) {
         const issue = req.body.issue;            
         logger.info(`issue: ${issue.key}`);
@@ -91,7 +90,6 @@ async function middleware(req) {
         
         if (!roomProject) {
             logger.info(`Try to create a room for project ${projectOpts.key}`);
-
             const project = await jira.issue.getProject(projectOpts.id);
             const projectRoomId = createRoomProject(req.mclient, project);
         } else {

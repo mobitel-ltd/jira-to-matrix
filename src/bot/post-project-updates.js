@@ -32,7 +32,6 @@ async function epicChanged(roomId, mclient, body) {
     };
     values['issue.ref'] = jira.issue.ref(body.issue.key);
 
-
     await mclient.sendHtmlMessage(
         roomId,
         t('statusEpicChanged', values),
@@ -68,7 +67,6 @@ const shouldPostChanges = (body) => Boolean(
         || body.issue_event_type_name === 'issue_created'
     )
 )
-
 
 async function middleware(req) {
     if (shouldPostChanges(req.body)) {
