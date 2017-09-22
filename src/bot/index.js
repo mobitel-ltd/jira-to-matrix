@@ -9,6 +9,7 @@ const inviteNew = require('./invite-new-members').middleware;
 const postComment = require('./post-comment').middleware;
 const postIssueUpdates = require('./post-issue-updates').middleware;
 const postEpicUpdates = require('./post-epic-updates').middleware;
+const postProjectUpdates = require('./post-project-updates');
 const postNewLinks = require('./post-new-links');
 const postLinkedChanges = require('./post-linked-changes');
 
@@ -33,6 +34,7 @@ function createApp(express) {
     }
     if (features.epicUpdates.on()) {
         app.use(postEpicUpdates);
+        app.use(postProjectUpdates);
     }
     if (features.newLinks) {
         app.use(postNewLinks);

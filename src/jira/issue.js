@@ -5,6 +5,10 @@ const conf = require('../config');
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
 
+function refProject(projectKey/* :string*/) {
+    return `${conf.jira.url}/projects/${projectKey}`;
+}
+
 function ref(issueKey/* :string*/) {
     return `${conf.jira.url}/browse/${issueKey}`;
 }
@@ -43,6 +47,14 @@ async function get(id, params/* :Array<{}>*/) {
     return issue;
 }
 
+async function getProject(id, params) {
+    const issue = await fetchJSON(
+        `${conf.jira.url}/rest/api/2/project/${id}${paramsToQueryString(params)}`,
+        auth()
+    );
+    return issue;
+}
+
 async function getFormatted(issueID/* :string*/) {
     const params = [{expand: 'renderedFields'}];
     return get(issueID, params);
@@ -60,10 +72,12 @@ async function renderedValues(issueID/* :string*/, fields/* :string[]*/) {
 }
 
 module.exports = {
+    refProject,
     ref,
     extractID,
     collectParticipants,
     get,
+    getProject,
     getFormatted,
     renderedValues,
 };
