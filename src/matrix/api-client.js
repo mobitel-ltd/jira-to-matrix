@@ -40,7 +40,7 @@ api.getRoomId = client => (
 
 api.getRoomByAlias = client => (
     async function getRoomByAlias(alias) {
-        const roomID = await this.getRoomId(alias);
+        const roomID = await client.getRoomIdForAlias(`#${alias}:${conf.matrix.domain}`);
         if (!roomID) {
             return undefined;
         }
@@ -119,6 +119,7 @@ module.exports = sdkConnect => (
         if (!matrixClient) {
             return undefined;
         }
+        await matrixClient.clearStores();
         return R.map(closer => closer(matrixClient))(api);
     }
 );

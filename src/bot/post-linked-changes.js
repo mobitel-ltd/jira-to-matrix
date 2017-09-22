@@ -34,11 +34,10 @@ async function sendStatusChanges({mclient, body: hook}) {
     });
 }
 
-async function middleware(req, res, next) {
+async function middleware(req) {
     if (shouldPostChanges(req)) {
         await sendStatusChanges(req);
     }
-    next();
 }
 
 module.exports = middleware;

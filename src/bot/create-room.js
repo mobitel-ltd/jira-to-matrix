@@ -1,6 +1,6 @@
-const jira = require('../jira')
-const { helpers } = require('../matrix')
-const logger = require('simple-color-logger')()
+const jira = require('../jira');
+const { helpers } = require('../matrix');
+const logger = require('simple-color-logger')();
 
 async function create(client, issue) {
     if (!client) {
@@ -66,7 +66,9 @@ const checkProjectEvent = (body) => Boolean(
     )
 )
 
-async function middleware(req, res, next) {
+
+async function middleware(req) {
+
     if (shouldCreateRoom(req.body)) {
         const issue = req.body.issue;            
         logger.info(`issue: ${issue.key}`);
@@ -96,7 +98,6 @@ async function middleware(req, res, next) {
             logger.info(`Room for project ${projectOpts.key} is already exists`);
         }
     }
-    next();
 }
 
 module.exports.middleware = middleware;

@@ -22,7 +22,7 @@ async function inviteNew(client, issue) {
     return newMembers;
 }
 
-async function middleware(req, res, next) {
+async function middleware(req) {
     if (
         typeof req.body === 'object' &&
         req.body.webhookEvent === 'jira:issue_updated' &&
@@ -31,7 +31,6 @@ async function middleware(req, res, next) {
     ) {
         await inviteNew(req.mclient, req.body.issue);
     }
-    next();
 }
 
 module.exports.inviteNew = inviteNew;

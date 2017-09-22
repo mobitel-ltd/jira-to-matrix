@@ -28,9 +28,10 @@ async function epicChanged(roomId, mclient, body) {
         'user.name': body.user.name,
         'issue.key': body.issue.key,
         'issue.fields.summary': body.issue.fields.summary,
+        'status': body.issue.fields.status.name,
     };
     values['issue.ref'] = jira.issue.ref(body.issue.key);
-    values['status'] = body.issue.fields.status.name;
+
 
     await mclient.sendHtmlMessage(
         roomId,
@@ -68,11 +69,11 @@ const shouldPostChanges = (body) => Boolean(
     )
 )
 
-async function middleware(req, res, next) {
+
+async function middleware(req) {
     if (shouldPostChanges(req.body)) {
         await postProjectUpdates(req);
     }
-    next();
 }
 
 module.exports = middleware;

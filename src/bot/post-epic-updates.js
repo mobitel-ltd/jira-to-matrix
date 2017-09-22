@@ -118,11 +118,10 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-async function middleware(req, res, next) {
+async function middleware(req) {
     if (shouldPostChanges(req)) {
         await postEpicUpdates(req);
     }
-    next();
 }
 
 module.exports = {

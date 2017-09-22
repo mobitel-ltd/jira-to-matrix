@@ -35,13 +35,13 @@ async function postComment(client, body) {
     if (!issue) {
         return;
     }
-    const room = await client.getRoomByAlias(issue.key);
-    logger.info(`Room for comment ${issue.key}: ${!!room} \n`);
-    if (!room) {
+    const roomId = await client.getRoomId(issue.key);
+    logger.info(`Room for comment ${issue.key}: ${!!roomId} \n`);
+    if (!roomId) {
         return;
     }
     const message = `${headerText(body)}: <br>${pickRendered(issue, body.comment)}`;
-    const success = await client.sendHtmlMessage(room.roomId, htmlToString(message), message);
+    const success = await client.sendHtmlMessage(roomId, htmlToString(message), message);
     if (success) {
         logger.info(`Posted comment to ${issue.key} from ${_.get(body, 'comment.author.name')}\n`);
     }
