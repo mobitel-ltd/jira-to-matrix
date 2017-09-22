@@ -40,7 +40,7 @@ async function handler(body, client, queue) {
             await bot.postLinkedChanges(req);
         }
         if (body.issue) {
-            logger.info(`Successful processing of the hook for ${body.issue}`);
+            logger.info(`Successful processing of the hook for ${body.issue.key}`);
         } else {
             logger.info(`Successful processing`);
         }
