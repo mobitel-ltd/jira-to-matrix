@@ -40,7 +40,7 @@ app.post('/', async function(req, res, next) {
     next();
 });
 
-setInterval(checkQueue, 0);
+setInterval(checkQueue, 500);
 
 // app.post('/', bot.createApp(express));
 
@@ -79,7 +79,7 @@ async function onExit() {
 
 async function connectToMatrix(matrix) {
     let client = await matrix.connect();
-    if (!client) {
+    while (!client) {
         client = await connectToMatrix(matrix);
     }
     return client;
