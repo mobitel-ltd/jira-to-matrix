@@ -40,7 +40,8 @@ app.post('/', (req, res, next) => {
     next();
 });
 
-setInterval(checkQueue, 500);
+let checkingQueueInterval = setInterval(checkQueue, 500);
+checkingQueueInterval.unref();
 
 // app.post('/', bot.createApp(express));
 
