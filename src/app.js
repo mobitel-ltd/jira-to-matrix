@@ -8,7 +8,7 @@ const matrix = require('./matrix');
 const logger = require('simple-color-logger')();
 const {checkNodeVersion} = require('./utils');
 const config = require('../config.js');
-const queueCash = require('./queue').queue;
+const cachedQueue = require('./queue').queue;
 const queueHandler = require('./queue').handler;
 const EventEmitter = require('events');
 const queuePush = new EventEmitter();
@@ -33,7 +33,7 @@ const app = express();
 app.use(bodyParser.json({strict: false}));
 
 app.post('/', (req, res, next) => {
-    queueCash.push(req.body);
+    cachedQueue.push(req.body);
     if (!client) {
         next(new Error('Matrix client is not exist'));
     }
@@ -87,7 +87,7 @@ async function connectToMatrix(matrix) {
 }
 
 function checkQueue() {
-    if (queueCash.length > 0) {
+    if (cachedQueue.length > 0) {
         queuePush.emit('notEmpty');
     }
 }
@@ -95,8 +95,8 @@ function checkQueue() {
 queuePush.on('notEmpty', async function() {
     let success;
     if (client) {
-        const lastReq = queueCash.pop();
-        success = await queueHandler(lastReq, client, queueCash);
+        const lastReq = cachedQueue.pop();
+        success = await queueHandler(lastReq, client, cachedQueue);
     }
 
     if (!success) {
