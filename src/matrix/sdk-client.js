@@ -18,7 +18,7 @@ async function getAccessToken({baseUrl, userId, password}) {
     );
     if (err) {
         logger.error(`Error while requesting token:\n${err}`);
-        return undefined;
+        return;
     }
     return login.access_token;
 }
@@ -26,7 +26,8 @@ async function getAccessToken({baseUrl, userId, password}) {
 async function createClient({baseUrl, userId, password}) {
     const token = await getAccessToken({baseUrl, userId, password});
     if (!token) {
-        return undefined;
+        logger.error('token not returned');
+        return;
     }
     const newClient = sdk.createClient({
         baseUrl,
@@ -118,7 +119,8 @@ function init(config, pLogger = console) {
     async function connect() {
         const client = await connector.connect();
         if (!client) {
-            return undefined;
+            logger.error('Matrix client not returned');
+            return;
         }
         if (wellConnected(client.getSyncState())) {
             return client;

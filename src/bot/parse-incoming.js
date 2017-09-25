@@ -2,7 +2,7 @@ const _ = require('lodash');
 const jira = require('../jira');
 const logger = require('simple-color-logger')();
 
-function parse(req, res, next) {
+function parse(req) {
     if (typeof req.body !== 'object' || _.isEmpty(req.body)) {
         return;
     }
@@ -27,7 +27,6 @@ function parse(req, res, next) {
 
     req.jiraKey = key;
     req.formattedJSON = json;
-    next();
 }
 
 module.exports = parse;
