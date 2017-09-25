@@ -32,7 +32,7 @@ const app = express();
 
 app.use(bodyParser.json({strict: false}));
 
-app.post('/', async function(req, res, next) {
+app.post('/', (req, res, next) => {
     queue.push(req.body);
     if (!client) {
         next(new Error('Matrix client is not exist'));
@@ -53,7 +53,7 @@ app.use((req, res) => {
     res.end();
 });
 
-app.use(async function(err, req, res, next) {
+app.use((err, req, res, next) => {
     if (err) {
         logger.info(err);
     }
