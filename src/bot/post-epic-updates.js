@@ -16,7 +16,7 @@ async function isInEpic(epicID, issueID) {
     );
     if (err) {
         logger.error(`Error while querying redis:\n${err.message}`);
-        return undefined;
+        return;
     }
     return saved;
 }
@@ -118,11 +118,10 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-async function middleware(req, res, next) {
+async function middleware(req) {
     if (shouldPostChanges(req)) {
         await postEpicUpdates(req);
     }
-    next();
 }
 
 module.exports = {

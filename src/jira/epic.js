@@ -1,4 +1,5 @@
 const conf = require('../config');
+const logger = require('simple-color-logger')();
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
 
@@ -14,7 +15,8 @@ async function issuesIn(epicKey) {
         auth()
     );
     if (!(obj instanceof Object)) {
-        return undefined;
+        logger.warn('Response from jira not object');
+        return;
     }
     return obj.issues || [];
 }

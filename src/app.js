@@ -7,10 +7,17 @@ const bot = require('./bot');
 const matrix = require('./matrix');
 const logger = require('simple-color-logger')();
 const {checkNodeVersion} = require('./utils');
+const config = require('../config.js');
+const cachedQueue = require('./queue').queue;
+const queueHandler = require('./queue').handler;
+const EventEmitter = require('events');
+const queuePush = new EventEmitter();
 
 if (!checkNodeVersion()) {
     process.exit(1);
 }
+
+let client = connectToMatrix(matrix);
 
 process.on('uncaughtException', err => {
     if (err.errno === 'EADDRINUSE') {
@@ -25,7 +32,18 @@ const app = express();
 
 app.use(bodyParser.json({strict: false}));
 
-app.post('/', bot.createApp(express));
+app.post('/', (req, res, next) => {
+    cachedQueue.push(req.body);
+    if (!client) {
+        next(new Error('Matrix client is not exist'));
+    }
+    next();
+});
+
+let checkingQueueInterval = setInterval(checkQueue, 500);
+checkingQueueInterval.unref();
+
+// app.post('/', bot.createApp(express));
 
 // version, to verify deployment
 app.get('/', (req, res) => {
@@ -33,6 +51,13 @@ app.get('/', (req, res) => {
 });
 // end any request for it not to hang
 app.use((req, res) => {
+    res.end();
+});
+
+app.use((err, req, res, next) => {
+    if (err) {
+        logger.info(err);
+    }
     res.end();
 });
 
@@ -51,6 +76,34 @@ async function onExit() {
     }
     process.exit();
 }
+
+
+async function connectToMatrix(matrix) {
+    let client = await matrix.connect();
+    while (!client) {
+        client = await connectToMatrix(matrix);
+    }
+    return client;
+}
+
+function checkQueue() {
+    if (cachedQueue.length > 0) {
+        queuePush.emit('notEmpty');
+    }
+}
+
+queuePush.on('notEmpty', async function() {
+    let success;
+    if (client) {
+        const lastReq = cachedQueue.pop();
+        success = await queueHandler(lastReq, client, cachedQueue);
+    }
+
+    if (!success) {
+        client = undefined;
+        client = await connectToMatrix(matrix);
+    }
+});
 
 process.on('exit', onExit);
 process.on('SIGINT', onExit);

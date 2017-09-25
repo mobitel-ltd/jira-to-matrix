@@ -64,7 +64,7 @@ async function getPost(req) {
     return post;
 }
 
-async function middleware(req, res, next) {
+async function middleware(req) {
     if (req.newRoomID && req.mclient) {
         const post = await getPost(req);
         const {issue} = req.body;
@@ -80,7 +80,6 @@ async function middleware(req, res, next) {
             formatted.post
         );
     }
-    next();
 }
 
 module.exports = middleware;

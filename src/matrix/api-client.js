@@ -14,7 +14,7 @@ api.createRoom = client => (
         );
         if (err) {
             logger.error(`Error while creating room:\n ${err}`);
-            return undefined;
+            return;
         }
         return response;
     }
@@ -31,7 +31,7 @@ api.getRoomId = client => (
                     `Error while getting room id for ${alias} from Matrix:\n${err}`
                 );
             }
-            return undefined;
+            return;
         }
         const {room_id} = response;
         return room_id;
@@ -40,9 +40,16 @@ api.getRoomId = client => (
 
 api.getRoomByAlias = client => (
     async function getRoomByAlias(alias) {
-        const roomID = await this.getRoomId(alias);
-        if (!roomID) {
-            return undefined;
+        const [err, roomID] = await to (
+            client.getRoomIdForAlias(`#${alias}:${conf.matrix.domain}`)
+        );
+        if (err) {
+            if (err.errcode !== 'M_NOT_FOUND') {
+                logger.warn(
+                    `Error while getting room id for ${alias} from Matrix:\n${err}`
+                );
+            }
+            return;
         }
         const room = client.getRoom(roomID);
         return room;
@@ -53,7 +60,8 @@ api.getRoomMembers = () => (
     async function getRoomMembers(roomAlias) {
         const room = await this.getRoomByAlias(roomAlias);
         if (!room) {
-            return undefined;
+            logger.warn(`Don't return room for alias ${roomAlias}`);
+            return;
         }
         return _.values(room.currentState.members).map(member => member.userId);
     }
@@ -64,7 +72,7 @@ api.invite = client => (
         const [err, response] = await to(client.invite(roomId, userId));
         if (err) {
             logger.error(`Error while inviting a new member to a room:\n ${err}`);
-            return undefined;
+            return;
         }
         return response;
     }
@@ -117,8 +125,10 @@ module.exports = sdkConnect => (
     async function connect() {
         const matrixClient = await sdkConnect();
         if (!matrixClient) {
-            return undefined;
+            logger.error("'matrixClient' is undefined");
+            return;
         }
+        await matrixClient.clearStores();
         return R.map(closer => closer(matrixClient))(api);
     }
 );

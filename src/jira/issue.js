@@ -1,5 +1,6 @@
 // @flow
 const R = require('ramda');
+const logger = require('simple-color-logger')();
 const _ = require('lodash');
 const conf = require('../config');
 const {auth} = require('./common');
@@ -16,7 +17,8 @@ function ref(issueKey/* :string*/) {
 function extractID(json/* :string*/)/* :?string*/ {
     const matches = /\/issue\/(\d+)\//.exec(json);
     if (!matches) {
-        return undefined;
+        logger.warn("'matches' from jira.issue.extractID is not defained");
+        return;
     }
     return matches[1];
 }
@@ -63,7 +65,8 @@ async function getFormatted(issueID/* :string*/) {
 async function renderedValues(issueID/* :string*/, fields/* :string[]*/) {
     const issue = await getFormatted(issueID);
     if (!issue) {
-        return undefined;
+        logger.warn("'issue' from jira.issue.renderedValues is not defained");
+        return;
     }
     return R.pipe(
         R.pick(fields),

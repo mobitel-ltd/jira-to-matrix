@@ -9,7 +9,8 @@ async function inviteNew(client, issue) {
     );
     const room = await client.getRoomByAlias(issue.key);
     if (!room) {
-        return undefined;
+        logger.info(`Matrix not returne room for key ${issue.key}`);
+        return;
     }
     const members = matrix.helpers.membersInvited(room.currentState.members);
     const newMembers = R.difference(participants, members);
@@ -22,7 +23,7 @@ async function inviteNew(client, issue) {
     return newMembers;
 }
 
-async function middleware(req, res, next) {
+async function middleware(req) {
     if (
         typeof req.body === 'object' &&
         req.body.webhookEvent === 'jira:issue_updated' &&
@@ -31,7 +32,6 @@ async function middleware(req, res, next) {
     ) {
         await inviteNew(req.mclient, req.body.issue);
     }
-    next();
 }
 
 module.exports.inviteNew = inviteNew;
