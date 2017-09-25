@@ -40,8 +40,15 @@ api.getRoomId = client => (
 
 api.getRoomByAlias = client => (
     async function getRoomByAlias(alias) {
-        const roomID = await client.getRoomIdForAlias(`#${alias}:${conf.matrix.domain}`);
-        if (!roomID) {
+        const [err, roomID] = await to (
+            client.getRoomIdForAlias(`#${alias}:${conf.matrix.domain}`)
+        );
+        if (err) {
+            if (err.errcode !== 'M_NOT_FOUND') {
+                logger.warn(
+                    `Error while getting room id for ${alias} from Matrix:\n${err}`
+                );
+            }
             return;
         }
         const room = client.getRoom(roomID);
@@ -53,6 +60,7 @@ api.getRoomMembers = () => (
     async function getRoomMembers(roomAlias) {
         const room = await this.getRoomByAlias(roomAlias);
         if (!room) {
+            logger.warn(`Don't return room for alias ${roomAlias}`);
             return;
         }
         return _.values(room.currentState.members).map(member => member.userId);
