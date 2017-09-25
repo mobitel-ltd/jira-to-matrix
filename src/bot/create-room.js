@@ -4,7 +4,8 @@ const logger = require('simple-color-logger')();
 
 async function create(client, issue) {
     if (!client) {
-        return undefined;
+        logger.info(`Not exist matrix client. Key: ${issue.key}`);
+        return;
     }
     const participants = (await jira.issue.collectParticipants(issue)).map(
         helpers.userID
@@ -19,7 +20,7 @@ async function create(client, issue) {
 
     const response = await client.createRoom(options);
     if (!response) {
-        return undefined;
+        return;
     }
     logger.info(`Created room for ${issue.key}: ${response.room_id}`);
     return response.room_id;
@@ -27,7 +28,8 @@ async function create(client, issue) {
 
 async function createRoomProject(client, project) {
     if (!client) {
-        return undefined;
+        logger.info(`Not exist matrix client. Key: ${issue.key}`);
+        return;
     }
 
     const options = {
@@ -39,7 +41,7 @@ async function createRoomProject(client, project) {
 
     const response = await client.createRoom(options);
     if (!response) {
-        return undefined;
+        return;
     }
     logger.info(`Created room for project ${project.key}: ${response.room_id}`);
     return response.room_id;

@@ -9,7 +9,8 @@ async function inviteNew(client, issue) {
     );
     const room = await client.getRoomByAlias(issue.key);
     if (!room) {
-        return undefined;
+        logger.info(`Matrix not returne room for key ${issue.key}`);
+        return;
     }
     const members = matrix.helpers.membersInvited(room.currentState.members);
     const newMembers = R.difference(participants, members);

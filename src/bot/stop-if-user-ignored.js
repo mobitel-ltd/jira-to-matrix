@@ -19,7 +19,7 @@ async function middleware(req) {
         logger.warn(`User "${username}" ignored according to config`);
         return ignore;
     }
-    return undefined;
+    return;
 }
 
 module.exports = middleware;

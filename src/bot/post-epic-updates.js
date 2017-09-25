@@ -16,7 +16,7 @@ async function isInEpic(epicID, issueID) {
     );
     if (err) {
         logger.error(`Error while querying redis:\n${err.message}`);
-        return undefined;
+        return;
     }
     return saved;
 }

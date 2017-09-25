@@ -47,7 +47,8 @@ async function handler(body, client, queue) {
 
         return true;
     } catch (err) {
-        logger.error(`Ups! Something went wrong: ${err}`);
+        logger.error(`Ups! Something went wrong:`);
+        logger.error(err);
         queue.push(body);
         return false;
     }
