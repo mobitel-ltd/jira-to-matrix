@@ -100,6 +100,7 @@ queuePush.on('notEmpty', async function() {
     }
 
     if (!success) {
+        client = undefined;
         client = await connectToMatrix(matrix);
     }
 });
