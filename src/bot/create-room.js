@@ -80,7 +80,7 @@ async function middleware(req) {
             logger.info(`Room the issue ${issue.key} is already exists`);
         }
     } else if(req.body.webhookEvent === 'jira:issue_created') {
-        logger.info(`Start creating the room for  issue ${issue.key}`);
+        logger.info(`Start creating the room for issue ${issue.key}`);
         req.newRoomID = await create(req.mclient, req.body.issue);
     }
 
@@ -91,7 +91,7 @@ async function middleware(req) {
         if (!roomProject) {
             logger.info(`Try to create a room for project ${projectOpts.key}`);
             const project = await jira.issue.getProject(projectOpts.id);
-            const projectRoomId = createRoomProject(req.mclient, project);
+            const projectRoomId = await createRoomProject(req.mclient, project);
         } else {
             logger.info(`Room for project ${projectOpts.key} is already exists`);
         }
