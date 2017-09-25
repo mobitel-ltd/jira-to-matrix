@@ -93,10 +93,9 @@ function checkQueue() {
 }
 
 queuePush.on('notEmpty', async function() {
-    const lastReq = queueCash[queueCash.length - 1];
     let success;
     if (client) {
-        queueCash.pop();
+        const lastReq = queueCash.pop();
         success = await queueHandler(lastReq, client, queueCash);
     }
 
