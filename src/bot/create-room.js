@@ -49,6 +49,7 @@ const shouldCreateRoom = (body) => Boolean(
     typeof body === 'object'
     && typeof body.issue === 'object'
     && body.issue.key
+    && body.issue_event_type_name !== 'issue_moved'
 )
 
 const checkEpic = (body) => Boolean(

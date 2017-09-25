@@ -13,18 +13,18 @@ async function handler(body, client, queue) {
         await bot.save(req);
         const ignore = await bot.stopIf(req);
         if (ignore) {
-            return;
+            return true;
         }
 
         if (features.createRoom) {
             await bot.createRoom(req);
             await bot.postIssueDescription(req);
         }
-        if (features.inviteNewMembers) {
-            await bot.inviteNew(req);
-        }
         if (features.postIssueUpdates) {
             await bot.postIssueUpdates(req);
+        }
+        if (features.inviteNewMembers) {
+            await bot.inviteNew(req);
         }
         if (features.postComments) {
             await bot.postComment(req);
