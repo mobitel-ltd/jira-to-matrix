@@ -51,7 +51,7 @@ api.getRoomByAlias = client => (
             }
             return;
         }
-        const room = client.getRoom(roomID);
+        const room = client.getRoom(roomID.room_id);
         return room;
     }
 );
