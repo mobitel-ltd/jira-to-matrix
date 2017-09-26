@@ -99,7 +99,7 @@ queuePush.on('notEmpty', async function() {
         success = await queueHandler(lastReq, client, cachedQueue);
     }
 
-    if (!success) {
+    if (!success && client) {
         client = undefined;
         client = await connectToMatrix(matrix);
     }
