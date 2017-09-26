@@ -128,7 +128,7 @@ module.exports = sdkConnect => (
             logger.error("'matrixClient' is undefined");
             return;
         }
-        await matrixClient.clearStores();
+        // await matrixClient.clearStores();
         return R.map(closer => closer(matrixClient))(api);
     }
 );
