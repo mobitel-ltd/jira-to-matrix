@@ -49,7 +49,7 @@ async function handler(body, client, queue) {
     } catch (err) {
         logger.error(`Ups! Something went wrong:`);
         logger.error(err);
-        queue.push(body);
+        queue.unshift(body);
         return false;
     }
 }
