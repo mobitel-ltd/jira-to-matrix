@@ -15,7 +15,7 @@ async function handler(body, client, queue) {
         if (ignore) {
             return true;
         }
-
+        throw new Error('Ololo');
         if (features.createRoom) {
             await bot.createRoom(req);
             await bot.postIssueDescription(req);
@@ -48,9 +48,18 @@ async function handler(body, client, queue) {
         return true;
     } catch (err) {
         logger.error(`Ups! Something went wrong:`);
-        logger.error(err);
-        queue.unshift(body);
-        return false;
+
+        if (err.message !== body.errMessage) {
+            logger.error(err);
+            body.errMessage = err.message;
+            queue.unshift(body);
+
+            return false;
+        } else {
+            logger.error(`Remove hook '${body.webhookEvent}' \nwith error: ${err}`);
+            
+            return false;
+        }
     }
 }
 
