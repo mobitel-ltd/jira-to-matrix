@@ -1,4 +1,5 @@
 const jira = require('../jira');
+const lodash = require('lodash');
 const { helpers } = require('../matrix');
 const logger = require('simple-color-logger')();
 
@@ -88,7 +89,11 @@ async function middleware(req) {
     }
 
     if (checkEpic(req.body) || checkProjectEvent(req.body)) {
-        const projectOpts = req.body.issue.fields.project;
+        const projectOpts = lodash.get(req.body.issue.fields, 'project');
+        if (!projectOpts) {
+            logger.info('The hook does not contain project options');
+            return;
+        }
         const roomProject = await req.mclient.getRoomId(projectOpts.key);
         
         if (!roomProject) {
