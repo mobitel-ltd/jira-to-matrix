@@ -1,5 +1,4 @@
 const jira = require('../jira');
-const lodash = require('lodash');
 const { helpers } = require('../matrix');
 const logger = require('simple-color-logger')();
 
@@ -70,6 +69,7 @@ const checkProjectEvent = (body) => Boolean(
     )
 )
 
+const objHas = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
 async function middleware(req) {
     if (shouldCreateRoom(req.body)) {
@@ -89,11 +89,21 @@ async function middleware(req) {
     }
 
     if (checkEpic(req.body) || checkProjectEvent(req.body)) {
-        const projectOpts = lodash.get(req.body.issue.fields, 'project');
+        let projectOpts;
+        
+        if (objHas(req.body, 'issue') && objHas(req.body.issue, 'fields')) {
+            projectOpts = req.body.issue.fields.project;
+        }
+
+        if (objHas(req.body,'project')) {
+            projectOpts = req.body.project;
+        }
+
         if (!projectOpts) {
-            logger.info('The hook does not contain project options');
+            logger.info(`Room for a project not created as projectOpts is ${projectOpts}`);
             return;
         }
+
         const roomProject = await req.mclient.getRoomId(projectOpts.key);
         
         if (!roomProject) {
