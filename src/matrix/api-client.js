@@ -4,6 +4,8 @@ const R = require('ramda');
 const to = require('await-to-js').default;
 const conf = require('../config');
 const logger = require('simple-color-logger')();
+const fetchPostJSON = require('../utils').fetchPostJSON;
+const cbTimeline = require('./timeline-handler.js');
 
 const api = {};
 
@@ -129,6 +131,8 @@ module.exports = sdkConnect => (
             return;
         }
         // await matrixClient.clearStores();
+        matrixClient.on("Room.timeline", cbTimeline);
+        
         return R.map(closer => closer(matrixClient))(api);
     }
 );
