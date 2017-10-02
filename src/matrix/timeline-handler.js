@@ -2,10 +2,7 @@ const fetchPostJSON = require('../utils').fetchPostJSON;
 const fetchJSON = require('../utils').fetchJSON;
 
 module.exports = async function(event, room, toStartOfTimeline) {
-    if (toStartOfTimeline) {
-        return;
-    }
-    if (event.getType() !== "m.room.message") {
+    if (event.getType() !== "m.room.message" || toStartOfTimeline) {
         return;
     }
 
