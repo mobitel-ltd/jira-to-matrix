@@ -17,9 +17,11 @@ async function getPost(req) {
     const assigneeEmail = getTextIssue(req, 'assignee.emailAddress');
     const reporterName = getTextIssue(req, 'reporter.displayName');
     const reporterEmail = getTextIssue(req, 'reporter.emailAddress');
+    const typeName = getTextIssue(req, 'issuetype.name');
     const epicLink = getTextIssue(req, 'customfield_10006');
     const estimateTime = getTextIssue(req, 'reporter.timeestimate');
     const description = getTextIssue(req, 'description');
+    const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
     let post;
 
     if (epicLink !== t('miss')) {
@@ -36,30 +38,34 @@ async function getPost(req) {
 
         post = `
             Assignee: 
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${assigneeName}
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${assigneeEmail}<br>
+                <br>${indent}${assigneeName}
+                <br>${indent}${assigneeEmail}<br>
             <br>Reporter: 
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterName}
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterEmail}<br>
+                <br>${indent}${reporterName}
+                <br>${indent}${reporterEmail}<br>
+            <br>Type:
+                <br>${indent}${typeName}<br>
             <br>Epic link: 
-            <br>&nbsp;&nbsp;&nbsp;&nbsp;${nameEpic} (${epicLink})
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>
+                <br>${indent}${nameEpic} (${epicLink})
+                <br>${indent}\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>
             <br>Estimate time: 
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${estimateTime}<br>
+                <br>${indent}${estimateTime}<br>
             <br>Description: 
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${description}<br>`;
+                <br>${indent}${description}<br>`;
     } else {
         post = `
             Assignee: 
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${assigneeName}
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${assigneeEmail}<br>
+                <br>${indent}${assigneeName}
+                <br>${indent}${assigneeEmail}<br>
             <br>Reporter: 
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterName}
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterEmail}<br>
+                <br>${indent}${reporterName}
+                <br>${indent}${reporterEmail}<br>
+            <br>Type:
+                <br>${indent}${typeName}<br>   
             <br>Estimate time: 
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${estimateTime}<br>
+                <br>${indent}${estimateTime}<br>
             <br>Description: 
-                <br>&nbsp;&nbsp;&nbsp;&nbsp;${description}<br>`;
+                <br>${indent}${description}<br>`;
     }
     return post;
 }

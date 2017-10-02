@@ -30,6 +30,25 @@ async function fetchJSON(url, basicAuth) {
     return object;
 }
 
+async function fetchPostJSON(url, basicAuth, body) {
+    const options = {
+        method: 'POST',
+        body: body,
+        headers: {Authorization: basicAuth, "content-type": 'application/json'},
+        timeout: 11000,
+    };
+    const [err, response] = await to(fetch(url, options));
+    if (err) {
+        logger.error(`Error while getting ${url}:\n${err}`);
+        return;
+    }
+
+    logger.info(`response from jira have status: ${response.status}`,
+        `\nUrl: ${url}; Options: ${options.headers.Authorization}`)
+
+    return response;
+}
+
 function paramsToQueryString(params/* :Array<{}>*/) {
     const toStrings = R.map(R.pipe(
         R.mapObjIndexed((value, key) => `${key}=${value}`),
@@ -44,5 +63,6 @@ function paramsToQueryString(params/* :Array<{}>*/) {
 
 module.exports = {
     fetchJSON,
+    fetchPostJSON,
     paramsToQueryString,
 };
