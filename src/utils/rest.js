@@ -30,10 +30,10 @@ async function fetchJSON(url, basicAuth) {
     return object;
 }
 
-async function fetchPostJSON(url, basicAuth, message, sender) {
+async function fetchPostJSON(url, basicAuth, body) {
     const options = {
         method: 'POST',
-        body: schema(message, sender),
+        body: body,
         headers: {Authorization: basicAuth, "content-type": 'application/json'},
         timeout: 11000,
     };
@@ -66,10 +66,3 @@ module.exports = {
     fetchPostJSON,
     paramsToQueryString,
 };
-
-const schema = (message, sender) => {
-    const post = `${sender} закомментил:\n${message}`
-    return JSON.stringify({
-        "body": post
-    });
-}
