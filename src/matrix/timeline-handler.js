@@ -7,7 +7,6 @@ module.exports = async function(event, room, toStartOfTimeline) {
     }
 
     const command = await eventFromMatrix(event, room);
-    console.log(command);
 }
 
 const eventFromMatrix = async (event, room) => {
@@ -40,7 +39,7 @@ const eventFromMatrix = async (event, room) => {
 }
 
 const schema = (sender, message) => {
-    const post = `${sender} закомментил:\n${message}`
+    const post = `[~${sender}]:\n${message}`
     return JSON.stringify({
         "body": post
     });
