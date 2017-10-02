@@ -23,10 +23,12 @@ const eventFromMatrix = async (event, room) => {
         return;
     }
 
+    // postfix charsets in matrix names 
+    const postfix = 21;
     let roomName = room.getCanonicalAlias();
-    roomName = roomName.substring(1, roomName.length - 21);
+    roomName = roomName.substring(1, roomName.length - postfix);
     let sender = event.getSender();
-    sender = sender.substring(1, sender.length - 21);
+    sender = sender.substring(1, sender.length - postfix);
 
     switch (op[0]) {
         case '!comment':
@@ -73,9 +75,10 @@ const schemaAssignee = (assignee) => {
 
 const getAssgnee = (event) => {
     const body = event.getContent().body;
+    const postfix = 21;
     if (body === '!assign') {
         const sender = event.getSender();
-        return sender.substring(1, sender.length - 21);
+        return sender.substring(1, sender.length - postfix);
     }
 
     return body.substring(8, body.length);
