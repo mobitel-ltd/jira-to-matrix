@@ -2,10 +2,10 @@ const fetchPostJSON = require('../utils').fetchPostJSON;
 
 module.exports = async function(event, room, toStartOfTimeline) {
     if (toStartOfTimeline) {
-        return; // don't print paginated results
+        return;
     }
     if (event.getType() !== "m.room.message") {
-        return; // only print messages
+        return;
     }
     const body = event.getContent().body;
 
@@ -19,8 +19,14 @@ module.exports = async function(event, room, toStartOfTimeline) {
         let jiraR = await fetchPostJSON(
             `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/comment`,
             'Basic amlyYV90ZXN0X2JvdDp4TDFCSTNDaFcyZGI3Tg==',
-            message,
-            sender,
+            schema(sender, message)
         );
     }
+}
+
+const schema = (sender, message) => {
+    const post = `${sender} закомментил:\n${message}`
+    return JSON.stringify({
+        "body": post
+    });
 }
