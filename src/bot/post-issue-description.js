@@ -17,6 +17,7 @@ async function getPost(req) {
     const assigneeEmail = getTextIssue(req, 'assignee.emailAddress');
     const reporterName = getTextIssue(req, 'reporter.displayName');
     const reporterEmail = getTextIssue(req, 'reporter.emailAddress');
+    const typeName = getTextIssue(req, 'issuetype.name');
     const epicLink = getTextIssue(req, 'customfield_10006');
     const estimateTime = getTextIssue(req, 'reporter.timeestimate');
     const description = getTextIssue(req, 'description');
@@ -41,8 +42,10 @@ async function getPost(req) {
             <br>Reporter: 
                 <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterName}
                 <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterEmail}<br>
+            <br>Type:
+                <br>&nbsp;&nbsp;&nbsp;&nbsp;${typeName}<br>
             <br>Epic link: 
-            <br>&nbsp;&nbsp;&nbsp;&nbsp;${nameEpic} (${epicLink})
+                <br>&nbsp;&nbsp;&nbsp;&nbsp;${nameEpic} (${epicLink})
                 <br>&nbsp;&nbsp;&nbsp;&nbsp;\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>
             <br>Estimate time: 
                 <br>&nbsp;&nbsp;&nbsp;&nbsp;${estimateTime}<br>
@@ -56,6 +59,8 @@ async function getPost(req) {
             <br>Reporter: 
                 <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterName}
                 <br>&nbsp;&nbsp;&nbsp;&nbsp;${reporterEmail}<br>
+            <br>Type:
+                <br>&nbsp;&nbsp;&nbsp;&nbsp;${typeName}<br>   
             <br>Estimate time: 
                 <br>&nbsp;&nbsp;&nbsp;&nbsp;${estimateTime}<br>
             <br>Description: 
