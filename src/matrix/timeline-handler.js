@@ -35,7 +35,7 @@ const eventFromMatrix = async (event, room) => {
             const jiraComment = await jiraRequest.fetchPostJSON(
                 `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/comment`,
                 auth(),
-                schema(sender, message)
+                schemaComment(sender, message)
             );
 
             return `Comment from ${sender} for ${roomName}`;
@@ -58,7 +58,7 @@ const eventFromMatrix = async (event, room) => {
     }
 }
 
-const schema = (sender, message) => {
+const schemaComment = (sender, message) => {
     const post = `[~${sender}]:\n${message}`
     return JSON.stringify({
         "body": post
