@@ -79,7 +79,7 @@ const getTutorial = () => {
     <h5>Use "!comment" in order send comment in jira issue<br>
     exempl:</h5>
         ${indent}<font color="green"><strong>!comment example comment</strong></font><br>
-        ${indent}text "<font color="green">example comment</font>" show in lira comment<br>
+        ${indent}text "<font color="green">example comment</font>" show in jira comment<br>
     <h5>Use "!assign" in order to appoint assignee for jira issue<br>
     exempl:</h5>
         ${indent}<font color="green"><strong>!assign mv_nosak</strong></font><br>
