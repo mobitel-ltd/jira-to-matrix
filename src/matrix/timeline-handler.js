@@ -48,7 +48,7 @@ const eventFromMatrix = async (event, room, sender, self) => {
 
     switch (op[0]) {
         case '!comment':
-            return await postComment(body, sender, roomName);
+            return await postComment(body, sender, room, roomName, self);
         case '!assign':
             return await appointAssignee(event, room, roomName, self);
         default:
@@ -57,7 +57,7 @@ const eventFromMatrix = async (event, room, sender, self) => {
     }
 }
 
-const postComment = async (body, sender, roomName) => {
+const postComment = async (body, sender, room, roomName, self) => {
     const message = body.split(/!comment/i).join(' ');
     
         // post comment in issue
@@ -67,6 +67,13 @@ const postComment = async (body, sender, roomName) => {
             schemaComment(sender, message)
         );
 
+        if (jiraComment.status !== 201) {
+            const post = t('errorMatrixComment');
+            await self.sendHtmlMessage(room.roomId, post, post);
+        }
+
+        const post = t('successMatrixComment');
+        await self.sendHtmlMessage(room.roomId, post, post);
         return `Comment from ${sender} for ${roomName}`;
 }
 
