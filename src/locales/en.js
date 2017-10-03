@@ -18,6 +18,8 @@ const dict = Object.freeze({
     errorMatrixCommands: 'Something went wrong! Your request failed, please try again.',
     errorMatrixAssign: 'FATAL ERROR! User "%{assignee}" don\'t exist.',
     successMatrixAssign: 'User %{assignee} appointed assignee',
+    errorMatrixComment: 'Something went wrong! Comment not published',
+    successMatrixComment: 'Comment published',
 });
 
 module.exports.dict = dict;
