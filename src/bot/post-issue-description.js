@@ -76,12 +76,12 @@ const getTutorial = () => {
     const post = `
     <br>
     <h4>Tutorial for jira comands:</h4>
-    <h5>Use "!comment" in order send comment in jira issue<br>
-    exempl:</h5>
-        ${indent}<font color="green"><strong>!comment example comment</strong></font><br>
-        ${indent}text "<font color="green">example comment</font>" show in jira comment<br>
-    <h5>Use "!assign" in order to appoint assignee for jira issue<br>
-    exempl:</h5>
+    <h5>Use "!comment" command to comment in jira issue<br>
+    example:</h5>
+        ${indent}<font color="green"><strong>!comment some text</strong></font><br>
+        ${indent}text "<font color="green">some text</font>" will be shown in jira comments<br>
+    <h5>Use "!assign" command to assign jira issue<br>
+    example:</h5>
         ${indent}<font color="green"><strong>!assign mv_nosak</strong></font><br>
         ${indent}user mv_nosak will become assignee for the issue<br><br>
         ${indent}<font color="green"><strong>!assign</strong></font><br>
