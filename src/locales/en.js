@@ -15,6 +15,9 @@ const dict = Object.freeze({
     newEpicInProject: 'New epic in project',
     statusEpicChanged: 'Epic was changed',
     statusEpicChangedMessage: '%{user.name} changed a linked epic status [%{issue.key} "%{issue.fields.summary}"](%{issue.ref}) to **%{status}**',
+    errorMatrixCommands: 'Something went wrong! Your request failed, please try again.',
+    errorMatrixAssign: 'FATAL ERROR! User "%{assignee}" don\'t exist.',
+    successMatrixAssign: 'User %{assignee} appointed assignee',
 });
 
 module.exports.dict = dict;
