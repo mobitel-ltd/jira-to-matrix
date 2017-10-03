@@ -1,21 +1,30 @@
 const jiraRequest = require('../utils');
 const {auth} = require('../jira');
 const logger = require('simple-color-logger')();
+const {t} = require('../locales');
 
 const handler =  async function(event, room, toStartOfTimeline) {
     if (event.getType() !== "m.room.message" || toStartOfTimeline) {
         return;
     }
+    const self = this;
 
-    const command = await eventFromMatrix(event, room);
-    if (command) {
-        logger.info(command);
+    try {
+        const command = await eventFromMatrix(event, room, self);
+        if (command) {
+            logger.info(command);
+        }
+
+        return;
+    } catch(err) {
+        const post = t('errorMatrixCommands');
+        self.sendHtmlMessage(room.roomId, post, post);
+        logger.error(err);
+        return;
     }
-
-    return;
 }
 
-const eventFromMatrix = async (event, room) => {
+const eventFromMatrix = async (event, room, self) => {
     const body = event.getContent().body;
     const op = body.match(/!\w*\b/g);
 
@@ -35,7 +44,8 @@ const eventFromMatrix = async (event, room) => {
     switch (op[0]) {
         case '!comment':
             const message = body.split(/!comment/i).join(' ');
-    
+
+            // post comment in issue
             const jiraComment = await jiraRequest.fetchPostJSON(
                 `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/comment`,
                 auth(),
@@ -46,6 +56,7 @@ const eventFromMatrix = async (event, room) => {
         case '!assign':
             const assignee = getAssgnee(event);
 
+            // appointed assignee for issue
             const jiraAssign = await jiraRequest.fetchPutJSON(
                 `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/assignee`,
                 auth(),
@@ -53,8 +64,13 @@ const eventFromMatrix = async (event, room) => {
             );
 
             if (jiraAssign.status !== 204) {
+                const post = t('errorMatrixAssign', {assignee});
+                await self.sendHtmlMessage(room.roomId, post, post);
                 return `User ${assignee} or room ${roomName} don't exist`;
-            }
+            } 
+
+            const post = t('successMatrixAssign', {assignee});
+            await self.sendHtmlMessage(room.roomId, post, post);
             return `The user ${assignee} now assignee issue ${roomName}\n(did ${sender})`;
         default:
             logger.warn(`The command ${op[0]} failed`);
