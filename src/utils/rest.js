@@ -20,7 +20,7 @@ async function fetchJSON(url, basicAuth) {
     }
 
     logger.info(`response from jira have status: ${response.status}`,
-        `    \nUrl: ${url}; Options: ${options.headers.Authorization}`)
+        `\nUrl: ${url}; Options: ${options.headers.Authorization}`)
 
     const [parseErr, object] = await to(response.json())
     if (parseErr) {
@@ -33,6 +33,25 @@ async function fetchJSON(url, basicAuth) {
 async function fetchPostJSON(url, basicAuth, body) {
     const options = {
         method: 'POST',
+        body: body,
+        headers: {Authorization: basicAuth, "content-type": 'application/json'},
+        timeout: 11000,
+    };
+    const [err, response] = await to(fetch(url, options));
+    if (err) {
+        logger.error(`Error while getting ${url}:\n${err}`);
+        return;
+    }
+
+    logger.info(`response from jira have status: ${response.status}`,
+        `\nUrl: ${url}; Options: ${options.headers.Authorization}`)
+
+    return response;
+}
+
+async function fetchPutJSON(url, basicAuth, body) {
+    const options = {
+        method: 'PUT',
         body: body,
         headers: {Authorization: basicAuth, "content-type": 'application/json'},
         timeout: 11000,
@@ -64,5 +83,6 @@ function paramsToQueryString(params/* :Array<{}>*/) {
 module.exports = {
     fetchJSON,
     fetchPostJSON,
+    fetchPutJSON,
     paramsToQueryString,
 };

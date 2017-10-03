@@ -70,6 +70,26 @@ async function getPost(req) {
     return post;
 }
 
+const getTutorial = () => {
+    const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
+
+    const post = `
+    <br>
+    <h4>Tutorial for jira comands:</h4>
+    <h5>Use "!comment" in order send comment in jira issue<br>
+    exempl:</h5>
+        ${indent}<font color="green"><strong>!comment example comment</strong></font><br>
+        ${indent}text "<font color="green">example comment</font>" show in jira comment<br>
+    <h5>Use "!assign" in order to appoint assignee for jira issue<br>
+    exempl:</h5>
+        ${indent}<font color="green"><strong>!assign mv_nosak</strong></font><br>
+        ${indent}user mv_nosak will become assignee for the issue<br><br>
+        ${indent}<font color="green"><strong>!assign</strong></font><br>
+        ${indent}you will become assignee for the issue
+    `;
+    return post;
+}
+
 async function middleware(req) {
     if (req.newRoomID && req.mclient) {
         const post = await getPost(req);
@@ -84,6 +104,12 @@ async function middleware(req) {
             req.newRoomID,
             htmlToText(formatted),
             formatted.post
+        );
+
+        await req.mclient.sendHtmlMessage(
+            req.newRoomID, 
+            'Send tutorial', 
+            getTutorial()
         );
     }
 }

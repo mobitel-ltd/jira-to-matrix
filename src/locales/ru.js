@@ -18,6 +18,11 @@ const dict = Object.freeze({
     newEpicInProject: 'Новый эпик в проекте',
     statusEpicChanged: 'Эпик изменён',
     statusEpicChangedMessage: '%{user.name} изменил%{f} статус связанного эпика [%{issue.key} "%{issue.fields.summary}"](%{issue.ref}) на **%{status}**',
+    errorMatrixCommands: 'Что-то пошло не так! Ваш запрос не выполнен, пожалуйста, попробуйте еще раз',
+    errorMatrixAssign: 'ОШИБКА! Пользователь "%{assignee}" не существует',
+    successMatrixAssign: 'Пользователь %{assignee} назначен исполнителем задачи',
+    errorMatrixComment: 'Что-то пошло не так! Комментарий не опубликован',
+    successMatrixComment: 'Комментарий опубликован',
 });
 /* spell-checker: enable */
 
