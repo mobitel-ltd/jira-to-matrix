@@ -8,6 +8,8 @@ const {t} = require('../locales');
 // but i need only "jira_test"
 const postfix = 21;
 
+const objHas = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+
 const handler =  async function(event, room, toStartOfTimeline) {
     if (event.getType() !== "m.room.message" || toStartOfTimeline) {
         return;
@@ -90,9 +92,32 @@ const appointAssignee = async (event, room, roomName, self) => {
         return `User ${assignee} or room ${roomName} don't exist`;
     } 
 
+
+    const inviteUser = getInviteUser(event);
+    if (inviteUser && !objHas(room.currentState.members, inviteUser)) {
+        await self.invite(room.roomId, inviteUser);
+    }
+
+    // const jiraWatcher = await jiraRequest.fetchPostJSON(
+    //     `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/watchers`,
+    //     auth(),
+    //     assignee
+    // );
+
     const post = t('successMatrixAssign', {assignee});
     await self.sendHtmlMessage(room.roomId, post, post);
     return `The user ${assignee} now assignee issue ${roomName}`;
+}
+
+const getInviteUser = (event) => {
+    const body = event.getContent().body;
+    if (body === '!assign') {
+        return;
+    }
+
+    // 8 it's length command "!assign"
+    const user = body.substring(8, body.length);
+    return `@${user}:matrix.bingo-boom.ru`;
 }
 
 const getAssgnee = (event) => {
@@ -117,6 +142,13 @@ const schemaComment = (sender, message) => {
 const schemaAssignee = (assignee) => {
     return JSON.stringify({
         "name": `${assignee}`
+    });
+}
+
+// TODO
+const schemaWatcher = (assignee) => {
+    return JSON.stringify({
+        assignee
     });
 }
 
