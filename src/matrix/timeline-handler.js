@@ -3,16 +3,17 @@ const {auth} = require('../jira');
 const logger = require('simple-color-logger')();
 const {t} = require('../locales');
 
+// postfix charsets in matrix names
+// matrix sends "@jira_test:matrix.bingo-boom.ru"
+// but i need only "jira_test"
+const postfix = 21;
+
 const handler =  async function(event, room, toStartOfTimeline) {
     if (event.getType() !== "m.room.message" || toStartOfTimeline) {
         return;
     }
     const self = this;
     
-    // postfix charsets in matrix names
-    // matrix sends "@jira_test:matrix.bingo-boom.ru"
-    // but i need only "jira_test"
-    const postfix = 21;
     let sender = event.getSender();
     sender = sender.substring(1, sender.length - postfix);
 
@@ -39,10 +40,6 @@ const eventFromMatrix = async (event, room, sender, self) => {
         return;
     }
 
-    // postfix charsets in matrix names
-    // matrix sends "@jira_test:matrix.bingo-boom.ru"
-    // but i need only "jira_test"
-    const postfix = 21;
     let roomName = room.getCanonicalAlias();
     roomName = roomName.substring(1, roomName.length - postfix);
 
