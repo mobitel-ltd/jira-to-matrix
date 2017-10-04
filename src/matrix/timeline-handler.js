@@ -98,11 +98,11 @@ const appointAssignee = async (event, room, roomName, self) => {
         await self.invite(room.roomId, inviteUser);
     }
 
-    // const jiraWatcher = await jiraRequest.fetchPostJSON(
-    //     `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/watchers`,
-    //     auth(),
-    //     assignee
-    // );
+    const jiraWatcher = await jiraRequest.fetchPostJSON(
+        `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/watchers`,
+        auth(),
+        schemaWatcher(assignee)
+    );
 
     const post = t('successMatrixAssign', {assignee});
     await self.sendHtmlMessage(room.roomId, post, post);
@@ -145,11 +145,8 @@ const schemaAssignee = (assignee) => {
     });
 }
 
-// TODO
 const schemaWatcher = (assignee) => {
-    return JSON.stringify({
-        assignee
-    });
+    return `"${assignee}"`;
 }
 
 module.exports = handler;
