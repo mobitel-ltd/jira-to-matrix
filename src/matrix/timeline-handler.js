@@ -48,6 +48,8 @@ const eventFromMatrix = async (event, room, sender, self) => {
             return await postComment(body, sender, room, roomName, self);
         case '!assign':
             return await appointAssignee(event, room, roomName, self);
+        case '!move':
+            return await issueMove(body, room, roomName, self);
         default:
             logger.warn(`The command ${op[0]} failed`);
             return;
@@ -107,6 +109,54 @@ const appointAssignee = async (event, room, roomName, self) => {
     return `The user ${assignee} now assignee issue ${roomName}`;
 }
 
+const issueMove = async (body, room, roomName, self) => {
+    const listCommand = await getListCommand(roomName);
+    const moveId = listCommand.reduce((res, cur) => {
+        // check command
+        if (~body.toLowerCase().indexOf(cur.name.toLowerCase())) {
+            return cur.id;
+        }
+        return res;
+    }, 0);
+
+    if (!moveId) {
+        let postListCommands = listCommand.reduce((res, cur) => {
+            return `${res} &nbsp;&nbsp;${cur.name}<br>`;
+        }, '');
+        postListCommands = `<b>${t('listJiraCommand')}:</b><br>${postListCommands}`
+        await self.sendHtmlMessage(room.roomId, 'list commands', postListCommands);
+        return;
+    }
+
+    const jiraMove = await jiraRequest.fetchPostJSON(
+        `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/transitions`,
+        auth(),
+        schemaMove(moveId)
+    )
+
+
+
+    if (jiraMove.status !== 204) {
+        const post = t('errorMoveJira');
+        await self.sendHtmlMessage(room.roomId, 'ERROR', post);
+        return `Issue ${roomName} not changed status`;
+    }
+
+    const post = t('successMoveJira');
+    await self.sendHtmlMessage(room.roomId, post, post);
+    return `Issue ${roomName} changed status`;
+}
+
+const getListCommand = async (roomName) => {
+    const moveOptions = await jiraRequest.fetchJSON(
+        `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/transitions`,
+        auth()
+    )
+    return moveOptions.transitions.map((move) => {
+        return { name: move.name, id: move.id };
+    });
+}
+
 const getInviteUser = (event, room) => {
     const body = event.getContent().body;
     if (body === '!assign') {
@@ -156,6 +206,14 @@ const schemaAssignee = (assignee) => {
 
 const schemaWatcher = (assignee) => {
     return `"${assignee}"`;
+}
+
+const schemaMove = (id) => {
+    return JSON.stringify({
+        "transition": {
+            "id": id
+        }
+    });
 }
 
 module.exports = handler;
