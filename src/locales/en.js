@@ -20,6 +20,9 @@ const dict = Object.freeze({
     successMatrixAssign: 'User %{assignee} appointed assignee',
     errorMatrixComment: 'Something went wrong! Comment not published',
     successMatrixComment: 'Comment published',
+    listJiraCommand: 'List of available commands',
+    errorMoveJira: 'ERROR! Transition is failed<br>Try again',
+    successMoveJira: 'Transition successful',
 });
 
 module.exports.dict = dict;

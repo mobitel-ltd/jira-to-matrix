@@ -86,6 +86,14 @@ const getTutorial = () => {
         ${indent}user mv_nosak will become assignee for the issue<br><br>
         ${indent}<font color="green"><strong>!assign</strong></font><br>
         ${indent}you will become assignee for the issue
+    <h5>Use "!move" command to view list of available transitions<br>
+    example:</h5>
+        ${indent}<font color="green"><strong>!move</strong></font><br>
+        ${indent}you will see a list:<br>
+        ${indent}${indent}Done<br>
+        ${indent}${indent}On hold<br>
+        ${indent}Use <font color="green"><strong>"!move done"</strong></font> or 
+        <font color="green"><strong>"!move on hold"</strong></font>
     `;
     return post;
 }
@@ -100,14 +108,16 @@ async function middleware(req) {
             await jira.issue.renderedValues(issue.id, ['description'])
         );
         
+        // description
         await req.mclient.sendHtmlMessage(
             req.newRoomID,
             htmlToText(formatted),
             formatted.post
         );
 
+        // tutorial jira commands
         await req.mclient.sendHtmlMessage(
-            req.newRoomID, 
+            req.newRoomID,
             'Send tutorial', 
             getTutorial()
         );
