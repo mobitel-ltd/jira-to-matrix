@@ -21,7 +21,7 @@ const dict = Object.freeze({
     errorMatrixComment: 'Something went wrong! Comment not published',
     successMatrixComment: 'Comment published',
     listJiraCommand: 'List of available commands',
-    errorMoveJira: 'ERROR! The issue status is not changed\nTry again',
+    errorMoveJira: 'ERROR! The issue status is not changed<br>Try again',
     successMoveJira: 'Issue status updated',
 });
 

@@ -24,7 +24,7 @@ const dict = Object.freeze({
     errorMatrixComment: 'Что-то пошло не так! Комментарий не опубликован',
     successMatrixComment: 'Комментарий опубликован',
     listJiraCommand: 'Список доступных команд',
-    errorMoveJira: 'ОШИБКА! Статус задачи не изменен\nПопробуйте еще раз',
+    errorMoveJira: 'ОШИБКА! Статус задачи не изменен<br>Попробуйте еще раз',
     successMoveJira: 'Статус задачи обновлен',
 });
 /* spell-checker: enable */
