@@ -8,8 +8,6 @@ const {t} = require('../locales');
 // but i need only "jira_test"
 const postfix = 21;
 
-const objHas = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
-
 const handler =  async function(event, room, toStartOfTimeline) {
     if (event.getType() !== "m.room.message" || toStartOfTimeline) {
         return;
@@ -93,8 +91,8 @@ const appointAssignee = async (event, room, roomName, self) => {
     } 
 
 
-    const inviteUser = getInviteUser(event);
-    if (inviteUser && !objHas(room.currentState.members, inviteUser)) {
+    const inviteUser = getInviteUser(event, room);
+    if (inviteUser) {
         await self.invite(room.roomId, inviteUser);
     }
 
@@ -109,15 +107,26 @@ const appointAssignee = async (event, room, roomName, self) => {
     return `The user ${assignee} now assignee issue ${roomName}`;
 }
 
-const getInviteUser = (event) => {
+const getInviteUser = (event, room) => {
     const body = event.getContent().body;
     if (body === '!assign') {
         return;
     }
 
     // 8 it's length command "!assign"
-    const user = body.substring(8, body.length);
-    return `@${user}:matrix.bingo-boom.ru`;
+    let user = body.substring(8, body.length);
+    user = `@${user}:matrix.bingo-boom.ru`;
+
+    // 'members' is an array of objects
+    const members = room.getJoinedMembers();
+    members.forEach((member) => {
+        if (member.userId === user) {
+            user = undefined;
+        }
+        return;
+    });
+
+    return user;
 }
 
 const getAssgnee = (event) => {
