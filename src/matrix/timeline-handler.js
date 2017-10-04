@@ -90,9 +90,43 @@ const appointAssignee = async (event, room, roomName, self) => {
         return `User ${assignee} or room ${roomName} don't exist`;
     } 
 
+
+    const inviteUser = getInviteUser(event, room);
+    if (inviteUser) {
+        await self.invite(room.roomId, inviteUser);
+    }
+
+    const jiraWatcher = await jiraRequest.fetchPostJSON(
+        `https://jira.bingo-boom.ru/jira/rest/api/2/issue/${roomName}/watchers`,
+        auth(),
+        schemaWatcher(assignee)
+    );
+
     const post = t('successMatrixAssign', {assignee});
     await self.sendHtmlMessage(room.roomId, post, post);
     return `The user ${assignee} now assignee issue ${roomName}`;
+}
+
+const getInviteUser = (event, room) => {
+    const body = event.getContent().body;
+    if (body === '!assign') {
+        return;
+    }
+
+    // 8 it's length command "!assign"
+    let user = body.substring(8, body.length);
+    user = `@${user}:matrix.bingo-boom.ru`;
+
+    // 'members' is an array of objects
+    const members = room.getJoinedMembers();
+    members.forEach((member) => {
+        if (member.userId === user) {
+            user = undefined;
+        }
+        return;
+    });
+
+    return user;
 }
 
 const getAssgnee = (event) => {
@@ -118,6 +152,10 @@ const schemaAssignee = (assignee) => {
     return JSON.stringify({
         "name": `${assignee}`
     });
+}
+
+const schemaWatcher = (assignee) => {
+    return `"${assignee}"`;
 }
 
 module.exports = handler;
