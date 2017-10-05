@@ -124,8 +124,8 @@ const issueMove = async (body, room, roomName, self) => {
     }, 0);
 
     if (!moveId) {
-        let postListCommands = listCommands.reduce((res, cur) => {
-            return `${res} &nbsp;&nbsp;${cur.name}<br>`;
+        let postListCommands = listCommands.reduce((res, cur, index) => {
+            return `${res}&nbsp;&nbsp;${index})&nbsp;${cur.name}<br>`;
         }, '');
         postListCommands = `<b>${t('listJiraCommand')}:</b><br>${postListCommands}`
         await self.sendHtmlMessage(room.roomId, 'list commands', postListCommands);
