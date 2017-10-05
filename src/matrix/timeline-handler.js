@@ -115,9 +115,12 @@ const appointAssignee = async (event, room, roomName, self) => {
 const issueMove = async (body, room, roomName, self) => {
     const listCommands = await getListCommand(roomName);
 
-    const moveId = listCommands.reduce((res, cur) => {
+    const moveId = listCommands.reduce((res, cur, index) => {
         // check command
-        if (~body.toLowerCase().indexOf(cur.name.toLowerCase())) {
+        if (
+            ~body.toLowerCase().indexOf(cur.name.toLowerCase()) 
+            || ~body.toLowerCase().indexOf(String(index + 1))
+        ) {
             return cur.id;
         }
         return res;
