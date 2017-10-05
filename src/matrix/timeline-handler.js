@@ -41,6 +41,8 @@ const eventFromMatrix = async (event, room, sender, self) => {
         return;
     }
 
+    logger.info(`${sender} sent message:\n ${body}`);
+
     let roomName = room.getCanonicalAlias();
     roomName = roomName.substring(1, roomName.length - postfix);
 
