@@ -18,6 +18,10 @@ const postComment = async (body, sender, room, roomName, self) => {
         if (jiraComment.status !== 201) {
             const post = t('errorMatrixComment');
             await self.sendHtmlMessage(room.roomId, post, post);
+            return `
+                Comment from ${sender} for ${roomName} not published
+                \nJira have status ${iraComment.status}
+            `;
         }
 
         const post = t('successMatrixComment');
@@ -98,10 +102,7 @@ const issueMove = async (body, room, roomName, self) => {
 
     const moveId = listCommands.reduce((res, cur, index) => {
         // check command
-        if (
-            ~body.toLowerCase().indexOf(cur.name.toLowerCase()) 
-            || ~body.toLowerCase().indexOf(String(index + 1))
-        ) {
+        if (checkCommand(body, cur.name, index)) {
             return cur.id;
         }
         return res;
@@ -145,6 +146,11 @@ const getListCommand = async (roomName) => {
         return { name: move.name, id: move.id };
     });
 }
+
+const checkCommand = (body, name, index) => Boolean(
+    ~body.toLowerCase().indexOf(name.toLowerCase()) 
+    || ~body.indexOf(String(index + 1))
+)
 
 const schemaComment = (sender, message) => {
     const post = `[~${sender}]:\n${message}`
