@@ -2,31 +2,32 @@ const jiraRequest = require('../utils');
 const {auth} = require('../jira');
 const logger = require('simple-color-logger')();
 const {t} = require('../locales');
+const conf = require('../config');
 
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue'
 
 const postComment = async (body, sender, room, roomName, self) => {
-    const message = body.substring(8);
+    const message = body.substring(9);
     
-        // post comment in issue
-        const jiraComment = await jiraRequest.fetchPostJSON(
-            `${baseUrl}/${roomName}/comment`,
-            auth(),
-            schemaComment(sender, message)
-        );
+    // post comment in issue
+    const jiraComment = await jiraRequest.fetchPostJSON(
+        `${baseUrl}/${roomName}/comment`,
+        auth(),
+        schemaComment(sender, message)
+    );
 
-        if (jiraComment.status !== 201) {
-            const post = t('errorMatrixComment');
-            await self.sendHtmlMessage(room.roomId, post, post);
-            return `
-                Comment from ${sender} for ${roomName} not published
-                \nJira have status ${iraComment.status}
-            `;
-        }
-
-        const post = t('successMatrixComment');
+    if (jiraComment.status !== 201) {
+        const post = t('errorMatrixComment');
         await self.sendHtmlMessage(room.roomId, post, post);
-        return `Comment from ${sender} for ${roomName}`;
+        return `
+            Comment from ${sender} for ${roomName} not published
+            \nJira have status ${iraComment.status}
+        `;
+    }
+
+    const post = t('successMatrixComment');
+    await self.sendHtmlMessage(room.roomId, post, post);
+    return `Comment from ${sender} for ${roomName}`;
 }
 
 const appointAssignee = async (event, room, roomName, self) => {
@@ -65,14 +66,15 @@ const appointAssignee = async (event, room, roomName, self) => {
 
 const getAssgnee = (event) => {
     const body = event.getContent().body;
-    const postfix = 21;
+    // ":matrix.bingo-boom.ru".length
+    const postfix = `:${conf.matrix.domain}`.length;
     if (body === '!assign') {
         const sender = event.getSender();
         return sender.substring(1, sender.length - postfix);
     }
 
     // 8 it's length command "!assign"
-    return body.substring(8, body.length);
+    return body.substring(8);
 }
 
 const getInviteUser = (event, room) => {
@@ -82,7 +84,7 @@ const getInviteUser = (event, room) => {
     }
 
     // 8 it's length command "!assign"
-    let user = body.substring(8, body.length);
+    let user = body.substring(8);
     user = `@${user}:matrix.bingo-boom.ru`;
 
     // 'members' is an array of objects
@@ -153,10 +155,8 @@ const checkCommand = (body, name, index) => Boolean(
 )
 
 const schemaComment = (sender, message) => {
-    const post = `[~${sender}]:\n${message}`
-    return JSON.stringify({
-        "body": post
-    });
+    const body = `[~${sender}]:\n${message}`
+    return JSON.stringify({body});
 }
 
 const schemaAssignee = (assignee) => {
