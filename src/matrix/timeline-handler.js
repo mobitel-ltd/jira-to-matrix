@@ -1,6 +1,6 @@
 const logger = require('simple-color-logger')();
 const jiraCommands = require('./jira-commands.js');
-const postfix = require('../config').matrix.postfix;
+const {postfix} = require('../config').matrix;
 
 const handler =  async function(event, room, toStartOfTimeline) {
     if (event.getType() !== "m.room.message" || toStartOfTimeline) {
@@ -11,7 +11,7 @@ const handler =  async function(event, room, toStartOfTimeline) {
     const self = this;
     
     let sender = event.getSender();
-    sender = sender.substring(1, sender.length - postfix);
+    sender = sender.slice(1, -postfix);
 
     try {
         const command = await eventFromMatrix(event, room, sender, self);
@@ -39,7 +39,7 @@ const eventFromMatrix = async (event, room, sender, self) => {
     logger.info(`${sender} sent message:\n ${body}`);
 
     let roomName = room.getCanonicalAlias();
-    roomName = roomName.substring(1, roomName.length - postfix);
+    roomName = roomName.slice(1, -postfix);
 
     switch (op[0]) {
         case '!comment':

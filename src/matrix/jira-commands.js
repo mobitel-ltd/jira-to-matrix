@@ -2,7 +2,7 @@ const jiraRequest = require('../utils');
 const {auth} = require('../jira');
 const logger = require('simple-color-logger')();
 const {t} = require('../locales');
-const postfix = require('../config').matrix.postfix;
+const { postfix } = require('../config').matrix;
 
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue'
 
@@ -66,10 +66,10 @@ const appointAssignee = async (event, room, roomName, self) => {
 
 const getAssgnee = (event) => {
     const body = event.getContent().body;
-    
+
     if (body === '!assign') {
         const sender = event.getSender();
-        return sender.substring(1, sender.length - postfix);
+        return sender.slice(1, -postfix);
     }
 
     // 8 it's length command "!assign"
