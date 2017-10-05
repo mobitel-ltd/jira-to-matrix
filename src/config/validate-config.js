@@ -48,6 +48,7 @@ const schema = obj({
     ttm_minutes: int,
     matrix: obj({
         domain: string,
+        postfix: int,
         user: string,
         password: string,
         tokenTTL: int,

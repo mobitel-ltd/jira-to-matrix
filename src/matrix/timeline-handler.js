@@ -1,11 +1,6 @@
 const logger = require('simple-color-logger')();
 const jiraCommands = require('./jira-commands.js');
-const conf = require('../config');
-
-// postfix charsets in matrix names
-// matrix sends "@jira_test:matrix.bingo-boom.ru"
-// but i need only "jira_test"
-const postfix = conf.matrix.domain.length + 1;
+const postfix = require('../config').matrix.postfix;
 
 const handler =  async function(event, room, toStartOfTimeline) {
     if (event.getType() !== "m.room.message" || toStartOfTimeline) {
