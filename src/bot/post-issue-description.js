@@ -90,10 +90,10 @@ const getTutorial = () => {
     example:</h5>
         ${indent}<font color="green"><strong>!move</strong></font><br>
         ${indent}you will see a list:<br>
-        ${indent}${indent}Done<br>
-        ${indent}${indent}On hold<br>
+        ${indent}${indent}1) Done<br>
+        ${indent}${indent}2) On hold<br>
         ${indent}Use <font color="green"><strong>"!move done"</strong></font> or 
-        <font color="green"><strong>"!move on hold"</strong></font>
+        <font color="green"><strong>"!move 1"</strong></font>
     `;
     return post;
 }

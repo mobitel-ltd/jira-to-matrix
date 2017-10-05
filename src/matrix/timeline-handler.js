@@ -115,17 +115,20 @@ const appointAssignee = async (event, room, roomName, self) => {
 const issueMove = async (body, room, roomName, self) => {
     const listCommands = await getListCommand(roomName);
 
-    const moveId = listCommands.reduce((res, cur) => {
+    const moveId = listCommands.reduce((res, cur, index) => {
         // check command
-        if (~body.toLowerCase().indexOf(cur.name.toLowerCase())) {
+        if (
+            ~body.toLowerCase().indexOf(cur.name.toLowerCase()) 
+            || ~body.toLowerCase().indexOf(String(index + 1))
+        ) {
             return cur.id;
         }
         return res;
     }, 0);
 
     if (!moveId) {
-        let postListCommands = listCommands.reduce((res, cur) => {
-            return `${res} &nbsp;&nbsp;${cur.name}<br>`;
+        let postListCommands = listCommands.reduce((res, cur, index) => {
+            return `${res}&nbsp;&nbsp;${index + 1})&nbsp;${cur.name}<br>`;
         }, '');
         postListCommands = `<b>${t('listJiraCommand')}:</b><br>${postListCommands}`
         await self.sendHtmlMessage(room.roomId, 'list commands', postListCommands);
