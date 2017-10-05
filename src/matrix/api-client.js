@@ -132,6 +132,15 @@ module.exports = sdkConnect => (
         }
         // await matrixClient.clearStores();
         matrixClient.on("Room.timeline", cbTimeline);
+
+        matrixClient.on("sync", function(state, prevState, data) {
+            if (state !== 'SYNCING' || prevState !== 'SYNCING') {
+                logger.warn(`state: ${state}`);
+                logger.warn(`prevState: ${prevState}`);
+                logger.warn(`data: ${data}`);
+            }
+            return;
+        });
         
         return R.map(closer => closer(matrixClient))(api);
     }
