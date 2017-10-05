@@ -137,6 +137,7 @@ module.exports = sdkConnect => (
             if (state !== 'SYNCING' || prevState !== 'SYNCING') {
                 logger.warn(`state: ${state}`);
                 logger.warn(`prevState: ${prevState}`);
+                logger.warn(`data: ${data}`);
             }
             return;
         });
