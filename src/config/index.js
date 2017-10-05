@@ -88,5 +88,6 @@ function composeConfig(config) {
 
 // @todo Need total freeze
 const config = composeConfig(configData);
+config.matrix.postfix = `:${config.matrix.domain}`.length;
 
 module.exports = config;
