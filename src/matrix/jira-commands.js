@@ -171,7 +171,7 @@ const addWatchers = async (body, room, roomName, self) => {
     const userId = `@${user}:matrix.bingo-boom.ru`;
     const invite = await self.invite(room.roomId, userId);
 
-    return `User ${user} added in watchers for issue ${roomName}`;
+    return `User ${user} was added in watchers for issue ${roomName}`;
 }
 
 const schemaComment = (sender, message) => {

@@ -97,7 +97,7 @@ const getTutorial = () => {
     <h5>Use "!spec" command to add watcher for issue<br>
     example:</h5>
         ${indent}<font color="green"><strong>!spec mv_nosak</strong></font><br>
-        ${indent}user '<font color="green">mv_nosak</font>' added in watchers for the issue<br><br>
+        ${indent}user '<font color="green">mv_nosak</font>' was added in watchers for the issue<br><br>
     `;
     return post;
 }
