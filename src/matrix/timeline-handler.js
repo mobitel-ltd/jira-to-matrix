@@ -31,9 +31,9 @@ const handler =  async function(event, room, toStartOfTimeline) {
 
 const eventFromMatrix = async (event, room, sender, self) => {
     const body = event.getContent().body;
-    const op = body.match(/!\w*\b/g);
+    const op = body.match(/!\w*\b/);
 
-    if (!op) {
+    if (!op || op.index !== 0) {
         return;
     }
 
