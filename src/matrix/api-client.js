@@ -122,6 +122,24 @@ api.setRoomTopic = client => (
     }
 );
 
+const inviteBot = async function(event) {
+    if (event.event.membership !== 'invite') {
+        return;
+    }
+
+    let sender = event.getSender();
+    sender = sender.slice(1, -conf.postfix);
+
+    if (!conf.admins.includes(sender) && sender !== conf.user) {
+        await this.leave(event.getRoomId());
+        return;
+    }
+
+    if (event.getStateKey() === conf.userId) {
+        await this.joinRoom(event.getRoomId())
+    }
+}
+
 module.exports = sdkConnect => (
     async function connect() {
         const matrixClient = await sdkConnect();
@@ -143,23 +161,7 @@ module.exports = sdkConnect => (
             return;
         });
 
-        matrixClient.on("event", async function(event){
-            if (event.event.membership !== 'invite') {
-                return;
-            }
-
-            let sender = event.getSender();
-            sender = sender.slice(1, -conf.postfix);
-
-            if (!conf.admins.includes(sender)) {
-                logger.info(`User ${sender} not admin`);
-                return;
-            }
-            
-            if (event.getStateKey() === conf.userId) {
-                await this.joinRoom(event.getRoomId())
-            }
-        });
+        matrixClient.on("event", inviteBot);
         
         return R.map(closer => closer(matrixClient))(api);
     }
