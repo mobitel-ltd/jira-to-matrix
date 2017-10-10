@@ -2,7 +2,7 @@ const jiraRequest = require('../utils');
 const {auth} = require('../jira');
 const logger = require('simple-color-logger')();
 const {t} = require('../locales');
-const {postfix} = require('../config').matrix;
+const {postfix, domain} = require('../config').matrix;
 
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue'
 
@@ -84,7 +84,7 @@ const getInviteUser = (event, room) => {
 
     // 8 it's length command "!assign"
     let user = body.substring(8);
-    user = `@${user}:matrix.bingo-boom.ru`;
+    user = `@${user}:${domain}`;
 
     // 'members' is an array of objects
     const members = room.getJoinedMembers();
@@ -168,7 +168,7 @@ const addWatchers = async (body, room, roomName, self) => {
         return `Watcher ${user} don't add in ${roomName} issue`
     }
 
-    const userId = `@${user}:matrix.bingo-boom.ru`;
+    const userId = `@${user}:${domain}`;
     const invite = await self.invite(room.roomId, userId);
 
     return `User ${user} was added in watchers for issue ${roomName}`;
