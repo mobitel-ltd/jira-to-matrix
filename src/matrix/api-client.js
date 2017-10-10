@@ -2,9 +2,8 @@
 const _ = require('lodash');
 const R = require('ramda');
 const to = require('await-to-js').default;
-const conf = require('../config');
+const conf = require('../config').matrix;
 const logger = require('simple-color-logger')();
-const fetchPostJSON = require('../utils').fetchPostJSON;
 const cbTimeline = require('./timeline-handler.js');
 
 const api = {};
@@ -25,7 +24,7 @@ api.createRoom = client => (
 api.getRoomId = client => (
     async function getRoomId(alias) {
         const [err, response] = await to(
-            client.getRoomIdForAlias(`#${alias}:${conf.matrix.domain}`)
+            client.getRoomIdForAlias(`#${alias}:${conf.domain}`)
         );
         if (err) {
             if (err.errcode !== 'M_NOT_FOUND') {
@@ -43,7 +42,7 @@ api.getRoomId = client => (
 api.getRoomByAlias = client => (
     async function getRoomByAlias(alias) {
         const [err, roomID] = await to (
-            client.getRoomIdForAlias(`#${alias}:${conf.matrix.domain}`)
+            client.getRoomIdForAlias(`#${alias}:${conf.domain}`)
         );
         if (err) {
             if (err.errcode !== 'M_NOT_FOUND') {
@@ -93,7 +92,7 @@ api.sendHtmlMessage = client => (
 api.createAlias = client => (
     async function createAlias(alias, roomId) {
         const [err] = await to(client.createAlias(
-            `#${alias}:${conf.matrix.domain}`,
+            `#${alias}:${conf.domain}`,
             roomId
         ));
         if (err) {
@@ -137,9 +136,29 @@ module.exports = sdkConnect => (
             if (state !== 'SYNCING' || prevState !== 'SYNCING') {
                 logger.warn(`state: ${state}`);
                 logger.warn(`prevState: ${prevState}`);
-                logger.warn(`data: ${data}`);
+                if (data instanceof Object) {
+                    logger.warn(`data: ${Object.keys(data)}`);
+                }
             }
             return;
+        });
+
+        matrixClient.on("event", async function(event){
+            if (event.event.membership !== 'invite') {
+                return;
+            }
+
+            let sender = event.getSender();
+            sender = sender.slice(1, -conf.postfix);
+
+            if (!conf.admins.includes(sender)) {
+                logger.info(`User ${sender} not admin`);
+                return;
+            }
+            
+            if (event.getStateKey() === conf.userId) {
+                await this.joinRoom(event.getRoomId())
+            }
         });
         
         return R.map(closer => closer(matrixClient))(api);
