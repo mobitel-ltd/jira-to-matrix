@@ -47,6 +47,7 @@ const schema = obj({
     }),
     ttm_minutes: int,
     matrix: obj({
+        admins: array(J.string()),
         domain: string,
         user: string,
         password: string,
