@@ -83,7 +83,7 @@ const getTutorial = () => {
     <h5>Use "!assign" command to assign jira issue<br>
     example:</h5>
         ${indent}<font color="green"><strong>!assign mv_nosak</strong></font><br>
-        ${indent}user mv_nosak will become assignee for the issue<br><br>
+        ${indent}user '<font color="green">mv_nosak</font>' will become assignee for the issue<br><br>
         ${indent}<font color="green"><strong>!assign</strong></font><br>
         ${indent}you will become assignee for the issue
     <h5>Use "!move" command to view list of available transitions<br>
@@ -94,6 +94,10 @@ const getTutorial = () => {
         ${indent}${indent}2) On hold<br>
         ${indent}Use <font color="green"><strong>"!move done"</strong></font> or 
         <font color="green"><strong>"!move 1"</strong></font>
+    <h5>Use "!spec" command to add watcher for issue<br>
+    example:</h5>
+        ${indent}<font color="green"><strong>!spec mv_nosak</strong></font><br>
+        ${indent}user '<font color="green">mv_nosak</font>' was added in watchers for the issue<br><br>
     `;
     return post;
 }

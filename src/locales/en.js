@@ -23,6 +23,7 @@ const dict = Object.freeze({
     listJiraCommand: 'List of available commands',
     errorMoveJira: 'ERROR! Transition is failed<br>Try again',
     successMoveJira: 'Transition successful',
+    errorWatcherJira: 'The watcher is not added! Check user name and try again',
 });
 
 module.exports.dict = dict;

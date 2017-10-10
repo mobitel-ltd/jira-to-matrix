@@ -2,7 +2,7 @@ const jiraRequest = require('../utils');
 const {auth} = require('../jira');
 const logger = require('simple-color-logger')();
 const {t} = require('../locales');
-const { postfix } = require('../config').matrix;
+const {postfix, domain} = require('../config').matrix;
 
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue'
 
@@ -84,7 +84,7 @@ const getInviteUser = (event, room) => {
 
     // 8 it's length command "!assign"
     let user = body.substring(8);
-    user = `@${user}:matrix.bingo-boom.ru`;
+    user = `@${user}:${domain}`;
 
     // 'members' is an array of objects
     const members = room.getJoinedMembers();
@@ -153,6 +153,27 @@ const checkCommand = (body, name, index) => Boolean(
     || ~body.indexOf(String(index + 1))
 )
 
+const addWatchers = async (body, room, roomName, self) => {
+    const user = body.substring(6);
+
+    const jiraWatcher = await jiraRequest.fetchPostJSON(
+        `${baseUrl}/${roomName}/watchers`,
+        auth(),
+        schemaWatcher(user)
+    );
+
+    if (jiraWatcher.status !== 204) {
+        const post = t('errorWatcherJira');
+        self.sendHtmlMessage(room.roomId, post, post);
+        return `Watcher ${user} don't add in ${roomName} issue`
+    }
+
+    const userId = `@${user}:${domain}`;
+    const invite = await self.invite(room.roomId, userId);
+
+    return `User ${user} was added in watchers for issue ${roomName}`;
+}
+
 const schemaComment = (sender, message) => {
     const body = `[~${sender}]:\n${message}`
     return JSON.stringify({body});
@@ -180,4 +201,5 @@ module.exports = {
     postComment,
     appointAssignee,
     issueMove,
+    addWatchers,
 };
