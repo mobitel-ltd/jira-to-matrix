@@ -168,8 +168,21 @@ const addWatchers = async (body, room, roomName, self) => {
         return `Watcher ${user} don't add in ${roomName} issue`
     }
 
-    const userId = `@${user}:${domain}`;
-    const invite = await self.invite(room.roomId, userId);
+    const post = t('successWatcherJira');
+    self.sendHtmlMessage(room.roomId, post, post);
+
+    let userId = `@${user}:${domain}`;
+    const members = room.getJoinedMembers();
+    members.forEach((member) => {
+        if (member.userId === userId) {
+            userId = undefined;
+        }
+        return;
+    });
+
+    if (userId) {
+        const invite = await self.invite(room.roomId, userId);
+    }
 
     return `User ${user} was added in watchers for issue ${roomName}`;
 }

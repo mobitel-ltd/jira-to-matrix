@@ -27,6 +27,7 @@ const dict = Object.freeze({
     errorMoveJira: 'ОШИБКА! Статус задачи не изменен<br>Попробуйте еще раз',
     successMoveJira: 'Статус задачи обновлен',
     errorWatcherJira: 'Наблюдатель не добавлен! Проверьте имени пользователя и попробуйте еще раз',
+    successWatcherJira: 'Наблюдатель добавлен',
 });
 /* spell-checker: enable */
 

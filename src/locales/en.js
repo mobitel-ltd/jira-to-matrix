@@ -24,6 +24,7 @@ const dict = Object.freeze({
     errorMoveJira: 'ERROR! Transition is failed<br>Try again',
     successMoveJira: 'Transition successful',
     errorWatcherJira: 'The watcher is not added! Check user name and try again',
+    successWatcherJira: 'Watcher was added',
 });
 
 module.exports.dict = dict;
