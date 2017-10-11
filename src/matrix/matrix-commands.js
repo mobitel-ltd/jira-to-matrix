@@ -1,4 +1,5 @@
-const {t} = require('../locales');
+/* eslint-disable camelcase */
+const {t: translate} = require('../locales'); // eslint-disable-line id-length
 const {domain, admins} = require('../config').matrix;
 
 const getEvent = async (roomId, self) => {
@@ -60,7 +61,7 @@ const upgradeUser = async (body, sender, room, roomName, self) => {
         return `User ${user} became a moderator for room ${roomName}`;
     }
 
-    const post = t('notFoundUser');
+    const post = translate('notFoundUser');
     await self.sendHtmlMessage(room.roomId, post, post);
 };
 

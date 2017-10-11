@@ -57,16 +57,14 @@ api.getRoomByAlias = client => (
     }
 );
 
-api.getRoomMembers = () => (
-    async function getRoomMembers(roomAlias) {
-        const room = await this.getRoomByAlias(roomAlias);
-        if (!room) {
-            logger.warn(`Don't return room for alias ${roomAlias}`);
-            return;
-        }
-        return _.values(room.currentState.members).map(member => member.userId);
+api.getRoomMembers = () => async function GetRoomMembers(roomAlias) {
+    const room = await this.getRoomByAlias(roomAlias);
+    if (!room) {
+        logger.warn(`Don't return room for alias ${roomAlias}`);
+        return;
     }
-);
+    return _.values(room.currentState.members).map(member => member.userId);
+};
 
 api.invite = client => (
     async function invite(roomId, userId) {
