@@ -41,7 +41,7 @@ api.getRoomId = client => (
 
 api.getRoomByAlias = client => (
     async function getRoomByAlias(alias) {
-        const [err, roomID] = await to (
+        const [err, roomID] = await to(
             client.getRoomIdForAlias(getAlias(alias))
         );
         if (err) {
@@ -124,7 +124,7 @@ api.setRoomTopic = client => (
 
 const getAlias = alias => `#${alias}:${conf.domain}`;
 
-const inviteBot = async function(event) {
+const inviteBot = async function InviteBot(event) {
     if (event.event.membership !== 'invite') {
         return;
     }
@@ -138,30 +138,29 @@ const inviteBot = async function(event) {
     }
 
     if (event.getStateKey() === conf.userId) {
-        await this.joinRoom(event.getRoomId())
+        await this.joinRoom(event.getRoomId());
     }
-}
+};
 
 module.exports = sdkConnect => (
     async function connect() {
         const matrixClient = await sdkConnect();
         if (!matrixClient) {
-            logger.error("'matrixClient' is undefined");
+            logger.error('\'matrixClient\' is undefined');
             return;
         }
         // await matrixClient.clearStores();
-        matrixClient.on("Room.timeline", cbTimeline);
+        matrixClient.on('Room.timeline', cbTimeline);
 
-        matrixClient.on("sync", function(state, prevState, data) {
+        matrixClient.on('sync', (state, prevState, data) => {
             if (state !== 'SYNCING' || prevState !== 'SYNCING') {
                 logger.warn(`state: ${state}`);
                 logger.warn(`prevState: ${prevState}`);
             }
-            return;
         });
 
-        matrixClient.on("event", inviteBot);
-        
+        matrixClient.on('event', inviteBot);
+
         return R.map(closer => closer(matrixClient))(api);
     }
 );
