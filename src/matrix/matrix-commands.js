@@ -53,6 +53,31 @@ const isMember = (room, userId) => {
     }, false);
 }
 
+const inviteInRoom = async (body, sender, self) => {
+    if (!admins.includes(sender)) {
+        return;
+    }
+
+    const roomId = await getRoomId(body, self);
+    const userId = `@${sender}:${domain}`;
+    const a = await self.invite(roomId, userId);
+    return;
+}
+
+const getRoomId = async (body, self) => {
+    const room = body.substring(8).trim();
+    if (~room.indexOf(domain)) {
+        const {room_id} = await self.getRoomIdForAlias(room);
+        return room_id;
+    }
+
+    const alias = `#${room.toUpperCase()}:${domain}`;
+    const {room_id} = await self.getRoomIdForAlias(alias);
+
+    return room_id;
+}
+
 module.exports = {
     upgradeUser,
+    inviteInRoom,
 }
