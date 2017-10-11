@@ -51,6 +51,8 @@ const eventFromMatrix = async (event, room, sender, self) => {
             return await jiraCommands.issueMove(body, room, roomName, self);
         case '!spec':
             return await jiraCommands.addWatchers(body, room, roomName, self);
+        case '!op':
+            return await jiraCommands.upgradeUSer(body, sender, room, roomName, self);
         default:
             logger.warn(`The command ${op[0]} failed`);
             return;
