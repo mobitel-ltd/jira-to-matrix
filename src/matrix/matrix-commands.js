@@ -20,7 +20,7 @@ const upgradeUser = async (body, sender, room, roomName, self) => {
     const userId = `@${user}:${domain}`;
 
     if (isMember(room, userId)) {
-        const a = await self.setPowerLevel(room.roomId, userId, 50, event);
+        await self.setPowerLevel(room.roomId, userId, 50, event);
         return `User ${user} became a moderator for room ${roomName}`;
     }
 

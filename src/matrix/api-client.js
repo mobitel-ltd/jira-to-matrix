@@ -24,7 +24,7 @@ api.createRoom = client => (
 api.getRoomId = client => (
     async function getRoomId(alias) {
         const [err, response] = await to(
-            client.getRoomIdForAlias(`#${alias}:${conf.domain}`)
+            client.getRoomIdForAlias(getAlias(alias))
         );
         if (err) {
             if (err.errcode !== 'M_NOT_FOUND') {
@@ -42,7 +42,7 @@ api.getRoomId = client => (
 api.getRoomByAlias = client => (
     async function getRoomByAlias(alias) {
         const [err, roomID] = await to (
-            client.getRoomIdForAlias(`#${alias}:${conf.domain}`)
+            client.getRoomIdForAlias(getAlias(alias))
         );
         if (err) {
             if (err.errcode !== 'M_NOT_FOUND') {
@@ -92,7 +92,7 @@ api.sendHtmlMessage = client => (
 api.createAlias = client => (
     async function createAlias(alias, roomId) {
         const [err] = await to(client.createAlias(
-            `#${alias}:${conf.domain}`,
+            getAlias(alias),
             roomId
         ));
         if (err) {
@@ -121,6 +121,8 @@ api.setRoomTopic = client => (
         return !err;
     }
 );
+
+const getAlias = alias => `#${alias}:${conf.domain}`;
 
 const inviteBot = async function(event) {
     if (event.event.membership !== 'invite') {
@@ -154,9 +156,6 @@ module.exports = sdkConnect => (
             if (state !== 'SYNCING' || prevState !== 'SYNCING') {
                 logger.warn(`state: ${state}`);
                 logger.warn(`prevState: ${prevState}`);
-                if (data instanceof Object) {
-                    logger.warn(`data: ${Object.keys(data)}`);
-                }
             }
             return;
         });
