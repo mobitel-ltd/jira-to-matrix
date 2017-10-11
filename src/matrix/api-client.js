@@ -1,12 +1,14 @@
-/* eslint-disable camelcase, no-use-before-define */
-const _ = require('lodash');
-const R = require('ramda');
+/* eslint-disable camelcase */
+const lodash = require('lodash');
+const Ramda = require('ramda');
 const to = require('await-to-js').default;
 const conf = require('../config').matrix;
 const logger = require('simple-color-logger')();
 const cbTimeline = require('./timeline-handler.js');
 
 const api = {};
+
+const getAlias = alias => `#${alias}:${conf.domain}`;
 
 api.createRoom = client => async function createRoom(options) {
     const [err, response] = await to(
@@ -57,7 +59,7 @@ api.getRoomMembers = () => async function GetRoomMembers(roomAlias) {
         logger.warn(`Don't return room for alias ${roomAlias}`);
         return;
     }
-    return _.values(room.currentState.members).map(member => member.userId);
+    return lodash.values(room.currentState.members).map(member => member.userId);
 };
 
 api.invite = client => async function invite(roomId, userId) {
@@ -104,8 +106,6 @@ api.setRoomTopic = client => async function setRoomTopic(roomId, topic) {
     return !err;
 };
 
-const getAlias = alias => `#${alias}:${conf.domain}`;
-
 const inviteBot = async function InviteBot(event) {
     if (event.event.membership !== 'invite') {
         return;
@@ -124,25 +124,23 @@ const inviteBot = async function InviteBot(event) {
     }
 };
 
-module.exports = sdkConnect => (
-    async function connect() {
-        const matrixClient = await sdkConnect();
-        if (!matrixClient) {
-            logger.error('\'matrixClient\' is undefined');
-            return;
-        }
-        // await matrixClient.clearStores();
-        matrixClient.on('Room.timeline', cbTimeline);
-
-        matrixClient.on('sync', (state, prevState, data) => {
-            if (state !== 'SYNCING' || prevState !== 'SYNCING') {
-                logger.warn(`state: ${state}`);
-                logger.warn(`prevState: ${prevState}`);
-            }
-        });
-
-        matrixClient.on('event', inviteBot);
-
-        return R.map(closer => closer(matrixClient))(api);
+module.exports = sdkConnect => async function connect() {
+    const matrixClient = await sdkConnect();
+    if (!matrixClient) {
+        logger.error('\'matrixClient\' is undefined');
+        return;
     }
-);
+    // await matrixClient.clearStores();
+    matrixClient.on('Room.timeline', cbTimeline);
+
+    matrixClient.on('sync', (state, prevState, data) => {
+        if (state !== 'SYNCING' || prevState !== 'SYNCING') {
+            logger.warn(`state: ${state}`);
+            logger.warn(`prevState: ${prevState}`);
+        }
+    });
+
+    matrixClient.on('event', inviteBot);
+
+    return Ramda.map(closer => closer(matrixClient))(api);
+};

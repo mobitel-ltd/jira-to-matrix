@@ -1,4 +1,4 @@
-// @flow
+/* eslint-disable camelcase */
 const dict = Object.freeze({
     comment_created: 'commented',
     comment_updated: 'changed comment',

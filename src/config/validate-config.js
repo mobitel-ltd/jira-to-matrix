@@ -1,12 +1,13 @@
-const J = require('joi');
+/* eslint-disable camelcase */
+const Joi = require('joi');
 const logger = require('simple-color-logger')();
 
-const int = J.number().integer().required();
-const string = J.string().required();
-const boolean = J.boolean().required();
+const int = Joi.number().integer().required();
+const string = Joi.string().required();
+const boolean = Joi.boolean().required();
 const address = [string.uri(), string.ip()];
-const obj = fields => J.object(fields).required();
-const array = itemsType => J.array().items(itemsType);
+const obj = fields => Joi.object(fields).required();
+const array = itemsType => Joi.array().items(itemsType);
 
 const schema = obj({
     port: int,
@@ -31,13 +32,13 @@ const schema = obj({
         postChangesToLinks: obj({
             on: boolean,
             // Not to post to closed issues (3 - id of status category "Done")
-            ignoreDestStatusCat: array(J.number().integer()),
+            ignoreDestStatusCat: array(Joi.number().integer()),
         }),
     }),
-    usersToIgnore: array(J.string()),
+    usersToIgnore: array(Joi.string()),
     testMode: obj({
         on: boolean,
-        users: array(J.string()),
+        users: array(Joi.string()),
     }),
     redis: obj({
         host: string,
@@ -47,7 +48,7 @@ const schema = obj({
     }),
     ttm_minutes: int,
     matrix: obj({
-        admins: array(J.string()),
+        admins: array(Joi.string()),
         domain: string,
         user: string,
         password: string,
@@ -65,7 +66,7 @@ const validate = function validate(config) {
         abortEarly: false,
         convert: false,
     };
-    const {error} = J.validate(config, schema, options);
+    const {error} = Joi.validate(config, schema, options);
     if (error) {
         logger.error('Config is invalid:');
         error.details.forEach(detail => {
