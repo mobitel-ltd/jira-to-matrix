@@ -28,6 +28,7 @@ const dict = Object.freeze({
     successMoveJira: 'Статус задачи обновлен',
     errorWatcherJira: 'Наблюдатель не добавлен! Проверьте имени пользователя и попробуйте еще раз',
     successWatcherJira: 'Наблюдатель добавлен',
+    notFoundUser: 'Пользователь не найден',
 });
 /* spell-checker: enable */
 
