@@ -1,4 +1,5 @@
-const R = require('ramda');
+/* eslint-disable camelcase, no-undefined, id-length */
+const Ramda = require('ramda');
 const names = require('ru-names');
 
 /* spell-checker: disable */
@@ -28,29 +29,30 @@ const dict = Object.freeze({
     successMoveJira: 'Статус задачи обновлен',
     errorWatcherJira: 'Наблюдатель не добавлен! Проверьте имени пользователя и попробуйте еще раз',
     successWatcherJira: 'Наблюдатель добавлен',
+    notFoundUser: 'Пользователь не найден',
 });
 /* spell-checker: enable */
 
-function getGenderVerbEnding(fullName) {
-    const getGender = R.pipe(
-        R.split(/\s+/),
-        R.map(R.pipe(R.trim, R.toLower)),
-        R.reduce((result, part) => {
+const getGenderVerbEnding = function getGenderVerbEnding(fullName) {
+    const getGender = Ramda.pipe(
+        Ramda.split(/\s+/),
+        Ramda.map(Ramda.pipe(Ramda.trim, Ramda.toLower)),
+        Ramda.reduce((result, part) => {
             const gender = names[part];
-            return gender ? R.reduced(gender) : undefined;
+            return gender ? Ramda.reduced(gender) : undefined;
         }, undefined)
     );
-    return R.pipe(
-        R.ifElse(R.is(String), getGender, R.always(undefined)),
-        R.prop(R.__, {m: '', f: 'а'}),
-        R.defaultTo('(а)')
+    return Ramda.pipe(
+        Ramda.ifElse(Ramda.is(String), getGender, Ramda.always(undefined)),
+        Ramda.prop(Ramda.__, {m: '', f: 'а'}),
+        Ramda.defaultTo('(а)')
     )(fullName);
-}
+};
 
-function tValues(values, personName) {
+const tValues = function tValues(values, personName) {
     const ending = getGenderVerbEnding(personName);
-    return R.assoc('f', ending, values);
-}
+    return Ramda.assoc('f', ending, values);
+};
 
 module.exports.dict = dict;
 module.exports.tValues = tValues;

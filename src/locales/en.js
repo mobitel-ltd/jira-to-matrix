@@ -1,4 +1,4 @@
-// @flow
+/* eslint-disable camelcase */
 const dict = Object.freeze({
     comment_created: 'commented',
     comment_updated: 'changed comment',
@@ -25,6 +25,7 @@ const dict = Object.freeze({
     successMoveJira: 'Transition successful',
     errorWatcherJira: 'The watcher is not added! Check user name and try again',
     successWatcherJira: 'Watcher was added',
+    notFoundUser: 'User is not found',
 });
 
 module.exports.dict = dict;
