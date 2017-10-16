@@ -1,10 +1,10 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const to = require('await-to-js').default;
 const logger = require('simple-color-logger')();
 const marked = require('marked');
 const redis = require('../redis-client');
 const jira = require('../jira');
-const {translate} = require('../locales');
+const translate = require('../locales');
 
 async function postLink(issue, relation, related, mclient) {
     const roomID = await mclient.getRoomId(issue.key);
@@ -14,7 +14,7 @@ async function postLink(issue, relation, related, mclient) {
     const values = {
         relation,
         key: related.key,
-        summary: R.path(['fields', 'summary'], related),
+        summary: Ramda.path(['fields', 'summary'], related),
         ref: jira.issue.ref(related.key),
     };
     await mclient.sendHtmlMessage(
@@ -44,7 +44,7 @@ async function handleLink(issueLink, mclient) {
 }
 
 async function handleLinks({mclient, body: hook}) {
-    const links = R.path(['issue', 'fields', 'issuelinks'])(hook);
+    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
     if (!links) {
         return;
     }

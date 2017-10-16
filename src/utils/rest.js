@@ -8,7 +8,7 @@ const to = require('await-to-js').default;
  * @param {String} basicAuth Authorization parameters for API
  * @returns {Promise} ???
  */
-const fetchJSON = async function(url, basicAuth) {
+const fetchJSON = async (url, basicAuth) => {
     const options = {
         headers: {Authorization: basicAuth},
         timeout: 11000,
@@ -34,7 +34,7 @@ const fetchJSON = async function(url, basicAuth) {
     return object;
 };
 
-const fetchPostJSON = async function(url, basicAuth, body) {
+const fetchPostJSON = async (url, basicAuth, body) => {
     const options = {
         method: 'POST',
         body,
@@ -53,7 +53,7 @@ const fetchPostJSON = async function(url, basicAuth, body) {
     return response;
 };
 
-const fetchPutJSON = async function(url, basicAuth, body) {
+const fetchPutJSON = async (url, basicAuth, body) => {
     const options = {
         method: 'PUT',
         body,
@@ -72,7 +72,11 @@ const fetchPutJSON = async function(url, basicAuth, body) {
     return response;
 };
 
-const paramsToQueryString = function(params) {
+/**
+ * @param {Array} params ???
+ * @return {*} ???
+*/
+const paramsToQueryString = params => {
     const toStrings = Ramda.map(Ramda.pipe(
         Ramda.mapObjIndexed((value, key) => `${key}=${value}`),
         Ramda.values

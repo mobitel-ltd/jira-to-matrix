@@ -1,4 +1,4 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const {tValues} = require('./ru');
 
 test('Gender ending for a Russian full name', () => { // eslint-disable-line no-undef
@@ -17,7 +17,7 @@ test('Gender ending for a Russian full name', () => { // eslint-disable-line no-
         [[], '(а)'],
     ];
     /* spell-checker: enable */
-    const fn = R.partial(tValues, [{prop: 1, f: 125}]);
+    const fn = Ramda.partial(tValues, [{prop: 1, f: 125}]);
     samples.forEach(sample => {
         const result = fn(sample[0]);
         const expected = {prop: 1, f: sample[1]};

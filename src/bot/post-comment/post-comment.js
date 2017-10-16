@@ -1,11 +1,11 @@
 const _ = require('lodash');
-const R = require('ramda');
+const Ramda = require('ramda');
 const htmlToString = require('html-to-text').fromString;
 const jira = require('../../jira');
-const {translate} = require('../../locales');
+const translate = require('../../locales');
 const logger = require('simple-color-logger')();
 
-const isCommentHook = R.contains(R.__, ['comment_created', 'comment_updated']);
+const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
 
 function pickRendered(issue, comment) {
     const comments = _.get(issue, 'renderedFields.comment.comments');
@@ -13,15 +13,15 @@ function pickRendered(issue, comment) {
         return comment.body;
     }
     return (
-        R.prop(
+        Ramda.prop(
             'body',
-            R.find(R.propEq('id', comment.id), comments)
+            Ramda.find(Ramda.propEq('id', comment.id), comments)
         ) || comment.body
     );
 }
 
 function headerText({comment, webhookEvent}) {
-    const fullName = R.path(['author', 'displayName'], comment);
+    const fullName = Ramda.path(['author', 'displayName'], comment);
     const event = isCommentHook(webhookEvent) ?
         webhookEvent :
         'comment_created';

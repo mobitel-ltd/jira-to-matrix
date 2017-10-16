@@ -1,4 +1,4 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const jira = require('../jira');
 const matrix = require('../matrix');
 const logger = require('simple-color-logger')();
@@ -13,7 +13,7 @@ async function inviteNew(client, issue) {
         return;
     }
     const members = matrix.helpers.membersInvited(room.currentState.members);
-    const newMembers = R.difference(participants, members);
+    const newMembers = Ramda.difference(participants, members);
     newMembers.forEach(async userID => {
         await client.invite(room.roomId, userID);
     });

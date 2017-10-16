@@ -1,7 +1,7 @@
 /* eslint-disable no-use-before-define */
 const jiraRequest = require('../utils');
 const {auth} = require('../jira');
-const {translate} = require('../locales'); // eslint-disable-line id-length
+const translate = require('../locales');
 const {postfix, domain} = require('../config').matrix;
 
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue';

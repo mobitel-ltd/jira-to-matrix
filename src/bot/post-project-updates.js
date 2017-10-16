@@ -1,4 +1,4 @@
-const {translate} = require('../locales');
+const translate = require('../locales');
 const marked = require('marked');
 const jira = require('../jira');
 

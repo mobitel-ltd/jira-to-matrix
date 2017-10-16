@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-const {translate} = require('../locales'); // eslint-disable-line id-length
+const translate = require('../locales');
 const {domain, admins} = require('../config').matrix;
 
 const getEvent = async (roomId, self) => {

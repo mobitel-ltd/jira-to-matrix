@@ -8,9 +8,7 @@ const polyglot = new Polyglot({
     locale: conf.lang,
 });
 
-const translate = (key, values, ...args) => {
+module.exports = (key, values, ...args) => {
     const newValues = lang.tValues ? lang.tValues(values, ...args) : values;
     return polyglot.t(key, newValues);
 };
-
-module.exports.translate = translate;

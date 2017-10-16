@@ -2,7 +2,7 @@ const _ = require('lodash');
 const htmlToText = require('html-to-text').fromString;
 const jira = require('../jira');
 const logger = require('simple-color-logger')();
-const {translate} = require('../locales');
+const translate = require('../locales');
 
 function getTextIssue(req, address) {
     const text = String(
