@@ -4,7 +4,7 @@ const logger = require('simple-color-logger')();
 const marked = require('marked');
 const redis = require('../redis-client');
 const jira = require('../jira');
-const {t} = require('../locales');
+const {translate} = require('../locales');
 
 async function postLink(issue, relation, related, mclient) {
     const roomID = await mclient.getRoomId(issue.key);
@@ -19,8 +19,8 @@ async function postLink(issue, relation, related, mclient) {
     };
     await mclient.sendHtmlMessage(
         roomID,
-        t('newLink'),
-        marked(t('newLinkMessage', values))
+        translate('newLink'),
+        marked(translate('newLinkMessage', values))
     );
 }
 

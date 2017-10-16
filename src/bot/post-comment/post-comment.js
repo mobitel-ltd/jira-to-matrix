@@ -2,7 +2,7 @@ const _ = require('lodash');
 const R = require('ramda');
 const htmlToString = require('html-to-text').fromString;
 const jira = require('../../jira');
-const {t} = require('../../locales');
+const {translate} = require('../../locales');
 const logger = require('simple-color-logger')();
 
 const isCommentHook = R.contains(R.__, ['comment_created', 'comment_updated']);
@@ -25,7 +25,7 @@ function headerText({comment, webhookEvent}) {
     const event = isCommentHook(webhookEvent) ?
         webhookEvent :
         'comment_created';
-    return `${fullName} ${t(event, null, fullName)}`;
+    return `${fullName} ${translate(event, null, fullName)}`;
 }
 
 async function postComment(client, body) {

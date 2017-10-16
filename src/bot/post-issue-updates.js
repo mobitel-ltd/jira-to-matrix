@@ -1,6 +1,6 @@
 const R = require('ramda');
 const jira = require('../jira');
-const {t} = require('../locales');
+const {translate} = require('../locales');
 const {composeRoomName} = require('../matrix').helpers;
 const logger = require('simple-color-logger')();
 
@@ -17,7 +17,7 @@ const helpers = {
 };
 
 const composeText = ({author, fields, formattedValues}) => {
-    const messageHeader = () => `${author} ${t('issue_updated', null, author)}`;
+    const messageHeader = () => `${author} ${translate('issue_updated', null, author)}`;
     const changesDescription = () => fields.map(
         field => `${field}: ${formattedValues[field]}`
     );
@@ -36,7 +36,7 @@ async function postUpdateInfo(mclient, roomID, hook) {
     );
     const success = await mclient.sendHtmlMessage(
         roomID,
-        t('issueHasChanged'),
+        translate('issueHasChanged'),
         composeText({
             author: R.path(['displayName'], user),
             fields,

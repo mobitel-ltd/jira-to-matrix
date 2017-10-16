@@ -2,7 +2,7 @@ const R = require('ramda');
 const to = require('await-to-js').default;
 const logger = require('simple-color-logger')();
 const marked = require('marked');
-const {t} = require('../locales');
+const {translate} = require('../locales');
 const redis = require('../redis-client');
 const jira = require('../jira');
 const {fp} = require('../utils');
@@ -40,8 +40,8 @@ async function sendMessageNewIssue(mclient, epic, newIssue) {
     values['issue.ref'] = jira.issue.ref(newIssue.key);
     const success = await mclient.sendHtmlMessage(
         epic.roomID,
-        t('newIssueInEpic'),
-        marked(t('issueAddedToEpic', values))
+        translate('newIssueInEpic'),
+        marked(translate('issueAddedToEpic', values))
     );
     return success;
 }
@@ -79,8 +79,8 @@ async function postStatusChanged(roomID, hook, mclient) {
     values.status = status;
     await mclient.sendHtmlMessage(
         roomID,
-        t('statusHasChanged', values),
-        marked(t('statusHasChangedMessage', values, values['user.name']))
+        translate('statusHasChanged', values),
+        marked(translate('statusHasChangedMessage', values, values['user.name']))
     );
 }
 

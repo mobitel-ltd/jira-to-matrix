@@ -22,7 +22,7 @@ const dict = Object.freeze({
     successMatrixComment: 'Comment published',
     listJiraCommand: 'List of available commands',
     errorMoveJira: 'ERROR! Transition is failed<br>Try again',
-    successMoveJira: 'Transition successful',
+    successMoveJira: 'Issue status changed to %{name}',
     errorWatcherJira: 'The watcher is not added! Check user name and try again',
     successWatcherJira: 'Watcher was added',
     notFoundUser: 'User is not found',

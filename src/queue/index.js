@@ -1,8 +1,9 @@
+/* eslint-disable no-negated-condition */
 const bot = require('../bot');
 const {features} = require('../config');
 const logger = require('simple-color-logger')();
 
-async function handler(body, client, queue) {
+const handler = async (body, client, queue) => {
     try {
         const req = {
             body,
@@ -58,7 +59,7 @@ async function handler(body, client, queue) {
 
         return false;
     }
-}
+};
 
 module.exports = {
     handler,

@@ -1,4 +1,4 @@
-const {t} = require('../locales');
+const {translate} = require('../locales');
 const marked = require('marked');
 const jira = require('../jira');
 
@@ -34,8 +34,8 @@ async function epicChanged(roomId, mclient, body) {
 
     await mclient.sendHtmlMessage(
         roomId,
-        t('statusEpicChanged', values),
-        marked(t('statusEpicChangedMessage', values, values['user.name']))
+        translate('statusEpicChanged', values),
+        marked(translate('statusEpicChangedMessage', values, values['user.name']))
     );
 }
 
@@ -48,8 +48,8 @@ async function newEpic(roomId, mclient, issue) {
 
     await mclient.sendHtmlMessage(
         roomId,
-        t('newEpicInProject', ),
-        marked(t('epicAddedToProject', values, values['user.name']))
+        translate('newEpicInProject', ),
+        marked(translate('epicAddedToProject', values, values['user.name']))
     );
 }
 

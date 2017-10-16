@@ -26,7 +26,7 @@ const dict = Object.freeze({
     successMatrixComment: 'Комментарий опубликован',
     listJiraCommand: 'Список доступных команд',
     errorMoveJira: 'ОШИБКА! Статус задачи не изменен<br>Попробуйте еще раз',
-    successMoveJira: 'Статус задачи обновлен',
+    successMoveJira: 'Статус задачи изменён на %{name}',
     errorWatcherJira: 'Наблюдатель не добавлен! Проверьте имени пользователя и попробуйте еще раз',
     successWatcherJira: 'Наблюдатель добавлен',
     notFoundUser: 'Пользователь не найден',

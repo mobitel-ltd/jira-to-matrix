@@ -1,14 +1,14 @@
+/* eslint-disable no-use-before-define */
 const jiraRequest = require('../utils');
 const {auth} = require('../jira');
-const logger = require('simple-color-logger')();
-const {t} = require('../locales');
+const {translate} = require('../locales'); // eslint-disable-line id-length
 const {postfix, domain} = require('../config').matrix;
 
-const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue'
+const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue';
 
 const postComment = async (body, sender, room, roomName, self) => {
     const message = body.substring(9);
-    
+
     // post comment in issue
     const jiraComment = await jiraRequest.fetchPostJSON(
         `${baseUrl}/${roomName}/comment`,
@@ -17,22 +17,22 @@ const postComment = async (body, sender, room, roomName, self) => {
     );
 
     if (jiraComment.status !== 201) {
-        const post = t('errorMatrixComment');
+        const post = translate('errorMatrixComment');
         await self.sendHtmlMessage(room.roomId, post, post);
         return `
             Comment from ${sender} for ${roomName} not published
-            \nJira have status ${iraComment.status}
+            \nJira have status ${jiraComment.status}
         `;
     }
 
-    const post = t('successMatrixComment');
+    const post = translate('successMatrixComment');
     await self.sendHtmlMessage(room.roomId, post, post);
     return `Comment from ${sender} for ${roomName}`;
-}
+};
 
 const appointAssignee = async (event, room, roomName, self) => {
     const assignee = getAssgnee(event);
-    
+
     // appointed assignee for issue
     const jiraAssign = await jiraRequest.fetchPutJSON(
         `${baseUrl}/${roomName}/assignee`,
@@ -41,10 +41,10 @@ const appointAssignee = async (event, room, roomName, self) => {
     );
 
     if (jiraAssign.status !== 204) {
-        const post = t('errorMatrixAssign', {assignee});
+        const post = translate('errorMatrixAssign', {assignee});
         await self.sendHtmlMessage(room.roomId, post, post);
         return `User ${assignee} or issue ${roomName} don't exist`;
-    } 
+    }
 
 
     const inviteUser = getInviteUser(event, room);
@@ -53,19 +53,19 @@ const appointAssignee = async (event, room, roomName, self) => {
     }
 
     // add watcher for issue
-    const jiraWatcher = await jiraRequest.fetchPostJSON(
+    await jiraRequest.fetchPostJSON(
         `${baseUrl}/${roomName}/watchers`,
         auth(),
         schemaWatcher(assignee)
     );
 
-    const post = t('successMatrixAssign', {assignee});
+    const post = translate('successMatrixAssign', {assignee});
     await self.sendHtmlMessage(room.roomId, post, post);
     return `The user ${assignee} now assignee issue ${roomName}`;
-}
+};
 
-const getAssgnee = (event) => {
-    const body = event.getContent().body;
+const getAssgnee = event => {
+    const {body} = event.getContent();
 
     if (body === '!assign') {
         const sender = event.getSender();
@@ -74,10 +74,10 @@ const getAssgnee = (event) => {
 
     // 8 it's length command "!assign"
     return body.substring(8);
-}
+};
 
 const getInviteUser = (event, room) => {
-    const body = event.getContent().body;
+    const {body} = event.getContent();
     if (body === '!assign') {
         return;
     }
@@ -88,15 +88,14 @@ const getInviteUser = (event, room) => {
 
     // 'members' is an array of objects
     const members = room.getJoinedMembers();
-    members.forEach((member) => {
+    members.forEach(member => {
         if (member.userId === user) {
-            user = undefined;
+            user = null;
         }
-        return;
     });
 
     return user;
-}
+};
 
 const issueMove = async (body, room, roomName, self) => {
     const listCommands = await getListCommand(roomName);
@@ -104,16 +103,17 @@ const issueMove = async (body, room, roomName, self) => {
     const moveId = listCommands.reduce((res, cur, index) => {
         // check command
         if (checkCommand(body, cur.name, index)) {
-            return cur.id;
+            return {id: cur.id, name: cur.name};
         }
         return res;
     }, 0);
 
     if (!moveId) {
-        let postListCommands = listCommands.reduce((res, cur, index) => {
-            return `${res}&nbsp;&nbsp;${index + 1})&nbsp;${cur.name}<br>`;
-        }, '');
-        postListCommands = `<b>${t('listJiraCommand')}:</b><br>${postListCommands}`
+        let postListCommands = listCommands.reduce(
+            (res, cur, index) => `${res}&nbsp;&nbsp;${index + 1})&nbsp;${cur.name}<br>`,
+            ''
+        );
+        postListCommands = `<b>${translate('listJiraCommand')}:</b><br>${postListCommands}`;
         await self.sendHtmlMessage(room.roomId, 'list commands', postListCommands);
         return;
     }
@@ -122,39 +122,42 @@ const issueMove = async (body, room, roomName, self) => {
     const jiraMove = await jiraRequest.fetchPostJSON(
         `${baseUrl}/${roomName}/transitions`,
         auth(),
-        schemaMove(moveId)
-    )
+        schemaMove(moveId.id)
+    );
 
     if (jiraMove.status !== 204) {
-        const post = t('errorMoveJira');
+        const post = translate('errorMoveJira');
         await self.sendHtmlMessage(room.roomId, 'ERROR', post);
         return `Issue ${roomName} not changed status`;
     }
 
-    const post = t('successMoveJira');
+    const post = translate('successMoveJira', moveId);
     await self.sendHtmlMessage(room.roomId, post, post);
     return `Issue ${roomName} changed status`;
-}
+};
 
-const getListCommand = async (roomName) => {
+const getListCommand = async roomName => {
     // List of available commands
     const moveOptions = await jiraRequest.fetchJSON(
         `${baseUrl}/${roomName}/transitions`,
         auth()
-    )
+    );
 
-    return moveOptions.transitions.map((move) => {
-        return { name: move.name, id: move.id };
-    });
-}
+    return moveOptions.transitions.map(move => ({name: move.name, id: move.id}));
+};
 
 const checkCommand = (body, name, index) => Boolean(
-    ~body.toLowerCase().indexOf(name.toLowerCase()) 
+    ~body.toLowerCase().indexOf(name.toLowerCase())
     || ~body.indexOf(String(index + 1))
-)
+);
 
 const addWatchers = async (body, room, roomName, self) => {
-    const user = body.substring(6);
+    const user = body.substring(6).trim();
+
+    await jiraRequest.fetchJSON(
+        `https://jira.bingo-boom.ru/jira/rest/api/2/user?username=${user}`,
+        auth()
+    );
 
     const jiraWatcher = await jiraRequest.fetchPostJSON(
         `${baseUrl}/${roomName}/watchers`,
@@ -163,52 +166,43 @@ const addWatchers = async (body, room, roomName, self) => {
     );
 
     if (jiraWatcher.status !== 204) {
-        const post = t('errorWatcherJira');
+        const post = translate('errorWatcherJira');
         self.sendHtmlMessage(room.roomId, post, post);
-        return `Watcher ${user} don't add in ${roomName} issue`
+        return `Watcher ${user} don't add in ${roomName} issue`;
     }
 
-    const post = t('successWatcherJira');
+    const post = translate('successWatcherJira');
     self.sendHtmlMessage(room.roomId, post, post);
 
     let userId = `@${user}:${domain}`;
     const members = room.getJoinedMembers();
-    members.forEach((member) => {
+    members.forEach(member => {
         if (member.userId === userId) {
-            userId = undefined;
+            userId = null;
         }
-        return;
     });
 
     if (userId) {
-        const invite = await self.invite(room.roomId, userId);
+        await self.invite(room.roomId, userId);
     }
 
     return `User ${user} was added in watchers for issue ${roomName}`;
-}
+};
 
 const schemaComment = (sender, message) => {
-    const body = `[~${sender}]:\n${message}`
+    const body = `[~${sender}]:\n${message}`;
     return JSON.stringify({body});
-}
+};
 
-const schemaAssignee = (assignee) => {
-    return JSON.stringify({
-        "name": `${assignee}`
-    });
-}
+const schemaAssignee = assignee => JSON.stringify({'name': `${assignee}`});
 
-const schemaWatcher = (watcher) => {
-    return `"${watcher}"`;
-}
+const schemaWatcher = watcher => `"${watcher}"`;
 
-const schemaMove = (id) => {
-    return JSON.stringify({
-        "transition": {
-            "id": id
-        }
-    });
-}
+const schemaMove = id => JSON.stringify({
+    'transition': {
+        'id': id
+    }
+});
 
 module.exports = {
     postComment,

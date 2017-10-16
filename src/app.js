@@ -1,13 +1,12 @@
 // @flow
+/* eslint-disable no-use-before-define */
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const conf = require('./config');
-const bot = require('./bot');
 const matrix = require('./matrix');
 const logger = require('simple-color-logger')();
 const {checkNodeVersion} = require('./utils');
-const config = require('../config.js');
 const cachedQueue = require('./queue').queue;
 const queueHandler = require('./queue').handler;
 const EventEmitter = require('events');
@@ -16,8 +15,6 @@ const queuePush = new EventEmitter();
 if (!checkNodeVersion()) {
     process.exit(1);
 }
-
-let client = connectToMatrix(matrix);
 
 process.on('uncaughtException', err => {
     if (err.errno === 'EADDRINUSE') {
@@ -40,11 +37,6 @@ app.post('/', (req, res, next) => {
     next();
 });
 
-let checkingQueueInterval = setInterval(checkQueue, 500);
-checkingQueueInterval.unref();
-
-// app.post('/', bot.createApp(express));
-
 // version, to verify deployment
 app.get('/', (req, res) => {
     res.end(`Version ${conf.version}`);
@@ -66,7 +58,7 @@ server.listen(conf.port, () => {
     logger.info(`Server is listening on port ${conf.port}`);
 });
 
-async function onExit() {
+const onExit = async function onExit() {
     await matrix.disconnect();
     if (server.listening) {
         server.close(() => {
@@ -75,24 +67,29 @@ async function onExit() {
         return;
     }
     process.exit();
-}
+};
 
 
-async function connectToMatrix(matrix) {
+const connectToMatrix = async matrix => {
     let client = await matrix.connect();
     while (!client) {
         client = await connectToMatrix(matrix);
     }
     return client;
-}
+};
 
-function checkQueue() {
+const checkQueue = () => {
     if (cachedQueue.length > 0) {
         queuePush.emit('notEmpty');
     }
-}
+};
 
-queuePush.on('notEmpty', async function() {
+let client = connectToMatrix(matrix);
+
+const checkingQueueInterval = setInterval(checkQueue, 500);
+checkingQueueInterval.unref();
+
+queuePush.on('notEmpty', async () => {
     let success;
     if (client) {
         const lastReq = cachedQueue.pop();
@@ -100,7 +97,7 @@ queuePush.on('notEmpty', async function() {
     }
 
     if (!success && client) {
-        client = undefined;
+        client = null;
         client = await connectToMatrix(matrix);
     }
 });
