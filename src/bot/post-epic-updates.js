@@ -1,8 +1,8 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const to = require('await-to-js').default;
 const logger = require('simple-color-logger')();
 const marked = require('marked');
-const {t} = require('../locales');
+const translate = require('../locales');
 const redis = require('../redis-client');
 const jira = require('../jira');
 const {fp} = require('../utils');
@@ -40,8 +40,8 @@ async function sendMessageNewIssue(mclient, epic, newIssue) {
     values['issue.ref'] = jira.issue.ref(newIssue.key);
     const success = await mclient.sendHtmlMessage(
         epic.roomID,
-        t('newIssueInEpic'),
-        marked(t('issueAddedToEpic', values))
+        translate('newIssueInEpic'),
+        marked(translate('issueAddedToEpic', values))
     );
     return success;
 }
@@ -58,11 +58,11 @@ async function postNewIssue(epic, issue, mclient) {
     }
 }
 
-const getNewStatus = R.pipe(
-    R.pathOr([], ['changelog', 'items']),
-    R.filter(R.propEq('field', 'status')),
-    R.head,
-    R.propOr(undefined, 'toString')
+const getNewStatus = Ramda.pipe(
+    Ramda.pathOr([], ['changelog', 'items']),
+    Ramda.filter(Ramda.propEq('field', 'status')),
+    Ramda.head,
+    Ramda.propOr(undefined, 'toString')
 );
 
 async function postStatusChanged(roomID, hook, mclient) {
@@ -79,14 +79,14 @@ async function postStatusChanged(roomID, hook, mclient) {
     values.status = status;
     await mclient.sendHtmlMessage(
         roomID,
-        t('statusHasChanged', values),
-        marked(t('statusHasChangedMessage', values, values['user.name']))
+        translate('statusHasChanged', values),
+        marked(translate('statusHasChangedMessage', values, values['user.name']))
     );
 }
 
 async function postEpicUpdates({mclient, body: hook}) {
     const {issue} = hook;
-    const epicKey = R.path(['fields', epicConf.field], issue);
+    const epicKey = Ramda.path(['fields', epicConf.field], issue);
     if (!epicKey) {
         return;
     }
@@ -98,7 +98,7 @@ async function postEpicUpdates({mclient, body: hook}) {
     if (!roomID) {
         return;
     }
-    const epicPlus = R.assoc('roomID', roomID, epic);
+    const epicPlus = Ramda.assoc('roomID', roomID, epic);
 
     if (epicConf.newIssuesInEpic === 'on') {
         await postNewIssue(epicPlus, issue, mclient);

@@ -1,4 +1,4 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const fetch = require('node-fetch');
 const logger = require('simple-color-logger')();
 const to = require('await-to-js').default;
@@ -8,7 +8,7 @@ const to = require('await-to-js').default;
  * @param {String} basicAuth Authorization parameters for API
  * @returns {Promise} ???
  */
-async function fetchJSON(url, basicAuth) {
+const fetchJSON = async (url, basicAuth) => {
     const options = {
         headers: {Authorization: basicAuth},
         timeout: 11000,
@@ -24,21 +24,21 @@ async function fetchJSON(url, basicAuth) {
     }
 
     logger.info(`response from jira have status: ${response.status}`,
-        `\nUrl: ${url}; Options: ${options.headers.Authorization}`)
+        `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
-    const [parseErr, object] = await to(response.json())
+    const [parseErr, object] = await to(response.json());
     if (parseErr) {
         logger.error(`Error while parsing JSON from ${url}:\n${parseErr}`);
         return;
     }
     return object;
-}
+};
 
-async function fetchPostJSON(url, basicAuth, body) {
+const fetchPostJSON = async (url, basicAuth, body) => {
     const options = {
         method: 'POST',
-        body: body,
-        headers: {Authorization: basicAuth, "content-type": 'application/json'},
+        body,
+        headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
         timeout: 11000,
     };
     const [err, response] = await to(fetch(url, options));
@@ -48,16 +48,16 @@ async function fetchPostJSON(url, basicAuth, body) {
     }
 
     logger.info(`response from jira have status: ${response.status}`,
-        `\nUrl: ${url}; Options: ${options.headers.Authorization}`)
+        `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
     return response;
-}
+};
 
-async function fetchPutJSON(url, basicAuth, body) {
+const fetchPutJSON = async (url, basicAuth, body) => {
     const options = {
         method: 'PUT',
-        body: body,
-        headers: {Authorization: basicAuth, "content-type": 'application/json'},
+        body,
+        headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
         timeout: 11000,
     };
     const [err, response] = await to(fetch(url, options));
@@ -67,22 +67,26 @@ async function fetchPutJSON(url, basicAuth, body) {
     }
 
     logger.info(`response from jira have status: ${response.status}`,
-        `\nUrl: ${url}; Options: ${options.headers.Authorization}`)
+        `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
     return response;
-}
+};
 
-function paramsToQueryString(params/* :Array<{}>*/) {
-    const toStrings = R.map(R.pipe(
-        R.mapObjIndexed((value, key) => `${key}=${value}`),
-        R.values
+/**
+ * @param {Array} params ???
+ * @return {*} ???
+*/
+const paramsToQueryString = params => {
+    const toStrings = Ramda.map(Ramda.pipe(
+        Ramda.mapObjIndexed((value, key) => `${key}=${value}`),
+        Ramda.values
     ));
-    return R.ifElse(
-        R.isEmpty,
-        R.always(''),
-        R.pipe(toStrings, R.join('&'), R.concat('?'))
+    return Ramda.ifElse(
+        Ramda.isEmpty,
+        Ramda.always(''),
+        Ramda.pipe(toStrings, Ramda.join('&'), Ramda.concat('?'))
     )(params || []);
-}
+};
 
 module.exports = {
     fetchJSON,

@@ -1,11 +1,11 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const mconf = require('../config').matrix;
 
 function membersInvited(roomMembers) {
-    return R.pipe(
-        R.filter(R.complement(R.propEq('membership', 'leave'))),
-        R.values,
-        R.map(R.prop('userId'))
+    return Ramda.pipe(
+        Ramda.filter(Ramda.complement(Ramda.propEq('membership', 'leave'))),
+        Ramda.values,
+        Ramda.map(Ramda.prop('userId'))
     )(roomMembers);
 }
 
@@ -14,6 +14,6 @@ function userID(shortName) {
 }
 
 const composeRoomName = issue =>
-    `${issue.key} ${R.path(['fields', 'summary'], issue)}`;
+    `${issue.key} ${Ramda.path(['fields', 'summary'], issue)}`;
 
 module.exports = {membersInvited, userID, composeRoomName};

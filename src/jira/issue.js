@@ -1,5 +1,5 @@
 // @flow
-const R = require('ramda');
+const Ramda = require('ramda');
 const logger = require('simple-color-logger')();
 const _ = require('lodash');
 const conf = require('../config');
@@ -68,9 +68,9 @@ async function renderedValues(issueID/* :string*/, fields/* :string[]*/) {
         logger.warn("'issue' from jira.issue.renderedValues is not defained");
         return;
     }
-    return R.pipe(
-        R.pick(fields),
-        R.filter(v => !!v)
+    return Ramda.pipe(
+        Ramda.pick(fields),
+        Ramda.filter(v => !!v)
     )(issue.renderedFields);
 }
 

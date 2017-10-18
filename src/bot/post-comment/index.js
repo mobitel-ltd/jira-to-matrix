@@ -1,14 +1,14 @@
 /* eslint-disable camelcase */
-const R = require('ramda');
+const Ramda = require('ramda');
 const {fp} = require('../../utils');
 const {postComment} = require('./post-comment');
 
 const isCommentEvent = ({webhookEvent, issue_event_type_name}) => {
-    const propNotIn = R.complement(fp.propIn);
-    return R.anyPass([
+    const propNotIn = Ramda.complement(fp.propIn);
+    return Ramda.anyPass([
         fp.propIn('webhookEvent', ['comment_created', 'comment_updated']),
-        R.allPass([
-            R.propEq('webhookEvent', 'jira:issue_updated'),
+        Ramda.allPass([
+            Ramda.propEq('webhookEvent', 'jira:issue_updated'),
             propNotIn('issue_event_type_name', ['issue_commented', 'issue_comment_edited']),
         ]),
     ])({webhookEvent, issue_event_type_name} || {});

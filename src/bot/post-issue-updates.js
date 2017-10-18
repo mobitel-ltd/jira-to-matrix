@@ -1,23 +1,23 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const jira = require('../jira');
-const {t} = require('../locales');
+const translate = require('../locales');
 const {composeRoomName} = require('../matrix').helpers;
 const logger = require('simple-color-logger')();
 
 const helpers = {
-    fieldNames: items => R.pipe(
-        R.map(R.prop('field')),
-        R.uniq
+    fieldNames: items => Ramda.pipe(
+        Ramda.map(Ramda.prop('field')),
+        Ramda.uniq
     )(items || []),
 
     toStrings: items => items.reduce(
-        (result, item) => R.merge(result, {[item.field]: item.toString}),
+        (result, item) => Ramda.merge(result, {[item.field]: item.toString}),
         {}
     ),
 };
 
 const composeText = ({author, fields, formattedValues}) => {
-    const messageHeader = () => `${author} ${t('issue_updated', null, author)}`;
+    const messageHeader = () => `${author} ${translate('issue_updated', null, author)}`;
     const changesDescription = () => fields.map(
         field => `${field}: ${formattedValues[field]}`
     );
@@ -36,9 +36,9 @@ async function postUpdateInfo(mclient, roomID, hook) {
     );
     const success = await mclient.sendHtmlMessage(
         roomID,
-        t('issueHasChanged'),
+        translate('issueHasChanged'),
         composeText({
-            author: R.path(['displayName'], user),
+            author: Ramda.path(['displayName'], user),
             fields,
             formattedValues,
         })
@@ -81,7 +81,7 @@ async function rename(mclient, roomID, hook) {
 
 async function postChanges({mclient, body}) {
     if (
-        R.isEmpty(R.pathOr([], ['changelog', 'items'], body))
+        Ramda.isEmpty(Ramda.pathOr([], ['changelog', 'items'], body))
     ) {
         return;
     }

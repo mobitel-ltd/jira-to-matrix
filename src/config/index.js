@@ -1,4 +1,4 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const path = require('path');
 const {rootDir} = require('../constants');
 const validate = require('./validate-config.js');
@@ -58,8 +58,8 @@ function getTestConfig() {
 }
 
 function composeConfig(config) {
-    // const removeTrailingSlash = R.replace(/\/$/, '');
-    // const config = R.pipe(
+    // const removeTrailingSlash = Ramda.replace(/\/$/, '');
+    // const config = Ramda.pipe(
     //     getConfigFn,
     //     fp.replacePathWith(['jira', 'url'], removeTrailingSlash)
     // )();
@@ -67,7 +67,7 @@ function composeConfig(config) {
         process.exit(1);
     }
 
-    const matrix = R.merge(config.matrix, {
+    const matrix = Ramda.merge(config.matrix, {
         baseUrl: `https://${config.matrix.domain}`,
         userId: `@${config.matrix.user}:${config.matrix.domain}`,
     });
@@ -79,7 +79,7 @@ function composeConfig(config) {
         || config.features.epicUpdates.issuesStatusChanged === 'on'
     );
 
-    return R.mergeAll([config, {matrix}, {version}]);
+    return Ramda.mergeAll([config, {matrix}, {version}]);
 }
 
 // const config = process.env.NODE_ENV === 'test' ?

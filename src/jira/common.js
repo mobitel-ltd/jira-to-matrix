@@ -1,4 +1,4 @@
-const R = require('ramda');
+const Ramda = require('ramda');
 const {fp} = require('../utils');
 const conf = require('../config');
 
@@ -13,21 +13,21 @@ function webHookUser(hook/* :{}*/) {
         ['comment', 'author', 'name'],
         ['user', 'name'],
     ];
-    return R.pipe(
-        R.map(R.path(R.__, hook)),
-        R.find(fp.nonEmptyString)
+    return Ramda.pipe(
+        Ramda.map(Ramda.path(Ramda.__, hook)),
+        Ramda.find(fp.nonEmptyString)
     )(paths);
 }
 
-const getChangelogField = R.curry(
+const getChangelogField = Ramda.curry(
     (fieldName, hook) =>
-        R.ifElse(
-            R.is(Object),
-            R.pipe(
-                R.pathOr([], ['changelog', 'items']),
-                R.find(R.propEq('field', fieldName))
+        Ramda.ifElse(
+            Ramda.is(Object),
+            Ramda.pipe(
+                Ramda.pathOr([], ['changelog', 'items']),
+                Ramda.find(Ramda.propEq('field', fieldName))
             ),
-            R.always(undefined)
+            Ramda.always(undefined)
         )(hook)
 );
 
