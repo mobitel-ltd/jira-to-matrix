@@ -189,10 +189,9 @@ const addWatchers = async (body, room, roomName, self) => {
     return `User ${user} was added in watchers for issue ${roomName}`;
 };
 
-const chekNamePriority = (priority, index, name) => Boolean(
+const chekNamePriority = (priority, index, name) =>
     priority.name.toLowerCase() === name.toLowerCase()
-    || String(index + 1) === name
-);
+    || String(index + 1) === name;
 
 const setPrio = async (body, room, roomName, self) => {
     const prioName = body.substring(6).trim();
