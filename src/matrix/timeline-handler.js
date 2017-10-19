@@ -31,6 +31,9 @@ const eventFromMatrix = async (event, room, sender, self) => {
         case '!spec':
             message = await jiraCommands.addWatchers(body, room, roomName, self);
             break;
+        case '!prio':
+            message = await jiraCommands.setPrio(body, room, roomName, self);
+            break;
         case '!op':
             message = await matrixCommands.upgradeUser(body, sender, room, roomName, self);
             break;
