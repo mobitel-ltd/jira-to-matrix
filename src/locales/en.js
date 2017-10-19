@@ -26,6 +26,7 @@ const dict = Object.freeze({
     errorWatcherJira: 'The watcher is not added! Check user name and try again',
     successWatcherJira: 'Watcher was added',
     notFoundUser: 'User is not found',
+    setPriority: 'Now issue has the priority %{name}',
 });
 
 module.exports.dict = dict;
