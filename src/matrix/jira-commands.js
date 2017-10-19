@@ -7,7 +7,7 @@ const {postfix, domain} = require('../config').matrix;
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue';
 
 const postComment = async (body, sender, room, roomName, self) => {
-    const message = body.substring(9);
+    const message = body.substring(9).trim();
 
     // post comment in issue
     const jiraComment = await jiraRequest.fetchPostJSON(
@@ -73,7 +73,7 @@ const getAssgnee = event => {
     }
 
     // 8 it's length command "!assign"
-    return body.substring(8);
+    return body.substring(8).trim();
 };
 
 const getInviteUser = (event, room) => {
@@ -83,7 +83,7 @@ const getInviteUser = (event, room) => {
     }
 
     // 8 it's length command "!assign"
-    let user = body.substring(8);
+    let user = body.substring(8).trim();
     user = `@${user}:${domain}`;
 
     // 'members' is an array of objects
@@ -189,6 +189,48 @@ const addWatchers = async (body, room, roomName, self) => {
     return `User ${user} was added in watchers for issue ${roomName}`;
 };
 
+const chekNamePriority = (priority, index, name) => Boolean(
+    priority.name.toLowerCase() === name.toLowerCase()
+    || String(index + 1) === name
+);
+
+const setPrio = async (body, room, roomName, self) => {
+    const prioName = body.substring(6).trim();
+
+    const {fields} = await jiraRequest.fetchJSON(
+        `${baseUrl}/${roomName}/editmeta`,
+        auth()
+    );
+    const prioritys = fields.priority.allowedValues;
+
+    const priority = prioritys.reduce((prev, cur, index) => {
+        if (chekNamePriority(cur, index, prioName)) {
+            return {id: cur.id, name: cur.name};
+        }
+        return prev;
+    }, 0);
+
+    if (!priority) {
+        const listPrio = prioritys.reduce(
+            (prev, cur, index) => `${prev}${index + 1}) ${cur.name}<br>`,
+            ''
+        );
+        await self.sendHtmlMessage(room.roomId, 'List prioritys', listPrio);
+        return;
+    }
+
+    await jiraRequest.fetchPutJSON(
+        `${baseUrl}/${roomName}`,
+        auth(),
+        shemaFields(priority.id)
+    );
+
+    const post = translate('setPriority', priority);
+    await self.sendHtmlMessage(room.roomId, 'Successful set priority', post);
+
+    return `Issue ${roomName} now has priority ${priority.name}`;
+};
+
 const schemaComment = (sender, message) => {
     const body = `[~${sender}]:\n${message}`;
     return JSON.stringify({body});
@@ -197,10 +239,18 @@ const schemaComment = (sender, message) => {
 const schemaAssignee = assignee => JSON.stringify({'name': `${assignee}`});
 
 const schemaWatcher = watcher => `"${watcher}"`;
-
+/* eslint-disable comma-dangle */
 const schemaMove = id => JSON.stringify({
     'transition': {
-        'id': id
+        id
+    }
+});
+
+const shemaFields = id => JSON.stringify({
+    'fields': {
+        'priority': {
+            id
+        }
     }
 });
 
@@ -209,4 +259,5 @@ module.exports = {
     appointAssignee,
     issueMove,
     addWatchers,
+    setPrio,
 };
