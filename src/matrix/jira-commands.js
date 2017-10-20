@@ -149,7 +149,7 @@ const getListCommand = async roomName => {
         auth()
     );
 
-    return transitions.map(move => ({name: move.name, id: move.id}));
+    return transitions.map(({name, id}) => ({name, id}));
 };
 
 const issueMove = async (body, room, roomName, self) => {
