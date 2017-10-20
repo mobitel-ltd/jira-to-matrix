@@ -110,7 +110,7 @@ const getInfo = () => {
         ${indent}${indent}1) Блокирующий<br>
         ${indent}${indent}2) Критический<br>
         ${indent}${indent}3) Highest<br>
-        ${indent}${indent}...
+        ${indent}${indent}...<br>
         ${indent}${indent}7) Lowest<br>
         ${indent}${indent}Use <font color="green"><strong>"!prio Lowest"</strong></font> or
         <font color="green"><strong>"!prio 7"</strong></font>
