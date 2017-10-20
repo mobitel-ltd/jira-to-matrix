@@ -4,7 +4,7 @@ const Ramda = require('ramda');
 const to = require('await-to-js').default;
 const conf = require('../config').matrix;
 const logger = require('simple-color-logger')();
-const cbTimeline = require('./timeline-handler.js');
+const cbTimeline = require('./timeline-handler');
 
 const api = {};
 

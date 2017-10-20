@@ -1,10 +1,28 @@
 /* eslint-disable no-use-before-define */
-const jiraRequest = require('../utils');
-const {auth} = require('../jira');
-const translate = require('../locales');
-const {postfix, domain} = require('../config').matrix;
+const jiraRequest = require('../../utils');
+const {auth} = require('../../jira');
+const translate = require('../../locales');
+const {checkUser, checkCommand, checkNamePriority} = require('./checker.js');
+const {postfix, domain} = require('../../config').matrix;
 
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue';
+
+const searchUser = async name => {
+    const allUsers = await jiraRequest.fetchJSON(
+        `https://jira.bingo-boom.ru/jira/rest/api/2/user/search?maxResults=1000&username=@boom`,
+        auth()
+    );
+
+    const result = allUsers.reduce((prev, cur) => {
+        if (checkUser(cur, name)) {
+            prev.push(cur);
+        }
+
+        return prev;
+    }, []);
+
+    return result;
+};
 
 const postComment = async (body, sender, room, roomName, self) => {
     const message = body.substring(9).trim();
@@ -34,20 +52,73 @@ const appointAssignee = async (event, room, roomName, self) => {
     const assignee = getAssgnee(event);
 
     // appointed assignee for issue
-    const jiraAssign = await jiraRequest.fetchPutJSON(
+    let jiraAssign = await jiraRequest.fetchPutJSON(
         `${baseUrl}/${roomName}/assignee`,
         auth(),
         schemaAssignee(assignee)
     );
 
+    let inviteMessage;
     if (jiraAssign.status !== 204) {
-        const post = translate('errorMatrixAssign', {assignee});
-        await self.sendHtmlMessage(room.roomId, post, post);
-        return `User ${assignee} or issue ${roomName} don't exist`;
+        const users = await searchUser(assignee);
+        let post;
+        switch (users.length) {
+            case 0:
+                post = translate('errorMatrixAssign', {assignee});
+                await self.sendHtmlMessage(room.roomId, post, post);
+
+                return `User ${assignee} or issue ${roomName} don't exist`;
+            case 1:
+                jiraAssign = await jiraRequest.fetchPutJSON(
+                    `${baseUrl}/${roomName}/assignee`,
+                    auth(),
+                    schemaAssignee(users[0].name)
+                );
+
+                inviteMessage = await addAssigneeInWatchers(room, roomName, users[0].name, self);
+                return inviteMessage;
+            default:
+                post = users.reduce(
+                    (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
+                    'List users:<br>');
+
+                await self.sendHtmlMessage(room.roomId, 'List users', post);
+                return;
+        }
     }
 
+    inviteMessage = await addAssigneeInWatchers(room, roomName, assignee, self);
+    return inviteMessage;
+};
 
-    const inviteUser = getInviteUser(event, room);
+const getAssgnee = event => {
+    const {body} = event.getContent();
+
+    if (body === '!assign') {
+        const sender = event.getSender();
+        return sender.slice(1, -postfix);
+    }
+
+    // 8 it's length command "!assign"
+    return body.substring(8).trim();
+};
+
+const getInviteUser = (assignee, room) => {
+    let user = `@${assignee}:${domain}`;
+
+    // 'members' is an array of objects
+    const members = room.getJoinedMembers();
+    members.forEach(member => {
+        if (member.userId === user) {
+            user = null;
+        }
+    });
+
+    return user;
+};
+
+const addAssigneeInWatchers = async (room, roomName, assignee, self) => {
+    const inviteUser = getInviteUser(assignee, room);
     if (inviteUser) {
         await self.invite(room.roomId, inviteUser);
     }
@@ -64,37 +135,14 @@ const appointAssignee = async (event, room, roomName, self) => {
     return `The user ${assignee} now assignee issue ${roomName}`;
 };
 
-const getAssgnee = event => {
-    const {body} = event.getContent();
+const getListCommand = async roomName => {
+    // List of available commands
+    const {transitions} = await jiraRequest.fetchJSON(
+        `${baseUrl}/${roomName}/transitions`,
+        auth()
+    );
 
-    if (body === '!assign') {
-        const sender = event.getSender();
-        return sender.slice(1, -postfix);
-    }
-
-    // 8 it's length command "!assign"
-    return body.substring(8).trim();
-};
-
-const getInviteUser = (event, room) => {
-    const {body} = event.getContent();
-    if (body === '!assign') {
-        return;
-    }
-
-    // 8 it's length command "!assign"
-    let user = body.substring(8).trim();
-    user = `@${user}:${domain}`;
-
-    // 'members' is an array of objects
-    const members = room.getJoinedMembers();
-    members.forEach(member => {
-        if (member.userId === user) {
-            user = null;
-        }
-    });
-
-    return user;
+    return transitions.map(({name, id}) => ({name, id}));
 };
 
 const issueMove = async (body, room, roomName, self) => {
@@ -136,41 +184,7 @@ const issueMove = async (body, room, roomName, self) => {
     return `Issue ${roomName} changed status`;
 };
 
-const getListCommand = async roomName => {
-    // List of available commands
-    const moveOptions = await jiraRequest.fetchJSON(
-        `${baseUrl}/${roomName}/transitions`,
-        auth()
-    );
-
-    return moveOptions.transitions.map(move => ({name: move.name, id: move.id}));
-};
-
-const checkCommand = (body, name, index) => Boolean(
-    ~body.toLowerCase().indexOf(name.toLowerCase())
-    || ~body.indexOf(String(index + 1))
-);
-
-const addWatchers = async (body, room, roomName, self) => {
-    const user = body.substring(6).trim();
-
-    await jiraRequest.fetchJSON(
-        `https://jira.bingo-boom.ru/jira/rest/api/2/user?username=${user}`,
-        auth()
-    );
-
-    const jiraWatcher = await jiraRequest.fetchPostJSON(
-        `${baseUrl}/${roomName}/watchers`,
-        auth(),
-        schemaWatcher(user)
-    );
-
-    if (jiraWatcher.status !== 204) {
-        const post = translate('errorWatcherJira');
-        self.sendHtmlMessage(room.roomId, post, post);
-        return `Watcher ${user} don't add in ${roomName} issue`;
-    }
-
+const addUserInWatchers = async (room, roomName, user, self) => {
     const post = translate('successWatcherJira');
     self.sendHtmlMessage(room.roomId, post, post);
 
@@ -189,9 +203,50 @@ const addWatchers = async (body, room, roomName, self) => {
     return `User ${user} was added in watchers for issue ${roomName}`;
 };
 
-const chekNamePriority = (priority, index, name) =>
-    priority.name.toLowerCase() === name.toLowerCase()
-    || String(index + 1) === name;
+const addWatchers = async (body, room, roomName, self) => {
+    const user = body.substring(6).trim();
+
+    let jiraWatcher = await jiraRequest.fetchPostJSON(
+        `${baseUrl}/${roomName}/watchers`,
+        auth(),
+        schemaWatcher(user)
+    );
+
+    let inviteMessage;
+    if (jiraWatcher.status !== 204) {
+        const users = await searchUser(user);
+        let post;
+        switch (users.length) {
+            case 0:
+                post = translate('errorWatcherJira');
+                self.sendHtmlMessage(room.roomId, post, post);
+                return `Watcher ${user} don't add in ${roomName} issue`;
+            case 1:
+                jiraWatcher = await jiraRequest.fetchPostJSON(
+                    `${baseUrl}/${roomName}/watchers`,
+                    auth(),
+                    schemaWatcher(users[0].name)
+                );
+                if (jiraWatcher.status !== 204) {
+                    post = translate('errorWatcherJira');
+                    self.sendHtmlMessage(room.roomId, post, post);
+                    return `Watcher ${users[0].name} don't add in ${roomName} issue`;
+                }
+                inviteMessage = await addUserInWatchers(room, roomName, users[0].name, self);
+                return inviteMessage;
+            default:
+                post = users.reduce(
+                    (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
+                    'List users:<br>');
+
+                await self.sendHtmlMessage(room.roomId, 'List users', post);
+                return;
+        }
+    }
+
+    inviteMessage = await addUserInWatchers(room, roomName, user, self);
+    return inviteMessage;
+};
 
 const setPrio = async (body, room, roomName, self) => {
     const prioName = body.substring(6).trim();
@@ -203,7 +258,7 @@ const setPrio = async (body, room, roomName, self) => {
     const prioritys = fields.priority.allowedValues;
 
     const priority = prioritys.reduce((prev, cur, index) => {
-        if (chekNamePriority(cur, index, prioName)) {
+        if (checkNamePriority(cur, index, prioName)) {
             return {id: cur.id, name: cur.name};
         }
         return prev;
