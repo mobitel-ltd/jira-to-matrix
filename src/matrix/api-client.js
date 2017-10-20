@@ -124,16 +124,27 @@ const inviteBot = async function InviteBot(event) {
     }
 };
 
+const removeListener = (eventName, listener, matrixClient) => {
+    const listCount = matrixClient.listenerCount(eventName);
+    if (listCount > 1) {
+        matrixClient.removeListener(eventName, listener);
+        logger.warn(`Count listener for ${eventName} ${listCount}. To remove unnecessary listener`);
+    }
+};
+
 module.exports = sdkConnect => async function connect() {
     const matrixClient = await sdkConnect();
     if (!matrixClient) {
         logger.error('\'matrixClient\' is undefined');
         return;
     }
-    // await matrixClient.clearStores();
+
     matrixClient.on('Room.timeline', cbTimeline);
 
     matrixClient.on('sync', (state, prevState, data) => {
+        removeListener('Room.timeline', cbTimeline, matrixClient);
+        removeListener('event', inviteBot, matrixClient);
+
         if (state !== 'SYNCING' || prevState !== 'SYNCING') {
             logger.warn(`state: ${state}`);
             logger.warn(`prevState: ${prevState}`);
