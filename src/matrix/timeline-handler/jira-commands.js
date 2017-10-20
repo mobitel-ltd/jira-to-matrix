@@ -1,14 +1,11 @@
 /* eslint-disable no-use-before-define */
-const jiraRequest = require('../utils');
-const {auth} = require('../jira');
-const translate = require('../locales');
-const {postfix, domain} = require('../config').matrix;
+const jiraRequest = require('../../utils');
+const {auth} = require('../../jira');
+const translate = require('../../locales');
+const {checkUser, checkCommand, checkNamePriority} = require('./checker.js');
+const {postfix, domain} = require('../../config').matrix;
 
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue';
-
-const chekUser = (users, name) =>
-    ~users.name.toLowerCase().indexOf(name.toLowerCase())
-    || ~users.displayName.toLowerCase().indexOf(name.toLowerCase());
 
 const searchUser = async name => {
     const allUsers = await jiraRequest.fetchJSON(
@@ -17,7 +14,7 @@ const searchUser = async name => {
     );
 
     const result = allUsers.reduce((prev, cur) => {
-        if (chekUser(cur, name)) {
+        if (checkUser(cur, name)) {
             prev.push(cur);
         }
 
@@ -138,10 +135,6 @@ const addAssigneeInWatchers = async (room, roomName, assignee, self) => {
     return `The user ${assignee} now assignee issue ${roomName}`;
 };
 
-const checkCommand = (body, name, index) =>
-    ~body.toLowerCase().indexOf(name.toLowerCase())
-    || ~body.indexOf(String(index + 1));
-
 const getListCommand = async roomName => {
     // List of available commands
     const {transitions} = await jiraRequest.fetchJSON(
@@ -255,10 +248,6 @@ const addWatchers = async (body, room, roomName, self) => {
     return inviteMessage;
 };
 
-const chekNamePriority = (priority, index, name) =>
-    priority.name.toLowerCase() === name.toLowerCase()
-    || String(index + 1) === name;
-
 const setPrio = async (body, room, roomName, self) => {
     const prioName = body.substring(6).trim();
 
@@ -269,7 +258,7 @@ const setPrio = async (body, room, roomName, self) => {
     const prioritys = fields.priority.allowedValues;
 
     const priority = prioritys.reduce((prev, cur, index) => {
-        if (chekNamePriority(cur, index, prioName)) {
+        if (checkNamePriority(cur, index, prioName)) {
             return {id: cur.id, name: cur.name};
         }
         return prev;

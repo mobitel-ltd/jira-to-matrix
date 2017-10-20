@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
-const translate = require('../locales');
-const {domain, admins} = require('../config').matrix;
+const translate = require('../../locales');
+const {domain, admins} = require('../../config').matrix;
 
 const getEvent = async (roomId, self) => {
     const content = await self.getStateEvent(roomId, 'm.room.power_levels', '');
