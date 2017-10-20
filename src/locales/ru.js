@@ -30,6 +30,7 @@ const dict = Object.freeze({
     errorWatcherJira: 'Наблюдатель не добавлен! Проверьте имени пользователя и попробуйте еще раз',
     successWatcherJira: 'Наблюдатель добавлен',
     notFoundUser: 'Пользователь не найден',
+    setPriority: 'Теперь задача имеет приоритет %{name}',
 });
 /* spell-checker: enable */
 

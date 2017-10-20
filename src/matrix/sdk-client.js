@@ -129,6 +129,7 @@ function init(config, pLogger = console) {
         const executor = resolve => {
             const onTimeout = () => {
                 logger.error('Error: Timeout awaiting matrix client prepared');
+                client.removeAllListeners('sync');
                 resolve(undefined);
             };
             const timeout = setTimeout(onTimeout, config.syncTimeoutSec * 1000);
