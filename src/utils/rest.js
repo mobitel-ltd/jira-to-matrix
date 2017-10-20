@@ -19,10 +19,6 @@ const fetchJSON = async (url, basicAuth) => {
         return;
     }
 
-    if (response.status >= 400) {
-        throw new Error(`Jira response have status ${response.status}\nurl:${url}`);
-    }
-
     logger.info(`response from jira have status: ${response.status}`,
         `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
