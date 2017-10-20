@@ -6,10 +6,9 @@ const {postfix, domain} = require('../config').matrix;
 
 const baseUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue';
 
-const chekUser = (users, name) => Boolean(
+const chekUser = (users, name) =>
     ~users.name.toLowerCase().indexOf(name.toLowerCase())
-    || ~users.displayName.toLowerCase().indexOf(name.toLowerCase())
-);
+    || ~users.displayName.toLowerCase().indexOf(name.toLowerCase());
 
 const searchUser = async name => {
     const allUsers = await jiraRequest.fetchJSON(
@@ -139,10 +138,9 @@ const addAssigneeInWatchers = async (room, roomName, assignee, self) => {
     return `The user ${assignee} now assignee issue ${roomName}`;
 };
 
-const checkCommand = (body, name, index) => Boolean(
+const checkCommand = (body, name, index) =>
     ~body.toLowerCase().indexOf(name.toLowerCase())
-    || ~body.indexOf(String(index + 1))
-);
+    || ~body.indexOf(String(index + 1));
 
 const getListCommand = async roomName => {
     // List of available commands
