@@ -13,6 +13,10 @@ const searchUser = async name => {
         auth()
     );
 
+    if (allUsers.status >= 400) {
+        throw new Error('Jira not return list all users!');
+    }
+
     const result = allUsers.reduce((prev, cur) => {
         if (checkUser(cur, name)) {
             prev.push(cur);
@@ -142,6 +146,10 @@ const getListCommand = async roomName => {
         auth()
     );
 
+    if (!transitions) {
+        throw new Error(`Jira not return list transitions for ${roomName}`);
+    }
+
     return transitions.map(({name, id}) => ({name, id}));
 };
 
@@ -255,6 +263,11 @@ const setPrio = async (body, room, roomName, self) => {
         `${baseUrl}/${roomName}/editmeta`,
         auth()
     );
+
+    if (!fields) {
+        throw new Error(`Jira not return list prioritys for ${roomName}`);
+    }
+
     const prioritys = fields.priority.allowedValues;
 
     const priority = prioritys.reduce((prev, cur, index) => {
