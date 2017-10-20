@@ -112,7 +112,7 @@ const getInfo = () => {
         ${indent}${indent}3) Highest<br>
         ${indent}${indent}...<br>
         ${indent}${indent}7) Lowest<br>
-        ${indent}${indent}Use <font color="green"><strong>"!prio Lowest"</strong></font> or
+        ${indent}Use <font color="green"><strong>"!prio Lowest"</strong></font> or
         <font color="green"><strong>"!prio 7"</strong></font>
     <h5>Use "!op" command to give moderator rights (admins only)<br>
     example:</h5>
