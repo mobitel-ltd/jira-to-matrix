@@ -1,7 +1,7 @@
 const logger = require('simple-color-logger')();
 const jiraCommands = require('./jira-commands.js');
 const matrixCommands = require('./matrix-commands.js');
-const translate = require('../../locales'); // eslint-disable-line id-length
+const translate = require('../../locales');
 const {postfix} = require('../../config').matrix;
 
 const eventFromMatrix = async (event, room, sender, self) => {
