@@ -1,6 +1,6 @@
 const {domain} = require('../../../config').matrix;
 
-module.exports = async ({room, self}) => {
+module.exports = async ({room, matrixClient}) => {
     const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
 
     const post = `
@@ -51,5 +51,5 @@ module.exports = async ({room, self}) => {
     If you have administrator status, you can invite the bot into the room and he will not be denied:)
     `;
 
-    await self.sendHtmlMessage(room.roomId, 'Help info', post);
+    await matrixClient.sendHtmlMessage(room.roomId, 'Help info', post);
 };

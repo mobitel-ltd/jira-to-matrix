@@ -26,7 +26,7 @@ const addUserInWatchers = async (room, roomName, user, matrixClient) => {
 };
 
 module.exports = async ({body, room, roomName, matrixClient}) => {
-    const user = body.substring(6).trim();
+    let user = body.substring(6).trim();
 
     let jiraWatcher = await jiraRequest.fetchPostJSON(
         `${BASE_URL}/${roomName}/watchers`,
@@ -45,6 +45,8 @@ module.exports = async ({body, room, roomName, matrixClient}) => {
                 return `Watcher ${user} don't add in ${roomName} issue`;
             }
             case 1: {
+                user = users[0].name;
+
                 jiraWatcher = await jiraRequest.fetchPostJSON(
                     `${BASE_URL}/${roomName}/watchers`,
                     auth(),
@@ -65,7 +67,7 @@ module.exports = async ({body, room, roomName, matrixClient}) => {
                     'List users:<br>');
 
                 await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
-                
+
                 return;
             }
         }
