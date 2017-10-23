@@ -1,14 +1,15 @@
 const logger = require('simple-color-logger')();
-const jiraCommands = require('./jira-commands.js');
-const matrixCommands = require('./matrix-commands.js');
-const translate = require('../../locales'); // eslint-disable-line id-length
+// const jiraCommands = require('./jira-commands.js');
+// const matrixCommands = require('./matrix-commands.js');
+const translate = require('../../locales');
 const {postfix} = require('../../config').matrix;
+const commands = require('./commands');
 
-const eventFromMatrix = async (event, room, sender, self) => {
+const eventFromMatrix = async (event, room, sender, matrixClient) => {
     const {body} = event.getContent();
-    const op = body.match(/!\w*\b/);
+    const command = body.match(/!\w+\b/);
 
-    if (!op || op.index !== 0) {
+    if (!command || command.index !== 0) {
         return;
     }
 
@@ -16,39 +17,21 @@ const eventFromMatrix = async (event, room, sender, self) => {
 
     let roomName = room.getCanonicalAlias();
     roomName = roomName.slice(1, -postfix);
-    let message;
+    const commandName = command[0].substring(1);
 
-    switch (op[0]) {
-        case '!comment':
-            message = await jiraCommands.postComment(body, sender, room, roomName, self);
-            break;
-        case '!assign':
-            message = await jiraCommands.appointAssignee(event, room, roomName, self);
-            break;
-        case '!move':
-            message = await jiraCommands.issueMove(body, room, roomName, self);
-            break;
-        case '!spec':
-            message = await jiraCommands.addWatchers(body, room, roomName, self);
-            break;
-        case '!prio':
-            message = await jiraCommands.setPrio(body, room, roomName, self);
-            break;
-        case '!help':
-            message = await matrixCommands.helpInfo(room, self);
-            break;
-        case '!op':
-            message = await matrixCommands.upgradeUser(body, sender, room, roomName, self);
-            break;
-        case '!invite':
-            message = await matrixCommands.inviteInRoom(body, sender, self);
-            break;
-        default:
-            logger.warn(`The command ${op[0]} failed`);
-            break;
+    const params = {
+        event,
+        room,
+        body,
+        roomName,
+        sender,
+        matrixClient,
+    };
+
+    if (commands[commandName]) {
+        const message = await commands[commandName](params);
+        return message;
     }
-
-    return message;
 };
 
 const handler = async function Handler(event, room, toStartOfTimeline) {
