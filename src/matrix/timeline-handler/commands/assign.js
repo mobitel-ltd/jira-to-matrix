@@ -22,35 +22,40 @@ const getInviteUser = (assignee, room) => {
 
     // 'members' is an array of objects
     const members = room.getJoinedMembers();
-    members.forEach(member => {
-        if (member.userId === user) {
+    for (const {userId} of members) {
+        if (userId === user) {
             user = null;
+            break;
         }
-    });
+    }
 
     return user;
 };
 
-const addAssigneeInWatchers = async (room, roomName, assignee, self) => {
+const addAssigneeInWatchers = async (room, roomName, assignee, matrixClient) => {
     const inviteUser = getInviteUser(assignee, room);
     if (inviteUser) {
-        await self.invite(room.roomId, inviteUser);
+        await matrixClient.invite(room.roomId, inviteUser);
     }
 
     // add watcher for issue
-    await jiraRequest.fetchPostJSON(
+    const {status} = await jiraRequest.fetchPostJSON(
         `${BASE_URL}/${roomName}/watchers`,
         auth(),
         schemaWatcher(assignee)
     );
 
+    if (status !== 204) {
+        throw new Error(`Jira returned status ${status} when try to add watcher`);
+    }
+
     const post = translate('successMatrixAssign', {assignee});
-    await self.sendHtmlMessage(room.roomId, post, post);
+    await matrixClient.sendHtmlMessage(room.roomId, post, post);
     return `The user ${assignee} now assignee issue ${roomName}`;
 };
 
-module.exports = async ({event, room, roomName, self}) => {
-    const assignee = getAssgnee(event);
+module.exports = async ({event, room, roomName, matrixClient}) => {
+    let assignee = getAssgnee(event);
 
     // appointed assignee for issue
     let jiraAssign = await jiraRequest.fetchPutJSON(
@@ -59,35 +64,41 @@ module.exports = async ({event, room, roomName, self}) => {
         schemaAssignee(assignee)
     );
 
-    let inviteMessage;
     if (jiraAssign.status !== 204) {
         const users = await searchUser(assignee);
         let post;
         switch (users.length) {
-            case 0:
+            case 0: {
                 post = translate('errorMatrixAssign', {assignee});
-                await self.sendHtmlMessage(room.roomId, post, post);
+                await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
                 return `User ${assignee} or issue ${roomName} don't exist`;
-            case 1:
+            }
+            case 1: {
                 jiraAssign = await jiraRequest.fetchPutJSON(
                     `${BASE_URL}/${roomName}/assignee`,
                     auth(),
                     schemaAssignee(users[0].name)
                 );
 
-                inviteMessage = await addAssigneeInWatchers(room, roomName, users[0].name, self);
-                return inviteMessage;
-            default:
+                if (jiraAssign.status !== 204) {
+                    throw new Error(`Jira returned status ${jiraAssign.status} when try to add assignee`);
+                }
+
+                assignee = users[0].name;
+                break;
+            }
+            default: {
                 post = users.reduce(
                     (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
                     'List users:<br>');
 
-                await self.sendHtmlMessage(room.roomId, 'List users', post);
+                await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
                 return;
+            }
         }
     }
 
-    inviteMessage = await addAssigneeInWatchers(room, roomName, assignee, self);
+    const inviteMessage = await addAssigneeInWatchers(room, roomName, assignee, matrixClient);
     return inviteMessage;
 };
