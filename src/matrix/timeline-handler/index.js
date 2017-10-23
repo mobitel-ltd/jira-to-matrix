@@ -1,8 +1,9 @@
 const logger = require('simple-color-logger')();
-const jiraCommands = require('./jira-commands.js');
-const matrixCommands = require('./matrix-commands.js');
+// const jiraCommands = require('./jira-commands.js');
+// const matrixCommands = require('./matrix-commands.js');
 const translate = require('../../locales');
 const {postfix} = require('../../config').matrix;
+const commands = require('./commands');
 
 const eventFromMatrix = async (event, room, sender, self) => {
     const {body} = event.getContent();
@@ -16,38 +17,17 @@ const eventFromMatrix = async (event, room, sender, self) => {
 
     let roomName = room.getCanonicalAlias();
     roomName = roomName.slice(1, -postfix);
-    let message;
 
-    switch (op[0]) {
-        case '!comment':
-            message = await jiraCommands.postComment(body, sender, room, roomName, self);
-            break;
-        case '!assign':
-            message = await jiraCommands.appointAssignee(event, room, roomName, self);
-            break;
-        case '!move':
-            message = await jiraCommands.issueMove(body, room, roomName, self);
-            break;
-        case '!spec':
-            message = await jiraCommands.addWatchers(body, room, roomName, self);
-            break;
-        case '!prio':
-            message = await jiraCommands.setPrio(body, room, roomName, self);
-            break;
-        case '!help':
-            message = await matrixCommands.helpInfo(room, self);
-            break;
-        case '!op':
-            message = await matrixCommands.upgradeUser(body, sender, room, roomName, self);
-            break;
-        case '!invite':
-            message = await matrixCommands.inviteInRoom(body, sender, self);
-            break;
-        default:
-            logger.warn(`The command ${op[0]} failed`);
-            break;
-    }
+    const params = {
+        event,
+        room,
+        body,
+        roomName,
+        sender,
+        self,
+    };
 
+    const message = await commands[op[0]](params);
     return message;
 };
 
