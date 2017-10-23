@@ -8,12 +8,12 @@ const invite = require('./invite.js');
 const help = require('./help.js');
 
 module.exports = {
-    '!comment': comment,
-    '!assign': assign,
-    '!move': move,
-    '!spec': spec,
-    '!prio': prio,
-    '!op': op,
-    '!invite': invite,
-    '!help': help,
+    comment,
+    assign,
+    move,
+    spec,
+    prio,
+    op,
+    invite,
+    help,
 };

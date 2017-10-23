@@ -17,6 +17,7 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
 
     let roomName = room.getCanonicalAlias();
     roomName = roomName.slice(1, -postfix);
+    const commandName = command[0].substring(1);
 
     const params = {
         event,
@@ -27,8 +28,8 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
         matrixClient,
     };
 
-    if (commands[command[0]]) {
-        const message = await commands[command[0]](params);
+    if (commands[commandName]) {
+        const message = await commands[commandName](params);
         return message;
     }
 };
