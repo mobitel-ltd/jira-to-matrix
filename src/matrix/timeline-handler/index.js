@@ -5,11 +5,11 @@ const translate = require('../../locales');
 const {postfix} = require('../../config').matrix;
 const commands = require('./commands');
 
-const eventFromMatrix = async (event, room, sender, self) => {
+const eventFromMatrix = async (event, room, sender, matrixClient) => {
     const {body} = event.getContent();
-    const op = body.match(/!\w*\b/);
+    const command = body.match(/!\w+\b/);
 
-    if (!op || op.index !== 0) {
+    if (!command || command.index !== 0) {
         return;
     }
 
@@ -24,11 +24,13 @@ const eventFromMatrix = async (event, room, sender, self) => {
         body,
         roomName,
         sender,
-        self,
+        matrixClient,
     };
 
-    const message = await commands[op[0]](params);
-    return message;
+    if (commands[command[0]]) {
+        const message = await commands[command[0]](params);
+        return message;
+    }
 };
 
 const handler = async function Handler(event, room, toStartOfTimeline) {
