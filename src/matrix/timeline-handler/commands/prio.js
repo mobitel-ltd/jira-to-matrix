@@ -34,11 +34,15 @@ module.exports = async ({body, room, roomName, matrixClient}) => {
         return;
     }
 
-    await jiraRequest.fetchPutJSON(
+    const {status} = await jiraRequest.fetchPutJSON(
         `${BASE_URL}/${roomName}`,
         auth(),
         shemaFields(priority.id)
     );
+
+    if (status !== 204) {
+        throw new Error(`Jira returned status ${status} when try to add priority`);
+    }
 
     const post = translate('setPriority', priority);
     await matrixClient.sendHtmlMessage(room.roomId, 'Successful set priority', post);

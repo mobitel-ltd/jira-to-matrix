@@ -38,29 +38,36 @@ module.exports = async ({body, room, roomName, matrixClient}) => {
         const users = await searchUser(user);
         let post;
         switch (users.length) {
-            case 0:
+            case 0: {
                 post = translate('errorWatcherJira');
                 matrixClient.sendHtmlMessage(room.roomId, post, post);
+
                 return `Watcher ${user} don't add in ${roomName} issue`;
-            case 1:
+            }
+            case 1: {
                 jiraWatcher = await jiraRequest.fetchPostJSON(
                     `${BASE_URL}/${roomName}/watchers`,
                     auth(),
                     schemaWatcher(users[0].name)
                 );
+
                 if (jiraWatcher.status !== 204) {
                     post = translate('errorWatcherJira');
                     matrixClient.sendHtmlMessage(room.roomId, post, post);
                     return `Watcher ${users[0].name} don't add in ${roomName} issue`;
                 }
+
                 break;
-            default:
+            }
+            default: {
                 post = users.reduce(
                     (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
                     'List users:<br>');
 
                 await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
+                
                 return;
+            }
         }
     }
 
