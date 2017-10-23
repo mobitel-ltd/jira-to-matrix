@@ -1,18 +1,18 @@
-const _ = require('lodash');
+const lodash = require('lodash');
 const htmlToText = require('html-to-text').fromString;
 const jira = require('../jira');
 const logger = require('simple-color-logger')();
 const translate = require('../locales');
 
-function getTextIssue(req, address) {
+const getTextIssue = (req, address) => {
     const text = String(
-        _.get(req.body.issue.fields, address) || translate('miss')
+        lodash.get(req.body.issue.fields, address) || translate('miss')
     ).trim();
 
     return text;
-}
+};
 
-async function getPost(req) {
+const getPost = async req => {
     const assigneeName = getTextIssue(req, 'assignee.displayName');
     const assigneeEmail = getTextIssue(req, 'assignee.emailAddress');
     const reporterName = getTextIssue(req, 'reporter.displayName');
@@ -24,12 +24,13 @@ async function getPost(req) {
     const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
     let post;
 
+    /* eslint-disable no-negated-condition */
     if (epicLink !== translate('miss')) {
         const epic = await jira.issue.getFormatted(epicLink);
         let nameEpic;
         if (typeof epic === 'object' && epic.key === epicLink) {
-            nameEpic = String(_.get(epic.renderedField, 'customfield_10005') 
-                || _.get(epic.fields, 'customfield_10005') 
+            nameEpic = String(lodash.get(epic.renderedField, 'customfield_10005')
+                || lodash.get(epic.fields, 'customfield_10005')
                 || epicLink
             );
         }
@@ -68,41 +69,14 @@ async function getPost(req) {
                 <br>${indent}${description}<br>`;
     }
     return post;
-}
+};
 
-const getTutorial = () => {
-    const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
-
-    const post = `
+const getTutorial = () => `
     <br>
-    <h4>Tutorial for jira comands:</h4>
-    <h5>Use "!comment" command to comment in jira issue<br>
-    example:</h5>
-        ${indent}<font color="green"><strong>!comment some text</strong></font><br>
-        ${indent}text "<font color="green">some text</font>" will be shown in jira comments<br>
-    <h5>Use "!assign" command to assign jira issue<br>
-    example:</h5>
-        ${indent}<font color="green"><strong>!assign mv_nosak</strong></font><br>
-        ${indent}user '<font color="green">mv_nosak</font>' will become assignee for the issue<br><br>
-        ${indent}<font color="green"><strong>!assign</strong></font><br>
-        ${indent}you will become assignee for the issue
-    <h5>Use "!move" command to view list of available transitions<br>
-    example:</h5>
-        ${indent}<font color="green"><strong>!move</strong></font><br>
-        ${indent}you will see a list:<br>
-        ${indent}${indent}1) Done<br>
-        ${indent}${indent}2) On hold<br>
-        ${indent}Use <font color="green"><strong>"!move done"</strong></font> or 
-        <font color="green"><strong>"!move 1"</strong></font>
-    <h5>Use "!spec" command to add watcher for issue<br>
-    example:</h5>
-        ${indent}<font color="green"><strong>!spec mv_nosak</strong></font><br>
-        ${indent}user '<font color="green">mv_nosak</font>' was added in watchers for the issue<br><br>
+    Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
     `;
-    return post;
-}
 
-async function middleware(req) {
+const middleware = async req => {
     if (req.newRoomID && req.mclient) {
         const post = await getPost(req);
         const {issue} = req.body;
@@ -111,7 +85,7 @@ async function middleware(req) {
             {post},
             await jira.issue.renderedValues(issue.id, ['description'])
         );
-        
+
         // description
         await req.mclient.sendHtmlMessage(
             req.newRoomID,
@@ -122,10 +96,10 @@ async function middleware(req) {
         // tutorial jira commands
         await req.mclient.sendHtmlMessage(
             req.newRoomID,
-            'Send tutorial', 
+            'Send tutorial',
             getTutorial()
         );
     }
-}
+};
 
 module.exports = middleware;
