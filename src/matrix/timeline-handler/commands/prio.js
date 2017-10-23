@@ -4,7 +4,7 @@ const translate = require('../../../locales');
 const {checkNamePriority, BASE_URL} = require('./helper.js');
 const {shemaFields} = require('./schemas.js');
 
-module.exports = async ({body, room, roomName, self}) => {
+module.exports = async ({body, room, roomName, matrixClient}) => {
     const prioName = body.substring(6).trim();
 
     const {fields} = await jiraRequest.fetchJSON(
@@ -13,12 +13,12 @@ module.exports = async ({body, room, roomName, self}) => {
     );
 
     if (!fields) {
-        throw new Error(`Jira not return list prioritys for ${roomName}`);
+        throw new Error(`Jira not return list priorities for ${roomName}`);
     }
 
-    const prioritys = fields.priority.allowedValues;
+    const priorities = fields.priority.allowedValues;
 
-    const priority = prioritys.reduce((prev, cur, index) => {
+    const priority = priorities.reduce((prev, cur, index) => {
         if (checkNamePriority(cur, index, prioName)) {
             return {id: cur.id, name: cur.name};
         }
@@ -26,11 +26,11 @@ module.exports = async ({body, room, roomName, self}) => {
     }, 0);
 
     if (!priority) {
-        const listPrio = prioritys.reduce(
+        const listPrio = priorities.reduce(
             (prev, cur, index) => `${prev}${index + 1}) ${cur.name}<br>`,
             ''
         );
-        await self.sendHtmlMessage(room.roomId, 'List prioritys', listPrio);
+        await matrixClient.sendHtmlMessage(room.roomId, 'List priorities', listPrio);
         return;
     }
 
@@ -41,7 +41,7 @@ module.exports = async ({body, room, roomName, self}) => {
     );
 
     const post = translate('setPriority', priority);
-    await self.sendHtmlMessage(room.roomId, 'Successful set priority', post);
+    await matrixClient.sendHtmlMessage(room.roomId, 'Successful set priority', post);
 
     return `Issue ${roomName} now has priority ${priority.name}`;
 };
