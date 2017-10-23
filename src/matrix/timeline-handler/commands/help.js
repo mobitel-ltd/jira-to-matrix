@@ -1,9 +1,9 @@
 const {domain} = require('../../../config').matrix;
 
-const getInfo = () => {
+module.exports = async ({room, self}) => {
     const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
 
-    return `
+    const post = `
     <h5>Use "!comment" command to comment in jira issue<br>
     example:</h5>
         ${indent}<font color="green"><strong>!comment some text</strong></font><br>
@@ -50,9 +50,6 @@ const getInfo = () => {
         ${indent}Bot invite you in room for issue <font color="green">BBCOM-101</font><br><br>
     If you have administrator status, you can invite the bot into the room and he will not be denied:)
     `;
-};
 
-module.exports = async ({room, self}) => {
-    const post = getInfo();
     await self.sendHtmlMessage(room.roomId, 'Help info', post);
 };
