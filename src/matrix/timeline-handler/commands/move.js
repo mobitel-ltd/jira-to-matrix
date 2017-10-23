@@ -18,7 +18,7 @@ const getListCommand = async roomName => {
     return transitions.map(({name, id}) => ({name, id}));
 };
 
-module.exports = async ({body, room, roomName, self}) => {
+module.exports = async ({body, room, roomName, matrixClient}) => {
     const listCommands = await getListCommand(roomName);
 
     const moveId = listCommands.reduce((res, cur, index) => {
@@ -35,24 +35,24 @@ module.exports = async ({body, room, roomName, self}) => {
             ''
         );
         postListCommands = `<b>${translate('listJiraCommand')}:</b><br>${postListCommands}`;
-        await self.sendHtmlMessage(room.roomId, 'list commands', postListCommands);
+        await matrixClient.sendHtmlMessage(room.roomId, 'list commands', postListCommands);
         return;
     }
 
     // canged status issue
-    const jiraMove = await jiraRequest.fetchPostJSON(
+    const {status} = await jiraRequest.fetchPostJSON(
         `${BASE_URL}/${roomName}/transitions`,
         auth(),
         schemaMove(moveId.id)
     );
 
-    if (jiraMove.status !== 204) {
+    if (status !== 204) {
         const post = translate('errorMoveJira');
-        await self.sendHtmlMessage(room.roomId, 'ERROR', post);
+        await matrixClient.sendHtmlMessage(room.roomId, 'ERROR', post);
         return `Issue ${roomName} not changed status`;
     }
 
     const post = translate('successMoveJira', moveId);
-    await self.sendHtmlMessage(room.roomId, post, post);
+    await matrixClient.sendHtmlMessage(room.roomId, post, post);
     return `Issue ${roomName} changed status`;
 };
