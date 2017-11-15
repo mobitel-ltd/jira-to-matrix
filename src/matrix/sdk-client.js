@@ -93,6 +93,7 @@ function initConnector(config) {
             await disconnect(); // eslint-disable-line no-use-before-define
         }
         store.setNewClient(createClient(config));
+        logger.info('setNewClient');
         return store.getClient();
     }
 
@@ -122,6 +123,7 @@ function init(config, pLogger = console) {
             logger.error('Matrix client not returned');
             return;
         }
+        logger.info('getClient');
         if (wellConnected(client.getSyncState())) {
             return client;
         }
@@ -129,7 +131,7 @@ function init(config, pLogger = console) {
         const executor = resolve => {
             const onTimeout = () => {
                 logger.error('Error: Timeout awaiting matrix client prepared');
-                client.removeAllListeners('sync');
+                // client.removeAllListeners('sync');
                 resolve(undefined);
             };
             const timeout = setTimeout(onTimeout, config.syncTimeoutSec * 1000);
