@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const jira = require('../jira');
-const logger = require('debug')();
+const logger = require('debug')('parse');
 
 module.exports = req => {
     if (typeof req.body !== 'object' || _.isEmpty(req.body)) {

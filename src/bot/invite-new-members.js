@@ -1,7 +1,7 @@
 const Ramda = require('ramda');
 const jira = require('../jira');
 const matrix = require('../matrix');
-const logger = require('bot invite new member')();
+const logger = require('bot invite new member')('new member');
 
 async function inviteNew(client, issue) {
     const participants = (await jira.issue.collectParticipants(issue)).map(
