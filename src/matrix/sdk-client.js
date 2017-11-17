@@ -3,39 +3,31 @@ const sdk = require('matrix-js-sdk');
 
 // await-to helper
 // based on https://github.com/scopsy/await-to-js
-const to = promise =>
-    promise
-        .then(data => [null, data])
-        .catch(err => [err]);
 
-const getAccessToken = async ({baseUrl, userId, password}) => {
-    const [err, login] = await to(
-        sdk
-        // Создает сущность класса MatrixClient http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-client-MatrixClient.html
-            .createClient(baseUrl)
-            // http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-base-apis-MatrixBaseApis.html
-            // в случае аутентификации возвращает объект типа { login: { access_token, home_server, user_id, device_id } }
-            .loginWithPassword(userId, password)
-    );
-    if (err) {
-        logger(`Error while requesting token:\n${err}`);
-        return;
-    }
-    logger('login', login);
-    return login.access_token;
-};
-
+// Можно составить дефолтное значение в baseUrl, чтобы не получать ошибку на этапе подключения к матриксу
 const createClient = async ({baseUrl, userId, password}) => {
     try {
-        const token = await getAccessToken({baseUrl, userId, password});
-        logger(`createClient OK BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
-        const newClient = await sdk.createClient({
+        // Создает сущность класса MatrixClient http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-client-MatrixClient.html
+        const client = await sdk.createClient(baseUrl);
+        // logger('client', client);
+        // http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-base-apis-MatrixBaseApis.html
+        // в случае аутентификации возвращает объект типа { login: { access_token, home_server, user_id, device_id } }
+        const login = await client.loginWithPassword(userId, password);
+        logger('login', login);
+        if (!login.access_token) {
+            throw new Error('No login.access_token');
+        }
+
+        const token = login.access_token;
+        const matrixClient = await sdk.createClient({
             baseUrl,
             accessToken: token,
             userId,
         });
-        logger('Started connect to Matrix');
-        return newClient;
+        logger(`createClient OK BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
+        // logger('matrixClient', matrixClient);
+        logger('Started connect to matrixClient');
+        return matrixClient;
     } catch (err) {
         logger(`createClient error. BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
         logger(err);
@@ -46,7 +38,7 @@ const createClient = async ({baseUrl, userId, password}) => {
 const addToNow = ms => new Date(Number(new Date()) + ms);
 
 const initConnectionStore = ({tokenTTL}) => {
-    logger('tokenTTL', tokenTTL);
+    // logger('tokenTTL', tokenTTL);
 
     const initialState = () => ({
         // could be actual client or Promise
@@ -83,7 +75,7 @@ const initConnectionStore = ({tokenTTL}) => {
 
 const initConnector = config => {
     const store = initConnectionStore(config);
-    logger('Store', store);
+    // logger('Store', store);
     const connect = async () => {
         const client = store.getClient();
 

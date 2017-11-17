@@ -2,4 +2,4 @@ test:
 		npm run test
 
 testwatch:
-	npm run testwatch
+		npm run testwatch

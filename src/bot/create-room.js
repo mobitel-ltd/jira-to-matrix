@@ -1,8 +1,8 @@
 const jira = require('../jira');
-const { helpers } = require('../matrix');
+const {helpers} = require('../matrix');
 const logger = require('debug')('create room bot');
 
-async function create(client, issue) {
+const create = async (client, issue) => {
     if (!client) {
         logger(`Not exist matrix client. Key: ${issue.key}`);
         return;
@@ -24,9 +24,9 @@ async function create(client, issue) {
     }
     logger(`Created room for ${issue.key}: ${response.room_id}`);
     return response.room_id;
-}
+};
 
-async function createRoomProject(client, project) {
+const createRoomProject = async (client, project) => {
     if (!client) {
         logger(`Not exist matrix client. Key: ${issue.key}`);
         return;
@@ -45,57 +45,56 @@ async function createRoomProject(client, project) {
     }
     logger(`Created room for project ${project.key}: ${response.room_id}`);
     return response.room_id;
-}
+};
 
-const shouldCreateRoom = (body) => Boolean(
+const shouldCreateRoom = body => Boolean(
     typeof body === 'object'
     && typeof body.issue === 'object'
     && body.issue.key
     && body.issue_event_type_name !== 'issue_moved'
-)
+);
 
-const checkEpic = (body) => Boolean(
+const checkEpic = body => Boolean(
     typeof body === 'object'
     && typeof body.issue === 'object'
     && typeof body.issue.fields === 'object'
     && body.issue.fields.issuetype.name === 'Epic'
-)
+);
 
-const checkProjectEvent = (body) => Boolean(
+const checkProjectEvent = body => Boolean(
     typeof body === 'object'
     && (
         body.webhookEvent === 'project_created'
         || body.webhookEvent === 'project_updated'
     )
-)
+);
 
 const objHas = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
-async function middleware(req) {
+const middleware = async req => {
     if (shouldCreateRoom(req.body)) {
         const issue = req.body.issue;            
         logger(`issue: ${issue.key}`);
         const room = await req.mclient.getRoomId(issue.key);
 
-        if (!room) {
+        if (room) {
+            logger(`Room the issue ${issue.key} is already exists`);
+        } else {
             logger(`Start creating the room for  issue ${issue.key}`);
             req.newRoomID = await create(req.mclient, issue);
-        } else {
-            logger(`Room the issue ${issue.key} is already exists`);
         }
-    } else if(req.body.webhookEvent === 'jira:issue_created') {
+    } else if (req.body.webhookEvent === 'jira:issue_created') {
         logger(`Start creating the room for issue ${issue.key}`);
         req.newRoomID = await create(req.mclient, req.body.issue);
     }
 
     if (checkEpic(req.body) || checkProjectEvent(req.body)) {
         let projectOpts;
-        
         if (objHas(req.body, 'issue') && objHas(req.body.issue, 'fields')) {
             projectOpts = req.body.issue.fields.project;
         }
 
-        if (objHas(req.body,'project')) {
+        if (objHas(req.body, 'project')) {
             projectOpts = req.body.project;
         }
 
@@ -105,16 +104,16 @@ async function middleware(req) {
         }
 
         const roomProject = await req.mclient.getRoomId(projectOpts.key);
-        
-        if (!roomProject) {
+
+        if (roomProject) {
+            logger(`Room for project ${projectOpts.key} is already exists`);
+        } else {
             logger(`Try to create a room for project ${projectOpts.key}`);
             const project = await jira.issue.getProject(projectOpts.id);
             const projectRoomId = await createRoomProject(req.mclient, project);
-        } else {
-            logger(`Room for project ${projectOpts.key} is already exists`);
         }
     }
-}
+};
 
 module.exports.middleware = middleware;
 module.exports.forTests = {shouldCreateRoom};

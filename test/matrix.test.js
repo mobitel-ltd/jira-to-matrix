@@ -5,8 +5,9 @@ const appMatrix = require('../src/matrix');
 const assert = require('assert');
 const logger = require('debug')('test matrix');
 
-describe('Matrix api', () => {
-    it('test matrix connect from sdk-client', async () => {
+describe('Matrix api', function() {
+    this.timeout(15000);
+    it('test matrix true config connect from sdk-client', async () => {
         const connect = init(config.matrix).connect;
         // logger(Object.keys(matrix));
         // connect().then(res => logger(res));
@@ -21,10 +22,20 @@ describe('Matrix api', () => {
         // await appMatrix.disconnect();
     });
     
-    it('test matrix connect from sdk-client', async () => {
+    it('test matrix fake config connect from sdk-client', async () => {
         const fakeConnect = init(fakeConfig.matrix).connect;
         const connection = await fakeConnect();
         // logger('fake connection', connection);
         assert.ifError(connection);
-    });        
+    });
+
+    it('test matrix connect with fake password from sdk-client', async () => {
+        const {matrix} = config;
+        const matrixWithFakePassword = {...matrix, password: 'fake'};
+        // logger(Object.values(matrixWithFakePassword));
+        const fakeConnect = init(matrixWithFakePassword).connect;
+        const connection = await fakeConnect();
+        // logger('fake connection', connection);
+        assert.ifError(connection);
+    });
 });
