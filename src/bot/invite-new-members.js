@@ -1,7 +1,7 @@
 const Ramda = require('ramda');
 const jira = require('../jira');
 const matrix = require('../matrix');
-const logger = require('simple-color-logger')();
+const logger = require('bot invite new member')();
 
 async function inviteNew(client, issue) {
     const participants = (await jira.issue.collectParticipants(issue)).map(
@@ -9,7 +9,7 @@ async function inviteNew(client, issue) {
     );
     const room = await client.getRoomByAlias(issue.key);
     if (!room) {
-        logger.warn(`Matrix not return room for key ${issue.key}`);
+        logger(`Matrix not return room for key ${issue.key}`);
         return;
     }
     const members = matrix.helpers.membersInvited(room.currentState.members);
@@ -18,7 +18,7 @@ async function inviteNew(client, issue) {
         await client.invite(room.roomId, userID);
     });
     if (newMembers.length > 0) {
-        logger.info(`New members invited to ${issue.key}: ${newMembers}`);
+        logger(`New members invited to ${issue.key}: ${newMembers}`);
     }
     return newMembers;
 }

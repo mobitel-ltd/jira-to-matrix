@@ -1,7 +1,7 @@
 const to = require('await-to-js').default;
 const redis = require('../redis-client');
 const conf = require('../config');
-const logger = require('simple-color-logger')();
+const logger = require('debug')('bot save incoming');
 
 async function save(req) {
     if (!req.jiraKey) {
@@ -11,7 +11,7 @@ async function save(req) {
         redis.setAsync(req.jiraKey, req.formattedJSON, 'EX', conf.redis.ttl)
     );
     if (err) {
-        logger.error(`Error while saving to redis:\n${err.message}`);
+        logger(`Error while saving to redis:\n${err.message}`);
     }
 }
 

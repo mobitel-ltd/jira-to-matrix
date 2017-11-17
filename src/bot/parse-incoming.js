@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const jira = require('../jira');
-const logger = require('simple-color-logger')();
+const logger = require('debug')();
 
-function parse(req) {
+module.exports = req => {
     if (typeof req.body !== 'object' || _.isEmpty(req.body)) {
         return;
     }
@@ -23,10 +23,8 @@ function parse(req) {
         .map(v => v || 'null')
         .join('|');
 
-    logger.fyi(`Incoming: ${key}`);
+    logger(`Incoming: ${key}`);
 
     req.jiraKey = key;
     req.formattedJSON = json;
-}
-
-module.exports = parse;
+};

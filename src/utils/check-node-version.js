@@ -1,19 +1,17 @@
 const Ramda = require('ramda');
 const semver = require('semver');
 const {engines} = require('../../package.json');
-const logger = require('simple-color-logger')();
+const logger = require('debug')('check-node-version');
 
-function checkNodeVersion() {
-    const version = Ramda.is(Object, engines) ? engines.node : undefined;
+module.exports = () => {
+    const version = Ramda.is(Object, engines) ? engines.node : null;
     if (!version) {
-        logger.error('cannot find required Node version in package.json');
+        logger('cannot find required Node version in package.json');
         return false;
     }
     if (!semver.satisfies(process.version, version)) {
-        logger.error(`Required node version ${version} not satisfied with current version ${process.version}.`);
+        logger(`Required node version ${version} not satisfied with current version ${process.version}.`);
         return false;
     }
     return true;
-}
-
-module.exports = checkNodeVersion;
+};

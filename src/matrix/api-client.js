@@ -3,7 +3,7 @@ const lodash = require('lodash');
 const Ramda = require('ramda');
 const to = require('await-to-js').default;
 const conf = require('../config').matrix;
-const logger = require('simple-color-logger')();
+const logger = require('debug')('matrix api client');
 const cbTimeline = require('./timeline-handler');
 
 const api = {};
@@ -15,7 +15,7 @@ api.createRoom = client => async function createRoom(options) {
         client.createRoom(Object.assign({visibility: 'private'}, options))
     );
     if (err) {
-        logger.error(`Error while creating room:\n ${err}`);
+        logger(`Error while creating room:\n ${err}`);
         return;
     }
     return response;
@@ -27,7 +27,7 @@ api.getRoomId = client => async function getRoomId(alias) {
     );
     if (err) {
         if (err.errcode !== 'M_NOT_FOUND') {
-            logger.warn(
+            logger(
                 `Error while getting room id for ${alias} from Matrix:\n${err}`
             );
         }
@@ -43,7 +43,7 @@ api.getRoomByAlias = client => async function getRoomByAlias(alias) {
     );
     if (err) {
         if (err.errcode !== 'M_NOT_FOUND') {
-            logger.warn(
+            logger(
                 `Error while getting room id for ${alias} from Matrix:\n${err}`
             );
         }
@@ -56,7 +56,7 @@ api.getRoomByAlias = client => async function getRoomByAlias(alias) {
 api.getRoomMembers = () => async function GetRoomMembers(roomAlias) {
     const room = await this.getRoomByAlias(roomAlias);
     if (!room) {
-        logger.warn(`Don't return room for alias ${roomAlias}`);
+        logger(`Don't return room for alias ${roomAlias}`);
         return;
     }
     return lodash.values(room.currentState.members).map(member => member.userId);
@@ -65,7 +65,7 @@ api.getRoomMembers = () => async function GetRoomMembers(roomAlias) {
 api.invite = client => async function invite(roomId, userId) {
     const [err, response] = await to(client.invite(roomId, userId));
     if (err) {
-        logger.error(`Error while inviting a new member to a room:\n ${err}`);
+        logger(`Error while inviting a new member to a room:\n ${err}`);
         return;
     }
     return response;
@@ -74,7 +74,7 @@ api.invite = client => async function invite(roomId, userId) {
 api.sendHtmlMessage = client => async function sendHtmlMessage(roomId, body, htmlBody) {
     const [err] = await to(client.sendHtmlMessage(roomId, body, htmlBody));
     if (err) {
-        logger.error(`Error while sending message to a room:\n ${err}`);
+        logger(`Error while sending message to a room:\n ${err}`);
     }
     return !err;
 };
@@ -85,7 +85,7 @@ api.createAlias = client => async function createAlias(alias, roomId) {
         roomId
     ));
     if (err) {
-        logger.error(`Error while creating alias for a room:\n ${err}`);
+        logger(`Error while creating alias for a room:\n ${err}`);
     }
     return !err;
 };
@@ -93,7 +93,7 @@ api.createAlias = client => async function createAlias(alias, roomId) {
 api.setRoomName = client => async function setRoomName(roomId, name) {
     const [err] = await to(client.setRoomName(roomId, name));
     if (err) {
-        logger.error(`Error while setting room name:\n ${err}`);
+        logger(`Error while setting room name:\n ${err}`);
     }
     return !err;
 };
@@ -101,7 +101,7 @@ api.setRoomName = client => async function setRoomName(roomId, name) {
 api.setRoomTopic = client => async function setRoomTopic(roomId, topic) {
     const [err] = await to(client.setRoomTopic(roomId, topic));
     if (err) {
-        logger.error(`Error while setting room's topic:\n ${err}`);
+        logger(`Error while setting room's topic:\n ${err}`);
     }
     return !err;
 };
@@ -128,14 +128,15 @@ const removeListener = (eventName, listener, matrixClient) => {
     const listCount = matrixClient.listenerCount(eventName);
     if (listCount > 1) {
         matrixClient.removeListener(eventName, listener);
-        logger.warn(`Count listener for ${eventName} ${listCount}. To remove unnecessary listener`);
+        logger(`Count listener for ${eventName} ${listCount}. To remove unnecessary listener`);
     }
 };
 
 module.exports = sdkConnect => async function connect() {
+    logger('Matrix connection in api');
     const matrixClient = await sdkConnect();
     if (!matrixClient) {
-        logger.error('\'matrixClient\' is undefined');
+        logger('\'matrixClient\' is undefined');
         return;
     }
 
@@ -146,8 +147,8 @@ module.exports = sdkConnect => async function connect() {
         removeListener('event', inviteBot, matrixClient);
 
         if (state !== 'SYNCING' || prevState !== 'SYNCING') {
-            logger.warn(`state: ${state}`);
-            logger.warn(`prevState: ${prevState}`);
+            logger(`state: ${state}`);
+            logger(`prevState: ${prevState}`);
         }
     });
 

@@ -1,9 +1,9 @@
 const conf = require('../config');
-const logger = require('simple-color-logger')();
+const logger = require('debug')('epic jira');
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
 
-async function issuesIn(epicKey) {
+const issuesIn = async epicKey => {
     const searchField = conf.features.epicUpdates.fieldAlias;
     const params = [
         {jql: `"${searchField}"=${epicKey}`},
@@ -15,10 +15,10 @@ async function issuesIn(epicKey) {
         auth()
     );
     if (!(obj instanceof Object)) {
-        logger.warn('Response from jira not object');
+        logger('Response from jira not object');
         return;
     }
     return obj.issues || [];
-}
+};
 
 module.exports = {issuesIn};

@@ -1,6 +1,6 @@
 const config = require('../config');
 const {webHookUser} = require('../jira');
-const logger = require('simple-color-logger')();
+const logger = require('debug')('bot stop if ignored');
 
 const shouldIgnore = (body, conf) => {
     const username = webHookUser(body);
@@ -13,13 +13,11 @@ const shouldIgnore = (body, conf) => {
     };
 };
 
-async function middleware(req) {
+module.exports = req => {
     const {ignore, username} = shouldIgnore(req.body, config);
     if (ignore) {
-        logger.warn(`User "${username}" ignored according to config`);
+        logger(`User "${username}" ignored according to config`);
         return ignore;
     }
     return;
-}
-
-module.exports = middleware;
+};

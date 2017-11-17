@@ -1,7 +1,7 @@
 const matrix = require('../matrix');
-const logger = require('simple-color-logger')();
+const logger = require('debug')('connect to matrix bot');
 
-async function middleware(req, res, next) {
+module.exports = async (req, res, next) => {
     let client;
     let count = 0;
     let err;
@@ -15,7 +15,7 @@ async function middleware(req, res, next) {
             break;
         }
         count += 1;
-        logger.info(`the connection with the Matrix: ${count}\n Web-hook: ${req.body.webhookEvent}`);
+        logger(`the connection with the Matrix: ${count}\n Web-hook: ${req.body.webhookEvent}`);
     }
 
     if (err) {
@@ -24,6 +24,4 @@ async function middleware(req, res, next) {
         req.mclient = client;
         next();
     }
-}
-
-module.exports = middleware;
+};

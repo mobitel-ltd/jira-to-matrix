@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const jira = require('../jira');
 const translate = require('../locales');
 const {composeRoomName} = require('../matrix').helpers;
-const logger = require('simple-color-logger')();
+const logger = require('debug')('bot post issue update');
 
 const helpers = {
     fieldNames: items => Ramda.pipe(
@@ -44,7 +44,7 @@ async function postUpdateInfo(mclient, roomID, hook) {
         })
     );
     if (success) {
-        logger.info(`Posted updates to ${issue.key}`);
+        logger(`Posted updates to ${issue.key}`);
     }
 }
 
@@ -60,7 +60,7 @@ async function move(mclient, roomID, hook) {
     }
     const success = await mclient.createAlias(field.toString, roomID);
     if (success) {
-        logger.info(`Successfully added alias ${field.toString} for room ${field.fromString}`);
+        logger(`Successfully added alias ${field.toString} for room ${field.fromString}`);
     }
     await mclient.setRoomTopic(roomID, jira.issue.ref(hook.issue.key));
 }
@@ -75,7 +75,7 @@ async function rename(mclient, roomID, hook) {
         composeRoomName(hook.issue)
     );
     if (success) {
-        logger.info(`Successfully renamed room ${getIssueKey(hook)}`);
+        logger(`Successfully renamed room ${getIssueKey(hook)}`);
     }
 }
 
@@ -106,9 +106,9 @@ async function middleware(req) {
     const proceed = shouldPostChanges(req);
 
     if (req.body.issue) {
-        logger.info(`To update the data of the issue ${req.body.issue.key}: ${proceed}\n`);
+        logger(`To update the data of the issue ${req.body.issue.key}: ${proceed}\n`);
     } else {
-        logger.info(`To update the data ${req.body.webhookEvent}: ${proceed}\n`);
+        logger(`To update the data ${req.body.webhookEvent}: ${proceed}\n`);
     }
 
     if (proceed) {

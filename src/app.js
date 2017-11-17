@@ -5,7 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const conf = require('./config');
 const matrix = require('./matrix');
-const logger = require('simple-color-logger')();
+const logger = require('debug')('app');
 const {checkNodeVersion} = require('./utils');
 const cachedQueue = require('./queue').queue;
 const queueHandler = require('./queue').handler;
@@ -18,9 +18,9 @@ if (!checkNodeVersion()) {
 
 process.on('uncaughtException', err => {
     if (err.errno === 'EADDRINUSE') {
-        logger.error(`Port ${conf.port} is in use!\n${err}`);
+        logger(`Port ${conf.port} is in use!\n${err}`);
     } else {
-        logger.error(`Uncaught exception!\n${err}`);
+        logger(`Uncaught exception!\n${err}`);
     }
     process.exit(1);
 });
@@ -48,29 +48,18 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     if (err) {
-        logger.info(err);
+        logger(err);
     }
     res.end();
 });
 
 const server = http.createServer(app);
 server.listen(conf.port, () => {
-    logger.info(`Server is listening on port ${conf.port}`);
+    logger(`Server is listening on port ${conf.port}`);
 });
 
-const onExit = async function onExit() {
-    await matrix.disconnect();
-    if (server.listening) {
-        server.close(() => {
-            process.exit();
-        });
-        return;
-    }
-    process.exit();
-};
-
-
 const connectToMatrix = async matrix => {
+    logger('Matrix connection');
     let client = await matrix.connect();
     while (!client) {
         client = await connectToMatrix(matrix);
@@ -101,6 +90,17 @@ queuePush.on('notEmpty', async () => {
         client = await connectToMatrix(matrix);
     }
 });
+
+const onExit = async function onExit() {
+    await matrix.disconnect();
+    if (server.listening) {
+        server.close(() => {
+            process.exit();
+        });
+        return;
+    }
+    process.exit();
+};
 
 process.on('exit', onExit);
 process.on('SIGINT', onExit);

@@ -15,7 +15,8 @@
     "browser": true,
     "node": true,
     "commonjs": true,
-    "shared-node-browser": true
+    "shared-node-browser": true,
+    "jest": true
   },
   "rules": {
     "array-callback-return": [

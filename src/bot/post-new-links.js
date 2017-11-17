@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const to = require('await-to-js').default;
-const logger = require('simple-color-logger')();
+const logger = require('debug')('post new links');
 const marked = require('marked');
 const redis = require('../redis-client');
 const jira = require('../jira');
@@ -33,7 +33,7 @@ async function handleLink(issueLink, mclient) {
         redis.setnxAsync(`link|${link.id}`, '1')
     );
     if (err) {
-        logger.error(`Redis error while SETNX new link\n${err.message}`);
+        logger(`Redis error while SETNX new link\n${err.message}`);
         return;
     }
     if (!isNew) {

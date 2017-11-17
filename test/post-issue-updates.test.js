@@ -1,7 +1,8 @@
 /* eslint-disable no-undef, no-console */
-const {toStrings, composeText} = require('./post-issue-updates').forTests;
+const {toStrings, composeText} = require('../src/bot/post-issue-updates').forTests;
+const assert = require('assert');
 
-test('hook\'s changelog items to strings', () => {
+it('hook\'s changelog items to strings', () => {
     const items = [
         {
             field: 'assignee',
@@ -17,15 +18,15 @@ test('hook\'s changelog items to strings', () => {
         assignee: 'someone',
         description: 'new descr',
     };
-    expect(result).toEqual(value);
+    assert.deepEqual(result, value);
 });
 
-test('composing html for issue-updated message', () => {
+it('composing html for issue-updated message', () => {
     const result = composeText({
         author: 'Username',
         fields: ['description'],
         formattedValues: {description: '<p>new description</p>'},
     });
-    const expected = 'Username changed issue<br>description: <p>new description</p>';
-    expect(result).toEqual(expected);
+    const expected = 'Username изменил(а) задачу<br>description: <p>new description</p>';
+    assert.deepEqual(result, expected);
 });

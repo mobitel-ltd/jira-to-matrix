@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const to = require('await-to-js').default;
-const logger = require('simple-color-logger')();
+const logger = require('debug')('bot post epic update');
 const marked = require('marked');
 const translate = require('../locales');
 const redis = require('../redis-client');
@@ -15,7 +15,7 @@ async function isInEpic(epicID, issueID) {
         redis.sismemberAsync(epicRedisKey(epicID), issueID)
     );
     if (err) {
-        logger.error(`Error while querying redis:\n${err.message}`);
+        logger(`Error while querying redis:\n${err.message}`);
         return;
     }
     return saved;
@@ -26,7 +26,7 @@ async function saveToEpic(epicID, issueID) {
         redis.saddAsync(epicRedisKey(epicID), issueID)
     );
     if (err) {
-        logger.error(`Redis error while adding issue to epic :\n${err.message}`);
+        logger(`Redis error while adding issue to epic :\n${err.message}`);
     }
 }
 
@@ -53,7 +53,7 @@ async function postNewIssue(epic, issue, mclient) {
     }
     const success = await sendMessageNewIssue(mclient, epic, issue);
     if (success) {
-        logger.info(`Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`);
+        logger(`Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`);
         await saveToEpic(epic.id, issue.id);
     }
 }

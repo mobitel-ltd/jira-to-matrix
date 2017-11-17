@@ -1,7 +1,7 @@
 /* eslint-disable no-negated-condition */
 const bot = require('../bot');
 const {features} = require('../config');
-const logger = require('simple-color-logger')();
+const logger = require('debug')('queue');
 
 const handler = async (body, client, queue) => {
     try {
@@ -40,21 +40,21 @@ const handler = async (body, client, queue) => {
             await bot.postLinkedChanges(req);
         }
         if (body.issue) {
-            logger.info(`Successful processing of the hook for ${body.issue.key}`);
+            logger(`Successful processing of the hook for ${body.issue.key}`);
         } else {
-            logger.info(`Successful processing`);
+            logger(`Successful processing`);
         }
 
         return true;
     } catch (err) {
-        logger.error(`Ups! Something went wrong:`);
+        logger(`Ups! Something went wrong:`);
 
         if (err.message !== body.errMessage) {
-            logger.error(err);
+            logger(err);
             body.errMessage = err.message;
             queue.unshift(body);
         } else {
-            logger.error(`Remove hook '${body.webhookEvent}' \nwith error: ${err}`);
+            logger(`Remove hook '${body.webhookEvent}' \nwith error: ${err}`);
         }
 
         return false;

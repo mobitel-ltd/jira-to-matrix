@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 const Joi = require('joi');
-const logger = require('simple-color-logger')();
+const logger = require('debug')('valideate config');
 
 const int = Joi.number().integer().required();
 const string = Joi.string().required();
@@ -68,9 +68,9 @@ const validate = function validate(config) {
     };
     const {error} = Joi.validate(config, schema, options);
     if (error) {
-        logger.error('Config is invalid:');
+        logger('Config is invalid:');
         error.details.forEach(detail => {
-            logger.error(`  - ${detail.path}: ${detail.message}`);
+            logger(`  - ${detail.path}: ${detail.message}`);
         });
         return false;
     }

@@ -1,4 +1,4 @@
-const logger = require('simple-color-logger')();
+const logger = require('debug')('matrix timeline handler');
 // const jiraCommands = require('./jira-commands.js');
 // const matrixCommands = require('./matrix-commands.js');
 const translate = require('../../locales');
@@ -13,7 +13,7 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
         return;
     }
 
-    logger.info(`${sender} sent message:\n ${body}`);
+    logger(`${sender} sent message:\n ${body}`);
 
     let roomName = room.getCanonicalAlias();
     roomName = roomName.slice(1, -postfix);
@@ -48,12 +48,12 @@ const handler = async function Handler(event, room, toStartOfTimeline) {
     try {
         const command = await eventFromMatrix(event, room, sender, self);
         if (command) {
-            logger.info(`${command}\n(did ${sender})`);
+            logger(`${command}\n(did ${sender})`);
         }
     } catch (err) {
         const post = translate('errorMatrixCommands');
         self.sendHtmlMessage(room.roomId, post, post);
-        logger.error(err);
+        logger(err);
     }
 };
 

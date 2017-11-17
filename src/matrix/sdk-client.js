@@ -1,91 +1,92 @@
+const logger = require('debug')('matrix sdk client');
 const sdk = require('matrix-js-sdk');
-
-let logger;
 
 // await-to helper
 // based on https://github.com/scopsy/await-to-js
-function to(promise) {
-    return promise
+const to = promise =>
+    promise
         .then(data => [null, data])
         .catch(err => [err]);
-}
 
-async function getAccessToken({baseUrl, userId, password}) {
+const getAccessToken = async ({baseUrl, userId, password}) => {
     const [err, login] = await to(
         sdk
+        // Создает сущность класса MatrixClient http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-client-MatrixClient.html
             .createClient(baseUrl)
+            // http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-base-apis-MatrixBaseApis.html
+            // в случае аутентификации возвращает объект типа { login: { access_token, home_server, user_id, device_id } }
             .loginWithPassword(userId, password)
     );
     if (err) {
-        logger.error(`Error while requesting token:\n${err}`);
+        logger(`Error while requesting token:\n${err}`);
         return;
     }
+    logger('login', login);
     return login.access_token;
-}
+};
 
-async function createClient({baseUrl, userId, password}) {
-    const token = await getAccessToken({baseUrl, userId, password});
-    if (!token) {
-        logger.error('token not returned');
-        return;
+const createClient = async ({baseUrl, userId, password}) => {
+    try {
+        const token = await getAccessToken({baseUrl, userId, password});
+        logger(`createClient OK BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
+        const newClient = await sdk.createClient({
+            baseUrl,
+            accessToken: token,
+            userId,
+        });
+        logger('Started connect to Matrix');
+        return newClient;
+    } catch (err) {
+        logger(`createClient error. BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
+        logger(err);
+        return false;
     }
-    const newClient = sdk.createClient({
-        baseUrl,
-        accessToken: token,
-        userId,
-    });
-    logger.info('Started connect to Matrix');
-    return newClient;
-}
+};
 
-function addToNow(ms) {
-    return new Date(Number(new Date()) + ms);
-}
+const addToNow = ms => new Date(Number(new Date()) + ms);
 
-function initConnectionStore({tokenTTL}) {
+const initConnectionStore = ({tokenTTL}) => {
+    logger('tokenTTL', tokenTTL);
+
     const initialState = () => ({
-        client: undefined, // could be actual client or Promise
-        expires: undefined,
+        // could be actual client or Promise
+        client: null,
+        expires: null,
     });
 
     const state = initialState();
 
-    function getState() {
-        return state;
-    }
+    const getState = () => state;
 
-    function setState(newState) {
-        Object.assign(state, newState);
-    }
+    const setState = newState => Object.assign(state, newState);
 
-    function clearState() {
-        setState(initialState());
-    }
+    const clearState = () => setState(initialState());
 
-    function getClient() {
+    const getClient = () => {
         const {client} = getState();
         return client;
-    }
+    };
 
-    function setNewClient(client) {
+    const setNewClient = client => {
         const expires = addToNow(tokenTTL * 1000);
         setState({client, expires});
-    }
+    };
 
-    function clientExpired() {
+    const clientExpired = () => {
         const {expires} = getState();
         return expires
             && (new Date()) > expires;
-    }
+    };
 
     return {getClient, setNewClient, clientExpired, clearState};
-}
+};
 
-function initConnector(config) {
+const initConnector = config => {
     const store = initConnectionStore(config);
-
-    async function connect() {
+    logger('Store', store);
+    const connect = async () => {
         const client = store.getClient();
+
         if (client && !store.clientExpired()) {
             return client;
         }
@@ -94,32 +95,32 @@ function initConnector(config) {
         }
         store.setNewClient(createClient(config));
         return store.getClient();
-    }
+    };
 
-    async function disconnect() {
-        const client = await store.getClient(); // Client can be a promise yet
+    const disconnect = async () => {
+        // Client can be a promise yet
+        const client = await store.getClient();
         if (client) {
             await client.stopClient();
-            logger.warn('Disconnected from Matrix');
+            logger('Disconnected from Matrix');
             store.clearState();
         }
-    }
+    };
 
     return {connect, disconnect};
-}
+};
 
-function init(config, pLogger = console) {
-    logger = pLogger;
+const wellConnected = syncState => ['PREPARED', 'SYNCING'].includes(syncState);
+
+const init = config => {
     const connector = initConnector(config);
+    // logger('Connector in Matrix.init', Object.values(connector));
 
-    function wellConnected(syncState) {
-        return ['PREPARED', 'SYNCING'].includes(syncState);
-    }
-
-    async function connect() {
+    const connect = async () => {
         const client = await connector.connect();
+        // logger('client', client);
         if (!client) {
-            logger.error('Matrix client not returned');
+            logger('Matrix client not returned');
             return;
         }
         if (wellConnected(client.getSyncState())) {
@@ -128,21 +129,21 @@ function init(config, pLogger = console) {
 
         const executor = resolve => {
             const onTimeout = () => {
-                logger.error('Error: Timeout awaiting matrix client prepared');
+                logger('Error: Timeout awaiting matrix client prepared');
                 client.removeAllListeners('sync');
                 resolve(undefined);
             };
             const timeout = setTimeout(onTimeout, config.syncTimeoutSec * 1000);
 
-            function onSync(state) {
+            const onSync = state => {
                 if (wellConnected(state)) {
                     clearTimeout(timeout);
-                    logger.info('Client properly synched with Matrix');
+                    logger('Client properly synched with Matrix');
                     resolve(client);
                 } else {
                     client.once('sync', onSync);
                 }
-            }
+            };
 
             client.once('sync', onSync);
         };
@@ -150,12 +151,12 @@ function init(config, pLogger = console) {
             client.startClient();
         }
         return new Promise(executor);
-    }
+    };
 
     return {
         connect,
         disconnect: connector.disconnect,
     };
-}
+};
 
 module.exports = init;

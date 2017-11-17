@@ -1,8 +1,8 @@
 const Ramda = require('ramda');
-const {tValues} = require('./ru');
+const {tValues} = require('../src/locales/ru');
+const assert = require('assert');
 
-test('Gender ending for a Russian full name', () => { // eslint-disable-line no-undef
-    /* spell-checker: disable */
+it('Gender ending for a Russian full name', () => {
     const samples = [
         ['Иванова Анастасия Петровна', 'а'],
         ['Анастасия Петровна', 'а'],
@@ -16,11 +16,10 @@ test('Gender ending for a Russian full name', () => { // eslint-disable-line no-
         [{}, '(а)'],
         [[], '(а)'],
     ];
-    /* spell-checker: enable */
     const fn = Ramda.partial(tValues, [{prop: 1, f: 125}]);
     samples.forEach(sample => {
         const result = fn(sample[0]);
         const expected = {prop: 1, f: sample[1]};
-        expect(result).toEqual(expected); // eslint-disable-line no-undef
+        assert.deepEqual(result, expected);
     });
 });
