@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 const lodash = require('lodash');
-const Ramda = require('ramda');
 const to = require('await-to-js').default;
 const conf = require('../config').matrix;
 const logger = require('debug')('matrix api client');
@@ -132,9 +131,10 @@ const removeListener = (eventName, listener, matrixClient) => {
     }
 };
 
-module.exports = sdkConnect => async function connect() {
-    logger('Matrix connection in api');
+module.exports = sdkConnect => async () => {
+    logger('Matrix connection in apiClient');
     const matrixClient = await sdkConnect();
+    // logger(matrixClient);
     if (!matrixClient) {
         logger('\'matrixClient\' is undefined');
         return;
@@ -154,5 +154,8 @@ module.exports = sdkConnect => async function connect() {
 
     matrixClient.on('event', inviteBot);
 
-    return Ramda.map(closer => closer(matrixClient))(api);
+    const apiClient = Object.values(api)
+        .map(func => func(matrixClient));
+
+    return apiClient;
 };

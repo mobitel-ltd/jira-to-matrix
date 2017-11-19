@@ -9,9 +9,9 @@
   "scripts": {
     "start": "node src/app.js",
     "start-dev": "NODE_ENV=development node src/app.js",
-    "test": "mocha",
+    "test": "NODE_ENV=test mocha",
     "fix": "eslint src/**/*.js --fix",
-    "testwatch": "mocha --watch"
+    "testwatch": "NODE_ENV=test mocha --watch"
   },
   "devDependencies": {
     "eslint": "^4.5.0",
