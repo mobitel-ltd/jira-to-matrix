@@ -5,7 +5,7 @@ const appMatrix = require('../src/matrix');
 const assert = require('assert');
 const logger = require('debug')('test matrix');
 const matrixApi = require('../src/matrix/');
-const apiClient = require('../src/matrix/api-client')
+const apiClient = require('../src/matrix/api-client');
 
 describe('Matrix api', async function() {
     this.timeout(15000);

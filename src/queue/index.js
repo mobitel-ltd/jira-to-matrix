@@ -3,13 +3,14 @@ const bot = require('../bot');
 const {features} = require('../config');
 const logger = require('debug')('queue');
 
+// Обработчик хуков Jira, производит действие в зависимости от наличия body и client 
 const handler = async (body, client, queue) => {
     try {
         const req = {
             body,
             mclient: await client,
         };
-
+        // Парсинг JSON данных
         await bot.parse(req);
         await bot.save(req);
         const ignore = await bot.stopIf(req);

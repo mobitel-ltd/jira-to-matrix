@@ -26,7 +26,7 @@ const composeText = ({author, fields, formattedValues}) => {
         .join('<br>');
 };
 
-async function postUpdateInfo(mclient, roomID, hook) {
+const postUpdateInfo = async (mclient, roomID, hook) => {
     const {changelog, issue, user} = hook;
     const fields = helpers.fieldNames(changelog.items);
     const formattedValues = Object.assign(
@@ -46,14 +46,14 @@ async function postUpdateInfo(mclient, roomID, hook) {
     if (success) {
         logger(`Posted updates to ${issue.key}`);
     }
-}
+};
 
 const getIssueKey = hook => {
     const fieldKey = jira.getChangelogField('Key', hook);
     return fieldKey ? fieldKey.fromString : hook.issue.key;
 };
 
-async function move(mclient, roomID, hook) {
+const move = async (mclient, roomID, hook) => {
     const field = jira.getChangelogField('Key', hook);
     if (!field) {
         return;
@@ -63,9 +63,9 @@ async function move(mclient, roomID, hook) {
         logger(`Successfully added alias ${field.toString} for room ${field.fromString}`);
     }
     await mclient.setRoomTopic(roomID, jira.issue.ref(hook.issue.key));
-}
+};
 
-async function rename(mclient, roomID, hook) {
+const rename = async (mclient, roomID, hook) => {
     const fieldIsEmpty = field => !jira.getChangelogField(field, hook);
     if (fieldIsEmpty('summary') && fieldIsEmpty('Key')) {
         return;
@@ -77,9 +77,9 @@ async function rename(mclient, roomID, hook) {
     if (success) {
         logger(`Successfully renamed room ${getIssueKey(hook)}`);
     }
-}
+};
 
-async function postChanges({mclient, body}) {
+const postChanges = async ({mclient, body}) => {
     if (
         Ramda.isEmpty(Ramda.pathOr([], ['changelog', 'items'], body))
     ) {
@@ -92,7 +92,7 @@ async function postChanges({mclient, body}) {
     await move(mclient, roomID, body);
     await rename(mclient, roomID, body);
     await postUpdateInfo(mclient, roomID, body);
-}
+};
 
 const shouldPostChanges = ({body, mclient}) => Boolean(
     typeof body === 'object'
@@ -102,7 +102,7 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-async function middleware(req) {
+const middleware = async req => {
     const proceed = shouldPostChanges(req);
 
     if (req.body.issue) {
@@ -114,7 +114,7 @@ async function middleware(req) {
     if (proceed) {
         await postChanges(req);
     }
-}
+};
 
 module.exports.middleware = middleware;
 module.exports.shouldPostChanges = shouldPostChanges;

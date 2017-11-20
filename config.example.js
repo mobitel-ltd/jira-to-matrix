@@ -6,6 +6,7 @@ module.exports = Object.freeze({
         user: 'bot',
         password: 'key',
     },
+    // Список допустимых действий для пользователя
     features: {
         createRoom: true,
         inviteNewMembers: true,

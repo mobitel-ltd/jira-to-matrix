@@ -29,7 +29,9 @@ const app = express();
 
 app.use(bodyParser.json({strict: false}));
 
+// POST для Jira, добавляет задачи для последующей обработки
 app.post('/', (req, res, next) => {
+    logger('Jira body', req.body);
     cachedQueue.push(req.body);
     if (!client) {
         next(new Error('Matrix client is not exist'));
@@ -84,6 +86,8 @@ queuePush.on('notEmpty', async () => {
     let success;
     if (client) {
         const lastReq = cachedQueue.pop();
+        // Обработка массива вебхуков от Jira
+        logger('cachedQueue', cachedQueue);
         success = await queueHandler(lastReq, client, cachedQueue);
     }
 

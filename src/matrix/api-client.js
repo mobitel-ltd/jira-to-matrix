@@ -140,9 +140,11 @@ module.exports = sdkConnect => async () => {
         return;
     }
 
+    // logger('cbTimeline', cbTimeline);
     matrixClient.on('Room.timeline', cbTimeline);
 
     matrixClient.on('sync', (state, prevState, data) => {
+        // logger(this);
         removeListener('Room.timeline', cbTimeline, matrixClient);
         removeListener('event', inviteBot, matrixClient);
 

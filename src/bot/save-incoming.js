@@ -3,7 +3,7 @@ const redis = require('../redis-client');
 const conf = require('../config');
 const logger = require('debug')('bot save incoming');
 
-async function save(req) {
+const save = async req => {
     if (!req.jiraKey) {
         return;
     }
@@ -13,6 +13,6 @@ async function save(req) {
     if (err) {
         logger(`Error while saving to redis:\n${err.message}`);
     }
-}
+};
 
 module.exports = save;

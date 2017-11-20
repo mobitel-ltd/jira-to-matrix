@@ -20,7 +20,7 @@ const composeConfig = config => {
     if (!validate(config)) {
         process.exit(1);
     }
-    logger('config.matrix', Object.keys(config.matrix));
+    // logger('config.matrix', Object.keys(config.matrix));
     const matrix = {
         ...config.matrix,
         baseUrl: `https://${config.matrix.domain}`,
@@ -33,7 +33,7 @@ const composeConfig = config => {
     // });
     // logger('')
     const version = '2017-06-27';
-    logger('matrix', matrix);
+    // logger('matrix', matrix);
     config.features.epicUpdates.on = () => (
         config.features.epicUpdates.newIssuesInEpic === 'on'
         || config.features.epicUpdates.issuesStatusChanged === 'on'

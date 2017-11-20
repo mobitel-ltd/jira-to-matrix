@@ -20,7 +20,7 @@ module.exports = req => {
         issue,
         'queued',
     ]
-        .map(v => v || 'null')
+        .map(value => value || 'null')
         .join('|');
 
     logger(`Incoming: ${key}`);

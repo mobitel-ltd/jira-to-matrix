@@ -21,11 +21,11 @@ const shouldPostComment = ({body, mclient}) => Boolean(
     && mclient
 );
 
-async function middleware(req) {
+const middleware = async req => {
     if (shouldPostComment(req)) {
         await postComment(req.mclient, req.body);
     }
-}
+};
 
 module.exports.middleware = middleware;
 module.exports.forTests = {

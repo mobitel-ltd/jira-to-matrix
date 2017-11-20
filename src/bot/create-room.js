@@ -73,7 +73,7 @@ const objHas = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
 const middleware = async req => {
     if (shouldCreateRoom(req.body)) {
-        const issue = req.body.issue;            
+        const {issue} = req.body;
         logger(`issue: ${issue.key}`);
         const room = await req.mclient.getRoomId(issue.key);
 
@@ -84,7 +84,7 @@ const middleware = async req => {
             req.newRoomID = await create(req.mclient, issue);
         }
     } else if (req.body.webhookEvent === 'jira:issue_created') {
-        logger(`Start creating the room for issue ${issue.key}`);
+        logger(`Start creating the room for issue ${req.body.issue.key}`);
         req.newRoomID = await create(req.mclient, req.body.issue);
     }
 

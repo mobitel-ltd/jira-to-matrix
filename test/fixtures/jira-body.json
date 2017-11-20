@@ -1,0 +1,41 @@
+{
+  "timestamp": "1511184764296",
+  "webhookEvent": "comment_created",
+  "comment": {
+    "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/26313/comment/30750",
+    "id": "30750",
+    "author": {
+      "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+      "name": "jira_test",
+      "key": "jira_test",
+      "emailAddress": "jira_test@bingo-boom.ru",
+      "avatarUrls": {
+        "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+        "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+        "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+        "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+      },
+      "displayName": "jira_test",
+      "active": "true",
+      "timeZone": "Europe/Moscow"
+    },
+    "body": "111",
+    "updateAuthor": {
+      "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+      "name": "jira_test",
+      "key": "jira_test",
+      "emailAddress": "jira_test@bingo-boom.ru",
+      "avatarUrls": {
+        "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+        "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+        "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+        "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+      },
+      "displayName": "jira_test",
+      "active": "true",
+      "timeZone": "Europe/Moscow"
+    },
+    "created": "2017-11-20T16:32:44.296+0300",
+    "updated": "2017-11-20T16:32:44.296+0300"
+  }
+}

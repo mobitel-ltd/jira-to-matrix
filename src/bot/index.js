@@ -2,7 +2,7 @@
 const parse = require('./parse-incoming');
 const save = require('./save-incoming');
 const stopIf = require('./stop-if-user-ignored');
-const connectToMatrix = require('./connect-to-matrix');
+// const connectToMatrix = require('./connect-to-matrix');
 const createRoom = require('./create-room').middleware;
 const postIssueDescription = require('./post-issue-description');
 const inviteNew = require('./invite-new-members').middleware;
