@@ -25,6 +25,9 @@ module.exports = req => {
 
     logger(`Incoming: ${key}`);
 
-    req.jiraKey = key;
-    req.formattedJSON = json;
+    return {
+        ...req,
+        jiraKey: key,
+        formattedJSON: json,
+    };
 };

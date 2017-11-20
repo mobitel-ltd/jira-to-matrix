@@ -6,12 +6,13 @@ const logger = require('debug')('queue');
 // Обработчик хуков Jira, производит действие в зависимости от наличия body и client 
 const handler = async (body, client, queue) => {
     try {
+        logger(`Handler data. body => ${body}, client => ${client}, queue => ${queue}`);
         const req = {
-            body,
+            ...await bot.parse(body),
             mclient: await client,
         };
+        logger('req', req);
         // Парсинг JSON данных
-        await bot.parse(req);
         await bot.save(req);
         const ignore = await bot.stopIf(req);
         if (ignore) {
