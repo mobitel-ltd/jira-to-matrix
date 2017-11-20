@@ -2,7 +2,7 @@
 const lodash = require('lodash');
 const to = require('await-to-js').default;
 const conf = require('../config').matrix;
-const logger = require('debug')('matrix api client');
+const logger = require('debug')('api client');
 const cbTimeline = require('./timeline-handler');
 
 const api = {};

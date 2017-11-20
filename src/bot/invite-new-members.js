@@ -1,9 +1,9 @@
 const Ramda = require('ramda');
 const jira = require('../jira');
 const matrix = require('../matrix');
-const logger = require('bot invite new member')('new member');
+const logger = require('debug')('new member');
 
-async function inviteNew(client, issue) {
+const inviteNew = async (client, issue) => {
     const participants = (await jira.issue.collectParticipants(issue)).map(
         matrix.helpers.userID
     );
@@ -21,9 +21,9 @@ async function inviteNew(client, issue) {
         logger(`New members invited to ${issue.key}: ${newMembers}`);
     }
     return newMembers;
-}
+};
 
-async function middleware(req) {
+const middleware = async req => {
     if (
         typeof req.body === 'object' &&
         req.body.webhookEvent === 'jira:issue_updated' &&
@@ -32,7 +32,7 @@ async function middleware(req) {
     ) {
         await inviteNew(req.mclient, req.body.issue);
     }
-}
+};
 
 module.exports.inviteNew = inviteNew;
 module.exports.middleware = middleware;

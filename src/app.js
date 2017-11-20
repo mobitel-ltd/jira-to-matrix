@@ -61,6 +61,7 @@ server.listen(conf.port, () => {
 const connectToMatrix = async matrix => {
     logger('Matrix connection');
     let client = await matrix.connect();
+    logger('Matrix client', client);
     while (!client) {
         client = await connectToMatrix(matrix);
     }
@@ -79,6 +80,7 @@ const checkingQueueInterval = setInterval(checkQueue, 500);
 checkingQueueInterval.unref();
 
 queuePush.on('notEmpty', async () => {
+    logger('queue');
     let success;
     if (client) {
         const lastReq = cachedQueue.pop();
@@ -92,7 +94,8 @@ queuePush.on('notEmpty', async () => {
 });
 
 const onExit = async function onExit() {
-    await matrix.disconnect();
+    const disconnection = await matrix.disconnect();
+    disconnection();
     if (server.listening) {
         server.close(() => {
             process.exit();

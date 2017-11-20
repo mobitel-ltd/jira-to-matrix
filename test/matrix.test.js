@@ -5,6 +5,7 @@ const appMatrix = require('../src/matrix');
 const assert = require('assert');
 const logger = require('debug')('test matrix');
 const matrixApi = require('../src/matrix/');
+const apiClient = require('../src/matrix/api-client')
 
 describe('Matrix api', async function() {
     this.timeout(15000);
@@ -47,24 +48,35 @@ describe('Matrix api', async function() {
 
     it('test matrixApi', async () => {
         const {connect, disconnect, helpers} = matrixApi;
-        // const initconf = await init(config.matrix);
-        // logger('connect', connect);
-        // logger('init', initconf);
         const expected = ['createRoom', 'getRoomId', 'getRoomByAlias', 'getRoomMembers', 'invite', 'sendHtmlMessage', 'createAlias', 'setRoomName', 'setRoomTopic'];
-        const api = await connect();
-        const result = Object.values(api).map(func => func.name)
+        const connection = await connect();
+        const disonnection = await disconnect();
+
+        const result = Object.values(connection).map(func => func.name)
         assert.ok(expected, result);
-        // (await disconnect())();
-        // assert.ifError(connection.clientRunning);
+        disonnection();
         logger('helpers', helpers);
     });
-
     
-    await afterEach(async () => {
-        if (connection) {
-            await connection.stopClient();
+    it('test matrixApi with fake config', async () => {
+        try {
+            const {connect} = await init(fakeConfig.matrix);
+            logger('connect', connect);
+            const result = apiClient(connect)();
+            logger('index connect', result);
+        } catch (err) {
+            const funcErr = () => {
+                throw err
+            };
+            assert.throws(funcErr, /No baseUrl/);
         }
     });
+
+    // await afterEach(async () => {
+    //     if (connection) {
+    //         await connection.stopClient();
+    //     }
+    // });
 
     // after(() => process.exit(1));
 });
