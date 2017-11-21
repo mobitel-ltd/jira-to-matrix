@@ -8,6 +8,7 @@ const save = async req => {
             throw new Error('No jiraKey');
         }
         await redis.setAsync(req.jiraKey, req.formattedJSON, 'EX', conf.redis.ttl);
+        logger('data saved by redis');
     } catch (err) {
         logger(`Error while saving to redis:\n${err.message}`);
         throw err;

@@ -2,20 +2,20 @@ const _ = require('lodash');
 const jira = require('../jira');
 const logger = require('debug')('parse');
 
-module.exports = req => {
-    if (typeof req.body !== 'object' || _.isEmpty(req.body)) {
-        return;
+module.exports = body => {
+    if (typeof body !== 'object' || _.isEmpty(body)) {
+        logger('unexpected body');
+        throw new Error('unexpected body in Jira webhook');
     }
-
-    const json = JSON.stringify(req.body, null, 2);
-    const issue = _.get(req.body, 'issue.key') || jira.issue.extractID(json);
+    const json = JSON.stringify(body, null, 2);
+    const issue = _.get(body, 'issue.key') || jira.issue.extractID(json);
 
     const user =
-    _.get(req.body, 'user.name') || _.get(req.body, 'comment.author.name');
+    _.get(body, 'user.name') || _.get(body, 'comment.author.name');
 
     const key = [
-        req.body.timestamp,
-        (req.body.webhookEvent || '').replace(':', '-'),
+        body.timestamp,
+        (body.webhookEvent || '').replace(':', '-'),
         user,
         issue,
         'queued',
@@ -26,7 +26,7 @@ module.exports = req => {
     logger(`Incoming: ${key}`);
 
     return {
-        ...req,
+        body,
         jiraKey: key,
         formattedJSON: json,
     };

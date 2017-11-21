@@ -1,11 +1,11 @@
 // const {features} = require('../config');
 const parse = require('./parse-incoming');
 const save = require('./save-incoming');
-const stopIf = require('./stop-if-user-ignored');
+const isIgnore = require('./stop-if-user-ignored');
 // const connectToMatrix = require('./connect-to-matrix');
 const createRoom = require('./create-room').middleware;
 const postIssueDescription = require('./post-issue-description');
-const inviteNew = require('./invite-new-members').middleware;
+const inviteNewMembers = require('./invite-new-members').middleware;
 const postComment = require('./post-comment').middleware;
 const postIssueUpdates = require('./post-issue-updates').middleware;
 const postEpicUpdates = require('./post-epic-updates').middleware;
@@ -49,10 +49,10 @@ const postLinkedChanges = require('./post-linked-changes');
 module.exports = {
     parse,
     save,
-    stopIf,
+    isIgnore,
     createRoom,
     postIssueDescription,
-    inviteNew,
+    inviteNewMembers,
     postComment,
     postIssueUpdates,
     postEpicUpdates,

@@ -103,6 +103,7 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
 );
 
 const middleware = async req => {
+    logger('post updates');
     const proceed = shouldPostChanges(req);
 
     if (req.body.issue) {

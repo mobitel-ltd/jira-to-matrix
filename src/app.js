@@ -82,15 +82,14 @@ const checkingQueueInterval = setInterval(checkQueue, 500);
 checkingQueueInterval.unref();
 
 queuePush.on('notEmpty', async () => {
-    logger('queue');
+    logger('queuePush start');
     let success;
     if (client) {
         const lastReq = cachedQueue.pop();
         // Обработка массива вебхуков от Jira
-        logger('cachedQueue', cachedQueue);
         success = await queueHandler(lastReq, client, cachedQueue);
     }
-
+    logger('success', success);
     if (!success && client) {
         client = null;
         client = await connectToMatrix(matrix);

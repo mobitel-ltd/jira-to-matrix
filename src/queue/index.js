@@ -2,22 +2,27 @@
 const bot = require('../bot');
 const {features} = require('../config');
 const logger = require('debug')('queue');
+const colors = require('colors/safe');
 
 // Обработчик хуков Jira, производит действие в зависимости от наличия body и client 
 const handler = async (body, client, queue) => {
     try {
-        logger(`Handler data. body => ${body}, client => ${client}, queue => ${queue}`);
+        logger(`Handler data: body => ${body}, client => ${client}, queue => ${queue}`);
+        // Парсинг JSON данных
+        const parsedBody = bot.parse(body);
+        // logger('parsedBody', parsedBody);
         const req = {
-            ...await bot.parse(body),
+            ...parsedBody,
             mclient: await client,
         };
-        logger('req', req);
-        // Парсинг JSON данных
+        // Сохранение в Redis
         await bot.save(req);
-        const ignore = await bot.stopIf(req);
-        if (ignore) {
-            return true;
-        }
+        // const ignore = await bot.stopIf(req);
+        // Проверка на игнор
+        bot.isIgnore(req);
+        // if (ignore) {
+        //     return true;/// Зачем?
+        // }
         if (features.createRoom) {
             await bot.createRoom(req);
             await bot.postIssueDescription(req);
@@ -26,7 +31,7 @@ const handler = async (body, client, queue) => {
             await bot.postIssueUpdates(req);
         }
         if (features.inviteNewMembers) {
-            await bot.inviteNew(req);
+            await bot.inviteNewMembers(req);
         }
         if (features.postComments) {
             await bot.postComment(req);
@@ -49,17 +54,21 @@ const handler = async (body, client, queue) => {
 
         return true;
     } catch (err) {
-        logger(`Ups! Something went wrong:`);
+        logger(colors.red(`Ups! Something went wrong:`));
+        const isIgnoreErr = (err.message === 'User ignored');
 
-        if (err.message !== body.errMessage) {
+        if ((err.message !== body.errMessage)) {
             logger(err);
-            body.errMessage = err.message;
-            queue.unshift(body);
+            const newBody = {...body, errMessage: err.message};
+            if (!isIgnoreErr) {
+                queue.unshift(newBody);
+            }
         } else {
-            logger(`Remove hook '${body.webhookEvent}' \nwith error: ${err}`);
+            logger(colors.red(`Remove hook '${body.webhookEvent}' \nwith error: ${err}`));
         }
 
-        return false;
+        // logger(err.message === 'User ignored');
+        return isIgnoreErr;
     }
 };
 

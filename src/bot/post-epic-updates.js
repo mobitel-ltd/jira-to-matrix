@@ -10,7 +10,7 @@ const {epicUpdates: epicConf} = require('../config').features;
 
 const epicRedisKey = epicID => `epic|${epicID}`;
 
-async function isInEpic(epicID, issueID) {
+const isInEpic = async (epicID, issueID) => {
     const [err, saved] = await to(
         redis.sismemberAsync(epicRedisKey(epicID), issueID)
     );
@@ -19,18 +19,18 @@ async function isInEpic(epicID, issueID) {
         return;
     }
     return saved;
-}
+};
 
-async function saveToEpic(epicID, issueID) {
+const saveToEpic = async (epicID, issueID) => {
     const [err] = await to(
         redis.saddAsync(epicRedisKey(epicID), issueID)
     );
     if (err) {
         logger(`Redis error while adding issue to epic :\n${err.message}`);
     }
-}
+};
 
-async function sendMessageNewIssue(mclient, epic, newIssue) {
+const sendMessageNewIssue = async (mclient, epic, newIssue) => {
     const values = fp.paths([
         'epic.fields.summary',
         'issue.key',
@@ -44,9 +44,9 @@ async function sendMessageNewIssue(mclient, epic, newIssue) {
         marked(translate('issueAddedToEpic', values))
     );
     return success;
-}
+};
 
-async function postNewIssue(epic, issue, mclient) {
+const postNewIssue = async (epic, issue, mclient) => {
     const saved = await isInEpic(epic.id, issue.id);
     if (saved) {
         return;
@@ -56,16 +56,16 @@ async function postNewIssue(epic, issue, mclient) {
         logger(`Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`);
         await saveToEpic(epic.id, issue.id);
     }
-}
+};
 
 const getNewStatus = Ramda.pipe(
     Ramda.pathOr([], ['changelog', 'items']),
     Ramda.filter(Ramda.propEq('field', 'status')),
     Ramda.head,
-    Ramda.propOr(undefined, 'toString')
+    Ramda.propOr(null, 'toString')
 );
 
-async function postStatusChanged(roomID, hook, mclient) {
+const postStatusChanged = async (roomID, hook, mclient) => {
     const status = getNewStatus(hook);
     if (typeof status !== 'string') {
         return;
@@ -82,9 +82,9 @@ async function postStatusChanged(roomID, hook, mclient) {
         translate('statusHasChanged', values),
         marked(translate('statusHasChangedMessage', values, values['user.name']))
     );
-}
+};
 
-async function postEpicUpdates({mclient, body: hook}) {
+const postEpicUpdates = async ({mclient, body: hook}) => {
     const {issue} = hook;
     const epicKey = Ramda.path(['fields', epicConf.field], issue);
     if (!epicKey) {
@@ -106,7 +106,7 @@ async function postEpicUpdates({mclient, body: hook}) {
     if (epicConf.issuesStatusChanged === 'on') {
         await postStatusChanged(roomID, hook, mclient);
     }
-}
+};
 
 const shouldPostChanges = ({body, mclient}) => Boolean(
     typeof body === 'object'
@@ -118,11 +118,11 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-async function middleware(req) {
+const middleware = async req => {
     if (shouldPostChanges(req)) {
         await postEpicUpdates(req);
     }
-}
+};
 
 module.exports = {
     middleware,

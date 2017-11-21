@@ -18,7 +18,7 @@ describe('Matrix api', async function() {
         connection = await connect();
         assert.ok(connection.clientRunning);
         await disconnect();
-        // logger('connection', connection);
+        logger('connection', connection);
         assert.ifError(connection.clientRunning);
     });
     
@@ -48,11 +48,23 @@ describe('Matrix api', async function() {
 
     it('test matrixApi', async () => {
         const {connect, disconnect, helpers} = matrixApi;
-        const expected = ['createRoom', 'getRoomId', 'getRoomByAlias', 'getRoomMembers', 'invite', 'sendHtmlMessage', 'createAlias', 'setRoomName', 'setRoomTopic'];
+        const expected = [
+            'createRoom', 
+            'getRoomId', 
+            'getRoomByAlias', 
+            'getRoomMembers', 
+            'invite', 
+            'sendHtmlMessage', 
+            'createAlias', 
+            'setRoomName', 
+            'setRoomTopic'
+        ];
         const connection = await connect();
+        logger(connection);
         const disonnection = await disconnect();
 
-        const result = Object.values(connection).map(func => func.name)
+        const result = Object.values(connection).map(func => func.name);
+
         assert.ok(expected, result);
         disonnection();
         logger('helpers', helpers);

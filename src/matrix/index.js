@@ -1,5 +1,5 @@
 const {matrix} = require('../config');
-const logger = require('debug')('index matrix');
+// const logger = require('debug')('index matrix');
 const init = require('./sdk-client');
 const apiClient = require('./api-client');
 const helpers = require('./helpers');
@@ -8,7 +8,7 @@ const helpers = require('./helpers');
 const connect = async () => {
     const {connect} = await init(matrix);
     const result = apiClient(connect)();
-    logger('index connect', result);
+    // logger('index connect', result);
     return result;
 };
 

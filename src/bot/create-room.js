@@ -72,6 +72,7 @@ const checkProjectEvent = body => Boolean(
 const objHas = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
 const middleware = async req => {
+    logger('room creating');
     if (shouldCreateRoom(req.body)) {
         const {issue} = req.body;
         logger(`issue: ${issue.key}`);
@@ -86,8 +87,9 @@ const middleware = async req => {
     } else if (req.body.webhookEvent === 'jira:issue_created') {
         logger(`Start creating the room for issue ${req.body.issue.key}`);
         req.newRoomID = await create(req.mclient, req.body.issue);
+    } else {
+        logger('room should not be created');
     }
-
     if (checkEpic(req.body) || checkProjectEvent(req.body)) {
         let projectOpts;
         if (objHas(req.body, 'issue') && objHas(req.body.issue, 'fields')) {
@@ -104,7 +106,7 @@ const middleware = async req => {
         }
 
         const roomProject = await req.mclient.getRoomId(projectOpts.key);
-
+        logger(roomProject);
         if (roomProject) {
             logger(`Room for project ${projectOpts.key} is already exists`);
         } else {

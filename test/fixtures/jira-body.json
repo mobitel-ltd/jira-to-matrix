@@ -21,26 +21,22 @@
      "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/26313",
      "key": "BBCOM-956",
      "fields": { 
-       "issuetype": [Object
-        ],
+       "issuetype": "[Object]",
         "components": [],
         "timespent": "null",
         "timeoriginalestimate": "null",
         "description": "dafdasfadf",
-        "project": [Object
-        ],
+        "project": "[Object]",
         "customfield_10110": "null",
         "customfield_10111": "null",
         "aggregatetimespent": "null",
-        "resolution": [Object
-        ],
+        "resolution": "[Object]",
         "timetracking": {},
         "customfield_10302": "null",
         "customfield_10401": "null",
         "customfield_10006": "BBCOM-801",
         "customfield_10600": "null",
-        "customfield_10602": [Array
-        ],
+        "customfield_10602": "[Array]",
         "customfield_10009": "0|i02alz:",
         "attachment": [],
         "customfield_10108": "null",
@@ -49,18 +45,13 @@
         "workratio": -1,
         "summary": "BBCOM-956",
         "lastViewed": "2017-11-20T16: 16: 25.731+0300",
-        "watches": [Object
-        ],
-        "creator": [Object
-        ],
+        "watches": "[Object]",
+        "creator": "[Object]",
         "subtasks": [],
         "created": "2017-09-08T11: 43: 48.626+0300",
-        "reporter": [Object
-        ],
-        "aggregateprogress": [Object
-        ],
-        "priority": [Object
-        ],
+        "reporter": "[Object]",
+        "aggregateprogress": "[Object]",
+        "priority": "[Object]",
         "customfield_10103": "null",
         "customfield_10004": "null",
         "customfield_10301": "null",
@@ -69,19 +60,13 @@
         "timeestimate": "null",
         "aggregatetimeoriginalestimate": "null",
         "duedate": "null",
-        "progress": [Object
-        ],
-        "comment": [Object
-        ],
-        "issuelinks": [Array
-        ],
-        "votes": [Object
-        ],
-        "assignee": [Object
-        ],
+        "progress": "[Object]",
+        "comment": "[Object]",
+        "issuelinks": "[Array]",
+        "votes": "[Object]",
+        "assignee": "[Object]",
         "updated": "2017-11-20T16: 16: 24.518+0300",
-        "status": [Object
-        ]
+        "status":" [Object]"
       }
     },
   "comment": { 
@@ -92,8 +77,7 @@
         "name": "jira_test",
         "key": "jira_test",
         "emailAddress": "jira_test@bingo-boom.ru",
-        "avatarUrls": [Object
-        ],
+        "avatarUrls": "[Object]",
         "displayName": "jira_test",
         "active": true,
         "timeZone": "Europe/Moscow"
@@ -104,8 +88,7 @@
         "name": "jira_test",
         "key": "jira_test",
         "emailAddress": "jira_test@bingo-boom.ru",
-        "avatarUrls": [Object
-        ],
+        "avatarUrls": "[Object]",
         "displayName": "jira_test",
         "active": true,
         "timeZone": "Europe/Moscow"

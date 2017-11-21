@@ -4,6 +4,7 @@ const to = require('await-to-js').default;
 const conf = require('../config').matrix;
 const logger = require('debug')('api client');
 const cbTimeline = require('./timeline-handler');
+const Ramda = require('ramda');
 
 const api = {};
 
@@ -156,8 +157,5 @@ module.exports = sdkConnect => async () => {
 
     matrixClient.on('event', inviteBot);
 
-    const apiClient = Object.values(api)
-        .map(func => func(matrixClient));
-
-    return apiClient;
+    return Ramda.map(closer => closer(matrixClient))(api);
 };

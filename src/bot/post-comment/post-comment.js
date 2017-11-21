@@ -7,7 +7,7 @@ const logger = require('debug')('bot post comment');
 
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
 
-function pickRendered(issue, comment) {
+const pickRendered = (issue, comment) => {
     const comments = _.get(issue, 'renderedFields.comment.comments');
     if (!(comments instanceof Array)) {
         return comment.body;
@@ -18,17 +18,17 @@ function pickRendered(issue, comment) {
             Ramda.find(Ramda.propEq('id', comment.id), comments)
         ) || comment.body
     );
-}
+};
 
-function headerText({comment, webhookEvent}) {
+const headerText = ({comment, webhookEvent}) => {
     const fullName = Ramda.path(['author', 'displayName'], comment);
     const event = isCommentHook(webhookEvent) ?
         webhookEvent :
         'comment_created';
     return `${fullName} ${translate(event, null, fullName)}`;
-}
+};
 
-async function postComment(client, body) {
+const postComment = async (client, body) => {
     logger(`Enter in function create comment for hook {${body.webhookEvent}}`);
     const issueID = jira.issue.extractID(JSON.stringify(body));
     const issue = await jira.issue.getFormatted(issueID);
@@ -45,6 +45,6 @@ async function postComment(client, body) {
     if (success) {
         logger(`Posted comment to ${issue.key} from ${_.get(body, 'comment.author.name')}\n`);
     }
-}
+};
 
 module.exports = {postComment};
