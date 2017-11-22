@@ -6,24 +6,25 @@ const conf = require('../config');
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
 
-function refProject(projectKey/* :string*/) {
-    return `${conf.jira.url}/projects/${projectKey}`;
-}
+/* :string*/
+const refProject = projectKey => `${conf.jira.url}/projects/${projectKey}`;
 
-function ref(issueKey/* :string*/) {
-    return `${conf.jira.url}/browse/${issueKey}`;
-}
+/* :string*/
+const ref = issueKey => `${conf.jira.url}/browse/${issueKey}`;
 
-function extractID(json/* :string*/)/* :?string*/ {
+/* :string*/
+/* :?string*/
+const extractID = json => {
     const matches = /\/issue\/(\d+)\//.exec(json);
     if (!matches) {
-        logger("'matches' from jira.issue.extractID is not defained");
+        logger('matches from jira.issue.extractID is not defained');
         return;
     }
     return matches[1];
-}
+};
 
-async function collectParticipants(issue/* :{}*/) {
+/* :{}*/
+const collectParticipants = async issue => {
     const result = [
         _.get(issue, 'fields.creator.name'),
         _.get(issue, 'fields.reporter.name'),
@@ -39,40 +40,44 @@ async function collectParticipants(issue/* :{}*/) {
         }
     }
     return _.uniq(result.filter(one => !!one));
-}
+};
 
-async function get(id, params/* :Array<{}>*/) {
+/* :Array<{}>*/
+const get = async (id, params) => {
     const issue = await fetchJSON(
         `${conf.jira.url}/rest/api/2/issue/${id}${paramsToQueryString(params)}`,
         auth()
     );
     return issue;
-}
+};
 
-async function getProject(id, params) {
+const getProject = async (id, params) => {
     const issue = await fetchJSON(
         `${conf.jira.url}/rest/api/2/project/${id}${paramsToQueryString(params)}`,
         auth()
     );
     return issue;
-}
+};
 
-async function getFormatted(issueID/* :string*/) {
+/* :string*/
+const getFormatted = issueID => {
     const params = [{expand: 'renderedFields'}];
     return get(issueID, params);
-}
+};
 
-async function renderedValues(issueID/* :string*/, fields/* :string[]*/) {
+/* :string*/
+/* :string[]*/
+const renderedValues = async (issueID, fields) => {
     const issue = await getFormatted(issueID);
     if (!issue) {
-        logger("'issue' from jira.issue.renderedValues is not defained");
+        logger('issue from jira.issue.renderedValues is not defained');
         return;
     }
     return Ramda.pipe(
         Ramda.pick(fields),
-        Ramda.filter(v => !!v)
+        Ramda.filter(value => !!value)
     )(issue.renderedFields);
-}
+};
 
 module.exports = {
     refProject,

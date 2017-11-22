@@ -21,7 +21,6 @@ const fetchJSON = async (url, basicAuth) => {
 
     logger(`response from jira have status: ${response.status}`,
         `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
-
     const [parseErr, object] = await to(response.json());
     if (parseErr) {
         logger(`Error while parsing JSON from ${url}:\n${parseErr}`);

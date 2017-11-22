@@ -47,9 +47,9 @@ const handler = async (body, client, queue) => {
             await bot.postLinkedChanges(req);
         }
         if (body.issue) {
-            logger(`Successful processing of the hook for ${body.issue.key}`);
+            logger(colors.green(`Successful processing of the hook for ${body.issue.key}`));
         } else {
-            logger(`Successful processing`);
+            logger(colors.green(`Successful processing`));
         }
 
         return true;
