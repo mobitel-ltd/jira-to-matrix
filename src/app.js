@@ -62,11 +62,8 @@ server.listen(conf.port, () => {
 
 const connectToMatrix = async matrix => {
     logger('Matrix connection');
-    let client = await matrix.connect();
+    const client = await matrix.connect();
     logger('Matrix client', client);
-    while (!client) {
-        client = await connectToMatrix(matrix);
-    }
     return client;
 };
 

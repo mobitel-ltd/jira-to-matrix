@@ -1,9 +1,9 @@
 const config = require('../src/config/');
 const fakeConfig = require('./fixtures/config');
-const init = require('../src/matrix/sdk-client');
+const ConnectToMatrix = require('../src/matrix/sdk-client');
 const appMatrix = require('../src/matrix');
 const assert = require('assert');
-const logger = require('debug')('test matrix');
+const logger = require('debug')('test-matrix');
 const matrixApi = require('../src/matrix/');
 const apiClient = require('../src/matrix/api-client');
 
@@ -12,19 +12,24 @@ describe('Matrix api', async function() {
     let connection;
 
     it('test matrix true config connect from sdk-client', async () => {
-        const {connect, disconnect} = await init(config.matrix);
-        // const initconf = await init(config.matrix);
-        // logger('init', initconf);
-        connection = await connect();
-        assert.ok(connection.clientRunning);
-        await disconnect();
+        // logger('ConnectToMatrix', ConnectToMatrix);
+        const client = new ConnectToMatrix(config.matrix);
+        // const ConnectToMatrixconf = await ConnectToMatrix(config.matrix);
+        logger('ConnectToMatrix', client);
+        client.ConnectToMatrix()
+        connection = client.connect();
         logger('connection', connection);
-        assert.ifError(connection.clientRunning);
+        logger('status', connection.getSyncState());
+        assert.ok(connection.getSyncState());
+        client.disconnect();
+        // logger('connection', connection);
+        logger('status', connection.getSyncState());
+        assert.ifError(client);
     });
     
     it('test matrix fake config connect from sdk-client', async () => {
         try {
-            const {connect} = await init(fakeConfig.matrix);
+            const {connect} = await ConnectToMatrix(fakeConfig.matrix);
         } catch (err) {
             const funcErr = () => {
                 throw err
@@ -37,7 +42,7 @@ describe('Matrix api', async function() {
         try {
             const {matrix} = config;
             const matrixWithFakePassword = {...matrix, password: 'fake'};
-            const connect = await init(matrixWithFakePassword);
+            const connect = await ConnectToMatrix(matrixWithFakePassword);
         } catch (err) {
             const funcErr = () => {
                 throw err
@@ -72,7 +77,7 @@ describe('Matrix api', async function() {
     
     it('test matrixApi with fake config', async () => {
         try {
-            const {connect} = await init(fakeConfig.matrix);
+            const {connect} = await ConnectToMatrix(fakeConfig.matrix);
             logger('connect', connect);
             const result = apiClient(connect)();
             logger('index connect', result);

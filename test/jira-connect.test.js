@@ -7,12 +7,6 @@ const {fetchJSON} = require('../src/utils/rest');
 describe('Auth Jira', function() {
     this.timeout(15000);
 
-    
-    it('test Jira auth base', () => {
-        logger('auth', auth);
-        assert.equal(auth(), 'Basic amlyYV90ZXN0X2JvdDp4TDFCSTNDaFcyZGI3Tg==');
-    });
-
     it('test Jira client', async () => {
         const authForJiraClient = auth().split(' ')[1];
         const jira = new JiraClient( {
