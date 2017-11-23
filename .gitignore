@@ -79,5 +79,5 @@ typings/
 # dev config 
 /config.js
 
-# features/config
-/test/features/config
+# features
+test/features/
