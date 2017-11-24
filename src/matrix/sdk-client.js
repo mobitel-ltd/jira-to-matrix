@@ -1,7 +1,7 @@
 const logger = require('debug')('matrix sdk client');
 global.Olm = require('olm');
 const sdk = require('matrix-js-sdk');
-const config = require('../src/config/');
+// const config = require('../config/');
 
 // // /** Matrix connection handle */
 // // class ConnectToMatrix {
@@ -177,76 +177,31 @@ const createClient = async ({baseUrl = null, userId, password}) => {
     }
 };
 
-const wellConnected = syncState => ['PREPARED', 'SYNCING'].includes(syncState);
-
 const init = async config => {
     try {
         const client = await createClient(config);    
-        // logger('client', client);
 
         const connect = () => {
-            if (!self.client.clientRunning && !self.reconnectTimer) {
-                logger(`Try connection to Matrix`);
-                self.reconnectTimer = setTimeout(() => {
-                    self.client.startClient();
-                    clearTimeout(self.reconnectTimer);
-                    self.reconnectTimer = null;
-                    logger(`Connection to Matrix established`);
-                }, 1000);
+            const executor = resolve => {
+                const syncHandler = (state, prevState, data) => {
+                    if (state === 'SYNCING') {
+                        logger('well connected');
+                        client.removeListener('sync', syncHandler);
+                        resolve(client);
+                    } else {
+                        client.once('sync', syncHandler);        
+                    }
+                };
+                client.once('sync', syncHandler);
             }
-            return self.client;
-            //     if (!client.clientRunning) {
-            //     client.startClient();    
-            // }
-            // const isSync = state => {
-            //     if (wellConnected(state)) {
-            //         logger('Client properly synched with Matrix');    
-            //         logger('state', state);
-            //         return client;
-            //     }
-            //     return isSync(client.getSyncState());
-            // };
-
-
-            // client.startClient();
-
-            // if (wellConnected(client.getSyncState())) {
-            //     logger('Client properly synched with Matrix');    
-            //     return client;
-            // }
-
-            // logger('Client is still not connected');
-
-            // const onTimeout = () => {
-            //     logger('Error: Timeout awaiting matrix client prepared');    
-            //     // client.removeAllListeners('sync');
-            //     return null;
-            // };
-
-
-            // const timeout = setTimeout(onTimeout, config.syncTimeoutSec * 1000);
-            // const onSync = state => {
-            //     if (wellConnected(state)) {
-            //         clearTimeout(timeout);    
-            //         logger('Client properly synched with Matrix');
-            //         resolve(client);
-            //     } else {
-            //         logger('not well conected');    
-            //         client.once('sync', onSync);
-            //     }
-            // };
-
-            // client.once('sync', onSync);
-            return isSync(client.getSyncState());
+            client.startClient();
+            return new Promise(executor);
         };
 
-        // const connect = () => {
-        //     if (!client.clientRunning) {
-        //         client.startClient();    
-        //     }
-        //     return client;
-        // };
-
+        const disconnect = () => {
+            logger('Disconnected from Matrix');
+            client.stopClient();
+        };
 
         return {
             connect,    
@@ -254,7 +209,6 @@ const init = async config => {
         };
     } catch (err) {
         logger('Matrix client not returned');    
-        // logger(err);
         throw err;
     }
 };

@@ -133,7 +133,6 @@ const removeListener = (eventName, listener, matrixClient) => {
 };
 
 module.exports = sdkConnect => async () => {
-    logger('Matrix connection in apiClient');
     const matrixClient = await sdkConnect();
     // logger(matrixClient);
     if (!matrixClient) {
