@@ -151,7 +151,7 @@ const createClient = async ({baseUrl = null, userId, password}) => {
         }
 
         // Создает сущность класса MatrixClient http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-client-MatrixClient.html
-        const client = await sdk.createClient(baseUrl);
+        const client = sdk.createClient(baseUrl);
         // logger('client before login', client);
         // http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-base-apis-MatrixBaseApis.html
         // в случае аутентификации возвращает объект типа { login: { access_token, home_server, user_id, device_id } }
@@ -161,7 +161,7 @@ const createClient = async ({baseUrl = null, userId, password}) => {
         }
         // logger('client after login', client);
         const token = login.access_token;
-        const matrixClient = await sdk.createClient({
+        const matrixClient = sdk.createClient({
             baseUrl,
             accessToken: token,
             userId,
@@ -179,7 +179,7 @@ const createClient = async ({baseUrl = null, userId, password}) => {
 
 const init = async config => {
     try {
-        const client = await createClient(config);    
+        const client = await createClient(config);
 
         const connect = () => {
             const executor = resolve => {
@@ -189,11 +189,11 @@ const init = async config => {
                         client.removeListener('sync', syncHandler);
                         resolve(client);
                     } else {
-                        client.once('sync', syncHandler);        
+                        client.once('sync', syncHandler);
                     }
                 };
                 client.once('sync', syncHandler);
-            }
+            };
             client.startClient();
             return new Promise(executor);
         };
@@ -204,11 +204,11 @@ const init = async config => {
         };
 
         return {
-            connect,    
+            connect,
             disconnect,
         };
     } catch (err) {
-        logger('Matrix client not returned');    
+        logger('Matrix client not returned');
         throw err;
     }
 };
