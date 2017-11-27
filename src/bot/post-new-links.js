@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const to = require('await-to-js').default;
-const logger = require('debug')('post new links');
+const logger = require('debug')('post-new-links');
 const marked = require('marked');
 const redis = require('../redis-client');
 const jira = require('../jira');
@@ -45,9 +45,10 @@ const handleLink = async (issueLink, mclient) => {
 
 const handleLinks = async ({mclient, body: hook}) => {
     const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
-    if (!links) {
+    if (!links || links.length === 0) {
         return;
     }
+    logger(links);
     await Promise.all(links.forEach(async issueLink => {
         await handleLink(issueLink, mclient);
     }));

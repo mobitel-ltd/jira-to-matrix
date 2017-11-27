@@ -184,10 +184,9 @@ const init = async config => {
 
         const connect = () => {
             const executor = resolve => {
-                const syncHandler = (state, prevState, data) => {
+                const syncHandler = state => {
                     if (state === 'SYNCING') {
                         logger('well connected');
-                        client.removeListener('sync', syncHandler);
                         resolve(client);
                     } else {
                         client.once('sync', syncHandler);

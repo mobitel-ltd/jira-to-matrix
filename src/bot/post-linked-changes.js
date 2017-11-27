@@ -25,8 +25,7 @@ const handleLink = async (hook, link, mclient) => {
 const sendStatusChanges = async ({mclient, body: hook}) => {
     const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
     const status = getNewStatus(hook);
-    if (!links ||
-        typeof status !== 'string') {
+    if (!links || links.length === 0 || typeof status !== 'string') {
         return;
     }
     await Promise.all(links.forEach(async link => {
