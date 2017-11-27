@@ -12,6 +12,7 @@ const pickRendered = (issue, comment) => {
     if (!(comments instanceof Array)) {
         return comment.body;
     }
+
     return (
         Ramda.prop(
             'body',
@@ -35,11 +36,13 @@ const postComment = async (client, body) => {
     if (!issue) {
         return;
     }
+
     const roomId = await client.getRoomId(issue.key);
     logger(`Room for comment ${issue.key}: ${!!roomId} \n`);
     if (!roomId) {
         return;
     }
+
     const message = `${headerText(body)}: <br>${pickRendered(issue, body.comment)}`;
     const success = await client.sendHtmlMessage(roomId, htmlToString(message), message);
     if (success) {

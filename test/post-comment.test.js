@@ -1,6 +1,7 @@
-const {isCommentEvent} = require('../post-comment').forTests;
+const {isCommentEvent} = require('../src/bot/post-comment/post-comment').forTests;
+const assert = require('assert');
 
-test('Check if hook is a comment event', () => { // eslint-disable-line no-undef
+test('Check if hook is a comment event', () => {
     const samples = [
         [{webhookEvent: 'comment_created'}, true],
         [{webhookEvent: 'comment_updated', issue_event_type_name: ''}, true],
@@ -13,6 +14,6 @@ test('Check if hook is a comment event', () => { // eslint-disable-line no-undef
     ];
     samples.forEach(sample => {
         const result = isCommentEvent(sample[0]);
-        expect(result).toBe(sample[1]); // eslint-disable-line no-undef
+        assert.equal(result, sample[1]);
     });
 });
