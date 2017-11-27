@@ -6,7 +6,7 @@ const redis = require('../redis-client');
 const jira = require('../jira');
 const translate = require('../locales');
 
-async function postLink(issue, relation, related, mclient) {
+const postLink = async (issue, relation, related, mclient) => {
     const roomID = await mclient.getRoomId(issue.key);
     if (!roomID) {
         return;
@@ -22,9 +22,9 @@ async function postLink(issue, relation, related, mclient) {
         translate('newLink'),
         marked(translate('newLinkMessage', values))
     );
-}
+};
 
-async function handleLink(issueLink, mclient) {
+const handleLink = async (issueLink, mclient) => {
     const link = await jira.link.get(issueLink.id);
     if (!link) {
         return;
@@ -41,17 +41,17 @@ async function handleLink(issueLink, mclient) {
     }
     await postLink(link.inwardIssue, link.type.outward, link.outwardIssue, mclient);
     await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
-}
+};
 
-async function handleLinks({mclient, body: hook}) {
+const handleLinks = async ({mclient, body: hook}) => {
     const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
     if (!links) {
         return;
     }
-    links.forEach(async issueLink => {
+    await Promise.all(links.forEach(async issueLink => {
         await handleLink(issueLink, mclient);
-    });
-}
+    }));
+};
 
 const shouldPostChanges = ({body, mclient}) => Boolean(
     typeof body === 'object'
@@ -63,10 +63,8 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-async function middleware(req) {
+module.exports = async req => {
     if (shouldPostChanges(req)) {
         await handleLinks(req);
     }
-}
-
-module.exports = middleware;
+};

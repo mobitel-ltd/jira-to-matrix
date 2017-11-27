@@ -3,7 +3,7 @@ const {postChangesToLinks: conf} = require('../config').features;
 const {shouldPostChanges} = require('./post-issue-updates');
 const {postStatusChanged, getNewStatus} = require('./post-epic-updates');
 
-async function handleLink(hook, link, mclient) {
+const handleLink = async (hook, link, mclient) => {
     const destIssue = Ramda.either(
         Ramda.prop('outwardIssue'),
         Ramda.prop('inwardIssue')
@@ -20,24 +20,22 @@ async function handleLink(hook, link, mclient) {
         return;
     }
     postStatusChanged(roomID, hook, mclient);
-}
+};
 
-async function sendStatusChanges({mclient, body: hook}) {
+const sendStatusChanges = async ({mclient, body: hook}) => {
     const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
     const status = getNewStatus(hook);
     if (!links ||
         typeof status !== 'string') {
         return;
     }
-    links.forEach(async link => {
+    await Promise.all(links.forEach(async link => {
         await handleLink(hook, link, mclient);
-    });
-}
+    }));
+};
 
-async function middleware(req) {
+module.exports = async req => {
     if (shouldPostChanges(req)) {
         await sendStatusChanges(req);
     }
-}
-
-module.exports = middleware;
+};

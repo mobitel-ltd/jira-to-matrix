@@ -152,14 +152,14 @@ const createClient = async ({baseUrl = null, userId, password}) => {
 
         // Создает сущность класса MatrixClient http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-client-MatrixClient.html
         const client = sdk.createClient(baseUrl);
-        // logger('client before login', client);
+
         // http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-base-apis-MatrixBaseApis.html
         // в случае аутентификации возвращает объект типа { login: { access_token, home_server, user_id, device_id } }
         const login = await client.loginWithPassword(userId, password);
         if (!login.access_token) {
             throw new Error('No login.access_token');
         }
-        // logger('client after login', client);
+
         const token = login.access_token;
         const matrixClient = sdk.createClient({
             baseUrl,
@@ -169,6 +169,7 @@ const createClient = async ({baseUrl = null, userId, password}) => {
         logger(`createClient OK BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
         // logger('matrixClient', matrixClient);
         logger('Started connect to matrixClient');
+
         return matrixClient;
     } catch (err) {
         logger(`createClient error. BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
