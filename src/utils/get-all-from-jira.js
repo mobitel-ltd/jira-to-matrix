@@ -3,9 +3,7 @@ const logger = require('debug')('get-all-users');
 const {auth} = require('../jira/common');
 const {fetchJSON} = require('./rest');
 
-// Модуль позволяет получить всех пользователей в случае, если их число больше 1000
-// Также можно использовать в качестве шаблона для запросов c измененными параметрами
-// Тест в test/jira-max.search.test.js
+// Let get all users even if they are more 1000
 
 module.exports = (async () => {
     const iter = async (num, startAt, acc) => {

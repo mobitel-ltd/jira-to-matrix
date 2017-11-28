@@ -1,8 +1,8 @@
 /* eslint-disable no-negated-condition */
 const bot = require('../bot');
-const {features} = require('../config');
 const logger = require('debug')('queue');
 const colors = require('colors/safe');
+const botHandler = require('./bot-handler');
 
 // Обработчик хуков Jira, производит действие в зависимости от наличия body и client 
 const handler = async (body, client, queue) => {
@@ -20,32 +20,9 @@ const handler = async (body, client, queue) => {
         // const ignore = await bot.stopIf(req);
         // Проверка на игнор
         bot.isIgnore(req);
-        // if (ignore) {
-        //     return true;/// Зачем?
-        // }
-        if (features.createRoom) {
-            await bot.createRoom(req);
-            await bot.postIssueDescription(req);
-        }
-        if (features.postIssueUpdates) {
-            await bot.postIssueUpdates(req);
-        }
-        if (features.inviteNewMembers) {
-            await bot.inviteNewMembers(req);
-        }
-        if (features.postComments) {
-            await bot.postComment(req);
-        }
-        if (features.epicUpdates.on()) {
-            await bot.postEpicUpdates(req);
-            await bot.postProjectUpdates(req);
-        }
-        if (features.newLinks) {
-            await bot.postNewLinks(req);
-        }
-        if (features.postChangesToLinks.on) {
-            await bot.postLinkedChanges(req);
-        }
+
+        botHandler(req);
+
         if (body.issue) {
             logger(colors.green(`Successful processing of the hook for ${body.issue.key}`));
         } else {
