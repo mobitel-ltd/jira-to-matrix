@@ -1,9 +1,9 @@
-const jiraRequest = require('../../../utils');
-const {auth} = require('../../../jira');
+const getAllUsers = require('../../../utils/get-all-from-jira');
 
-const checkUser = (users, name) =>
-    ~users.name.toLowerCase().indexOf(name.toLowerCase())
-    || ~users.displayName.toLowerCase().indexOf(name.toLowerCase());
+// Checking occurrences of current name
+const checkUser = (user, name) =>
+    ~user.name.toLowerCase().indexOf(name.toLowerCase())
+    || ~user.displayName.toLowerCase().indexOf(name.toLowerCase());
 
 const checkCommand = (body, name, index) =>
     ~body.toLowerCase().indexOf(name.toLowerCase())
@@ -13,25 +13,18 @@ const checkNamePriority = (priority, index, name) =>
     priority.name.toLowerCase() === name.toLowerCase()
     || String(index + 1) === name;
 
+
+// Search users by part of name
 const searchUser = async name => {
-    const allUsers = await jiraRequest.fetchJSON(
-        `https://jira.bingo-boom.ru/jira/rest/api/2/user/search?maxResults=1000&username=@boom`,
-        auth()
-    );
+    const allUsers = await getAllUsers();
 
     if (allUsers.status >= 400) {
         throw new Error('Jira not return list all users!');
     }
 
-    const result = allUsers.reduce((prev, cur) => {
-        if (checkUser(cur, name)) {
-            prev.push(cur);
-        }
-
-        return prev;
-    }, []);
-
-    return result;
+    return allUsers.reduce((prev, cur) =>
+        (checkUser(cur, name) ? [...prev, cur] : prev),
+    []);
 };
 
 module.exports = {
