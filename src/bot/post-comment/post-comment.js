@@ -29,7 +29,7 @@ const headerText = ({comment, webhookEvent}) => {
     return `${fullName} ${translate(event, null, fullName)}`;
 };
 
-const postComment = async (client, body) => {
+const postCommentLogic = async (client, body) => {
     logger(`Enter in function create comment for hook {${body.webhookEvent}}`);
     const issueID = jira.issue.extractID(JSON.stringify(body));
     const issue = await jira.issue.getFormatted(issueID);
@@ -50,4 +50,4 @@ const postComment = async (client, body) => {
     }
 };
 
-module.exports = {postComment};
+module.exports = {postCommentLogic};

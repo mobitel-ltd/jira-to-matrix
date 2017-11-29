@@ -21,7 +21,7 @@ const handler = async (body, client, queue) => {
         // Проверка на игнор
         bot.isIgnore(req);
 
-        botHandler(req);
+        await botHandler(req);
 
         if (body.issue) {
             logger(colors.green(`Successful processing of the hook for ${body.issue.key}`));

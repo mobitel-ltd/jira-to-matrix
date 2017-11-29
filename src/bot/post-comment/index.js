@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 const Ramda = require('ramda');
 const {fp} = require('../../utils');
-const {postComment} = require('./post-comment');
+const {postCommentLogic} = require('./post-comment');
 
 const isCommentEvent = ({webhookEvent, issue_event_type_name}) => {
     const propNotIn = Ramda.complement(fp.propIn);
@@ -21,13 +21,13 @@ const shouldPostComment = ({body, mclient}) => Boolean(
     && mclient
 );
 
-const middleware = async req => {
+const postComment = async req => {
     if (shouldPostComment(req)) {
-        await postComment(req.mclient, req.body);
+        await postCommentLogic(req.mclient, req.body);
     }
 };
 
-module.exports.middleware = middleware;
-module.exports.forTests = {
-    isCommentEvent,
-};
+module.exports = {postComment};
+// module.exports.forTests = {
+//     isCommentEvent,
+// };

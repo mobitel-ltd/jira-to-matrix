@@ -23,7 +23,7 @@ const inviteNew = async (client, issue) => {
     return newMembers;
 };
 
-const middleware = async req => {
+const inviteNewMembers = async req => {
     if (
         typeof req.body === 'object' &&
         req.body.webhookEvent === 'jira:issue_updated' &&
@@ -34,5 +34,7 @@ const middleware = async req => {
     }
 };
 
-module.exports.inviteNew = inviteNew;
-module.exports.middleware = middleware;
+module.exports = {
+    inviteNew,
+    inviteNewMembers,
+};

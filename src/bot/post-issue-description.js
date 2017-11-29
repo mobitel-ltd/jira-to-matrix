@@ -76,30 +76,28 @@ const getTutorial = () => `
     Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
     `;
 
-const middleware = async req => {
-    if (req.newRoomID && req.mclient) {
-        const post = await getPost(req);
-        const {issue} = req.body;
-        const formatted = Object.assign(
-            {},
-            {post},
-            await jira.issue.renderedValues(issue.id, ['description'])
-        );
+const postIssueDescription = async req => {
+    const post = await getPost(req);
+    const {issue} = req.body;
+    const formatted = Object.assign(
+        {},
+        {post},
+        await jira.issue.renderedValues(issue.id, ['description'])
+    );
 
-        // description
-        await req.mclient.sendHtmlMessage(
-            req.newRoomID,
-            htmlToText(formatted),
-            formatted.post
-        );
+    // description
+    await req.mclient.sendHtmlMessage(
+        req.newRoomID,
+        htmlToText(formatted),
+        formatted.post
+    );
 
-        // tutorial jira commands
-        await req.mclient.sendHtmlMessage(
-            req.newRoomID,
-            'Send tutorial',
-            getTutorial()
-        );
-    }
+    // tutorial jira commands
+    await req.mclient.sendHtmlMessage(
+        req.newRoomID,
+        'Send tutorial',
+        getTutorial()
+    );
 };
 
-module.exports = middleware;
+module.exports = {postIssueDescription};

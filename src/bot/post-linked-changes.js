@@ -33,8 +33,10 @@ const sendStatusChanges = async ({mclient, body: hook}) => {
     }));
 };
 
-module.exports = async req => {
+const postLinkedChanges = async req => {
     if (shouldPostChanges(req)) {
         await sendStatusChanges(req);
     }
 };
+
+module.exports = {postLinkedChanges};

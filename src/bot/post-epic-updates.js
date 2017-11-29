@@ -84,7 +84,7 @@ const postStatusChanged = async (roomID, hook, mclient) => {
     );
 };
 
-const postEpicUpdates = async ({mclient, body: hook}) => {
+const postEpicUpdatesLogic = async ({mclient, body: hook}) => {
     const {issue} = hook;
     const epicKey = Ramda.path(['fields', epicConf.field], issue);
     if (!epicKey) {
@@ -118,14 +118,14 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-const middleware = async req => {
+const postEpicUpdates = async req => {
     if (shouldPostChanges(req)) {
-        await postEpicUpdates(req);
+        await postEpicUpdatesLogic(req);
     }
 };
 
 module.exports = {
-    middleware,
+    postEpicUpdates,
     postStatusChanged,
     getNewStatus,
 };

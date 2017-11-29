@@ -64,8 +64,10 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-module.exports = async req => {
+const postNewLinks = async req => {
     if (shouldPostChanges(req)) {
         await handleLinks(req);
     }
 };
+
+module.exports = {postNewLinks};

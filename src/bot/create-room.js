@@ -1,6 +1,7 @@
 const jira = require('../jira');
 const {helpers} = require('../matrix');
 const logger = require('debug')('create room bot');
+const {postIssueDescription} = require('./');
 
 const create = async (client, issue) => {
     if (!client) {
@@ -71,7 +72,7 @@ const checkProjectEvent = body => Boolean(
 
 const objHas = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
-const middleware = async req => {
+const createRoom = async req => {
     logger('room creating');
     if (shouldCreateRoom(req.body)) {
         const {issue} = req.body;
@@ -89,6 +90,9 @@ const middleware = async req => {
         req.newRoomID = await create(req.mclient, req.body.issue);
     } else {
         logger('room should not be created');
+    }
+    if (req.newRoomID && req.mclient) {
+        await postIssueDescription(req);
     }
     if (checkEpic(req.body) || checkProjectEvent(req.body)) {
         let projectOpts;
@@ -117,5 +121,5 @@ const middleware = async req => {
     }
 };
 
-module.exports.middleware = middleware;
+module.exports.createRoom = createRoom;
 module.exports.forTests = {shouldCreateRoom};

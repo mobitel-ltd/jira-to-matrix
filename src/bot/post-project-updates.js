@@ -28,7 +28,7 @@ const newEpic = async (roomId, mclient, issue) => {
 
     await mclient.sendHtmlMessage(
         roomId,
-        translate('newEpicInProject', ),
+        translate('newEpicInProject'),
         marked(translate('epicAddedToProject', values, values['user.name']))
     );
 };
@@ -49,7 +49,7 @@ const shouldPostChanges = body =>
         )
     );
 
-const postProjectUpdates = async ({mclient, body}) => {
+const postProjectUpdatesLogic = async ({mclient, body}) => {
     const typeEvent = body.issue_event_type_name;
     const projectOpts = body.issue.fields.project;
     if (!projectOpts) {
@@ -70,10 +70,10 @@ const postProjectUpdates = async ({mclient, body}) => {
     }
 };
 
-const middleware = async req => {
+const postProjectUpdates = async req => {
     if (shouldPostChanges(req.body)) {
-        await postProjectUpdates(req);
+        await postProjectUpdatesLogic(req);
     }
 };
 
-module.exports = middleware;
+module.exports = {postProjectUpdates};

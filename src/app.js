@@ -1,5 +1,3 @@
-// @flow
-/* eslint-disable no-use-before-define */
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -11,6 +9,20 @@ const cachedQueue = require('./queue').queue;
 const queueHandler = require('./queue').handler;
 const EventEmitter = require('events');
 const queuePush = new EventEmitter();
+
+const connectToMatrix = async matrix => {
+    logger('Matrix connection');
+    const client = await matrix.connect();
+    return client;
+};
+
+const checkQueue = () => {
+    if (cachedQueue.length > 0) {
+        queuePush.emit('notEmpty');
+    }
+};
+
+let client = connectToMatrix(matrix);
 
 if (!checkNodeVersion()) {
     process.exit(1);
@@ -27,7 +39,10 @@ process.on('uncaughtException', err => {
 
 const app = express();
 
-app.use(bodyParser.json({strict: false}));
+app.use(bodyParser.json({
+    strict: false,
+    limit: '20mb',
+}));
 
 // POST для Jira, добавляет задачи для последующей обработки
 app.post('/', (req, res, next) => {
@@ -50,7 +65,7 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     if (err) {
-        logger(err);
+        logger('express error', err);
     }
     res.end();
 });
@@ -59,20 +74,6 @@ const server = http.createServer(app);
 server.listen(conf.port, () => {
     logger(`Server is listening on port ${conf.port}`);
 });
-
-const connectToMatrix = async matrix => {
-    logger('Matrix connection');
-    const client = await matrix.connect();
-    return client;
-};
-
-const checkQueue = () => {
-    if (cachedQueue.length > 0) {
-        queuePush.emit('notEmpty');
-    }
-};
-
-let client = connectToMatrix(matrix);
 
 const checkingQueueInterval = setInterval(checkQueue, 500);
 checkingQueueInterval.unref();

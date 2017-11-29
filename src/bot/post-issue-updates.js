@@ -102,7 +102,7 @@ const shouldPostChanges = ({body, mclient}) => Boolean(
     && mclient
 );
 
-const middleware = async req => {
+const postIssueUpdates = async req => {
     logger('post updates');
     const proceed = shouldPostChanges(req);
 
@@ -117,7 +117,7 @@ const middleware = async req => {
     }
 };
 
-module.exports.middleware = middleware;
+module.exports.postIssueUpdates = postIssueUpdates;
 module.exports.shouldPostChanges = shouldPostChanges;
 module.exports.forTests = {
     toStrings: helpers.toStrings,

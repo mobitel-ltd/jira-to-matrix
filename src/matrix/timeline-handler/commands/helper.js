@@ -35,7 +35,7 @@ const getUsers = async (num, startAt, acc) => {
     );
     const newAcc = [...acc, ...users];
     if (users.length < num) {
-        logger.info('Number of users', newAcc.length);
+        logger('Number of users', newAcc.length);
         return newAcc;
     }
     // eslint-disable-next-line
