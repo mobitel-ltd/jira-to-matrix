@@ -27,7 +27,10 @@ process.on('uncaughtException', err => {
 
 const app = express();
 
-app.use(bodyParser.json({strict: false}));
+app.use(bodyParser.json({
+    strict: false,
+    limit: '20mb',
+}));
 
 app.post('/', (req, res, next) => {
     cachedQueue.push(req.body);
