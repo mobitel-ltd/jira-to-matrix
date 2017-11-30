@@ -33,14 +33,12 @@ const getUsers = async (num, startAt, acc) => {
         `${url}/rest/api/2/user/search?${queryPararms}`,
         auth()
     );
-    const newAcc = [...acc, ...users];
-    if (users.length < num) {
-        logger.info('Number of users', newAcc.length);
-        return newAcc;
+    let resultAcc = [...acc, ...users];
+    if (users.length >= num) {
+        resultAcc = await getUsers(num, startAt + num, resultAcc);
     }
-    // eslint-disable-next-line
-    const result = await getUsers(num, startAt + num, newAcc);
-    return result;
+    logger.info('Number of users', resultAcc.length);
+    return resultAcc;
 };
 
 // Let get all users even if they are more 1000
