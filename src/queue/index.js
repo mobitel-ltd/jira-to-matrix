@@ -2,7 +2,7 @@
 const bot = require('../bot');
 const logger = require('debug')('queue');
 const colors = require('colors/safe');
-const botHandler = require('./bot-handler');
+const getBotFunc = require('./bot-handler');
 
 // Обработчик хуков Jira, производит действие в зависимости от наличия body и client 
 const handler = async (body, client, queue) => {
@@ -21,7 +21,15 @@ const handler = async (body, client, queue) => {
         // Проверка на игнор
         bot.isIgnore(req);
 
-        await botHandler(req);
+        const funcArr = getBotFunc(req.body);
+        if (req.mclient) {
+            const allResult = await Promise.all(funcArr.map(async func => {
+                logger('bot[func]', func);
+                await bot[func](req);
+                return true;
+            }));
+            logger('allResult', allResult);
+        }
 
         if (body.issue) {
             logger(colors.green(`Successful processing of the hook for ${body.issue.key}`));

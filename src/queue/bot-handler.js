@@ -1,7 +1,7 @@
 const logger = require('debug')('bot-handler');
 const Ramda = require('ramda');
 
-const bot = require('../bot');
+// const bot = require('../bot');
 const {features} = require('../config');
 const {fp} = require('../utils');
 
@@ -91,9 +91,7 @@ const shouldPostLinkedChanges = body => Boolean(
 );
 
 // // shouldPostNewLinks =
-module.exports = (async req => {
-    const {body} = req;
-
+module.exports = (body => {
     const actionFuncs = {
         createRoom: shouldCreateRoom(body),
         postIssueUpdates: shouldPostIssueUpdates(body),
@@ -108,10 +106,7 @@ module.exports = (async req => {
 
     const funcArr = Object.keys(actionFuncs).filter(key => actionFuncs[key]);
     logger('funcArr to handle', funcArr);
-
-    if (req.client) {
-        await Promise.all(funcArr.forEach(func => bot[func](req)));
-    }
+    return funcArr;
 });
 
 // const botArr = funcArr.map(func => bot[func]);

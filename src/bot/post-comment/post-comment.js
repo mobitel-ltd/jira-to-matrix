@@ -3,7 +3,7 @@ const Ramda = require('ramda');
 const htmlToString = require('html-to-text').fromString;
 const jira = require('../../jira');
 const translate = require('../../locales');
-const logger = require('debug')('bot post comment');
+const logger = require('debug')('bot post comment logic');
 
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
 
@@ -32,6 +32,7 @@ const headerText = ({comment, webhookEvent}) => {
 const postCommentLogic = async (client, body) => {
     logger(`Enter in function create comment for hook {${body.webhookEvent}}`);
     const issueID = jira.issue.extractID(JSON.stringify(body));
+    logger('issueID', issueID);
     const issue = await jira.issue.getFormatted(issueID);
     if (!issue) {
         return;
@@ -47,6 +48,7 @@ const postCommentLogic = async (client, body) => {
     const success = await client.sendHtmlMessage(roomId, htmlToString(message), message);
     if (success) {
         logger(`Posted comment to ${issue.key} from ${_.get(body, 'comment.author.name')}\n`);
+        return true;
     }
 };
 

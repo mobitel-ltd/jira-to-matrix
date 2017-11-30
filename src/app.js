@@ -9,6 +9,7 @@ const cachedQueue = require('./queue').queue;
 const queueHandler = require('./queue').handler;
 const EventEmitter = require('events');
 const queuePush = new EventEmitter();
+const fs = require('fs');
 
 const connectToMatrix = async matrix => {
     logger('Matrix connection');
@@ -46,6 +47,8 @@ app.use(bodyParser.json({
 
 // POST для Jira, добавляет задачи для последующей обработки
 app.post('/', (req, res, next) => {
+    const name = Math.floor(Math.random() * 11);
+    fs.writeFileSync(`/tmp/jira${name}.json`, JSON.stringify(req.body));
     logger('Jira body', req.body);
     cachedQueue.push(req.body);
     if (!client) {
