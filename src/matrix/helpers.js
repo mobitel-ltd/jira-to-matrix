@@ -11,6 +11,6 @@ const membersInvited = roomMembers =>
 const userID = shortName => `@${shortName}:${mconf.domain}`;
 
 const composeRoomName = issue =>
-    `${issue.key} ${Ramda.path(['fields', 'summary'], issue)}`;
+    `${issue.key} ${issue.summary}`;
 
 module.exports = {membersInvited, userID, composeRoomName};

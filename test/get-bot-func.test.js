@@ -1,10 +1,24 @@
-const getBotFunc = require('../src/queue/bot-handler');
+const {getBotFunc} = require('../src/queue/bot-handler');
 const assert = require('assert');
 const logger = require('debug')('test-bot-func');
 const firstBody = require('./fixtures/comment-create-1.json');
-const {postComment} = require('../src/bot/post-comment');
+const secondBody = require('./fixtures/comment-create-2.json');
+const {
+    postEpicUpdates, 
+    postComment,
+    createRoom, 
+    inviteNewMembers, 
+    postNewLinks
+} = require('../src/bot');
 const bot = require('../src/bot');
 const matrixApi = require('../src/matrix/');
+const {
+    getPostEpicUpdatesData, 
+    getPostCommentData, 
+    getCreateRoomData, 
+    getInviteNewMembersData, 
+    getPostNewLinksData
+} = require('../src/queue/parse-body.js');
 
 describe('bot func', function() {
     this.timeout(15000);
@@ -22,6 +36,18 @@ describe('bot func', function() {
         assert.deepEqual(result, expected);
     });
 
+    it('test correct funcs seconBody', () => {
+        const result = getBotFunc(secondBody);
+        logger('result', result);
+        const expected = [
+            'createRoom',
+            'inviteNewMembers', 
+            'postEpicUpdates', 
+            'postNewLinks', 
+        ];
+        assert.deepEqual(result, expected);
+    });
+
     it('async arr expect', () => {
         const funcsForBot = getBotFunc(firstBody);
         logger('funcsForBot', Array.isArray(funcsForBot));
@@ -29,14 +55,61 @@ describe('bot func', function() {
         assert.ok(Array.isArray(result));
     });
 
-    it('postComment', async () => {
+    // it('postComment', async () => {
+    //     const {connect, disconnect, helpers} = matrixApi;
+    //     const mclient = await connect();
+    //     const postCommentData = getPostCommentData(firstBody);
+    //     const body = {mclient, ...postCommentData};
+    //     const result = await postComment(body);
+    //     logger('result', result);
+    //     assert.ok(result);
+    //     await disconnect();
+    // })
+
+    // it('createRoom', async () => {
+    //     const {connect, disconnect, helpers} = matrixApi;
+    //     const mclient = await connect();
+    //     const createRoomData = getCreateRoomData(secondBody);
+    //     logger('createRoomData', createRoomData);
+    //     const body = {mclient, ...createRoomData};
+    //     const result = await createRoom(body);
+    //     logger('result', result);
+    //     assert.ok(result);
+    //     await disconnect();
+    // })
+
+    // it('inviteNewMembers', async () => {
+    //     const {connect, disconnect, helpers} = matrixApi;
+    //     const mclient = await connect();
+    //     const inviteNewMembersData = getInviteNewMembersData(secondBody);
+    //     logger('inviteNewMembersData', inviteNewMembersData);
+    //     const body = {mclient, ...inviteNewMembersData};
+    //     const result = await inviteNewMembers(body);
+    //     logger('result', result);
+    //     assert.ok(result);
+    //     await disconnect();
+    // })
+
+    // it('postNewLinks', async () => {
+    //     const {connect, disconnect, helpers} = matrixApi;
+    //     const mclient = await connect();
+    //     const postNewLinksData = getPostNewLinksData(secondBody);
+    //     logger('inviteNewMembersData', postNewLinksData);
+    //     const body = {mclient, ...postNewLinksData};
+    //     const result = await postNewLinks(body);
+    //     logger('result', result);
+    //     assert.ok(result);
+    //     await disconnect();
+    // })
+
+    it('postEpicUpdates', async () => {
         const {connect, disconnect, helpers} = matrixApi;
-        // const initconf = await init(config.matrix);
-        // logger('connect', connect);
-        // logger('init', initconf);
         const mclient = await connect();
-        const req = {mclient, body: firstBody};
-        const result = await postComment(req);
+        const postEpicUpdatesData = getPostEpicUpdatesData(secondBody);
+        logger('postEpicUpdates', postEpicUpdatesData);
+        const body = {mclient, ...postEpicUpdatesData};
+        const result = await postEpicUpdates(body);
+        logger('result', result);
         assert.ok(result);
         await disconnect();
     })

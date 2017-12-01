@@ -43,30 +43,21 @@ const handleLink = async (issueLink, mclient) => {
     await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
 };
 
-const handleLinks = async ({mclient, body: hook}) => {
-    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
-    if (!links || links.length === 0) {
-        return;
-    }
-    logger(links);
-    await Promise.all(links.forEach(async issueLink => {
-        await handleLink(issueLink, mclient);
-    }));
-};
+const postNewLinks = async ({mclient, links}) => {
+    logger('start postNewLinks');
+    try {
+        if (!links || links.length === 0) {
+            logger('No links to handle');
+            return true;
+        }
 
-const shouldPostChanges = ({body, mclient}) => Boolean(
-    typeof body === 'object'
-    && (
-        body.webhookEvent === 'jira:issue_updated'
-        || body.webhookEvent === 'jira:issue_created'
-    )
-    && typeof body.issue === 'object'
-    && mclient
-);
-
-const postNewLinks = async req => {
-    if (shouldPostChanges(req)) {
-        await handleLinks(req);
+        await Promise.all(links.map(async issueLink => {
+            await handleLink(issueLink, mclient);
+        }));
+        return true;
+    } catch (err) {
+        logger('error in postNewLinks', err);
+        return false;
     }
 };
 

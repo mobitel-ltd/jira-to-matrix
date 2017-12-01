@@ -24,36 +24,32 @@ const extractID = json => {
 };
 
 /* :{}*/
-const collectParticipants = async issue => {
-    const result = [
-        _.get(issue, 'fields.creator.name'),
-        _.get(issue, 'fields.reporter.name'),
-        _.get(issue, 'fields.assignee.name'),
-    ];
-
-    const url = _.get(issue, 'fields.watches.self');
+const collectParticipants = async ({url, collectParticipantsBody}) => {
     if (url) {
         const body = await fetchJSON(url, auth());
         if (body && body.watchers instanceof Array) {
             const watchers = body.watchers.map(one => one.name);
-            result.push(...watchers);
+            collectParticipantsBody.push(...watchers);
         }
     }
-    return _.uniq(result.filter(one => !!one));
+    return _.uniq(collectParticipantsBody.filter(one => !!one));
 };
 
 /* :Array<{}>*/
 const get = async (id, params) => {
+    const url = `${conf.jira.url}/rest/api/2/issue/${id}${paramsToQueryString(params)}`;
+    logger('url for jira fetch', url);
     const issue = await fetchJSON(
-        `${conf.jira.url}/rest/api/2/issue/${id}${paramsToQueryString(params)}`,
+        url,
         auth()
     );
     return issue;
 };
 
 const getProject = async (id, params) => {
+    const url = `${conf.jira.url}/rest/api/2/project/${id}${paramsToQueryString(params)}`;
     const issue = await fetchJSON(
-        `${conf.jira.url}/rest/api/2/project/${id}${paramsToQueryString(params)}`,
+        url,
         auth()
     );
     return issue;

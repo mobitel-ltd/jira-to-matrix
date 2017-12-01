@@ -1,4 +1,4 @@
-const {shouldCreateRoom} = require('../src/bot/create-room').forTests;
+const {shouldCreateRoom} = require('../src/queue/bot-handler');
 const assert = require('assert');
 const logger = require('debug')('test room create');
 

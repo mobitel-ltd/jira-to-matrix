@@ -1,40 +1,56 @@
-/* eslint-disable camelcase */
-// const Ramda = require('ramda');
-// const {fp} = require('../../utils');
-const {postCommentLogic} = require('./post-comment');
-const logger = require('debug')('bot post comment');
+const _ = require('lodash');
+const Ramda = require('ramda');
+const htmlToString = require('html-to-text').fromString;
+const jira = require('../../jira');
+const logger = require('debug')('bot post comment logic');
 
+const pickRendered = (issue, comment) => {
+    const comments = _.get(issue, 'renderedFields.comment.comments');
+    if (!(comments instanceof Array)) {
+        return comment.body;
+    }
 
-// const isCommentEvent = ({webhookEvent, issue_event_type_name}) => {
-//     const propNotIn = Ramda.complement(fp.propIn);
-//     return Ramda.anyPass([
-//         fp.propIn('webhookEvent', ['comment_created', 'comment_updated']),
-//         Ramda.allPass([
-//             Ramda.propEq('webhookEvent', 'jira:issue_updated'),
-//             propNotIn('issue_event_type_name', ['issue_commented', 'issue_comment_edited']),
-//         ]),
-//     ])({webhookEvent, issue_event_type_name} || {});
-// };
+    return (
+        Ramda.prop(
+            'body',
+            Ramda.find(Ramda.propEq('id', comment.id), comments)
+        ) || comment.body
+    );
+};
 
-// const shouldPostComment = ({body, mclient}) => Boolean(
-//     typeof body === 'object'
-//     && isCommentEvent(body)
-//     && typeof body.comment === 'object'
-//     && mclient
-// );
-
-const postComment = async req => {
+const postComment = async ({mclient, issueID, headerText, comment, author}) => {
     logger('post comment start');
-    // if (shouldPostComment(req)) {
     try {
-        await postCommentLogic(req.mclient, req.body);
+        logger('data for post comment', {issueID, headerText, comment, author});
+        const issue = await jira.issue.getFormatted(issueID);
+
+        if (!issue) {
+            throw new Error('no issue');
+        }
+
+        const roomId = await mclient.getRoomId(issue.key);
+        logger(`Room for comment ${issue.key}: ${!!roomId} \n`);
+
+        if (!roomId) {
+            throw new Error('no roomId');
+        }
+
+        const commentBody = pickRendered(issue, comment);
+        const message = `${headerText}: <br>${commentBody}`;
+        const success = await mclient.sendHtmlMessage(roomId, htmlToString(message), message);
+
+        if (!success) {
+            throw new Error('no send to matrix');
+        }
+
+        logger(`Posted comment ${commentBody} to ${issue.key} from ${author}\n`);
+
+        return true;
     } catch (err) {
         logger('Error in Post comment', err);
+
+        return false;
     }
-    // }
 };
 
 module.exports = {postComment};
-// module.exports.forTests = {
-//     isCommentEvent,
-// };

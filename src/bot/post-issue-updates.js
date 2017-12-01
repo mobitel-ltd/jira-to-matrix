@@ -70,9 +70,12 @@ const rename = async (mclient, roomID, hook) => {
     if (fieldIsEmpty('summary') && fieldIsEmpty('Key')) {
         return;
     }
+
+    const summary = Ramda.path(['fields', 'summary'], hook.issue);
     const success = await mclient.setRoomName(
         roomID,
-        composeRoomName(hook.issue)
+        // Изменена!!!
+        composeRoomName({...hook.issue, summary})
     );
     if (success) {
         logger(`Successfully renamed room ${getIssueKey(hook)}`);

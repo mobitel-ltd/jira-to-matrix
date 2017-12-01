@@ -4,23 +4,23 @@ const jira = require('../jira');
 const logger = require('debug')('bot post issue');
 const translate = require('../locales');
 
-const getTextIssue = (req, address) => {
+const getTextIssue = (issue, address) => {
     const text = String(
-        lodash.get(req.body.issue.fields, address) || translate('miss')
+        lodash.get(issue.fields, address) || translate('miss')
     ).trim();
 
     return text;
 };
 
-const getPost = async req => {
-    const assigneeName = getTextIssue(req, 'assignee.displayName');
-    const assigneeEmail = getTextIssue(req, 'assignee.emailAddress');
-    const reporterName = getTextIssue(req, 'reporter.displayName');
-    const reporterEmail = getTextIssue(req, 'reporter.emailAddress');
-    const typeName = getTextIssue(req, 'issuetype.name');
-    const epicLink = getTextIssue(req, 'customfield_10006');
-    const estimateTime = getTextIssue(req, 'reporter.timeestimate');
-    const description = getTextIssue(req, 'description');
+const getPost = async issue => {
+    const assigneeName = getTextIssue(issue, 'assignee.displayName');
+    const assigneeEmail = getTextIssue(issue, 'assignee.emailAddress');
+    const reporterName = getTextIssue(issue, 'reporter.displayName');
+    const reporterEmail = getTextIssue(issue, 'reporter.emailAddress');
+    const typeName = getTextIssue(issue, 'issuetype.name');
+    const epicLink = getTextIssue(issue, 'customfield_10006');
+    const estimateTime = getTextIssue(issue, 'reporter.timeestimate');
+    const description = getTextIssue(issue, 'description');
     const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
     let post;
 
@@ -76,9 +76,8 @@ const getTutorial = () => `
     Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
     `;
 
-const postIssueDescription = async req => {
-    const post = await getPost(req);
-    const {issue} = req.body;
+const postIssueDescription = async ({mclient, issue, newRoomID}) => {
+    const post = await getPost(issue);
     const formatted = Object.assign(
         {},
         {post},
@@ -86,15 +85,15 @@ const postIssueDescription = async req => {
     );
 
     // description
-    await req.mclient.sendHtmlMessage(
-        req.newRoomID,
+    await mclient.sendHtmlMessage(
+        newRoomID,
         htmlToText(formatted),
         formatted.post
     );
 
     // tutorial jira commands
-    await req.mclient.sendHtmlMessage(
-        req.newRoomID,
+    await mclient.sendHtmlMessage(
+        newRoomID,
         'Send tutorial',
         getTutorial()
     );

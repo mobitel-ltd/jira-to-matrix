@@ -2,7 +2,7 @@
 const bot = require('../bot');
 const logger = require('debug')('queue');
 const colors = require('colors/safe');
-const getBotFunc = require('./bot-handler');
+const {getBotFunc} = require('./bot-handler');
 
 // Обработчик хуков Jira, производит действие в зависимости от наличия body и client 
 const handler = async (body, client, queue) => {

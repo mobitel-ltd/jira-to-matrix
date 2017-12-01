@@ -91,7 +91,7 @@ const shouldPostLinkedChanges = body => Boolean(
 );
 
 // // shouldPostNewLinks =
-module.exports = (body => {
+const getBotFunc = (body => {
     const actionFuncs = {
         createRoom: shouldCreateRoom(body),
         postIssueUpdates: shouldPostIssueUpdates(body),
@@ -108,6 +108,8 @@ module.exports = (body => {
     logger('funcArr to handle', funcArr);
     return funcArr;
 });
+
+module.exports = {shouldCreateRoom, getBotFunc};
 
 // const botArr = funcArr.map(func => bot[func]);
 // logger('bot createroom', botArr);

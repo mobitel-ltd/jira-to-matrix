@@ -28,7 +28,7 @@ const sendStatusChanges = async ({mclient, body: hook}) => {
     if (!links || links.length === 0 || typeof status !== 'string') {
         return;
     }
-    await Promise.all(links.forEach(async link => {
+    await Promise.all(links.map(async link => {
         await handleLink(hook, link, mclient);
     }));
 };
