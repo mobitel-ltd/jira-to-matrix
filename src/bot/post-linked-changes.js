@@ -1,14 +1,15 @@
 const Ramda = require('ramda');
 const {postChangesToLinks: conf} = require('../config').features;
-const {shouldPostChanges} = require('./post-issue-updates');
-const {postStatusChanged, getNewStatus} = require('./post-epic-updates');
+const {postStatusChanged} = require('./helper.js');
+const logger = require('debug')('post-linked-changes');
 
-const handleLink = async (hook, link, mclient) => {
+const handleLink = async (body, link, mclient) => {
     const destIssue = Ramda.either(
         Ramda.prop('outwardIssue'),
         Ramda.prop('inwardIssue')
     )(link);
     if (!destIssue) {
+        logger('no destIssue in handleLink');
         return;
     }
     const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
@@ -19,23 +20,21 @@ const handleLink = async (hook, link, mclient) => {
     if (!roomID) {
         return;
     }
-    postStatusChanged(roomID, hook, mclient);
+    postStatusChanged(roomID, body, mclient);
 };
 
-const sendStatusChanges = async ({mclient, body: hook}) => {
-    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
-    const status = getNewStatus(hook);
-    if (!links || links.length === 0 || typeof status !== 'string') {
-        return;
-    }
-    await Promise.all(links.map(async link => {
-        await handleLink(hook, link, mclient);
-    }));
-};
-
-const postLinkedChanges = async req => {
-    if (shouldPostChanges(req)) {
-        await sendStatusChanges(req);
+const postLinkedChanges = async ({mclient, links, data, status}) => {
+    try {
+        if (!links || links.length === 0 || typeof status !== 'string') {
+            logger('no links to change');
+            return true;
+        }
+        await Promise.all(links.map(async link => {
+            await handleLink(data, link, mclient);
+        }));
+    } catch (err) {
+        logger('Error in postLinkedChanges', err);
+        return false;
     }
 };
 

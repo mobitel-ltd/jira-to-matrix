@@ -8,7 +8,8 @@ const {
     postComment,
     createRoom, 
     inviteNewMembers, 
-    postNewLinks
+    postNewLinks,
+    postLinkedChanges,
 } = require('../src/bot');
 const bot = require('../src/bot');
 const matrixApi = require('../src/matrix/');
@@ -17,7 +18,8 @@ const {
     getPostCommentData, 
     getCreateRoomData, 
     getInviteNewMembersData, 
-    getPostNewLinksData
+    getPostNewLinksData,
+    getPostLinkedChangesData,
 } = require('../src/queue/parse-body.js');
 
 describe('bot func', function() {
@@ -102,15 +104,28 @@ describe('bot func', function() {
     //     await disconnect();
     // })
 
-    it('postEpicUpdates', async () => {
+    // it('postEpicUpdates', async () => {
+    //     const {connect, disconnect, helpers} = matrixApi;
+    //     const mclient = await connect();
+    //     const postEpicUpdatesData = getPostEpicUpdatesData(secondBody);
+    //     logger('postEpicUpdates', postEpicUpdatesData);
+    //     const body = {mclient, ...postEpicUpdatesData};
+    //     const result = await postEpicUpdates(body);
+    //     logger('result', result);
+    //     assert.ok(result);
+    //     await disconnect();
+    // })
+
+    it('postLinkedChanges', async () => {
         const {connect, disconnect, helpers} = matrixApi;
         const mclient = await connect();
-        const postEpicUpdatesData = getPostEpicUpdatesData(secondBody);
-        logger('postEpicUpdates', postEpicUpdatesData);
-        const body = {mclient, ...postEpicUpdatesData};
-        const result = await postEpicUpdates(body);
+        const postLinkedChangesData = getPostLinkedChangesData(secondBody);
+        logger('postLinkedChanges', postLinkedChangesData);
+        const body = {mclient, ...postLinkedChangesData};
+        const result = await postLinkedChanges(body);
         logger('result', result);
         assert.ok(result);
         await disconnect();
     })
+   
 });

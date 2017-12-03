@@ -1,8 +1,9 @@
 const _ = require('lodash');
 const Ramda = require('ramda');
 const htmlToString = require('html-to-text').fromString;
-const jira = require('../../jira');
 const logger = require('debug')('bot post comment logic');
+
+const jira = require('../jira');
 
 const pickRendered = (issue, comment) => {
     const comments = _.get(issue, 'renderedFields.comment.comments');

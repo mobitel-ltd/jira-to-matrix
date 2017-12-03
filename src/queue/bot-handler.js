@@ -28,6 +28,7 @@ const shouldPostIssueUpdates = body => Boolean(
     && body.webhookEvent === 'jira:issue_updated'
     && typeof body.changelog === 'object'
     && typeof body.issue === 'object'
+    && !(Ramda.isEmpty(Ramda.pathOr([], ['changelog', 'items'], body)))
     && features.postIssueUpdates
 );
 
@@ -110,29 +111,3 @@ const getBotFunc = (body => {
 });
 
 module.exports = {shouldCreateRoom, getBotFunc};
-
-// const botArr = funcArr.map(func => bot[func]);
-// logger('bot createroom', botArr);
-
-// if (features.createRoom) {
-//     await bot.createRoom(req);
-// }
-// if (features.postIssueUpdates) {
-//     await bot.postIssueUpdates(req);
-// }
-// if (features.inviteNewMembers) {
-//     await bot.inviteNewMembers(req);
-// }
-// if (features.postComments) {
-//     await bot.postComment(req);
-// }
-// if (features.epicUpdates.on()) {
-//     await bot.postEpicUpdates(req);
-//     await bot.postProjectUpdates(req);
-// }
-// if (features.newLinks) {
-//     await bot.postNewLinks(req);
-// }
-// if (features.postChangesToLinks.on) {
-//     await bot.postLinkedChanges(req);
-// }

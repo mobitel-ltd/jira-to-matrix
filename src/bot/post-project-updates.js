@@ -1,16 +1,16 @@
 const translate = require('../locales');
 const marked = require('marked');
 const jira = require('../jira');
+const logger = require('debug')('post-issue-updates');
 
-
-const epicChanged = async (roomId, mclient, body) => {
+const epicChanged = async (roomId, mclient, data) => {
     const values = {
-        'user.name': body.user.name,
-        'issue.key': body.issue.key,
-        'issue.fields.summary': body.issue.fields.summary,
-        'status': body.issue.fields.status.name,
+        'user.name': data.name,
+        'issue.key': data.key,
+        'data.fields.summary': data.fields.summary,
+        'status': data.fields.status.name,
     };
-    values['issue.ref'] = jira.issue.ref(body.issue.key);
+    values['issue.ref'] = jira.issue.ref(data.key);
 
     await mclient.sendHtmlMessage(
         roomId,
@@ -19,12 +19,12 @@ const epicChanged = async (roomId, mclient, body) => {
     );
 };
 
-const newEpic = async (roomId, mclient, issue) => {
+const newEpic = async (roomId, mclient, data) => {
     const values = {
-        'issue.key': issue.key,
-        'issue.fields.summary': issue.fields.summary,
+        'issue.key': data.key,
+        'issue.fields.summary': data.fields.summary,
     };
-    values['issue.ref'] = jira.issue.ref(issue.key);
+    values['issue.ref'] = jira.issue.ref(data.key);
 
     await mclient.sendHtmlMessage(
         roomId,
@@ -33,27 +33,10 @@ const newEpic = async (roomId, mclient, issue) => {
     );
 };
 
-const shouldPostChanges = body =>
-    Boolean(
-        typeof body === 'object'
-        && (
-            body.webhookEvent === 'jira:issue_updated'
-            || (body.webhookEvent === 'jira:issue_created')
-        )
-        && typeof body.issue === 'object'
-        && typeof body.issue.fields === 'object'
-        && body.issue.fields.issuetype.name === 'Epic'
-        && (
-            body.issue_event_type_name === 'issue_generic'
-            || body.issue_event_type_name === 'issue_created'
-        )
-    );
-
-const postProjectUpdatesLogic = async ({mclient, body}) => {
-    const typeEvent = body.issue_event_type_name;
-    const projectOpts = body.issue.fields.project;
+const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
     if (!projectOpts) {
-        return;
+        logger('No project in body.issue.fields');
+        return true;
     }
 
     const roomId = await mclient.getRoomId(projectOpts.key);
@@ -62,17 +45,11 @@ const postProjectUpdatesLogic = async ({mclient, body}) => {
     }
 
     if (typeEvent === 'issue_created') {
-        await newEpic(roomId, mclient, body.issue);
+        await newEpic(roomId, mclient, data);
     }
 
     if (typeEvent === 'issue_generic') {
-        await epicChanged(roomId, mclient, body);
-    }
-};
-
-const postProjectUpdates = async req => {
-    if (shouldPostChanges(req.body)) {
-        await postProjectUpdatesLogic(req);
+        await epicChanged(roomId, mclient, data);
     }
 };
 

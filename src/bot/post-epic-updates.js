@@ -7,6 +7,7 @@ const redis = require('../redis-client');
 const jira = require('../jira');
 const {fp} = require('../utils');
 const {epicUpdates: epicConf} = require('../config').features;
+const {postStatusChanged} = require('./helper.js');
 
 const epicRedisKey = epicID => `epic|${epicID}`;
 
@@ -62,30 +63,6 @@ const postNewIssue = async (epic, issue, mclient) => {
     }
 };
 
-
-const getNewStatus = Ramda.pipe(
-    Ramda.pathOr([], ['changelog', 'items']),
-    Ramda.filter(Ramda.propEq('field', 'status')),
-    Ramda.head,
-    Ramda.propOr(null, 'toString')
-);
-
-const postStatusChanged = async (roomID, issue, mclient) => {
-    const status = getNewStatus(issue);
-    logger('status is ', status);
-    if (typeof status !== 'string') {
-        return;
-    }
-    const values = ['name', 'key', 'summary'].map(key => issue[key]);
-    values['issue.ref'] = jira.issue.ref(issue.key);
-    values.status = status;
-    await mclient.sendHtmlMessage(
-        roomID,
-        translate('statusHasChanged', values),
-        marked(translate('statusHasChangedMessage', values, values[name]))
-    );
-};
-
 const postEpicUpdates = async ({mclient, data, epicKey}) => {
     logger('epicConf', epicConf);
     try {
@@ -116,13 +93,11 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
         }
         return true;
     } catch (err) {
-        logger('error in postEpicUpdates');
+        logger('error in postEpicUpdates', err);
         return false;
     }
 };
 
 module.exports = {
     postEpicUpdates,
-    postStatusChanged,
-    getNewStatus,
 };

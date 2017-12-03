@@ -48,80 +48,60 @@ const postUpdateInfo = async (mclient, roomID, hook) => {
     }
 };
 
-const getIssueKey = hook => {
-    const fieldKey = jira.getChangelogField('Key', hook);
-    return fieldKey ? fieldKey.fromString : hook.issue.key;
+
+const getPostIssueUpdatesData = body => {
+    const fieldKey = jira.getChangelogField('Key', body);
+    const issueKey = fieldKey ? fieldKey.fromString : body.issue.key;
+    const summary = Ramda.path(['fields', 'summary'], body.issue);
+    const roomName = summary ? composeRoomName({...body.issue, summary}) : null;
+
+    
+    return {issueKey, fieldKey, summary, roomName};
 };
 
-const move = async (mclient, roomID, hook) => {
-    const field = jira.getChangelogField('Key', hook);
-    if (!field) {
+const move = async (mclient, roomID, fieldKey, issueKey) => {
+    if (!fieldKey) {
         return;
     }
-    const success = await mclient.createAlias(field.toString, roomID);
+    const success = await mclient.createAlias(fieldKey.toString, roomID);
     if (success) {
-        logger(`Successfully added alias ${field.toString} for room ${field.fromString}`);
+        logger(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
     }
-    await mclient.setRoomTopic(roomID, jira.issue.ref(hook.issue.key));
+    await mclient.setRoomTopic(roomID, jira.issue.ref(issueKey));
 };
 
-const rename = async (mclient, roomID, hook) => {
-    const fieldIsEmpty = field => !jira.getChangelogField(field, hook);
-    if (fieldIsEmpty('summary') && fieldIsEmpty('Key')) {
+const rename = async (mclient, roomID, summary, roomName, issueKey) => {
+    if (!summary && !issueKey) {
         return;
     }
-
-    const summary = Ramda.path(['fields', 'summary'], hook.issue);
-    const success = await mclient.setRoomName(
-        roomID,
-        // Изменена!!!
-        composeRoomName({...hook.issue, summary})
-    );
+    const success = await mclient.setRoomName(roomID, roomName);
     if (success) {
-        logger(`Successfully renamed room ${getIssueKey(hook)}`);
+        logger(`Successfully renamed room ${issueKey}`);
     }
 };
 
-const postChanges = async ({mclient, body}) => {
-    if (
-        Ramda.isEmpty(Ramda.pathOr([], ['changelog', 'items'], body))
-    ) {
-        return;
-    }
-    const roomID = await mclient.getRoomId(getIssueKey(body));
-    if (!roomID) {
-        return;
-    }
-    await move(mclient, roomID, body);
-    await rename(mclient, roomID, body);
-    await postUpdateInfo(mclient, roomID, body);
-};
+//
 
-const shouldPostChanges = ({body, mclient}) => Boolean(
-    typeof body === 'object'
-    && body.webhookEvent === 'jira:issue_updated'
-    && typeof body.changelog === 'object'
-    && typeof body.issue === 'object'
-    && mclient
-);
+//
 
-const postIssueUpdates = async req => {
-    logger('post updates');
-    const proceed = shouldPostChanges(req);
-
-    if (req.body.issue) {
-        logger(`To update the data of the issue ${req.body.issue.key}: ${proceed}\n`);
-    } else {
-        logger(`To update the data ${req.body.webhookEvent}: ${proceed}\n`);
-    }
-
-    if (proceed) {
-        await postChanges(req);
+const postIssueUpdates = async ({mclient, issueKey, fieldKey, body}) => {
+    try {
+        const roomID = await mclient.getRoomId(issueKey);
+        if (!roomID) {
+            logger('No roomId');
+            return true;
+        }
+        await move(mclient, roomID, fieldKey, issueKey);
+        await rename(mclient, roomID, body);
+        await postUpdateInfo(mclient, roomID, body);
+        return true;
+    } catch (err) {
+        logger('Error in postIssueUpdates', err);
+        return false;
     }
 };
 
 module.exports.postIssueUpdates = postIssueUpdates;
-module.exports.shouldPostChanges = shouldPostChanges;
 module.exports.forTests = {
     toStrings: helpers.toStrings,
     composeText,

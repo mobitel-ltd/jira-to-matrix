@@ -1,4 +1,3 @@
-// const {features} = require('../config');
 const parse = require('./parse-incoming');
 const save = require('./save-incoming');
 const isIgnore = require('./stop-if-user-ignored');
@@ -12,39 +11,6 @@ const {postProjectUpdates} = require('./post-project-updates');
 const {postNewLinks} = require('./post-new-links');
 const {postLinkedChanges} = require('./post-linked-changes');
 
-// function createApp(express) {
-//     const app = express.Router();
-//     app.use(parse);
-//     app.use(save);
-//     app.use(stopIf);
-//     // app.use(connectToMatrix);
-//     if (features.createRoom) {
-//         app.use(createRoom);
-//         app.use(postIssueDescription);
-//     }
-//     if (features.inviteNewMembers) {
-//         app.use(inviteNew);
-//     }
-//     if (features.postIssueUpdates) {
-//         app.use(postIssueUpdates);
-//     }
-//     if (features.postComments) {
-//         app.use(postComment);
-//     }
-//     if (features.epicUpdates.on()) {
-//         app.use(postEpicUpdates);
-//         app.use(postProjectUpdates);
-//     }
-//     if (features.newLinks) {
-//         app.use(postNewLinks);
-//     }
-//     if (features.postChangesToLinks.on) {
-//         app.use(postLinkedChanges);
-//     }
-//     return app;
-// }
-
-// module.exports.createApp = createApp;
 module.exports = {
     parse,
     save,

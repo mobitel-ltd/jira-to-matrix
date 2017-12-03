@@ -4,6 +4,7 @@ const translate = require('../locales');
 const logger = require('debug')('parse-body-jira');
 const jira = require('../jira');
 const {epicUpdates: epicConf} = require('../config').features;
+const {getNewStatus} = require('../bot/helper.js');
 
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
@@ -79,6 +80,8 @@ const getCreateRoomData = body => {
     return {issue: newIssue, webhookEvent, projectOpts};
 };
 
+// InviteNewMembersData
+
 const getInviteNewMembersData = body => {
     const {issue} = body;
 
@@ -94,11 +97,15 @@ const getInviteNewMembersData = body => {
     return {issue: newIssue};
 };
 
+// PostNewLinksData
+
 const getPostNewLinksData = body => {
     const links = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
 
     return {links};
 };
+
+// PostEpicUpdatesData
 
 const getPostEpicUpdatesData = body => {
     const {issue} = body;
@@ -118,6 +125,38 @@ const getPostEpicUpdatesData = body => {
     return {epicKey, data};
 };
 
+// Post link data
+const getPostLinkedChangesData = body => {
+    const {issue} = body;
+    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
+    const status = getNewStatus(body);
+    const summary = Ramda.path(['fields', 'summary'], issue);
+    const name = Ramda.path(['user', 'name'], body);
+
+    const data = {
+        key: issue.key,
+        summary,
+        id: issue.id,
+        changelog: issue.changelog,
+        name,
+    };
+
+    return {links, data, status};
+};
+
+// PostProjectUpdates
+const getPostProjectUpdatesData = body => {
+    const typeEvent = body.issue_event_type_name;
+    const projectOpts = body.issue.fields.project;
+    const {issue} = body;
+    const data = {
+        key: issue.key,
+        summary: issue.summary,
+        name: body.user.name,
+    };
+    return {typeEvent, projectOpts, data};
+};
+
 
 module.exports = {
     getPostEpicUpdatesData,
@@ -125,4 +164,6 @@ module.exports = {
     getCreateRoomData,
     getInviteNewMembersData,
     getPostNewLinksData,
+    getPostLinkedChangesData,
+    getPostProjectUpdatesData,
 };
