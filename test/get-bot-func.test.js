@@ -10,6 +10,8 @@ const {
     inviteNewMembers, 
     postNewLinks,
     postLinkedChanges,
+    postIssueUpdates,
+    postProjectUpdates,
 } = require('../src/bot');
 const bot = require('../src/bot');
 const matrixApi = require('../src/matrix/');
@@ -20,6 +22,8 @@ const {
     getInviteNewMembersData, 
     getPostNewLinksData,
     getPostLinkedChangesData,
+    getPostIssueUpdatesData,
+    getPostProjectUpdatesData,
 } = require('../src/queue/parse-body.js');
 
 describe('bot func', function() {
@@ -116,16 +120,39 @@ describe('bot func', function() {
     //     await disconnect();
     // })
 
-    it('postLinkedChanges', async () => {
-        const {connect, disconnect, helpers} = matrixApi;
-        const mclient = await connect();
-        const postLinkedChangesData = getPostLinkedChangesData(secondBody);
-        logger('postLinkedChanges', postLinkedChangesData);
-        const body = {mclient, ...postLinkedChangesData};
-        const result = await postLinkedChanges(body);
-        logger('result', result);
-        assert.ok(result);
-        await disconnect();
-    })
+    // it('postLinkedChanges', async () => {
+    //     const {connect, disconnect, helpers} = matrixApi;
+    //     const mclient = await connect();
+    //     const postLinkedChangesData = getPostLinkedChangesData(secondBody);
+    //     logger('postLinkedChanges', postLinkedChangesData);
+    //     const body = {mclient, ...postLinkedChangesData};
+    //     const result = await postLinkedChanges(body);
+    //     logger('result', result);
+    //     assert.ok(result);
+    //     await disconnect();
+    // })
    
+    // it('postIssueUpdates', async () => {
+    //     const {connect, disconnect, helpers} = matrixApi;
+    //     const mclient = await connect();
+    //     const postIssueUpdatesData = getPostIssueUpdatesData(secondBody);
+    //     logger('postIssueUpdates', postIssueUpdatesData);
+    //     const body = {mclient, ...postIssueUpdatesData};
+    //     const result = await postIssueUpdates(body);
+    //     logger('result', result);
+    //     assert.ok(result);
+    //     await disconnect();
+    // })
+
+    // it('postProjectUpdates', async () => {
+    //     const {connect, disconnect, helpers} = matrixApi;
+    //     const mclient = await connect();
+    //     const postProjectUpdatesData = getPostProjectUpdatesData(secondBody);
+    //     logger('postProjectUpdates', postProjectUpdatesData);
+    //     const body = {mclient, ...postProjectUpdatesData};
+    //     const result = await postProjectUpdates(body);
+    //     logger('result', result);
+    //     assert.ok(result);
+    //     await disconnect();
+    // })
 });

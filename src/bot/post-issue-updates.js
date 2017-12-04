@@ -1,7 +1,6 @@
 const Ramda = require('ramda');
 const jira = require('../jira');
 const translate = require('../locales');
-const {composeRoomName} = require('../matrix').helpers;
 const logger = require('debug')('bot post issue update');
 
 const helpers = {
@@ -26,13 +25,14 @@ const composeText = ({author, fields, formattedValues}) => {
         .join('<br>');
 };
 
-const postUpdateInfo = async (mclient, roomID, hook) => {
-    const {changelog, issue, user} = hook;
+
+const postUpdateInfo = async (mclient, roomID, body) => {
+    const {changelog, key, user} = body;
     const fields = helpers.fieldNames(changelog.items);
     const formattedValues = Object.assign(
         {},
         helpers.toStrings(changelog.items),
-        await jira.issue.renderedValues(issue.key, fields)
+        await jira.issue.renderedValues(key, fields)
     );
     const success = await mclient.sendHtmlMessage(
         roomID,
@@ -44,23 +44,14 @@ const postUpdateInfo = async (mclient, roomID, hook) => {
         })
     );
     if (success) {
-        logger(`Posted updates to ${issue.key}`);
+        logger(`Posted updates to ${key}`);
     }
 };
 
 
-const getPostIssueUpdatesData = body => {
-    const fieldKey = jira.getChangelogField('Key', body);
-    const issueKey = fieldKey ? fieldKey.fromString : body.issue.key;
-    const summary = Ramda.path(['fields', 'summary'], body.issue);
-    const roomName = summary ? composeRoomName({...body.issue, summary}) : null;
-
-    
-    return {issueKey, fieldKey, summary, roomName};
-};
-
-const move = async (mclient, roomID, fieldKey, issueKey) => {
-    if (!fieldKey) {
+const move = async (mclient, roomID, body) => {
+    const {issueKey, fieldKey, summary} = body;
+    if (!(fieldKey && summary)) {
         return;
     }
     const success = await mclient.createAlias(fieldKey.toString, roomID);
@@ -70,7 +61,8 @@ const move = async (mclient, roomID, fieldKey, issueKey) => {
     await mclient.setRoomTopic(roomID, jira.issue.ref(issueKey));
 };
 
-const rename = async (mclient, roomID, summary, roomName, issueKey) => {
+const rename = async (mclient, roomID, body) => {
+    const {summary, roomName, issueKey} = body;
     if (!summary && !issueKey) {
         return;
     }
@@ -80,18 +72,16 @@ const rename = async (mclient, roomID, summary, roomName, issueKey) => {
     }
 };
 
-//
-
-//
-
-const postIssueUpdates = async ({mclient, issueKey, fieldKey, body}) => {
+const postIssueUpdates = async body => {
     try {
+        logger('Start postIssueUpdates');
+        const {issueKey, mclient} = body;
         const roomID = await mclient.getRoomId(issueKey);
         if (!roomID) {
             logger('No roomId');
             return true;
         }
-        await move(mclient, roomID, fieldKey, issueKey);
+        await move(mclient, roomID, body);
         await rename(mclient, roomID, body);
         await postUpdateInfo(mclient, roomID, body);
         return true;

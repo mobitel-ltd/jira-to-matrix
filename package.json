@@ -10,7 +10,7 @@
     "start": "node src/app.js",
     "start-dev": "NODE_ENV=development node src/app.js",
     "test": "NODE_ENV=test mocha",
-    "test-one": "NODE_ENV=test mocha ./test/bot-func.test.js --watch",
+    "test-one": "NODE_ENV=test mocha ./test/get-bot-data.test.js --watch",
     "fix": "eslint src/**/*.js --fix",
     "testwatch": "NODE_ENV=test mocha --watch"
   },

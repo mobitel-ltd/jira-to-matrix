@@ -1,5 +1,6 @@
 const logger = require('debug')('bot-handler');
 const Ramda = require('ramda');
+const _ = require('lodash');
 
 // const bot = require('../bot');
 const {features} = require('../config');
@@ -91,8 +92,7 @@ const shouldPostLinkedChanges = body => Boolean(
     && features.postChangesToLinks.on
 );
 
-// // shouldPostNewLinks =
-const getBotFunc = (body => {
+const getBotFunc = body => {
     const actionFuncs = {
         createRoom: shouldCreateRoom(body),
         postIssueUpdates: shouldPostIssueUpdates(body),
@@ -108,6 +108,34 @@ const getBotFunc = (body => {
     const funcArr = Object.keys(actionFuncs).filter(key => actionFuncs[key]);
     logger('funcArr to handle', funcArr);
     return funcArr;
-});
+};
 
-module.exports = {shouldCreateRoom, getBotFunc};
+const getParserName = func => {
+    const startCase = _.startCase(_.camelCase(func));
+    return `get${startCase.split(' ').join('')}Data`;
+};
+
+const getFuncAndBody = (parsers, body) => {
+    const funcArr = getBotFunc(body);
+    logger('Array of functions we should handle', funcArr);
+    const result = funcArr.reduce((acc, funcName) => {
+        const data = parsers[getParserName(funcName)](body);
+        return [...acc, {funcName, data}];
+    }, []);
+
+    return result;
+};
+
+module.exports = {
+    getFuncAndBody,
+    getParserName,
+    getBotFunc,
+    shouldPostComment,
+    shouldPostIssueUpdates,
+    shouldCreateRoom,
+    shouldMemberInvite,
+    shouldPostEpicUpdates,
+    shouldPostProjectUpdates,
+    shouldPostNewLinks,
+    shouldPostLinkedChanges,
+};

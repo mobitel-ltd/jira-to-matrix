@@ -5,6 +5,7 @@ const logger = require('debug')('parse-body-jira');
 const jira = require('../jira');
 const {epicUpdates: epicConf} = require('../config').features;
 const {getNewStatus} = require('../bot/helper.js');
+const {composeRoomName} = require('../matrix').helpers;
 
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
@@ -157,6 +158,19 @@ const getPostProjectUpdatesData = body => {
     return {typeEvent, projectOpts, data};
 };
 
+// PostIssueUpdates
+
+const getPostIssueUpdatesData = body => {
+    const {changelog, user, issue} = body;
+    const fieldKey = jira.getChangelogField('Key', body);
+    const {key} = issue;
+    const issueKey = fieldKey ? fieldKey.fromString : key;
+    const summary = Ramda.path(['fields', 'summary'], issue);
+    const roomName = summary ? composeRoomName({...issue, summary}) : null;
+
+    return {issueKey, fieldKey, summary, roomName, changelog, user, key};
+};
+
 
 module.exports = {
     getPostEpicUpdatesData,
@@ -166,4 +180,5 @@ module.exports = {
     getPostNewLinksData,
     getPostLinkedChangesData,
     getPostProjectUpdatesData,
+    getPostIssueUpdatesData,
 };

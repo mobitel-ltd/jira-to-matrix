@@ -2,30 +2,34 @@
 const bot = require('../bot');
 const logger = require('debug')('queue');
 const colors = require('colors/safe');
-const {getBotFunc} = require('./bot-handler');
+const {getFuncAndBody} = require('./bot-handler.js');
+const parsers = require('./parse-body.js');
 
 // Обработчик хуков Jira, производит действие в зависимости от наличия body и client 
 const handler = async (body, client, queue) => {
     try {
         logger(`Handler data: body => ${body}, client => ${client}, queue => ${queue}`);
+
         // Парсинг JSON данных
         const parsedBody = bot.parse(body);
-        // logger('parsedBody', parsedBody);
+
         const req = {
             ...parsedBody,
             mclient: await client,
         };
+
         // Сохранение в Redis
         await bot.save(req);
-        // const ignore = await bot.stopIf(req);
+
         // Проверка на игнор
         bot.isIgnore(req);
 
-        const funcArr = getBotFunc(req.body);
+        const correctBody = getFuncAndBody(parsers, body);
+
+        // const dataArr = getParsers(funcArr, parsers);
         if (req.mclient) {
-            const allResult = await Promise.all(funcArr.map(async func => {
-                logger('bot[func]', func);
-                await bot[func](req);
+            const allResult = await Promise.all(correctBody.map(async ({funcName, data}) => {
+                await bot[funcName]({...data, mclient: req.mclient});
                 return true;
             }));
             logger('allResult', allResult);

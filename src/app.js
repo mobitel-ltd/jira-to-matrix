@@ -1,13 +1,16 @@
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
+const EventEmitter = require('events');
 const conf = require('./config');
 const matrix = require('./matrix');
 const logger = require('debug')('app');
 const {checkNodeVersion} = require('./utils');
 const cachedQueue = require('./queue').queue;
 const queueHandler = require('./queue').handler;
-const EventEmitter = require('events');
+// const parsers = require('./queue/parse-body.js');
+// const {getFuncAndBody} = require('./src/queue/bot-handler.js');
+
 const queuePush = new EventEmitter();
 // const fs = require('fs');
 
@@ -49,6 +52,9 @@ app.use(bodyParser.json({
 app.post('/', (req, res, next) => {
     // const name = Math.floor(Math.random() * 11);
     // fs.writeFileSync(`/tmp/jira${name}.json`, JSON.stringify(req.body));
+
+    // const correctBody = getFuncAndBody(parsers, req.body);
+
     logger('Jira body', req.body);
     cachedQueue.push(req.body);
     if (!client) {
