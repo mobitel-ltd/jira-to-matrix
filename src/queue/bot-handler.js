@@ -1,6 +1,7 @@
 const logger = require('debug')('bot-handler');
 const Ramda = require('ramda');
 const _ = require('lodash');
+const parsers = require('./parse-body.js');
 
 // const bot = require('../bot');
 const {features} = require('../config');
@@ -115,12 +116,18 @@ const getParserName = func => {
     return `get${startCase.split(' ').join('')}Data`;
 };
 
-const getFuncAndBody = (parsers, body) => {
+const getFuncAndBody = body => {
     const funcArr = getBotFunc(body);
     logger('Array of functions we should handle', funcArr);
+
     const result = funcArr.reduce((acc, funcName) => {
         const data = parsers[getParserName(funcName)](body);
-        return [...acc, {funcName, data}];
+        logger('data', data);
+
+        const redisKey = `${funcName}:${body.timestamp}`;
+        logger('redisKey', redisKey);
+
+        return [...acc, {redisKey, funcName, data}];
     }, []);
 
     return result;

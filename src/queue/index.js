@@ -3,12 +3,23 @@ const bot = require('../bot');
 const logger = require('debug')('queue');
 const colors = require('colors/safe');
 const {getFuncAndBody} = require('./bot-handler.js');
-const parsers = require('./parse-body.js');
 
 // Обработчик хуков Jira, производит действие в зависимости от наличия body и client 
 const handler = async (body, client, queue) => {
     try {
         logger(`Handler data: body => ${body}, client => ${client}, queue => ${queue}`);
+
+        // New 
+        // if (shouldCreateRoom(body)) {
+        //     bot.createRoom(body);
+        // }
+        // const {funcName, data} = body;
+        // if (client) {
+        // const done = await bot[funcName]({...data, mclient: client});
+        // }
+        // if (done) {
+        // redisUpdate({...body, done})
+        // }
 
         // Парсинг JSON данных
         const parsedBody = bot.parse(body);
@@ -22,9 +33,9 @@ const handler = async (body, client, queue) => {
         await bot.save(req);
 
         // Проверка на игнор
-        bot.isIgnore(req);
+        bot.isIgnore(req.body);
 
-        const correctBody = getFuncAndBody(parsers, body);
+        const correctBody = getFuncAndBody(body);
 
         // const dataArr = getParsers(funcArr, parsers);
         if (req.mclient) {

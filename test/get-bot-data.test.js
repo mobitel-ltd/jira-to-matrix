@@ -4,19 +4,7 @@ const firstBody = require('./fixtures/comment-create-1.json');
 const secondBody = require('./fixtures/comment-create-2.json');
 const parsers = require('../src/queue/parse-body.js');
 const bot = require('../src/bot');
-const {
-    getBotFunc,
-    getParserName,
-    getFuncAndBody,
-    // shouldPostComment,
-    // shouldPostIssueUpdates,
-    // shouldCreateRoom,
-    // shouldMemberInvite,
-    // shouldPostEpicUpdates,
-    // shouldPostProjectUpdates,
-    // shouldPostNewLinks,
-    // shouldPostLinkedChanges,
-} = require('../src/queue/bot-handler.js');
+const {getBotFunc, getParserName, getFuncAndBody} = require('../src/queue/bot-handler.js');
 
 describe('get-bot-data', function() {
     it('test correct firstBody parse', () => {
@@ -106,7 +94,7 @@ describe('get-bot-data', function() {
     
     it('test correct objects', () => {
         logger('getFuncAndBody', getFuncAndBody);
-        const correctBody = getFuncAndBody(parsers, firstBody);
+        const correctBody = getFuncAndBody(firstBody);
         const expected = [{
             funcName: 'postComment',
             data: { 

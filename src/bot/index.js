@@ -1,5 +1,5 @@
 const parse = require('./parse-incoming');
-const save = require('./save-incoming');
+const {save, newSave} = require('./save-incoming');
 const isIgnore = require('./stop-if-user-ignored');
 const {createRoom} = require('./create-room');
 const {postIssueDescription} = require('./post-issue-description');
@@ -14,6 +14,7 @@ const {postLinkedChanges} = require('./post-linked-changes');
 module.exports = {
     parse,
     save,
+    newSave,
     isIgnore,
     createRoom,
     postIssueDescription,

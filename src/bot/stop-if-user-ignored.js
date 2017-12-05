@@ -13,11 +13,11 @@ const shouldIgnore = (body, conf) => {
     };
 };
 
-module.exports = req => {
-    const {ignore, username} = shouldIgnore(req.body, config);
+module.exports = body => {
+    const {ignore, username} = shouldIgnore(body, config);
     logger(`User "${username}" ignored status: ${ignore}`);
     if (ignore) {
-        throw new Error('User ignored');
+        throw 'User ignored';
     }
     // return ignore;
 };

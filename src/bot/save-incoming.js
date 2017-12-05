@@ -15,4 +15,20 @@ const save = async req => {
     }
 };
 
-module.exports = save;
+const newSave = async data => {
+    try {
+        const {redisKey, ...restData} = data;
+        // logger('restData', restData);
+        // logger('data', redisKey);
+        const bodyToJSON = JSON.stringify(restData);
+
+        await redis.setAsync(redisKey, bodyToJSON);
+        logger('data saved by redis');
+    } catch (err) {
+        logger(`Error while saving to redis:\n${err.message}`);
+        throw err;
+    }
+};
+
+
+module.exports = {save, newSave};

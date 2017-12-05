@@ -8,7 +8,7 @@ const logger = require('debug')('app');
 const {checkNodeVersion} = require('./utils');
 const cachedQueue = require('./queue').queue;
 const queueHandler = require('./queue').handler;
-// const parsers = require('./queue/parse-body.js');
+// const getParsedForQueue = require('./queue/get-parsed-for-queue.js');
 // const {getFuncAndBody} = require('./src/queue/bot-handler.js');
 
 const queuePush = new EventEmitter();
@@ -53,7 +53,11 @@ app.post('/', (req, res, next) => {
     // const name = Math.floor(Math.random() * 11);
     // fs.writeFileSync(`/tmp/jira${name}.json`, JSON.stringify(req.body));
 
-    // const correctBody = getFuncAndBody(parsers, req.body);
+    // const correctBody = getParsedForQueue(req.body);
+    // if (correctBody) {
+    //     logger('correctBody', correctBody);
+    //     save data to Redis or cachedQueue.push(...correctBody);
+    // }
 
     logger('Jira body', req.body);
     cachedQueue.push(req.body);
