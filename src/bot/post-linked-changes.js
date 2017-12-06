@@ -33,8 +33,8 @@ const postLinkedChanges = async ({mclient, links, data, status}) => {
             await handleLink(data, link, mclient);
         }));
     } catch (err) {
-        logger('Error in postLinkedChanges', err);
-        return false;
+        logger('error in postLinkedChanges');
+        throw err;
     }
 };
 

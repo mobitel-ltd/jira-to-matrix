@@ -23,7 +23,7 @@ const newSave = async data => {
         const bodyToJSON = JSON.stringify(restData);
 
         await redis.setAsync(redisKey, bodyToJSON);
-        logger('data saved by redis');
+        logger('data saved by redis. RedisKey: ', redisKey);
     } catch (err) {
         logger(`Error while saving to redis:\n${err.message}`);
         throw err;

@@ -76,7 +76,6 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
             logger('no epic');
             return true;
         }
-        logger('epic is ', epic);
         const roomID = await mclient.getRoomId(epicKey);
         if (!roomID) {
             logger('no roomID');
@@ -93,8 +92,8 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
         }
         return true;
     } catch (err) {
-        logger('error in postEpicUpdates', err);
-        return false;
+        logger('error in postEpicUpdates');
+        throw err;
     }
 };
 

@@ -5,34 +5,41 @@ const secondBody = require('./fixtures/comment-create-2.json');
 const parsers = require('../src/queue/parse-body.js');
 const bot = require('../src/bot');
 const {getBotFunc, getParserName, getFuncAndBody} = require('../src/queue/bot-handler.js');
-const getParsedForQueue = require('../src/queue/get-parsed-for-queue.js');
+const getParsedAndSaveToRedis = require('../src/queue/get-parsed-and-save-to-redis.js');
 const conf = require('./fixtures/config.js');
 const redis = require('../src/redis-client.js');
 
 describe('get-bot-data', function() {
+    const redisKey = 'postComment_1512034084304';
+    const expected = {
+        funcName: 'postComment',
+        data: {
+            createRoomData: {},
+            issueID: '26313',
+            headerText: 'jira_test добавил(а) комментарий',
+            comment: { 
+                body: '12345', 
+                id: '31039', 
+            },
+            author: 'jira_test' 
+        },
+    };
+
+    const {prefix} = conf.redis;
+
     it('test correct firstBody parse', async () => {
-        const parsedForQueue = await getParsedForQueue(firstBody);
+        const parsedForQueue = await getParsedAndSaveToRedis(firstBody);
         logger('parsedForQueue', parsedForQueue);
 
         // const expectedData = true;
 
         assert.ok(parsedForQueue);
 
-        const redisKey = 'postComment:1512034084304';
-        const expected = {
-            funcName: 'postComment',
-            data: { 
-                issueID: '26313',
-                headerText: 'jira_test добавил(а) комментарий',
-                comment: { 
-                    body: '12345', 
-                    id: '31039', 
-                },
-                author: 'jira_test' 
-            }
-        };
-
         const redisValue = await redis.getAsync(redisKey);
+        const keys = await redis.keysAsync(`${prefix}*`);
+        logger('keys', keys);
+        
+        logger('redisValue', redisValue);
         const result = JSON.parse(redisValue);
         logger('result', result);
         assert.deepEqual(result, expected);
@@ -56,10 +63,22 @@ describe('get-bot-data', function() {
         };
         const ignoredBody = {...firstBody, ...ignoredName};
         logger('ignoredBody', ignoredBody);
-        const parsedForQueue = await getParsedForQueue(ignoredBody);
+        const parsedForQueue = await getParsedAndSaveToRedis(ignoredBody);
         logger('parsedForQueue', parsedForQueue);
         const expected = false;
 
         assert.equal(parsedForQueue, false);
+    });
+
+    after(async () => {
+        const keys = await redis.keysAsync('*');
+        logger('keys', keys);
+
+
+        if (keys.length > 0) {
+            const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
+            logger('parsedKeys', parsedKeys);
+            await redis.delAsync(parsedKeys);
+        }
     });
 });

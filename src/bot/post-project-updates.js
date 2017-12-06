@@ -34,22 +34,27 @@ const newEpic = async (roomId, mclient, data) => {
 };
 
 const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
-    if (!projectOpts) {
-        logger('No project in body.issue.fields');
-        return true;
-    }
+    try {
+        if (!projectOpts) {
+            logger('No project in body.issue.fields');
+            return true;
+        }
 
-    const roomId = await mclient.getRoomId(projectOpts.key);
-    if (!roomId) {
-        return;
-    }
+        const roomId = await mclient.getRoomId(projectOpts.key);
+        if (!roomId) {
+            return;
+        }
 
-    if (typeEvent === 'issue_created') {
-        await newEpic(roomId, mclient, data);
-    }
-
-    if (typeEvent === 'issue_generic') {
-        await epicChanged(roomId, mclient, data);
+        if (typeEvent === 'issue_created') {
+            await newEpic(roomId, mclient, data);
+        }
+        
+        if (typeEvent === 'issue_generic') {
+            await epicChanged(roomId, mclient, data);
+        }
+    } catch (err) {
+        logger('error in postProjectUpdates');
+        throw err;
     }
 };
 

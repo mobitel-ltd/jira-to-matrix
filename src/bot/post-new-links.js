@@ -56,8 +56,8 @@ const postNewLinks = async ({mclient, links}) => {
         }));
         return true;
     } catch (err) {
-        logger('error in postNewLinks', err);
-        return false;
+        logger('error in postNewLinks');
+        throw err;
     }
 };
 

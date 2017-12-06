@@ -28,8 +28,8 @@ const inviteNewMembers = async ({mclient, issue}) => {
 
         return newMembers;
     } catch (err) {
-        logger('error in inviteNewMembers', err);
-        return false;
+        logger('error in inviteNewMembers');
+        throw err;
     }
 };
 

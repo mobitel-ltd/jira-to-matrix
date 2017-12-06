@@ -11,12 +11,13 @@ const pickRendered = (issue, comment) => {
         return comment.body;
     }
 
-    return (
-        Ramda.prop(
-            'body',
-            Ramda.find(Ramda.propEq('id', comment.id), comments)
-        ) || comment.body
+    const result = Ramda.propOr(
+        comment.body,
+        'body',
+        Ramda.find(Ramda.propEq('id', comment.id), comments)
     );
+
+    return result;
 };
 
 const postComment = async ({mclient, issueID, headerText, comment, author}) => {
@@ -48,9 +49,8 @@ const postComment = async ({mclient, issueID, headerText, comment, author}) => {
 
         return true;
     } catch (err) {
-        logger('Error in Post comment', err);
-
-        return false;
+        logger('error in Post comment');
+        throw err;
     }
 };
 

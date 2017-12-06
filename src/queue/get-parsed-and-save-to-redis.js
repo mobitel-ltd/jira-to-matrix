@@ -8,9 +8,11 @@ module.exports = async body => {
         isIgnore(body);
         const parsedBody = getFuncAndBody(body);
         await Promise.all(parsedBody.map(newSave));
+
         return true;
     } catch (err) {
         logger('Error in parsing ', err);
+
         return false;
     }
 };

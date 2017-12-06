@@ -53,10 +53,8 @@ app.post('/', (req, res, next) => {
     // const name = Math.floor(Math.random() * 11);
     // fs.writeFileSync(`/tmp/jira${name}.json`, JSON.stringify(req.body));
 
-    // const correctBody = getParsedForQueue(req.body);
     // if (correctBody) {
-    //     logger('correctBody', correctBody);
-    //     save data to Redis or cachedQueue.push(...correctBody);
+    //     await getParsedAndSaveToRedis(req.body);
     // }
 
     logger('Jira body', req.body);
@@ -92,6 +90,8 @@ const checkingQueueInterval = setInterval(checkQueue, 500);
 checkingQueueInterval.unref();
 
 queuePush.on('notEmpty', async () => {
+    // await newQueueHandler(client);
+
     logger('queuePush start');
     let success;
     if (client) {

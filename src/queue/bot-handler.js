@@ -95,7 +95,7 @@ const shouldPostLinkedChanges = body => Boolean(
 
 const getBotFunc = body => {
     const actionFuncs = {
-        createRoom: shouldCreateRoom(body),
+        // createRoom: shouldCreateRoom(body),
         postIssueUpdates: shouldPostIssueUpdates(body),
         inviteNewMembers: shouldMemberInvite(body),
         postComment: shouldPostComment(body),
@@ -107,7 +107,6 @@ const getBotFunc = body => {
 
 
     const funcArr = Object.keys(actionFuncs).filter(key => actionFuncs[key]);
-    logger('funcArr to handle', funcArr);
     return funcArr;
 };
 
@@ -121,10 +120,15 @@ const getFuncAndBody = body => {
     logger('Array of functions we should handle', funcArr);
 
     const result = funcArr.reduce((acc, funcName) => {
-        const data = parsers[getParserName(funcName)](body);
+        const createRoomData = shouldCreateRoom(body) ? parsers.getCreateRoomData(body) : {};
+
+        const data = {
+            ...parsers[getParserName(funcName)](body),
+            createRoomData,
+        };
         logger('data', data);
 
-        const redisKey = `${funcName}:${body.timestamp}`;
+        const redisKey = `${funcName}_${body.timestamp}`;
         logger('redisKey', redisKey);
 
         return [...acc, {redisKey, funcName, data}];
