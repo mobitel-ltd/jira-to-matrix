@@ -14,7 +14,7 @@ describe('get-bot-data', function() {
     const expected = {
         funcName: 'postComment',
         data: {
-            createRoomData: {},
+            createRoomData: null,
             issueID: '26313',
             headerText: 'jira_test добавил(а) комментарий',
             comment: { 

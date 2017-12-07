@@ -35,10 +35,7 @@ const getPostCommentData = body => {
     return {issueID, headerText, comment, author};
 };
 
-
 // Create room
-const objHas = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
-
 const isEpic = body => Boolean(
     typeof body === 'object'
     && typeof body.issue === 'object'
@@ -60,11 +57,11 @@ const getCreateRoomData = body => {
 
     let projectOpts;
     if (isEpic(body) || isProjectEvent(body)) {
-        if (objHas(body, 'issue') && objHas(issue, 'fields')) {
+        if (Object.keys(issue).includes('fields')) {
             projectOpts = issue.fields.project;
         }
 
-        if (objHas(body, 'project')) {
+        if (Object.keys(body).includes('project')) {
             projectOpts = body.project;
         }
     }

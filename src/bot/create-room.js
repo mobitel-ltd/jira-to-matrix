@@ -29,7 +29,7 @@ const create = async (client, issue) => {
 
 const createRoomProject = async (client, project) => {
     if (!client) {
-        logger(`Not exist matrix client. Key: ${issue.key}`);
+        logger(`Not exist matrix client. Project: ${project}`);
         return;
     }
 

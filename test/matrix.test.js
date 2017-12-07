@@ -53,13 +53,13 @@ describe('Matrix api', async function() {
         const api = await connect();
         const result = Object.values(api).map(func => func.name)
         assert.ok(expected, result);
-        // (await disconnect())();
-        // assert.ifError(client.clientRunning);
+        (await disconnect())();
+        assert.ifError(client.clientRunning);
         logger('helpers', helpers);
     });
 
     
-    await afterEach(async () => {
+    await after(async () => {
         if (client) {
             await client.stopClient();
         }

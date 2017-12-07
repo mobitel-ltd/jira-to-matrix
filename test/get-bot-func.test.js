@@ -46,7 +46,6 @@ describe('bot func', function() {
         const result = getBotFunc(secondBody);
         logger('result', result);
         const expected = [
-            'createRoom',
             'inviteNewMembers', 
             'postEpicUpdates', 
             'postNewLinks', 

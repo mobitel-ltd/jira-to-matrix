@@ -1,4 +1,5 @@
 const logger = require('debug')('matrix sdk client');
+
 global.Olm = require('olm');
 const sdk = require('matrix-js-sdk');
 // const config = require('../config/');

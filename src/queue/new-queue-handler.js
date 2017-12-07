@@ -7,11 +7,11 @@ const {createRoom} = require('../bot');
 module.exports = async client => {
     try {
         const prefix = process.env.NODE_ENV === 'test' ? 'test-jira-hooks:' : 'jira-hooks:';
-        const keys = (await redis.keysAsync(`${prefix}*`))
+        const redisKeys = (await redis.keysAsync(`${prefix}*`))
             .filter(key => key.indexOf('|') === -1);
-        logger('keys from redis', keys);
+        logger('Keys from redis', redisKeys);
 
-        const data = await Promise.all(keys.map(async key => {
+        const dataFromRedis = await Promise.all(redisKeys.map(async key => {
             const newKey = key.replace(prefix, '');
             logger('key in map', newKey);
 
@@ -22,12 +22,13 @@ module.exports = async client => {
             return result;
         }));
 
-        logger('data', data);
+        logger('data', dataFromRedis);
 
-        const allResult = await Promise.all(data.map(async ({redisKey, funcName, data}) => {
+        const botFuncHandlingResult = await Promise.all(dataFromRedis.map(async ({redisKey, funcName, data}) => {
             try {
-                if (shouldCreateRoom(data)) {
-                    await createRoom(data);
+                const {createRoomData} = data;
+                if (shouldCreateRoom(createRoomData)) {
+                    await createRoom({...createRoomData, mclient: await client});
                 }
 
                 await bot[funcName]({...data, mclient: await client});
@@ -40,7 +41,7 @@ module.exports = async client => {
                 return `${redisKey} --- false`;
             }
         }));
-        logger('result of Promise.all in queue', allResult);
+        logger('result of Promise.all in queue', botFuncHandlingResult);
 
         return true;
     } catch (err) {

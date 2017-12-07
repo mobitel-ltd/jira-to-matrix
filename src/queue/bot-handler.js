@@ -35,7 +35,7 @@ const shouldPostIssueUpdates = body => Boolean(
 );
 
 const shouldCreateRoom = body => Boolean(
-    typeof body === 'object'
+    body
     && typeof body.issue === 'object'
     && body.issue.key
     && body.issue_event_type_name !== 'issue_moved'
@@ -116,11 +116,14 @@ const getParserName = func => {
 };
 
 const getFuncAndBody = body => {
-    const funcArr = getBotFunc(body);
-    logger('Array of functions we should handle', funcArr);
+    const botFunc = getBotFunc(body);
+    logger('Array of functions we should handle', botFunc);
 
-    const result = funcArr.reduce((acc, funcName) => {
-        const createRoomData = shouldCreateRoom(body) ? parsers.getCreateRoomData(body) : {};
+    const result = botFunc.reduce((acc, funcName) => {
+        let createRoomData = null;
+        if (shouldCreateRoom(body)) {
+            createRoomData = parsers.getCreateRoomData(body);
+        }
 
         const data = {
             ...parsers[getParserName(funcName)](body),

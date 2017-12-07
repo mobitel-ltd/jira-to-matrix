@@ -6,6 +6,7 @@ const newQueueHandler = require('../src/queue/new-queue-handler.js');
 const getParsedAndSaveToRedis = require('../src/queue/get-parsed-and-save-to-redis.js');
 const matrixApi = require('../src/matrix/');
 const redis = require('../src/redis-client.js');
+const {redis: {prefix}} = require('./fixtures/config.js');
 
 describe('new-queue-handler', function() {
     this.timeout(15000);
@@ -25,7 +26,19 @@ describe('new-queue-handler', function() {
         assert.ok(result);
 
         logger('parsedForQueue', result);
-        const keys = (await redis.keysAsync('*'))
+        const keys = (await redis.keysAsync('prefix*'))
+            .filter(key => key.indexOf('|') === -1);;
+        logger('keys', keys);
+
+        assert.deepEqual(keys, []);
+    });
+
+    it('test empty array', async () => {
+        const result = await newQueueHandler(mclient);
+        assert.ok(result);
+
+        logger('parsedForQueue', result);
+        const keys = (await redis.keysAsync('prefix*'))
             .filter(key => key.indexOf('|') === -1);;
         logger('keys', keys);
 

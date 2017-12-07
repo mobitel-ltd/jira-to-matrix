@@ -38,7 +38,6 @@ describe('get-bot-data', function() {
         const result = funcArr.map(getParserName);
         logger('result', result);
         const expectedFuncs = [
-            "getCreateRoomData",
             "getInviteNewMembersData",
             "getPostEpicUpdatesData",
             "getPostNewLinksData",
@@ -50,20 +49,6 @@ describe('get-bot-data', function() {
             return result;
         });
         const expectedData = [
-            {
-                "issue": {
-                    "collectParticipantsBody": [
-                        "jira_test",
-                        "jira_test",
-                        "jira_test",
-                    ],
-                    "key": "BBCOM-956",
-                    "summary": "BBCOM-956",
-                    "url": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-956/watchers",
-                },
-                "projectOpts": undefined,
-                "webhookEvent": "jira:issue_updated",
-            },
             {
                 "issue": {
                     "collectParticipantsBody": [
@@ -96,8 +81,10 @@ describe('get-bot-data', function() {
         logger('getFuncAndBody', getFuncAndBody);
         const correctBody = getFuncAndBody(firstBody);
         const expected = [{
+            redisKey: 'postComment_1512034084304',
             funcName: 'postComment',
-            data: { 
+            data: {
+                createRoomData: null,
                 issueID: '26313',
                 headerText: 'jira_test добавил(а) комментарий',
                 comment: { 
