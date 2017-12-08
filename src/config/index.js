@@ -27,13 +27,8 @@ const composeConfig = config => {
         userId: `@${config.matrix.user}:${config.matrix.domain}`,
     };
 
-    // const matrix = Object.assign(config.matrix, {
-    //     baseUrl: `https://${config.matrix.domain}`,
-    //     userId: `@${config.matrix.user}:${config.matrix.domain}`,
-    // });
-    // logger('')
     const version = '2017-06-27';
-    // logger('matrix', matrix);
+
     config.features.epicUpdates.on = () => (
         config.features.epicUpdates.newIssuesInEpic === 'on'
         || config.features.epicUpdates.issuesStatusChanged === 'on'

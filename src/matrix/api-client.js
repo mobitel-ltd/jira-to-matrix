@@ -134,17 +134,14 @@ const removeListener = (eventName, listener, matrixClient) => {
 
 module.exports = sdkConnect => async () => {
     const matrixClient = await sdkConnect();
-    // logger(matrixClient);
     if (!matrixClient) {
         logger('\'matrixClient\' is undefined');
         return;
     }
 
-    // logger('cbTimeline', cbTimeline);
     matrixClient.on('Room.timeline', cbTimeline);
 
     matrixClient.on('sync', (state, prevState, data) => {
-        // logger(this);
         removeListener('Room.timeline', cbTimeline, matrixClient);
         removeListener('event', inviteBot, matrixClient);
 

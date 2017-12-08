@@ -1,4 +1,3 @@
-const parse = require('./parse-incoming');
 const {save, newSave} = require('./save-incoming');
 const isIgnore = require('./stop-if-user-ignored');
 const {createRoom} = require('./create-room');
@@ -12,7 +11,6 @@ const {postNewLinks} = require('./post-new-links');
 const {postLinkedChanges} = require('./post-linked-changes');
 
 module.exports = {
-    parse,
     save,
     newSave,
     isIgnore,

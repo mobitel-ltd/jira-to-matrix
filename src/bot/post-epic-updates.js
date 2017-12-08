@@ -47,7 +47,6 @@ const sendMessageNewIssue = async (mclient, epic, newIssue) => {
     return success;
 };
 
-
 const postNewIssue = async (epic, issue, mclient) => {
     logger('postNewIssue');
     const saved = await isInEpic(epic.id, issue.id);
