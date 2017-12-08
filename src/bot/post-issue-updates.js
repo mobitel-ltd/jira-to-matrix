@@ -1,8 +1,7 @@
 const Ramda = require('ramda');
 const jira = require('../jira');
 const translate = require('../locales');
-const {composeRoomName} = require('../matrix').helpers;
-const logger = require('simple-color-logger')();
+const logger = require('../modules/log.js')(module);
 
 const helpers = {
     fieldNames: items => Ramda.pipe(
@@ -10,114 +9,108 @@ const helpers = {
         Ramda.uniq
     )(items || []),
 
-    toStrings: items => items.reduce(
-        (result, item) => Ramda.merge(result, {[item.field]: item.toString}),
-        {}
-    ),
+    toStrings: items =>
+        items.reduce((result, item) =>
+            Ramda.merge(result, {[item.field]: item.toString}),
+        {}),
 };
 
 const composeText = ({author, fields, formattedValues}) => {
     const messageHeader = () => `${author} ${translate('issue_updated', null, author)}`;
-    const changesDescription = () => fields.map(
-        field => `${field}: ${formattedValues[field]}`
-    );
+    const changesDescription = () =>
+        fields.map(field => `${field}: ${formattedValues[field]}`);
+
     return [messageHeader(author)]
         .concat(changesDescription(fields, formattedValues))
         .join('<br>');
 };
 
-async function postUpdateInfo(mclient, roomID, hook) {
-    const {changelog, issue, user} = hook;
-    const fields = helpers.fieldNames(changelog.items);
-    const formattedValues = Object.assign(
-        {},
-        helpers.toStrings(changelog.items),
-        await jira.issue.renderedValues(issue.key, fields)
-    );
-    const success = await mclient.sendHtmlMessage(
-        roomID,
-        translate('issueHasChanged'),
-        composeText({
-            author: Ramda.path(['displayName'], user),
-            fields,
-            formattedValues,
-        })
-    );
-    if (success) {
-        logger.info(`Posted updates to ${issue.key}`);
-    }
-}
 
-const getIssueKey = hook => {
-    const fieldKey = jira.getChangelogField('Key', hook);
-    return fieldKey ? fieldKey.fromString : hook.issue.key;
+const postUpdateInfo = async (mclient, roomID, body) => {
+    try {
+        const {changelog, key, user} = body;
+        const fields = helpers.fieldNames(changelog.items);
+
+        const formattedValues = Object.assign(
+            {},
+            helpers.toStrings(changelog.items),
+            await jira.issue.renderedValues(key, fields)
+        );
+
+        await mclient.sendHtmlMessage(
+            roomID,
+            translate('issueHasChanged'),
+            composeText({
+                author: Ramda.path(['displayName'], user),
+                fields,
+                formattedValues,
+            })
+        );
+
+        logger.debug(`Posted updates to ${key}`);
+    } catch (err) {
+        logger.error('Error postUpdateInfo');
+
+        throw err;
+    }
 };
 
-async function move(mclient, roomID, hook) {
-    const field = jira.getChangelogField('Key', hook);
-    if (!field) {
+
+const move = async (mclient, roomID, body) => {
+    const {issueKey, fieldKey, summary} = body;
+
+    if (!(fieldKey && summary)) {
         return;
     }
-    const success = await mclient.createAlias(field.toString, roomID);
+
+    const success = await mclient.createAlias(fieldKey.toString, roomID);
+
     if (success) {
-        logger.info(`Successfully added alias ${field.toString} for room ${field.fromString}`);
+        logger.info(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
     }
-    await mclient.setRoomTopic(roomID, jira.issue.ref(hook.issue.key));
-}
 
-async function rename(mclient, roomID, hook) {
-    const fieldIsEmpty = field => !jira.getChangelogField(field, hook);
-    if (fieldIsEmpty('summary') && fieldIsEmpty('Key')) {
+    await mclient.setRoomTopic(roomID, jira.issue.ref(issueKey));
+};
+
+const rename = async (mclient, roomID, body) => {
+    const {summary, roomName, issueKey} = body;
+
+    if (!summary && !issueKey) {
         return;
     }
-    const success = await mclient.setRoomName(
-        roomID,
-        composeRoomName(hook.issue)
-    );
+
+    const success = await mclient.setRoomName(roomID, roomName);
+
     if (success) {
-        logger.info(`Successfully renamed room ${getIssueKey(hook)}`);
+        logger.info(`Successfully renamed room ${issueKey}`);
     }
-}
+};
 
-async function postChanges({mclient, body}) {
-    if (
-        Ramda.isEmpty(Ramda.pathOr([], ['changelog', 'items'], body))
-    ) {
-        return;
+const postIssueUpdates = async body => {
+    try {
+        logger.debug('Start postIssueUpdates');
+        const {issueKey, mclient} = body;
+        const roomID = await mclient.getRoomId(issueKey);
+
+        if (!roomID) {
+            logger.debug('No roomId');
+
+            return true;
+        }
+
+        await move(mclient, roomID, body);
+        await rename(mclient, roomID, body);
+        await postUpdateInfo(mclient, roomID, body);
+
+        return true;
+    } catch (err) {
+        logger.error('error in postIssueUpdates');
+
+        throw err;
     }
-    const roomID = await mclient.getRoomId(getIssueKey(body));
-    if (!roomID) {
-        return;
-    }
-    await move(mclient, roomID, body);
-    await rename(mclient, roomID, body);
-    await postUpdateInfo(mclient, roomID, body);
-}
+};
 
-const shouldPostChanges = ({body, mclient}) => Boolean(
-    typeof body === 'object'
-    && body.webhookEvent === 'jira:issue_updated'
-    && typeof body.changelog === 'object'
-    && typeof body.issue === 'object'
-    && mclient
-);
-
-async function middleware(req) {
-    const proceed = shouldPostChanges(req);
-
-    if (req.body.issue) {
-        logger.info(`To update the data of the issue ${req.body.issue.key}: ${proceed}\n`);
-    } else {
-        logger.info(`To update the data ${req.body.webhookEvent}: ${proceed}\n`);
-    }
-
-    if (proceed) {
-        await postChanges(req);
-    }
-}
-
-module.exports.middleware = middleware;
-module.exports.shouldPostChanges = shouldPostChanges;
+module.exports.postIssueUpdates = postIssueUpdates;
 module.exports.forTests = {
     toStrings: helpers.toStrings,
     composeText,

@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 const Joi = require('joi');
-const logger = require('simple-color-logger')();
+const logger = require('../modules/log.js')(module);
 
 const int = Joi.number().integer().required();
 const string = Joi.string().required();
@@ -55,6 +55,12 @@ const schema = obj({
         tokenTTL: int,
         syncTimeoutSec: int,
     }),
+    log: {
+        type: 'both',
+        filePath: 'logs/service',
+        fileLevel: 'silly',
+        consoleLevel: 'silly',
+    },
 });
 
 /**

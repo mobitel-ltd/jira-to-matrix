@@ -1,7 +1,17 @@
-const conf = require('../config');
-const logger = require('simple-color-logger')();
-const {connect, disconnect} = require('./sdk-client')(conf.matrix, logger);
+const {matrix} = require('../config');
+const init = require('./sdk-client');
+const apiClient = require('./api-client');
+const helpers = require('./helpers');
 
-module.exports.connect = require('./api-client')(connect);
-module.exports.helpers = require('./helpers'); // eslint-disable-line import/newline-after-import
-module.exports.disconnect = disconnect;
+const connect = async () => {
+    const {connect} = await init(matrix);
+    const result = apiClient(connect)();
+    return result;
+};
+
+const disconnect = async () => {
+    const {disconnect} = await init(matrix);
+    return disconnect;
+};
+
+module.exports = {helpers, connect, disconnect};

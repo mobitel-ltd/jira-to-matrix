@@ -1,4 +1,4 @@
-const logger = require('simple-color-logger')();
+const logger = require('../../modules/log.js')(module);
 // const jiraCommands = require('./jira-commands.js');
 // const matrixCommands = require('./matrix-commands.js');
 const translate = require('../../locales');

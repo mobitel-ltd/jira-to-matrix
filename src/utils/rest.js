@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const fetch = require('node-fetch');
-const logger = require('simple-color-logger')();
+const logger = require('../modules/log.js')(module);
 const to = require('await-to-js').default;
 
 /**

@@ -1,77 +1,61 @@
 const translate = require('../locales');
 const marked = require('marked');
 const jira = require('../jira');
+const logger = require('../modules/log.js')(module);
 
-async function postProjectUpdates({mclient, body}) {
-    const typeEvent = body.issue_event_type_name;
-    const projectOpts = body.issue.fields.project;
-    if (!projectOpts) {
-        return;
-    }
-
-    const roomId = await mclient.getRoomId(projectOpts.key);
-    if (!roomId) {
-        return;
-    }
-
-    if (typeEvent === 'issue_created') {
-        await newEpic(roomId, mclient, body.issue);
-    }
-
-    if (typeEvent === 'issue_generic') {
-        await epicChanged(roomId,mclient, body);
-    }
-}
-
-async function epicChanged(roomId, mclient, body) {
+const epicChanged = async (roomId, mclient, data) => {
     const values = {
-        'user.name': body.user.name,
-        'issue.key': body.issue.key,
-        'issue.fields.summary': body.issue.fields.summary,
-        'status': body.issue.fields.status.name,
+        'user.name': data.name,
+        'issue.key': data.key,
+        'data.fields.summary': data.fields.summary,
+        'status': data.fields.status.name,
     };
-    values['issue.ref'] = jira.issue.ref(body.issue.key);
+    values['issue.ref'] = jira.issue.ref(data.key);
 
     await mclient.sendHtmlMessage(
         roomId,
         translate('statusEpicChanged', values),
         marked(translate('statusEpicChangedMessage', values, values['user.name']))
     );
-}
+};
 
-async function newEpic(roomId, mclient, issue) {
+const newEpic = async (roomId, mclient, data) => {
     const values = {
-        'issue.key': issue.key,
-        'issue.fields.summary': issue.fields.summary,
-    }; 
-    values['issue.ref'] = jira.issue.ref(issue.key);
+        'issue.key': data.key,
+        'issue.fields.summary': data.fields.summary,
+    };
+    values['issue.ref'] = jira.issue.ref(data.key);
 
     await mclient.sendHtmlMessage(
         roomId,
-        translate('newEpicInProject', ),
+        translate('newEpicInProject'),
         marked(translate('epicAddedToProject', values, values['user.name']))
     );
-}
+};
 
-const shouldPostChanges = (body) => Boolean(
-    typeof body === 'object'
-    && (
-        body.webhookEvent === 'jira:issue_updated'
-        || (body.webhookEvent === 'jira:issue_created')
-    )
-    && typeof body.issue === 'object'
-    && typeof body.issue.fields === 'object'
-    && body.issue.fields.issuetype.name === 'Epic'
-    && (
-        body.issue_event_type_name === 'issue_generic'
-        || body.issue_event_type_name === 'issue_created'
-    )
-)
+const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
+    try {
+        if (!projectOpts) {
+            logger.debug('No project in body.issue.fields');
+            return true;
+        }
 
-async function middleware(req) {
-    if (shouldPostChanges(req.body)) {
-        await postProjectUpdates(req);
+        const roomId = await mclient.getRoomId(projectOpts.key);
+        if (!roomId) {
+            return;
+        }
+
+        if (typeEvent === 'issue_created') {
+            await newEpic(roomId, mclient, data);
+        }
+        
+        if (typeEvent === 'issue_generic') {
+            await epicChanged(roomId, mclient, data);
+        }
+    } catch (err) {
+        logger.error('error in postProjectUpdates');
+        throw err;
     }
-}
+};
 
-module.exports = middleware;
+module.exports = {postProjectUpdates};

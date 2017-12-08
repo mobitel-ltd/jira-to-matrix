@@ -1,163 +1,74 @@
+const logger = require('../modules/log.js')(module);
+global.Olm = require('olm');
 const sdk = require('matrix-js-sdk');
 
-let logger;
-
-// await-to helper
-// based on https://github.com/scopsy/await-to-js
-function to(promise) {
-    return promise
-        .then(data => [null, data])
-        .catch(err => [err]);
-}
-
-async function getAccessToken({baseUrl, userId, password}) {
-    const [err, login] = await to(
-        sdk
-            .createClient(baseUrl)
-            .loginWithPassword(userId, password)
-    );
-    if (err) {
-        logger.error(`Error while requesting token:\n${err}`);
-        return;
-    }
-    return login.access_token;
-}
-
-async function createClient({baseUrl, userId, password}) {
-    const token = await getAccessToken({baseUrl, userId, password});
-    if (!token) {
-        logger.error('token not returned');
-        return;
-    }
-    const newClient = sdk.createClient({
-        baseUrl,
-        accessToken: token,
-        userId,
-    });
-    logger.info('Started connect to Matrix');
-    return newClient;
-}
-
-function addToNow(ms) {
-    return new Date(Number(new Date()) + ms);
-}
-
-function initConnectionStore({tokenTTL}) {
-    const initialState = () => ({
-        client: undefined, // could be actual client or Promise
-        expires: undefined,
-    });
-
-    const state = initialState();
-
-    function getState() {
-        return state;
-    }
-
-    function setState(newState) {
-        Object.assign(state, newState);
-    }
-
-    function clearState() {
-        setState(initialState());
-    }
-
-    function getClient() {
-        const {client} = getState();
-        return client;
-    }
-
-    function setNewClient(client) {
-        const expires = addToNow(tokenTTL * 1000);
-        setState({client, expires});
-    }
-
-    function clientExpired() {
-        const {expires} = getState();
-        return expires
-            && (new Date()) > expires;
-    }
-
-    return {getClient, setNewClient, clientExpired, clearState};
-}
-
-function initConnector(config) {
-    const store = initConnectionStore(config);
-
-    async function connect() {
-        const client = store.getClient();
-        if (client && !store.clientExpired()) {
-            return client;
-        }
-        if (store.clientExpired()) {
-            await disconnect(); // eslint-disable-line no-use-before-define
-        }
-        store.setNewClient(createClient(config));
-        logger.info('setNewClient');
-        return store.getClient();
-    }
-
-    async function disconnect() {
-        const client = await store.getClient(); // Client can be a promise yet
-        if (client) {
-            await client.stopClient();
-            logger.warn('Disconnected from Matrix');
-            store.clearState();
-        }
-    }
-
-    return {connect, disconnect};
-}
-
-function init(config, pLogger = console) {
-    logger = pLogger;
-    const connector = initConnector(config);
-
-    function wellConnected(syncState) {
-        return ['PREPARED', 'SYNCING'].includes(syncState);
-    }
-
-    async function connect() {
-        const client = await connector.connect();
-        if (!client) {
-            logger.error('Matrix client not returned');
-            return;
-        }
-        logger.info('getClient');
-        if (wellConnected(client.getSyncState())) {
-            return client;
+// Проверка состояния клиента
+const createClient = async ({baseUrl = null, userId, password}) => {
+    try {
+        if (!baseUrl) {
+            throw new Error('No baseUrl');
         }
 
-        const executor = resolve => {
-            const onTimeout = () => {
-                logger.error('Error: Timeout awaiting matrix client prepared');
-                // client.removeAllListeners('sync');
-                resolve(undefined);
+        // Создает сущность класса MatrixClient http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-client-MatrixClient.html
+        const client = sdk.createClient(baseUrl);
+
+        // http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-base-apis-MatrixBaseApis.html
+        // в случае аутентификации возвращает объект типа { login: { access_token, home_server, user_id, device_id } }
+        const login = await client.loginWithPassword(userId, password);
+        if (!login.access_token) {
+            throw new Error('No login.access_token');
+        }
+
+        const token = login.access_token;
+        const matrixClient = sdk.createClient({
+            baseUrl,
+            accessToken: token,
+            userId,
+        });
+        logger.info(`createClient OK BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
+        logger.info('Started connect to matrixClient');
+
+        return matrixClient;
+    } catch (err) {
+        logger.error(`createClient error. BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
+
+        throw err;
+    }
+};
+
+const init = async config => {
+    try {
+        const client = await createClient(config);
+
+        const connect = () => {
+            const executor = resolve => {
+                const syncHandler = state => {
+                    if (state === 'SYNCING') {
+                        logger.info('well connected');
+                        resolve(client);
+                    } else {
+                        client.once('sync', syncHandler);
+                    }
+                };
+                client.once('sync', syncHandler);
             };
-            const timeout = setTimeout(onTimeout, config.syncTimeoutSec * 1000);
-
-            function onSync(state) {
-                if (wellConnected(state)) {
-                    clearTimeout(timeout);
-                    logger.info('Client properly synched with Matrix');
-                    resolve(client);
-                } else {
-                    client.once('sync', onSync);
-                }
-            }
-
-            client.once('sync', onSync);
-        };
-        if (!client.clientRunning) {
             client.startClient();
-        }
-        return new Promise(executor);
-    }
+            return new Promise(executor);
+        };
 
-    return {
-        connect,
-        disconnect: connector.disconnect,
-    };
-}
+        const disconnect = () => {
+            logger.info('Disconnected from Matrix');
+            client.stopClient();
+        };
+
+        return {
+            connect,
+            disconnect,
+        };
+    } catch (err) {
+        logger.error('Matrix client not returned');
+        throw err;
+    }
+};
 
 module.exports = init;

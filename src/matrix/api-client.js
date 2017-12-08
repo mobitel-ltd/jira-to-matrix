@@ -1,109 +1,113 @@
 /* eslint-disable camelcase */
-const lodash = require('lodash');
-const Ramda = require('ramda');
-const to = require('await-to-js').default;
+// const lodash = require('lodash');
 const conf = require('../config').matrix;
-const logger = require('simple-color-logger')();
+const logger = require('../modules/log.js')(module);
 const cbTimeline = require('./timeline-handler');
+const Ramda = require('ramda');
 
 const api = {};
 
 const getAlias = alias => `#${alias}:${conf.domain}`;
 
-api.createRoom = client => async function createRoom(options) {
-    const [err, response] = await to(
-        client.createRoom(Object.assign({visibility: 'private'}, options))
-    );
-    if (err) {
-        logger.error(`Error while creating room:\n ${err}`);
-        return;
+api.createRoom = client => async options => {
+    try {
+        await client.createRoom(Object.assign({visibility: 'private'}, options));
+    } catch (err) {
+        logger.error(`Error while creating room`);
+
+        throw err;
     }
-    return response;
 };
 
-api.getRoomId = client => async function getRoomId(alias) {
-    const [err, response] = await to(
-        client.getRoomIdForAlias(getAlias(alias))
-    );
-    if (err) {
-        if (err.errcode !== 'M_NOT_FOUND') {
-            logger.warn(
-                `Error while getting room id for ${alias} from Matrix:\n${err}`
-            );
-        }
-        return;
+api.getRoomId = client => async alias => {
+    try {
+        const {room_id} = await client.getRoomIdForAlias(getAlias(alias));
+
+        return room_id;
+    } catch (err) {
+        logger.error(
+            `Error while getting room id for ${alias} from Matrix`
+        );
+
+        throw err;
     }
-    const {room_id} = response;
-    return room_id;
 };
 
-api.getRoomByAlias = client => async function getRoomByAlias(alias) {
-    const [err, roomID] = await to(
-        client.getRoomIdForAlias(getAlias(alias))
-    );
-    if (err) {
-        if (err.errcode !== 'M_NOT_FOUND') {
-            logger.warn(
-                `Error while getting room id for ${alias} from Matrix:\n${err}`
-            );
-        }
-        return;
+api.getRoomByAlias = client => async alias => {
+    try {
+        const roomID = await client.getRoomIdForAlias(getAlias(alias));
+
+        const room = await client.getRoom(roomID.room_id);
+        return room;
+    } catch (err) {
+        logger.error(`Error while getting room id for ${alias} from Matrix:`);
+
+        throw err;
     }
-    const room = client.getRoom(roomID.room_id);
-    return room;
 };
 
-api.getRoomMembers = () => async function GetRoomMembers(roomAlias) {
-    const room = await this.getRoomByAlias(roomAlias);
-    if (!room) {
-        logger.warn(`Don't return room for alias ${roomAlias}`);
-        return;
-    }
-    return lodash.values(room.currentState.members).map(member => member.userId);
-};
+// api.getRoomMembers = () => async function GetRoomMembers(roomAlias) {
+//     const room = await this.getRoomByAlias(roomAlias);
+//     if (!room) {
+//         logger.warn(`Don't return room for alias ${roomAlias}`);
+//         return;
+//     }
+//     return lodash.values(room.currentState.members).map(member => member.userId);
+// };
 
-api.invite = client => async function invite(roomId, userId) {
-    const [err, response] = await to(client.invite(roomId, userId));
-    if (err) {
+api.invite = client => async (roomId, userId) => {
+    try {
+        const response = await client.invite(roomId, userId);
+
+        return response;
+    } catch (err) {
         logger.error(`Error while inviting a new member to a room:\n ${err}`);
-        return;
+
+        throw err;
     }
-    return response;
 };
 
-api.sendHtmlMessage = client => async function sendHtmlMessage(roomId, body, htmlBody) {
-    const [err] = await to(client.sendHtmlMessage(roomId, body, htmlBody));
-    if (err) {
-        logger.error(`Error while sending message to a room:\n ${err}`);
+api.sendHtmlMessage = client => async (roomId, body, htmlBody) => {
+    try {
+        await client.sendHtmlMessage(roomId, body, htmlBody);
+    } catch (err) {
+        logger.error(`Error while sending message to a room`);
+
+        throw err;
     }
-    return !err;
 };
 
-api.createAlias = client => async function createAlias(alias, roomId) {
-    const [err] = await to(client.createAlias(
-        getAlias(alias),
-        roomId
-    ));
-    if (err) {
-        logger.error(`Error while creating alias for a room:\n ${err}`);
+api.createAlias = client => async (alias, roomId) => {
+    try {
+        await client.createAlias(
+            getAlias(alias),
+            roomId
+        );
+    } catch (err) {
+        logger.error(`Error while creating alias for a room`);
+
+        throw err;
     }
-    return !err;
 };
 
-api.setRoomName = client => async function setRoomName(roomId, name) {
-    const [err] = await to(client.setRoomName(roomId, name));
-    if (err) {
-        logger.error(`Error while setting room name:\n ${err}`);
+api.setRoomName = client => async (roomId, name) => {
+    try {
+        await client.setRoomName(roomId, name);
+    } catch (err) {
+        logger.error(`Error while setting room name`);
+
+        throw err;
     }
-    return !err;
 };
 
-api.setRoomTopic = client => async function setRoomTopic(roomId, topic) {
-    const [err] = await to(client.setRoomTopic(roomId, topic));
-    if (err) {
-        logger.error(`Error while setting room's topic:\n ${err}`);
+api.setRoomTopic = client => async (roomId, topic) => {
+    try {
+        await client.setRoomTopic(roomId, topic);
+    } catch (err) {
+        logger.error(`Error while setting room's topic`);
+
+        throw err;
     }
-    return !err;
 };
 
 const inviteBot = async function InviteBot(event) {
@@ -132,7 +136,7 @@ const removeListener = (eventName, listener, matrixClient) => {
     }
 };
 
-module.exports = sdkConnect => async function connect() {
+module.exports = sdkConnect => async () => {
     const matrixClient = await sdkConnect();
     if (!matrixClient) {
         logger.error('\'matrixClient\' is undefined');

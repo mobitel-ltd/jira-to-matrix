@@ -1,7 +1,7 @@
 const querystring = require('querystring');
 const {auth} = require('../../../jira/common.js');
 
-const logger = require('simple-color-logger')();
+const logger = require('../../../modules/log.js')(module);
 const {fetchJSON} = require('../../../utils');
 const {jira} = require('../../../config');
 const {url} = jira;

@@ -2,13 +2,15 @@ const Ramda = require('ramda');
 const {fp} = require('../utils');
 const conf = require('../config');
 
-function auth()/* :string*/ {
+/* :string*/
+const auth = () => {
     const {user, password} = conf.jira;
     const encoded = new Buffer(`${user}:${password}`).toString('base64');
     return `Basic ${encoded}`;
-}
+};
 
-function webHookUser(hook/* :{}*/) {
+/* :{}*/
+const webHookUser = hook => {
     const paths = [
         ['comment', 'author', 'name'],
         ['user', 'name'],
@@ -17,7 +19,7 @@ function webHookUser(hook/* :{}*/) {
         Ramda.map(Ramda.path(Ramda.__, hook)),
         Ramda.find(fp.nonEmptyString)
     )(paths);
-}
+};
 
 const getChangelogField = Ramda.curry(
     (fieldName, hook) =>

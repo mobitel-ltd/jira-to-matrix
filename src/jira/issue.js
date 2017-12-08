@@ -1,68 +1,69 @@
 // @flow
 const Ramda = require('ramda');
-const logger = require('simple-color-logger')();
+const logger = require('../modules/log.js')(module);
 const _ = require('lodash');
 const conf = require('../config');
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
 
-function refProject(projectKey/* :string*/) {
-    return `${conf.jira.url}/projects/${projectKey}`;
-}
+/* :string*/
+const refProject = projectKey => `${conf.jira.url}/projects/${projectKey}`;
 
-function ref(issueKey/* :string*/) {
-    return `${conf.jira.url}/browse/${issueKey}`;
-}
+/* :string*/
+const ref = issueKey => `${conf.jira.url}/browse/${issueKey}`;
 
-function extractID(json/* :string*/)/* :?string*/ {
+/* :string*/
+/* :?string*/
+const extractID = json => {
     const matches = /\/issue\/(\d+)\//.exec(json);
     if (!matches) {
-        logger.warn("'matches' from jira.issue.extractID is not defained");
+        logger.warn('matches from jira.issue.extractID is not defained');
         return;
     }
     return matches[1];
-}
+};
 
-async function collectParticipants(issue/* :{}*/) {
-    const result = [
-        _.get(issue, 'fields.creator.name'),
-        _.get(issue, 'fields.reporter.name'),
-        _.get(issue, 'fields.assignee.name'),
-    ];
-
-    const url = _.get(issue, 'fields.watches.self');
+/* :{}*/
+const collectParticipants = async ({url, collectParticipantsBody}) => {
     if (url) {
         const body = await fetchJSON(url, auth());
         if (body && body.watchers instanceof Array) {
             const watchers = body.watchers.map(one => one.name);
-            result.push(...watchers);
+            collectParticipantsBody.push(...watchers);
         }
     }
-    return _.uniq(result.filter(one => !!one));
-}
+    return _.uniq(collectParticipantsBody.filter(one => !!one));
+};
 
-async function get(id, params/* :Array<{}>*/) {
+/* :Array<{}>*/
+const get = async (id, params) => {
+    const url = `${conf.jira.url}/rest/api/2/issue/${id}${paramsToQueryString(params)}`;
+    logger.debug('url for jira fetch', url);
     const issue = await fetchJSON(
-        `${conf.jira.url}/rest/api/2/issue/${id}${paramsToQueryString(params)}`,
+        url,
         auth()
     );
     return issue;
-}
+};
 
-async function getProject(id, params) {
+const getProject = async (id, params) => {
+    const url = `${conf.jira.url}/rest/api/2/project/${id}${paramsToQueryString(params)}`;
     const issue = await fetchJSON(
-        `${conf.jira.url}/rest/api/2/project/${id}${paramsToQueryString(params)}`,
+        url,
         auth()
     );
     return issue;
-}
+};
 
-async function getFormatted(issueID/* :string*/) {
+/* :string*/
+const getFormatted = issueID => {
     const params = [{expand: 'renderedFields'}];
     return get(issueID, params);
-}
+};
 
-async function renderedValues(issueID/* :string*/, fields/* :string[]*/) {
+/* :string*/
+/* :string[]*/
+const renderedValues = async (issueID, fields) => {
     const issue = await getFormatted(issueID);
     if (!issue) {
         logger.warn("'issue' from jira.issue.renderedValues is not defained");
@@ -70,9 +71,9 @@ async function renderedValues(issueID/* :string*/, fields/* :string[]*/) {
     }
     return Ramda.pipe(
         Ramda.pick(fields),
-        Ramda.filter(v => !!v)
+        Ramda.filter(value => !!value)
     )(issue.renderedFields);
-}
+};
 
 module.exports = {
     refProject,

@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const to = require('await-to-js').default;
-const logger = require('simple-color-logger')();
+const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const redis = require('../redis-client');
 const jira = require('../jira');
@@ -43,30 +43,22 @@ const handleLink = async (issueLink, mclient) => {
     await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
 };
 
-const handleLinks = async ({mclient, body: hook}) => {
-    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
-    if (!links) {
-        return;
-    }
-    links.forEach(async issueLink => {
-        await handleLink(issueLink, mclient);
-    });
-};
+const postNewLinks = async ({mclient, links}) => {
+    logger.info('start postNewLinks');
+    try {
+        if (!links || links.length === 0) {
+            logger.debug('No links to handle');
+            return true;
+        }
 
-const shouldPostChanges = ({body, mclient}) => Boolean(
-    typeof body === 'object'
-    && (
-        body.webhookEvent === 'jira:issue_updated'
-        || body.webhookEvent === 'jira:issue_created'
-    )
-    && typeof body.issue === 'object'
-    && mclient
-);
-
-const middleware = async req => {
-    if (shouldPostChanges(req)) {
-        await handleLinks(req);
+        await Promise.all(links.map(async issueLink => {
+            await handleLink(issueLink, mclient);
+        }));
+        return true;
+    } catch (err) {
+        logger.error('error in postNewLinks');
+        throw err;
     }
 };
 
-module.exports = middleware;
+module.exports = {postNewLinks};

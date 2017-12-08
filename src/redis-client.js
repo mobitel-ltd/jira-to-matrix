@@ -2,12 +2,12 @@
 const redis = require('redis');
 const bluebird = require('bluebird');
 const conf = require('./config');
-const logger = require('simple-color-logger')();
+const logger = require('./modules/log.js')(module);
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
-function createClient(config) {
+const createClient = config => {
     let result;
     try {
         result = redis.createClient(config);
@@ -16,7 +16,8 @@ function createClient(config) {
         process.exit(1);
     }
     return result;
-}
+};
+
 const client = createClient(conf.redis);
 
 client.on('error', err => {

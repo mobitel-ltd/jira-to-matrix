@@ -1,14 +1,15 @@
 const Ramda = require('ramda');
 const {postChangesToLinks: conf} = require('../config').features;
-const {shouldPostChanges} = require('./post-issue-updates');
-const {postStatusChanged, getNewStatus} = require('./post-epic-updates');
+const {postStatusChanged} = require('./helper.js');
+const logger = require('../modules/log.js')(module);
 
-async function handleLink(hook, link, mclient) {
+const handleLink = async (body, link, mclient) => {
     const destIssue = Ramda.either(
         Ramda.prop('outwardIssue'),
         Ramda.prop('inwardIssue')
     )(link);
     if (!destIssue) {
+        logger.debug('no destIssue in handleLink');
         return;
     }
     const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
@@ -19,25 +20,22 @@ async function handleLink(hook, link, mclient) {
     if (!roomID) {
         return;
     }
-    postStatusChanged(roomID, hook, mclient);
-}
+    postStatusChanged(roomID, body, mclient);
+};
 
-async function sendStatusChanges({mclient, body: hook}) {
-    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(hook);
-    const status = getNewStatus(hook);
-    if (!links ||
-        typeof status !== 'string') {
-        return;
+const postLinkedChanges = async ({mclient, links, data, status}) => {
+    try {
+        if (!links || links.length === 0 || typeof status !== 'string') {
+            logger.debug('no links to change');
+            return true;
+        }
+        await Promise.all(links.map(async link => {
+            await handleLink(data, link, mclient);
+        }));
+    } catch (err) {
+        logger.error('error in postLinkedChanges');
+        throw err;
     }
-    links.forEach(async link => {
-        await handleLink(hook, link, mclient);
-    });
-}
+};
 
-async function middleware(req) {
-    if (shouldPostChanges(req)) {
-        await sendStatusChanges(req);
-    }
-}
-
-module.exports = middleware;
+module.exports = {postLinkedChanges};
