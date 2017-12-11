@@ -1,7 +1,7 @@
 const Ramda = require('ramda');
 const {postChangesToLinks: conf} = require('../config').features;
 const {postStatusChanged} = require('./helper.js');
-const logger = require('debug')('post-linked-changes');
+const logger = require('../modules/log.js')(module);
 
 const handleLink = async (body, link, mclient) => {
     const destIssue = Ramda.either(
@@ -9,7 +9,7 @@ const handleLink = async (body, link, mclient) => {
         Ramda.prop('inwardIssue')
     )(link);
     if (!destIssue) {
-        logger('no destIssue in handleLink');
+        logger.debug('no destIssue in handleLink');
         return;
     }
     const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
@@ -26,14 +26,14 @@ const handleLink = async (body, link, mclient) => {
 const postLinkedChanges = async ({mclient, links, data, status}) => {
     try {
         if (!links || links.length === 0 || typeof status !== 'string') {
-            logger('no links to change');
+            logger.debug('no links to change');
             return true;
         }
         await Promise.all(links.map(async link => {
             await handleLink(data, link, mclient);
         }));
     } catch (err) {
-        logger('error in postLinkedChanges');
+        logger.error('error in postLinkedChanges');
         throw err;
     }
 };

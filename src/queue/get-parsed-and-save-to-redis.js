@@ -1,6 +1,6 @@
 const {getFuncAndBody} = require('./bot-handler.js');
 const {isIgnore, newSave} = require('../bot');
-const logger = require('debug')('getParsedForQueue');
+const logger = require('../modules/log.js')(module);
 
 
 module.exports = async body => {
@@ -11,7 +11,7 @@ module.exports = async body => {
 
         return true;
     } catch (err) {
-        logger('Error in parsing ', err);
+        logger.warn('Error in parsing ', err);
 
         return false;
     }

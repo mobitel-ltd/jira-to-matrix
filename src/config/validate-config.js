@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 const Joi = require('joi');
-const logger = require('debug')('valideate config');
+const logger = require('../modules/log.js')(module);
 
 const int = Joi.number().integer().required();
 const string = Joi.string().required();
@@ -55,6 +55,12 @@ const schema = obj({
         tokenTTL: int,
         syncTimeoutSec: int,
     }),
+    log: {
+        type: 'both',
+        filePath: 'logs/service',
+        fileLevel: 'silly',
+        consoleLevel: 'debug',
+    },
 });
 
 /**
@@ -68,9 +74,9 @@ const validate = function validate(config) {
     };
     const {error} = Joi.validate(config, schema, options);
     if (error) {
-        logger('Config is invalid:');
+        logger.error('Config is invalid:');
         error.details.forEach(detail => {
-            logger(`  - ${detail.path}: ${detail.message}`);
+            logger.error(`  - ${detail.path}: ${detail.message}`);
         });
         return false;
     }

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const logger = require('debug')('test JIRA');
+const logger = require('../src/modules/log.js')(module);
 const {searchUser, getAllUsers, BASE_URL} = require('../src/matrix/timeline-handler/commands/helper');
 
 describe('Search users', function() {

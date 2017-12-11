@@ -1,11 +1,11 @@
-const _ = require('lodash');
+const lodash = require('lodash');
 const Ramda = require('ramda');
 const translate = require('../locales');
-const logger = require('debug')('parse-body-jira');
+const logger = require('../modules/log.js')(module);
 const jira = require('../jira');
 const {epicUpdates: epicConf} = require('../config').features;
 const {getNewStatus} = require('../bot/helper.js');
-const {composeRoomName} = require('../matrix').helpers;
+const {composeRoomName} = require('../matrix/helpers.js');
 
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
@@ -19,18 +19,18 @@ const getheaderText = ({comment, webhookEvent}) => {
 };
 
 const getPostCommentData = body => {
-    logger(`Enter in function create comment for hook {${body.webhookEvent}}`);
+    logger.debug(`Enter in function create comment for hook {${body.webhookEvent}}`);
 
     const headerText = getheaderText(body);
 
     const issueID = jira.issue.extractID(JSON.stringify(body));
-    logger('issueID', issueID);
+    logger.debug('issueID', issueID);
     const comment = {
         body: body.comment.body,
         id: body.comment.id,
     };
 
-    const author = _.get(body, 'comment.author.name');
+    const author = lodash.get(body, 'comment.author.name');
 
     return {issueID, headerText, comment, author};
 };
@@ -53,7 +53,7 @@ const isProjectEvent = body => Boolean(
 
 const getCreateRoomData = body => {
     const {issue, webhookEvent} = body;
-    logger(`issue: ${issue.key}`);
+    logger.debug(`issue: ${issue.key}`);
 
     let projectOpts;
     if (isEpic(body) || isProjectEvent(body)) {
@@ -66,12 +66,12 @@ const getCreateRoomData = body => {
         }
     }
     const collectParticipantsBody = [
-        _.get(issue, 'fields.creator.name'),
-        _.get(issue, 'fields.reporter.name'),
-        _.get(issue, 'fields.assignee.name'),
+        lodash.get(issue, 'fields.creator.name'),
+        lodash.get(issue, 'fields.reporter.name'),
+        lodash.get(issue, 'fields.assignee.name'),
     ];
 
-    const url = _.get(issue, 'fields.watches.self');
+    const url = lodash.get(issue, 'fields.watches.self');
     const summary = Ramda.path(['fields', 'summary'], issue);
     const newIssue = {key: issue.key, collectParticipantsBody, url, summary};
 
@@ -84,11 +84,11 @@ const getInviteNewMembersData = body => {
     const {issue} = body;
 
     const collectParticipantsBody = [
-        _.get(issue, 'fields.creator.name'),
-        _.get(issue, 'fields.reporter.name'),
-        _.get(issue, 'fields.assignee.name'),
+        lodash.get(issue, 'fields.creator.name'),
+        lodash.get(issue, 'fields.reporter.name'),
+        lodash.get(issue, 'fields.assignee.name'),
     ];
-    const url = _.get(issue, 'fields.watches.self');
+    const url = lodash.get(issue, 'fields.watches.self');
 
     const newIssue = {key: issue.key, collectParticipantsBody, url};
 

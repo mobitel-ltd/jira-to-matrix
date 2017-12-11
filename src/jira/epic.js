@@ -1,5 +1,5 @@
 const conf = require('../config');
-const logger = require('debug')('epic jira');
+const logger = require('../modules/log.js')(module);
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
 
@@ -15,7 +15,7 @@ const issuesIn = async epicKey => {
         auth()
     );
     if (!(obj instanceof Object)) {
-        logger('Response from jira not object');
+        logger.warn('Response from jira not object');
         return;
     }
     return obj.issues || [];

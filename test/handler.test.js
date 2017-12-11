@@ -1,16 +1,21 @@
-// const queue = require('../src/queue/');
-// const assert = require('assert');
-// const logger = require('debug')('handler');
-// const body = require('./fixtures/jira-body.json');
-// const matrix = require('../src/matrix/');
+const {getBotFunc} = require('../src/queue/bot-handler');
+const assert = require('assert');
+const logger = require('../src/modules/log.js')(module);
+const firstBody = require('./fixtures/comment-create-1.json');
+const secondBody = require('./fixtures/comment-create-2.json');
+const Matrix = require('../src/matrix/');
 
-// describe('test handler', async () => {
-//     logger('handler', body);
-//     const connect = await matrix.connect();
-//     handler(connect);
-//     it('Should return OK', () => {
-//         // const expected = await queue.handler(body, connect, []);
-//         assert.ok(body);
+describe('bot func', function() {
+    this.timeout(15000);
 
-//     });
-// });
+    it('error sendHtmlMessage', async () => {
+        try {
+            const mclient = await Matrix.connect();
+            await mclient.sendHtmlMessage(null);
+        } catch (err) {
+            logger('error', err);
+            assert.ok(err);
+            Matrix.disconnect();
+        }
+    });
+});

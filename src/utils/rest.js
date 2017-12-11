@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const fetch = require('node-fetch');
-const logger = require('debug')('utils rest');
+const logger = require('../modules/log.js')(module);
 const to = require('await-to-js').default;
 
 /**
@@ -15,16 +15,16 @@ const fetchJSON = async (url, basicAuth) => {
     };
     const [err, response] = await to(fetch(url, options));
     if (err) {
-        logger(`Error while getting ${url}:\n${err}`);
+        logger.error(`Error while getting ${url}:\n${err}`);
         return;
     }
 
-    logger(`response from jira have status: ${response.status}`,
+    logger.info(`response from jira have status: ${response.status}`,
         `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
     const [parseErr, object] = await to(response.json());
     if (parseErr) {
-        logger(`Error while parsing JSON from ${url}:\n${parseErr}`);
+        logger.error(`Error while parsing JSON from ${url}:\n${parseErr}`);
         return;
     }
     return object;
@@ -39,11 +39,11 @@ const fetchPostJSON = async (url, basicAuth, body) => {
     };
     const [err, response] = await to(fetch(url, options));
     if (err) {
-        logger(`Error while getting ${url}:\n${err}`);
+        logger.error(`Error while getting ${url}:\n${err}`);
         return;
     }
 
-    logger(`response from jira have status: ${response.status}`,
+    logger.debug(`response from jira have status: ${response.status}`,
         `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
     return response;
@@ -58,11 +58,11 @@ const fetchPutJSON = async (url, basicAuth, body) => {
     };
     const [err, response] = await to(fetch(url, options));
     if (err) {
-        logger(`Error while getting ${url}:\n${err}`);
+        logger.error(`Error while getting ${url}:\n${err}`);
         return;
     }
 
-    logger(`response from jira have status: ${response.status}`,
+    logger.debug(`response from jira have status: ${response.status}`,
         `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
     return response;

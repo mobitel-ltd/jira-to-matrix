@@ -1,7 +1,7 @@
 const translate = require('../locales');
 const marked = require('marked');
 const jira = require('../jira');
-const logger = require('debug')('post-issue-updates');
+const logger = require('../modules/log.js')(module);
 
 const epicChanged = async (roomId, mclient, data) => {
     const values = {
@@ -36,7 +36,7 @@ const newEpic = async (roomId, mclient, data) => {
 const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
     try {
         if (!projectOpts) {
-            logger('No project in body.issue.fields');
+            logger.debug('No project in body.issue.fields');
             return true;
         }
 
@@ -53,7 +53,7 @@ const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
             await epicChanged(roomId, mclient, data);
         }
     } catch (err) {
-        logger('error in postProjectUpdates');
+        logger.error('error in postProjectUpdates');
         throw err;
     }
 };

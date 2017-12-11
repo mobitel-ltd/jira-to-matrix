@@ -1,5 +1,5 @@
 const Ramda = require('ramda');
-const logger = require('debug')('bot helper');
+const logger = require('../modules/log.js')(module);
 const jira = require('../jira');
 const translate = require('../locales');
 const marked = require('marked');
@@ -13,7 +13,7 @@ const getNewStatus = Ramda.pipe(
 
 const postStatusChanged = async (roomID, issue, mclient) => {
     const status = getNewStatus(issue);
-    logger('status is ', status);
+    logger.debug('status is ', status);
     if (typeof status !== 'string') {
         return;
     }

@@ -2,44 +2,28 @@ const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const EventEmitter = require('events');
+
 const conf = require('./config');
-const matrix = require('./matrix');
-const logger = require('debug')('app');
-const {checkNodeVersion} = require('./utils');
-const cachedQueue = require('./queue').queue;
-const queueHandler = require('./queue').handler;
-// const getParsedForQueue = require('./queue/get-parsed-for-queue.js');
-// const {getFuncAndBody} = require('./src/queue/bot-handler.js');
+const Matrix = require('./matrix');
+const logger = require('./modules/log.js')(module);
+const getParsedAndSaveToRedis = require('../src/queue/get-parsed-and-save-to-redis.js');
+const newQueueHandler = require('../src/queue');
 
 const queuePush = new EventEmitter();
-// const fs = require('fs');
 
-const connectToMatrix = async matrix => {
-    logger('Matrix connection');
-    const client = await matrix.connect();
-    return client;
-};
+const connectToMatrix = () => (async () => {
+    const connection = await Matrix.connect();
 
-const checkQueue = () => {
-    if (cachedQueue.length > 0) {
-        queuePush.emit('notEmpty');
-    }
-};
+    queuePush.emit('startQueueHandler');
+    return connection;
+})();
 
-let client = connectToMatrix(matrix);
+const tryRedis = () =>
+    setInterval(() => queuePush.emit('startQueueHandler'), 30 * 60 * 1000);
 
-if (!checkNodeVersion()) {
-    process.exit(1);
-}
 
-process.on('uncaughtException', err => {
-    if (err.errno === 'EADDRINUSE') {
-        logger(`Port ${conf.port} is in use!\n${err}`);
-    } else {
-        logger(`Uncaught exception!\n${err}`);
-    }
-    process.exit(1);
-});
+const client = connectToMatrix();
+tryRedis();
 
 const app = express();
 
@@ -48,20 +32,16 @@ app.use(bodyParser.json({
     limit: '20mb',
 }));
 
-// POST для Jira, добавляет задачи для последующей обработки
-app.post('/', (req, res, next) => {
-    // const name = Math.floor(Math.random() * 11);
-    // fs.writeFileSync(`/tmp/jira${name}.json`, JSON.stringify(req.body));
+app.post('/', async (req, res, next) => {
+    logger.silly('Jira body', req.body);
 
-    // if (correctBody) {
-    //     await getParsedAndSaveToRedis(req.body);
-    // }
+    // return false if user in body is ignored
+    const saveStatus = await getParsedAndSaveToRedis(req.body);
 
-    logger('Jira body', req.body);
-    cachedQueue.push(req.body);
-    if (!client) {
-        next(new Error('Matrix client is not exist'));
+    if (saveStatus) {
+        queuePush.emit('startQueueHandler');
     }
+
     next();
 });
 
@@ -69,6 +49,7 @@ app.post('/', (req, res, next) => {
 app.get('/', (req, res) => {
     res.end(`Version ${conf.version}`);
 });
+
 // end any request for it not to hang
 app.use((req, res) => {
     res.end();
@@ -76,47 +57,46 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     if (err) {
-        logger('express error', err);
+        logger.error(err);
     }
     res.end();
 });
 
 const server = http.createServer(app);
 server.listen(conf.port, () => {
-    logger(`Server is listening on port ${conf.port}`);
+    logger.info(`Server is listening on port ${conf.port}`);
 });
 
-const checkingQueueInterval = setInterval(checkQueue, 500);
-checkingQueueInterval.unref();
+tryRedis();
 
-queuePush.on('notEmpty', async () => {
-    // await newQueueHandler(client);
-
-    logger('queuePush start');
-    let success;
+queuePush.on('startQueueHandler', async () => {
+    logger.info('queuePush start');
     if (client) {
-        const lastReq = cachedQueue.pop();
-        // Обработка массива вебхуков от Jira
-        success = await queueHandler(lastReq, client, cachedQueue);
-    }
-    logger('success', success);
-    if (!success && client) {
-        client = null;
-        client = await connectToMatrix(matrix);
+        await newQueueHandler(client);
     }
 });
 
-const onExit = async function onExit() {
-    const disconnection = await matrix.disconnect();
-    disconnection();
+const onExit = () => {
+    clearInterval(tryRedis());
+    Matrix.disconnect();
     if (server.listening) {
         server.close(() => {
             process.exit();
         });
+
         return;
     }
     process.exit();
 };
+
+process.on('uncaughtException', err => {
+    if (err.errno === 'EADDRINUSE') {
+        logger.warn(`Port ${conf.port} is in use!\n${err}`);
+    } else {
+        logger.error(`Uncaught exception!\n${err}`);
+    }
+    process.exit(1);
+});
 
 process.on('exit', onExit);
 process.on('SIGINT', onExit);

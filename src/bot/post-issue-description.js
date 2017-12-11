@@ -1,7 +1,7 @@
 const lodash = require('lodash');
 const htmlToText = require('html-to-text').fromString;
 const jira = require('../jira');
-const logger = require('debug')('bot post issue');
+const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 
 const getTextIssue = (issue, address) => {
@@ -35,7 +35,7 @@ const getPost = async issue => {
             );
         }
 
-        logger(`Epic name: ${nameEpic}; epic key: ${epicLink}`);
+        logger.info(`Epic name: ${nameEpic}; epic key: ${epicLink}`);
 
         post = `
             Assignee: 

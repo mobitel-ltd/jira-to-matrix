@@ -1,11 +1,11 @@
 const Ramda = require('ramda');
 const path = require('path');
 const validate = require('./validate-config.js');
-const logger = require('debug')('config parse');
+// const logger = require('../modules/log.js')(module);
 
 const env = process.env.NODE_ENV || 'development';
 
-logger(`process.env.NODE_ENV ${env}`);
+// logger.debug(`process.env.NODE_ENV ${env}`);
 
 const configPath = {
     development: './',
@@ -20,7 +20,7 @@ const composeConfig = config => {
     if (!validate(config)) {
         process.exit(1);
     }
-    // logger('config.matrix', Object.keys(config.matrix));
+
     const matrix = {
         ...config.matrix,
         baseUrl: `https://${config.matrix.domain}`,

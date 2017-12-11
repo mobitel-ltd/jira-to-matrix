@@ -1,6 +1,6 @@
 const config = require('../config');
 const {webHookUser} = require('../jira');
-const logger = require('debug')('bot check ignored');
+const logger = require('../modules/log.js')(module);
 
 const shouldIgnore = (body, conf) => {
     const username = webHookUser(body);
@@ -15,9 +15,8 @@ const shouldIgnore = (body, conf) => {
 
 module.exports = body => {
     const {ignore, username} = shouldIgnore(body, config);
-    logger(`User "${username}" ignored status: ${ignore}`);
+    logger.info(`User "${username}" ignored status: ${ignore}`);
     if (ignore) {
         throw 'User ignored';
     }
-    // return ignore;
 };

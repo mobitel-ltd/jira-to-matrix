@@ -1,5 +1,5 @@
 const assert = require('assert');
-const logger = require('debug')('test JIRA');
+const logger = require('../src/modules/log.js')(module);
 const JiraClient = require('jira-connector');
 const {auth} = require('../src/jira/common');
 const {fetchJSON} = require('../src/utils/rest');

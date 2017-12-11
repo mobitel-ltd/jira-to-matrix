@@ -1,7 +1,7 @@
 const querystring = require('querystring');
 const {auth} = require('../../../jira/common.js');
 
-const logger = require('debug')('get-all-users');
+const logger = require('../../../modules/log.js')(module);
 const {fetchJSON} = require('../../../utils');
 const {jira} = require('../../../config');
 const {url} = jira;
@@ -37,7 +37,7 @@ const getUsers = async (num, startAt, acc) => {
     if (users.length >= num) {
         resultAcc = await getUsers(num, startAt + num, resultAcc);
     }
-    logger('Number of users', resultAcc.length);
+    logger.info('Number of users', resultAcc.length);
     return resultAcc;
 };
 
@@ -51,7 +51,7 @@ const getAllUsers = async () => {
         const allUsers = await getUsers(MAX_USERS, START_AT, START_ACC);
         return allUsers;
     } catch (err) {
-        logger('Error in users request', err);
+        logger.error('Error in users request', err);
         throw new Error('Error in users request');
     }
 };
@@ -64,10 +64,10 @@ const searchUser = async name => {
         const filteredUsers = allUsers.reduce((prev, cur) =>
             (checkUser(cur, name) ? [...prev, cur] : prev),
         []);
-        logger('Search users by name is ok');
+        logger.info('Search users by name is ok');
         return filteredUsers;
     } catch (err) {
-        logger('Search users is failed', err);
+        logger.error('Search users is failed', err);
         throw new Error('Jira not return list all users!');
     }
 };

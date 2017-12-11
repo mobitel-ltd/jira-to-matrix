@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const to = require('await-to-js').default;
-const logger = require('debug')('post-new-links');
+const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const redis = require('../redis-client');
 const jira = require('../jira');
@@ -33,7 +33,7 @@ const handleLink = async (issueLink, mclient) => {
         redis.setnxAsync(`link|${link.id}`, '1')
     );
     if (err) {
-        logger(`Redis error while SETNX new link\n${err.message}`);
+        logger.error(`Redis error while SETNX new link\n${err.message}`);
         return;
     }
     if (!isNew) {
@@ -44,10 +44,10 @@ const handleLink = async (issueLink, mclient) => {
 };
 
 const postNewLinks = async ({mclient, links}) => {
-    logger('start postNewLinks');
+    logger.info('start postNewLinks');
     try {
         if (!links || links.length === 0) {
-            logger('No links to handle');
+            logger.debug('No links to handle');
             return true;
         }
 
@@ -56,7 +56,7 @@ const postNewLinks = async ({mclient, links}) => {
         }));
         return true;
     } catch (err) {
-        logger('error in postNewLinks');
+        logger.error('error in postNewLinks');
         throw err;
     }
 };

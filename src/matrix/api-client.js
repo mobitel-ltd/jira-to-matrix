@@ -1,109 +1,123 @@
 /* eslint-disable camelcase */
-const lodash = require('lodash');
-const to = require('await-to-js').default;
+// const lodash = require('lodash');
 const conf = require('../config').matrix;
-const logger = require('debug')('api client');
+const logger = require('../modules/log.js')(module);
 const cbTimeline = require('./timeline-handler');
 const Ramda = require('ramda');
 
-const api = {};
-
 const getAlias = alias => `#${alias}:${conf.domain}`;
 
-api.createRoom = client => async function createRoom(options) {
-    const [err, response] = await to(
-        client.createRoom(Object.assign({visibility: 'private'}, options))
-    );
-    if (err) {
-        logger(`Error while creating room:\n ${err}`);
-        return;
+const createRoom = client => async options => {
+    try {
+        await client.createRoom(Object.assign({visibility: 'private'}, options));
+    } catch (err) {
+        logger.error(`Error while creating room`);
+
+        throw err;
     }
-    return response;
 };
 
-api.getRoomId = client => async function getRoomId(alias) {
-    const [err, response] = await to(
-        client.getRoomIdForAlias(getAlias(alias))
-    );
-    if (err) {
-        if (err.errcode !== 'M_NOT_FOUND') {
-            logger(
-                `Error while getting room id for ${alias} from Matrix:\n${err}`
-            );
-        }
-        return;
+const getRoomId = client => async alias => {
+    try {
+        const {room_id} = await client.getRoomIdForAlias(getAlias(alias));
+
+        return room_id;
+    } catch (err) {
+        logger.error(
+            `Error while getting room id for ${alias} from Matrix`
+        );
+
+        throw err;
     }
-    const {room_id} = response;
-    return room_id;
 };
 
-api.getRoomByAlias = client => async function getRoomByAlias(alias) {
-    const [err, roomID] = await to(
-        client.getRoomIdForAlias(getAlias(alias))
-    );
-    if (err) {
-        if (err.errcode !== 'M_NOT_FOUND') {
-            logger(
-                `Error while getting room id for ${alias} from Matrix:\n${err}`
-            );
-        }
-        return;
+const getRoomByAlias = client => async alias => {
+    try {
+        const roomID = await client.getRoomIdForAlias(getAlias(alias));
+
+        const room = await client.getRoom(roomID.room_id);
+        return room;
+    } catch (err) {
+        logger.error(`Error while getting room id for ${alias} from Matrix:`);
+
+        throw err;
     }
-    const room = client.getRoom(roomID.room_id);
-    return room;
 };
 
-api.getRoomMembers = () => async function GetRoomMembers(roomAlias) {
-    const room = await this.getRoomByAlias(roomAlias);
-    if (!room) {
-        logger(`Don't return room for alias ${roomAlias}`);
-        return;
+// const getRoomMembers = () => async function GetRoomMembers(roomAlias) {
+//     const room = await this.getRoomByAlias(roomAlias);
+//     if (!room) {
+//         logger.warn(`Don't return room for alias ${roomAlias}`);
+//         return;
+//     }
+//     return lodash.values(room.currentState.members).map(member => member.userId);
+// };
+
+const invite = client => async (roomId, userId) => {
+    try {
+        const response = await client.invite(roomId, userId);
+
+        return response;
+    } catch (err) {
+        logger.error(`Error while inviting a new member to a room:\n ${err}`);
+
+        throw err;
     }
-    return lodash.values(room.currentState.members).map(member => member.userId);
 };
 
-api.invite = client => async function invite(roomId, userId) {
-    const [err, response] = await to(client.invite(roomId, userId));
-    if (err) {
-        logger(`Error while inviting a new member to a room:\n ${err}`);
-        return;
+const sendHtmlMessage = client => async (roomId, body, htmlBody) => {
+    try {
+        await client.sendHtmlMessage(roomId, body, htmlBody);
+    } catch (err) {
+        logger.error(`Error while sending message to a room`);
+
+        throw err;
     }
-    return response;
 };
 
-api.sendHtmlMessage = client => async function sendHtmlMessage(roomId, body, htmlBody) {
-    const [err] = await to(client.sendHtmlMessage(roomId, body, htmlBody));
-    if (err) {
-        logger(`Error while sending message to a room:\n ${err}`);
+const createAlias = client => async (alias, roomId) => {
+    try {
+        await client.createAlias(
+            getAlias(alias),
+            roomId
+        );
+    } catch (err) {
+        logger.error(`Error while creating alias for a room`);
+
+        throw err;
     }
-    return !err;
 };
 
-api.createAlias = client => async function createAlias(alias, roomId) {
-    const [err] = await to(client.createAlias(
-        getAlias(alias),
-        roomId
-    ));
-    if (err) {
-        logger(`Error while creating alias for a room:\n ${err}`);
+const setRoomName = client => async (roomId, name) => {
+    try {
+        await client.setRoomName(roomId, name);
+    } catch (err) {
+        logger.error(`Error while setting room name`);
+
+        throw err;
     }
-    return !err;
 };
 
-api.setRoomName = client => async function setRoomName(roomId, name) {
-    const [err] = await to(client.setRoomName(roomId, name));
-    if (err) {
-        logger(`Error while setting room name:\n ${err}`);
+const setRoomTopic = client => async (roomId, topic) => {
+    try {
+        await client.setRoomTopic(roomId, topic);
+    } catch (err) {
+        logger.error(`Error while setting room's topic`);
+
+        throw err;
     }
-    return !err;
 };
 
-api.setRoomTopic = client => async function setRoomTopic(roomId, topic) {
-    const [err] = await to(client.setRoomTopic(roomId, topic));
-    if (err) {
-        logger(`Error while setting room's topic:\n ${err}`);
-    }
-    return !err;
+const api = {
+    createRoom,
+    // getRoomMembers,
+    getRoomId,
+    getRoomByAlias,
+    invite,
+    sendHtmlMessage,
+    createAlias,
+    setRoomName,
+    setRoomTopic,
 };
 
 const inviteBot = async function InviteBot(event) {
@@ -128,14 +142,13 @@ const removeListener = (eventName, listener, matrixClient) => {
     const listCount = matrixClient.listenerCount(eventName);
     if (listCount > 1) {
         matrixClient.removeListener(eventName, listener);
-        logger(`Count listener for ${eventName} ${listCount}. To remove unnecessary listener`);
+        logger.warn(`Count listener for ${eventName} ${listCount}. To remove unnecessary listener`);
     }
 };
 
-module.exports = sdkConnect => async () => {
-    const matrixClient = await sdkConnect();
+module.exports = matrixClient => {
     if (!matrixClient) {
-        logger('\'matrixClient\' is undefined');
+        logger.error('\'matrixClient\' is undefined');
         return;
     }
 
@@ -146,8 +159,8 @@ module.exports = sdkConnect => async () => {
         removeListener('event', inviteBot, matrixClient);
 
         if (state !== 'SYNCING' || prevState !== 'SYNCING') {
-            logger(`state: ${state}`);
-            logger(`prevState: ${prevState}`);
+            logger.warn(`state: ${state}`);
+            logger.warn(`prevState: ${prevState}`);
         }
     });
 

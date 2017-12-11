@@ -1,7 +1,7 @@
 // @flow
 const Ramda = require('ramda');
-const logger = require('debug')('jira issue');
-const _ = require('lodash');
+const logger = require('../modules/log.js')(module);
+const lodash = require('lodash');
 const conf = require('../config');
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
@@ -17,7 +17,7 @@ const ref = issueKey => `${conf.jira.url}/browse/${issueKey}`;
 const extractID = json => {
     const matches = /\/issue\/(\d+)\//.exec(json);
     if (!matches) {
-        logger('matches from jira.issue.extractID is not defained');
+        logger.warn('matches from jira.issue.extractID is not defained');
         return;
     }
     return matches[1];
@@ -32,13 +32,13 @@ const collectParticipants = async ({url, collectParticipantsBody}) => {
             collectParticipantsBody.push(...watchers);
         }
     }
-    return _.uniq(collectParticipantsBody.filter(one => !!one));
+    return lodash.uniq(collectParticipantsBody.filter(one => !!one));
 };
 
 /* :Array<{}>*/
 const get = async (id, params) => {
     const url = `${conf.jira.url}/rest/api/2/issue/${id}${paramsToQueryString(params)}`;
-    logger('url for jira fetch', url);
+    logger.debug('url for jira fetch', url);
     const issue = await fetchJSON(
         url,
         auth()
@@ -66,7 +66,7 @@ const getFormatted = issueID => {
 const renderedValues = async (issueID, fields) => {
     const issue = await getFormatted(issueID);
     if (!issue) {
-        logger('issue from jira.issue.renderedValues is not defained');
+        logger.warn('issue from jira.issue.renderedValues is not defained');
         return;
     }
     return Ramda.pipe(

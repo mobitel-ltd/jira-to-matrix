@@ -1,7 +1,7 @@
 const Ramda = require('ramda');
 const jira = require('../jira');
 const translate = require('../locales');
-const logger = require('debug')('bot post issue update');
+const logger = require('../modules/log.js')(module);
 
 const helpers = {
     fieldNames: items => Ramda.pipe(
@@ -47,9 +47,9 @@ const postUpdateInfo = async (mclient, roomID, body) => {
             })
         );
 
-        logger(`Posted updates to ${key}`);
+        logger.debug(`Posted updates to ${key}`);
     } catch (err) {
-        logger('Error postUpdateInfo');
+        logger.error('Error postUpdateInfo');
 
         throw err;
     }
@@ -66,7 +66,7 @@ const move = async (mclient, roomID, body) => {
     const success = await mclient.createAlias(fieldKey.toString, roomID);
 
     if (success) {
-        logger(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
+        logger.info(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
     }
 
     await mclient.setRoomTopic(roomID, jira.issue.ref(issueKey));
@@ -82,18 +82,18 @@ const rename = async (mclient, roomID, body) => {
     const success = await mclient.setRoomName(roomID, roomName);
 
     if (success) {
-        logger(`Successfully renamed room ${issueKey}`);
+        logger.info(`Successfully renamed room ${issueKey}`);
     }
 };
 
 const postIssueUpdates = async body => {
     try {
-        logger('Start postIssueUpdates');
+        logger.debug('Start postIssueUpdates');
         const {issueKey, mclient} = body;
         const roomID = await mclient.getRoomId(issueKey);
 
         if (!roomID) {
-            logger('No roomId');
+            logger.debug('No roomId');
 
             return true;
         }
@@ -104,7 +104,7 @@ const postIssueUpdates = async body => {
 
         return true;
     } catch (err) {
-        logger('error in postIssueUpdates');
+        logger.error('error in postIssueUpdates');
 
         throw err;
     }

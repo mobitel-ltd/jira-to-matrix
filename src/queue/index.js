@@ -1,4 +1,4 @@
-const logger = require('debug')('new-queue-handler');
+const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot');
 const {shouldCreateRoom} = require('./bot-handler.js');
@@ -9,11 +9,11 @@ module.exports = async client => {
         const prefix = process.env.NODE_ENV === 'test' ? 'test-jira-hooks:' : 'jira-hooks:';
         const redisKeys = (await redis.keysAsync(`${prefix}*`))
             .filter(key => key.indexOf('|') === -1);
-        logger('Keys from redis', redisKeys);
+        logger.debug('Keys from redis', redisKeys);
 
         const dataFromRedis = await Promise.all(redisKeys.map(async key => {
             const newKey = key.replace(prefix, '');
-            logger('key in map', newKey);
+            logger.debug('key in map', newKey);
 
             const redisValue = await redis.getAsync(newKey);
             const parsedRedisValue = JSON.parse(redisValue);
@@ -22,7 +22,7 @@ module.exports = async client => {
             return result;
         }));
 
-        logger('data', dataFromRedis);
+        dataFromRedis.forEach(value => logger.debug('dataFromRedis', value));
 
         const botFuncHandlingResult = await Promise.all(dataFromRedis.map(async ({redisKey, funcName, data}) => {
             try {
@@ -36,15 +36,15 @@ module.exports = async client => {
 
                 return `${redisKey} --- true`;
             } catch (err) {
-                logger(`Error in ${funcName}`, err);
+                logger.error(`Error in ${funcName}`, err);
 
                 return `${redisKey} --- false`;
             }
         }));
-        logger('result of Promise.all in queue', botFuncHandlingResult);
+        botFuncHandlingResult.forEach(value => logger.info('result of Promise.all in queue', value));
 
         return true;
     } catch (err) {
-        logger('Error in queue handling', err);
+        logger.error('Error in queue handling', err);
     }
 };

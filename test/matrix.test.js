@@ -1,24 +1,21 @@
 const config = require('../src/config/');
 const fakeConfig = require('./fixtures/config');
-const init = require('../src/matrix/sdk-client');
-const Matrix = require('../src/matrix/sdk-client');
-const appMatrix = require('../src/matrix');
+const Matrix = require('../src/matrix');
 const assert = require('assert');
-const logger = require('debug')('test matrix');
-const matrixApi = require('../src/matrix/');
+const logger = require('../src/modules/log.js')(module);
 
 describe('Matrix api', async function() {
     this.timeout(15000);
     let client;
 
     it('test matrix true config connect from sdk-client', async () => {
-        // await Matrix.createClient(config.matrix);
         client = await Matrix.connect();
         logger('client.getSyncState', Matrix.isConnected());
-        assert.ok(client.clientRunning);
+        logger('client', client);
+        assert.ok(Matrix.isConnected());
         Matrix.disconnect();
-        logger('client.getSyncState', client.getSyncState());
-        assert.ifError(client.clientRunning);
+        // logger('client.getSyncState', Matrix.getSyncState());
+        assert.ifError(Matrix.isConnected());
     });
     
     // it('test matrix true config connect from sdk-client', async () => {

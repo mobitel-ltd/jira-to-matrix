@@ -1,5 +1,5 @@
 const assert = require('assert');
-const logger = require('debug')('get-parsed-for-queue');
+const logger = require('../src/modules/log.js')(module);
 const firstBody = require('./fixtures/comment-create-1.json');
 const secondBody = require('./fixtures/comment-create-2.json');
 const parsers = require('../src/queue/parse-body.js');

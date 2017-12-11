@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const to = require('await-to-js').default;
-const logger = require('debug')('bot post epic update');
+const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const translate = require('../locales');
 const redis = require('../redis-client');
@@ -16,7 +16,7 @@ const isInEpic = async (epicID, issueID) => {
         redis.sismemberAsync(epicRedisKey(epicID), issueID)
     );
     if (err) {
-        logger(`Error while querying redis:\n${err.message}`);
+        logger.error(`Error while querying redis:\n${err.message}`);
         return;
     }
     return saved;
@@ -27,7 +27,7 @@ const saveToEpic = async (epicID, issueID) => {
         redis.saddAsync(epicRedisKey(epicID), issueID)
     );
     if (err) {
-        logger(`Redis error while adding issue to epic :\n${err.message}`);
+        logger.error(`Redis error while adding issue to epic :\n${err.message}`);
     }
 };
 
@@ -48,39 +48,35 @@ const sendMessageNewIssue = async (mclient, epic, newIssue) => {
 };
 
 const postNewIssue = async (epic, issue, mclient) => {
-    logger('postNewIssue');
+    logger.debug('postNewIssue');
     const saved = await isInEpic(epic.id, issue.id);
     if (saved) {
-        logger('postNewIssue is saved');
         return;
     }
     const success = await sendMessageNewIssue(mclient, epic, issue);
-    logger('postNewIssue success is', success);
     if (success) {
-        logger(`Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`);
+        logger.info(`Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`);
         await saveToEpic(epic.id, issue.id);
     }
 };
 
 const postEpicUpdates = async ({mclient, data, epicKey}) => {
-    logger('epicConf', epicConf);
     try {
-        logger('postEpicUpdates start');
+        logger.info('postEpicUpdates start');
         if (!epicKey) {
-            logger('no epicKey');
+            logger.debug('no epicKey');
             return true;
         }
         const epic = await jira.issue.get(epicKey);
         if (!epic) {
-            logger('no epic');
+            logger.debug('no epic');
             return true;
         }
         const roomID = await mclient.getRoomId(epicKey);
         if (!roomID) {
-            logger('no roomID');
+            logger.debug('no roomID');
             return true;
         }
-        logger('roomID is ', roomID);
         const epicPlus = Ramda.assoc('roomID', roomID, epic);
 
         if (epicConf.newIssuesInEpic === 'on') {
@@ -91,7 +87,7 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
         }
         return true;
     } catch (err) {
-        logger('error in postEpicUpdates');
+        logger.error('error in postEpicUpdates');
         throw err;
     }
 };

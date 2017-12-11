@@ -1,6 +1,6 @@
 const {getBotFunc} = require('../src/queue/bot-handler');
 const assert = require('assert');
-const logger = require('debug')('test-bot-func');
+const logger = require('../src/modules/log.js')(module);
 const firstBody = require('./fixtures/comment-create-1.json');
 const secondBody = require('./fixtures/comment-create-2.json');
 const {
@@ -14,7 +14,7 @@ const {
     postProjectUpdates,
 } = require('../src/bot');
 const bot = require('../src/bot');
-const matrixApi = require('../src/matrix/');
+const Matrix = require('../src/matrix/');
 const {
     getPostEpicUpdatesData, 
     getPostCommentData, 
@@ -60,16 +60,15 @@ describe('bot func', function() {
         assert.ok(Array.isArray(result));
     });
 
-    // it('postComment', async () => {
-    //     const {connect, disconnect, helpers} = matrixApi;
-    //     const mclient = await connect();
-    //     const postCommentData = getPostCommentData(firstBody);
-    //     const body = {mclient, ...postCommentData};
-    //     const result = await postComment(body);
-    //     logger('result', result);
-    //     assert.ok(result);
-    //     await disconnect();
-    // })
+    it('postComment', async () => {
+        const mclient = await Matrix.connect();
+        const postCommentData = getPostCommentData(firstBody);
+        const body = {mclient, ...postCommentData};
+        const result = await postComment(body);
+        logger('result', result);
+        assert.ok(result);
+        Matrix.disconnect();
+    })
 
     // it('createRoom', async () => {
     //     const {connect, disconnect, helpers} = matrixApi;
