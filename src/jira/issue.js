@@ -1,7 +1,7 @@
 // @flow
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const _ = require('lodash');
+const lodash = require('lodash');
 const conf = require('../config');
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
@@ -32,7 +32,7 @@ const collectParticipants = async ({url, collectParticipantsBody}) => {
             collectParticipantsBody.push(...watchers);
         }
     }
-    return _.uniq(collectParticipantsBody.filter(one => !!one));
+    return lodash.uniq(collectParticipantsBody.filter(one => !!one));
 };
 
 /* :Array<{}>*/
@@ -66,7 +66,7 @@ const getFormatted = issueID => {
 const renderedValues = async (issueID, fields) => {
     const issue = await getFormatted(issueID);
     if (!issue) {
-        logger.warn("'issue' from jira.issue.renderedValues is not defained");
+        logger.warn('issue from jira.issue.renderedValues is not defained');
         return;
     }
     return Ramda.pipe(

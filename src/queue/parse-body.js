@@ -1,4 +1,4 @@
-const _ = require('lodash');
+const lodash = require('lodash');
 const Ramda = require('ramda');
 const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
@@ -30,7 +30,7 @@ const getPostCommentData = body => {
         id: body.comment.id,
     };
 
-    const author = _.get(body, 'comment.author.name');
+    const author = lodash.get(body, 'comment.author.name');
 
     return {issueID, headerText, comment, author};
 };
@@ -66,12 +66,12 @@ const getCreateRoomData = body => {
         }
     }
     const collectParticipantsBody = [
-        _.get(issue, 'fields.creator.name'),
-        _.get(issue, 'fields.reporter.name'),
-        _.get(issue, 'fields.assignee.name'),
+        lodash.get(issue, 'fields.creator.name'),
+        lodash.get(issue, 'fields.reporter.name'),
+        lodash.get(issue, 'fields.assignee.name'),
     ];
 
-    const url = _.get(issue, 'fields.watches.self');
+    const url = lodash.get(issue, 'fields.watches.self');
     const summary = Ramda.path(['fields', 'summary'], issue);
     const newIssue = {key: issue.key, collectParticipantsBody, url, summary};
 
@@ -84,11 +84,11 @@ const getInviteNewMembersData = body => {
     const {issue} = body;
 
     const collectParticipantsBody = [
-        _.get(issue, 'fields.creator.name'),
-        _.get(issue, 'fields.reporter.name'),
-        _.get(issue, 'fields.assignee.name'),
+        lodash.get(issue, 'fields.creator.name'),
+        lodash.get(issue, 'fields.reporter.name'),
+        lodash.get(issue, 'fields.assignee.name'),
     ];
-    const url = _.get(issue, 'fields.watches.self');
+    const url = lodash.get(issue, 'fields.watches.self');
 
     const newIssue = {key: issue.key, collectParticipantsBody, url};
 

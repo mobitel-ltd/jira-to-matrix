@@ -1,4 +1,4 @@
-const _ = require('lodash');
+const lodash = require('lodash');
 const Ramda = require('ramda');
 const htmlToString = require('html-to-text').fromString;
 const logger = require('../modules/log.js')(module);
@@ -6,7 +6,7 @@ const logger = require('../modules/log.js')(module);
 const jira = require('../jira');
 
 const pickRendered = (issue, comment) => {
-    const comments = _.get(issue, 'renderedFields.comment.comments');
+    const comments = lodash.get(issue, 'renderedFields.comment.comments');
     if (!(comments instanceof Array)) {
         return comment.body;
     }

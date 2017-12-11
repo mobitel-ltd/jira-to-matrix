@@ -43,7 +43,7 @@ const fetchPostJSON = async (url, basicAuth, body) => {
         return;
     }
 
-    logger.info(`response from jira have status: ${response.status}`,
+    logger.debug(`response from jira have status: ${response.status}`,
         `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
     return response;
@@ -62,7 +62,7 @@ const fetchPutJSON = async (url, basicAuth, body) => {
         return;
     }
 
-    logger.info(`response from jira have status: ${response.status}`,
+    logger.debug(`response from jira have status: ${response.status}`,
         `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
     return response;

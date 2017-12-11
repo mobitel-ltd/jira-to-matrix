@@ -1,6 +1,6 @@
 const logger = require('../modules/log.js')(module);
 const Ramda = require('ramda');
-const _ = require('lodash');
+const lodash = require('lodash');
 const parsers = require('./parse-body.js');
 
 // const bot = require('../bot');
@@ -111,7 +111,7 @@ const getBotFunc = body => {
 };
 
 const getParserName = func => {
-    const startCase = _.startCase(_.camelCase(func));
+    const startCase = lodash.startCase(lodash.camelCase(func));
     return `get${startCase.split(' ').join('')}Data`;
 };
 

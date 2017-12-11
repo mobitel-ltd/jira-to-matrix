@@ -78,3 +78,6 @@ typings/
 
 # dev config 
 /config.js
+
+# test
+/test
