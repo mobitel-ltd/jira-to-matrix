@@ -1,20 +1,20 @@
 const Ramda = require('ramda');
 const jira = require('../jira');
-const matrix = require('../matrix');
+const helpers = require('../matrix/helpers.js');
 const logger = require('../modules/log.js')(module);
 
 const inviteNewMembers = async ({mclient, issue}) => {
     logger.debug('inviteNewMembers start');
     try {
         const participants = (await jira.issue.collectParticipants(issue))
-            .map(matrix.helpers.userID);
+            .map(helpers.userID);
 
         const room = await mclient.getRoomByAlias(issue.key);
         if (!room) {
             throw new Error(`Matrix not return room for key ${issue.key}`);
         }
 
-        const members = matrix.helpers.membersInvited(room.currentState.members);
+        const members = helpers.membersInvited(room.currentState.members);
         const newMembers = Ramda.difference(participants, members);
         logger.debug('Number of members to invite: ', newMembers.length);
 

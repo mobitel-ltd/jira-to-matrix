@@ -1,11 +1,11 @@
 const jira = require('../jira');
-const {helpers} = require('../matrix');
+const helpers = require('../matrix/helpers.js');
 const logger = require('../modules/log.js')(module);
 const {postIssueDescription} = require('./');
 
 const create = async (client, issue) => {
     if (!client) {
-        logger.info(`Not exist matrix client. Key: ${issue.key}`);
+        logger.debug(`Not exist matrix client. Key: ${issue.key}`);
         return;
     }
     const participants = (await jira.issue.collectParticipants(issue)).map(
@@ -55,17 +55,17 @@ const createRoom = async ({mclient, issue, webhookEvent, projectOpts}) => {
 
         let newRoomID;
         if (room) {
-            logger.info(`Room the issue ${issue.key} is already exists`);
+            logger.debug(`Room the issue ${issue.key} is already exists`);
         } else {
-            logger.info(`Start creating the room for  issue ${issue.key}`);
+            logger.debug(`Start creating the room for  issue ${issue.key}`);
             newRoomID = await create(mclient, issue);
         }
 
         if (webhookEvent === 'jira:issue_created') {
-            logger.info(`Start creating the room for issue ${issue.key}`);
+            logger.debug(`Start creating the room for issue ${issue.key}`);
             newRoomID = await create(mclient, issue);
         } else {
-            logger.info('room should not be created');
+            logger.debug('room should not be created');
         }
 
         if (newRoomID && mclient) {
@@ -73,14 +73,14 @@ const createRoom = async ({mclient, issue, webhookEvent, projectOpts}) => {
         }
 
         if (!projectOpts) {
-            logger.info(`Room for a project not created as projectOpts is ${projectOpts}`);
+            logger.debug(`Room for a project not created as projectOpts is ${projectOpts}`);
             return true;
         }
 
         const roomProject = await mclient.getRoomId(projectOpts.key);
 
         if (roomProject) {
-            logger.info(`Room for project ${projectOpts.key} is already exists`);
+            logger.debug(`Room for project ${projectOpts.key} is already exists`);
         } else {
             logger.warn(`Try to create a room for project ${projectOpts.key}`);
             const project = await jira.issue.getProject(projectOpts.id);

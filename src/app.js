@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const EventEmitter = require('events');
 
 const conf = require('./config');
-const {connect, disconnect} = require('./matrix');
+const Matrix = require('./matrix');
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('../src/queue/get-parsed-and-save-to-redis.js');
 const newQueueHandler = require('../src/queue');
@@ -12,7 +12,7 @@ const newQueueHandler = require('../src/queue');
 const queuePush = new EventEmitter();
 
 const connectToMatrix = () => (async () => {
-    const connection = await connect();
+    const connection = await Matrix.connect();
 
     queuePush.emit('startQueueHandler');
     return connection;
@@ -21,7 +21,9 @@ const connectToMatrix = () => (async () => {
 const tryRedis = () =>
     setInterval(() => queuePush.emit('startQueueHandler'), 30 * 60 * 1000);
 
+
 const client = connectToMatrix();
+tryRedis();
 
 const app = express();
 
@@ -31,7 +33,7 @@ app.use(bodyParser.json({
 }));
 
 app.post('/', async (req, res, next) => {
-    logger.debug('Jira body', req.body);
+    logger.silly('Jira body', req.body);
 
     // return false if user in body is ignored
     const saveStatus = await getParsedAndSaveToRedis(req.body);
@@ -74,10 +76,9 @@ queuePush.on('startQueueHandler', async () => {
     }
 });
 
-const onExit = async function onExit() {
+const onExit = () => {
     clearInterval(tryRedis());
-    const disconnection = await disconnect();
-    disconnection();
+    Matrix.disconnect();
     if (server.listening) {
         server.close(() => {
             process.exit();

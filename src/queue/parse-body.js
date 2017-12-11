@@ -5,7 +5,7 @@ const logger = require('../modules/log.js')(module);
 const jira = require('../jira');
 const {epicUpdates: epicConf} = require('../config').features;
 const {getNewStatus} = require('../bot/helper.js');
-const {composeRoomName} = require('../matrix').helpers;
+const {composeRoomName} = require('../matrix/helpers.js');
 
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);

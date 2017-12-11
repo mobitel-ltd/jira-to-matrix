@@ -5,11 +5,9 @@ const logger = require('../modules/log.js')(module);
 const cbTimeline = require('./timeline-handler');
 const Ramda = require('ramda');
 
-const api = {};
-
 const getAlias = alias => `#${alias}:${conf.domain}`;
 
-api.createRoom = client => async options => {
+const createRoom = client => async options => {
     try {
         await client.createRoom(Object.assign({visibility: 'private'}, options));
     } catch (err) {
@@ -19,7 +17,7 @@ api.createRoom = client => async options => {
     }
 };
 
-api.getRoomId = client => async alias => {
+const getRoomId = client => async alias => {
     try {
         const {room_id} = await client.getRoomIdForAlias(getAlias(alias));
 
@@ -33,7 +31,7 @@ api.getRoomId = client => async alias => {
     }
 };
 
-api.getRoomByAlias = client => async alias => {
+const getRoomByAlias = client => async alias => {
     try {
         const roomID = await client.getRoomIdForAlias(getAlias(alias));
 
@@ -46,7 +44,7 @@ api.getRoomByAlias = client => async alias => {
     }
 };
 
-// api.getRoomMembers = () => async function GetRoomMembers(roomAlias) {
+// const getRoomMembers = () => async function GetRoomMembers(roomAlias) {
 //     const room = await this.getRoomByAlias(roomAlias);
 //     if (!room) {
 //         logger.warn(`Don't return room for alias ${roomAlias}`);
@@ -55,7 +53,7 @@ api.getRoomByAlias = client => async alias => {
 //     return lodash.values(room.currentState.members).map(member => member.userId);
 // };
 
-api.invite = client => async (roomId, userId) => {
+const invite = client => async (roomId, userId) => {
     try {
         const response = await client.invite(roomId, userId);
 
@@ -67,7 +65,7 @@ api.invite = client => async (roomId, userId) => {
     }
 };
 
-api.sendHtmlMessage = client => async (roomId, body, htmlBody) => {
+const sendHtmlMessage = client => async (roomId, body, htmlBody) => {
     try {
         await client.sendHtmlMessage(roomId, body, htmlBody);
     } catch (err) {
@@ -77,7 +75,7 @@ api.sendHtmlMessage = client => async (roomId, body, htmlBody) => {
     }
 };
 
-api.createAlias = client => async (alias, roomId) => {
+const createAlias = client => async (alias, roomId) => {
     try {
         await client.createAlias(
             getAlias(alias),
@@ -90,7 +88,7 @@ api.createAlias = client => async (alias, roomId) => {
     }
 };
 
-api.setRoomName = client => async (roomId, name) => {
+const setRoomName = client => async (roomId, name) => {
     try {
         await client.setRoomName(roomId, name);
     } catch (err) {
@@ -100,7 +98,7 @@ api.setRoomName = client => async (roomId, name) => {
     }
 };
 
-api.setRoomTopic = client => async (roomId, topic) => {
+const setRoomTopic = client => async (roomId, topic) => {
     try {
         await client.setRoomTopic(roomId, topic);
     } catch (err) {
@@ -108,6 +106,18 @@ api.setRoomTopic = client => async (roomId, topic) => {
 
         throw err;
     }
+};
+
+const api = {
+    createRoom,
+    // getRoomMembers,
+    getRoomId,
+    getRoomByAlias,
+    invite,
+    sendHtmlMessage,
+    createAlias,
+    setRoomName,
+    setRoomTopic,
 };
 
 const inviteBot = async function InviteBot(event) {
@@ -136,8 +146,7 @@ const removeListener = (eventName, listener, matrixClient) => {
     }
 };
 
-module.exports = sdkConnect => async () => {
-    const matrixClient = await sdkConnect();
+module.exports = matrixClient => {
     if (!matrixClient) {
         logger.error('\'matrixClient\' is undefined');
         return;

@@ -59,7 +59,7 @@ const schema = obj({
         type: 'both',
         filePath: 'logs/service',
         fileLevel: 'silly',
-        consoleLevel: 'silly',
+        consoleLevel: 'debug',
     },
 });
 

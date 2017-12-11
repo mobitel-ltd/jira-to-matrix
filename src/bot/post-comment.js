@@ -39,12 +39,7 @@ const postComment = async ({mclient, issueID, headerText, comment, author}) => {
 
         const commentBody = pickRendered(issue, comment);
         const message = `${headerText}: <br>${commentBody}`;
-        const success = await mclient.sendHtmlMessage(roomId, htmlToString(message), message);
-
-        if (!success) {
-            throw new Error('no send to matrix');
-        }
-
+        await mclient.sendHtmlMessage(roomId, htmlToString(message), message);
         logger.debug(`Posted comment ${commentBody} to ${issue.key} from ${author}\n`);
 
         return true;
