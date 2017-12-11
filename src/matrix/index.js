@@ -34,9 +34,8 @@ class Matrix {
             // http://matrix-org.github.io/matrix-js-sdk/0.8.5/module-base-apis-MatrixBaseApis.html
             // в случае аутентификации возвращает объект типа { login: { access_token, home_server, user_id, device_id } }
             const {access_token: accessToken} = await client.loginWithPassword(userId, password);
-            logger.debug('accessToken', accessToken);
             if (!accessToken) {
-                throw new Error('No login.access_token');
+                throw new Error('No access_token');
             }
             const matrixClient = sdk.createClient({
                 baseUrl,
@@ -53,14 +52,20 @@ class Matrix {
     }
 
     /**
-     * @returns {Boolean} connect status
+     * @private
+     * @param {string} resolve from config.
+     * @returns {void} emit sync when state of client is correct
      */
-    isConnected() {
-        if (this.client) {
-            return Boolean(this.client.clientRunning);
-        }
-        logger.error('Matrix client is not initialized');
-        return false;
+    _executor(resolve) {
+        const syncHandler = state => {
+            if (state === 'SYNCING') {
+                logger.info('well connected');
+                resolve(this.client);
+            } else {
+                this.client.once('sync', syncHandler);
+            }
+        };
+        this.client.once('sync', syncHandler);
     }
 
     /**
@@ -70,24 +75,24 @@ class Matrix {
     async _getClient() {
         try {
             await this._createClient(this.config);
-            const executor = resolve => {
-                const syncHandler = state => {
-                    if (state === 'SYNCING') {
-                        logger.info('well connected');
-                        resolve(this.client);
-                    } else {
-                        this.client.once('sync', syncHandler);
-                    }
-                };
-                this.client.once('sync', syncHandler);
-            };
             this.client.startClient();
-            return new Promise(executor);
+            return new Promise(this._executor.bind(this));
         } catch (err) {
             logger.error('Error in Matrix connection');
 
             throw err;
         }
+    }
+
+    /**
+     * @returns {Boolean} connect status
+     */
+    isConnected() {
+        if (this.client) {
+            return Boolean(this.client.clientRunning);
+        }
+        logger.error('Matrix client is not initialized');
+        return false;
     }
 
     /**
