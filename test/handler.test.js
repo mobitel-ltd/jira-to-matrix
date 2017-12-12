@@ -13,7 +13,7 @@ describe('bot func', function() {
             const mclient = await Matrix.connect();
             await mclient.sendHtmlMessage(null);
         } catch (err) {
-            logger('error', err);
+            logger.debug('error', err);
             assert.ok(err);
             Matrix.disconnect();
         }

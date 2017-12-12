@@ -29,7 +29,7 @@ describe('get-bot-data', function() {
 
     it('test correct firstBody parse', async () => {
         const parsedForQueue = await getParsedAndSaveToRedis(firstBody);
-        logger('parsedForQueue', parsedForQueue);
+        logger.debug('parsedForQueue', parsedForQueue);
 
         // const expectedData = true;
 
@@ -37,16 +37,16 @@ describe('get-bot-data', function() {
 
         const redisValue = await redis.getAsync(redisKey);
         const keys = await redis.keysAsync(`${prefix}*`);
-        logger('keys', keys);
+        logger.debug('keys', keys);
         
-        logger('redisValue', redisValue);
+        logger.debug('redisValue', redisValue);
         const result = JSON.parse(redisValue);
-        logger('result', result);
+        logger.debug('result', result);
         assert.deepEqual(result, expected);
 
         await redis.delAsync(redisKey);
         const newResult = await redis.getAsync(redisKey);
-        logger('newResult', newResult);
+        logger.debug('newResult', newResult);
         
         assert.equal(newResult, null);
         // const result = JSON.parse(dataFromRedis);
@@ -62,9 +62,9 @@ describe('get-bot-data', function() {
             },
         };
         const ignoredBody = {...firstBody, ...ignoredName};
-        logger('ignoredBody', ignoredBody);
+        logger.debug('ignoredBody', ignoredBody);
         const parsedForQueue = await getParsedAndSaveToRedis(ignoredBody);
-        logger('parsedForQueue', parsedForQueue);
+        logger.debug('parsedForQueue', parsedForQueue);
         const expected = false;
 
         assert.equal(parsedForQueue, false);
@@ -72,12 +72,12 @@ describe('get-bot-data', function() {
 
     after(async () => {
         const keys = await redis.keysAsync('*');
-        logger('keys', keys);
+        logger.debug('keys', keys);
 
 
         if (keys.length > 0) {
             const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
-            logger('parsedKeys', parsedKeys);
+            logger.debug('parsedKeys', parsedKeys);
             await redis.delAsync(parsedKeys);
         }
     });

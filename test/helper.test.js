@@ -7,13 +7,13 @@ describe('Search users', function() {
     
     it('test max 1000 jira', async () => {
         const result = await getAllUsers();
-        logger('result', result.length);
+        logger.debug('result', result.length);
         assert.ok(result);
     });
 
     it('test get Users by part of name', async () => {
         const result = await searchUser('Макар');
-        logger('result', result);
+        logger.debug('result', result);
         assert.equal(result.length, 4);
     });
 

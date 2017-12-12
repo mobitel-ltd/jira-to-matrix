@@ -9,14 +9,14 @@ const {getBotFunc, getParserName, getFuncAndBody} = require('../src/queue/bot-ha
 describe('get-bot-data', function() {
     it('test correct firstBody parse', () => {
         const funcArr = getBotFunc(firstBody);
-        logger('funcArr', funcArr);
+        logger.debug('funcArr', funcArr);
         const result = funcArr.map(getParserName);
-        logger('result', result);
+        logger.debug('result', result);
         const expected = ['getPostCommentData'];
         assert.deepEqual(result, expected);
         const parsedData = result.map(element => {
             const result = parsers[element](firstBody);
-            logger('parsedData', result);
+            logger.debug('parsedData', result);
             return result;
         });
         const expectedData = [{ 
@@ -34,9 +34,9 @@ describe('get-bot-data', function() {
 
     it('test correct secondBody parse', () => {
         const funcArr = getBotFunc(secondBody);
-        logger('funcArr', funcArr);
+        logger.debug('funcArr', funcArr);
         const result = funcArr.map(getParserName);
-        logger('result', result);
+        logger.debug('result', result);
         const expectedFuncs = [
             "getInviteNewMembersData",
             "getPostEpicUpdatesData",
@@ -45,7 +45,7 @@ describe('get-bot-data', function() {
         assert.deepEqual(result, expectedFuncs);
         const parsedData = result.map(element => {
             const result = parsers[element](secondBody);
-            logger(`parsedData ${element}`, result);
+            logger.debug(`parsedData ${element}`, result);
             return result;
         });
         const expectedData = [
@@ -78,7 +78,7 @@ describe('get-bot-data', function() {
     });
     
     it('test correct objects', () => {
-        logger('getFuncAndBody', getFuncAndBody);
+        logger.debug('getFuncAndBody', getFuncAndBody);
         const correctBody = getFuncAndBody(firstBody);
         const expected = [{
             redisKey: 'postComment_1512034084304',

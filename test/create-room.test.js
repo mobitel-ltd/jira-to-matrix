@@ -13,7 +13,7 @@ describe('create-room', () => {
         ];
         samples.forEach((sample, index) => {
             const result = shouldCreateRoom(sample[0]);
-            logger(`sample ${sample}, ${index}`);
+            logger.debug(`sample ${sample}, ${index}`);
             assert.equal(result, sample[1]);
         });
     });

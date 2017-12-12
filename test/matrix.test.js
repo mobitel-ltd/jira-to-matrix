@@ -10,21 +10,21 @@ describe('Matrix api', async function() {
 
     it('test matrix true config connect from sdk-client', async () => {
         client = await Matrix.connect();
-        logger('client.getSyncState', Matrix.isConnected());
-        logger('client', client);
+        logger.debug('client.getSyncState', Matrix.isConnected());
+        logger.debug('client', client);
         assert.ok(Matrix.isConnected());
         Matrix.disconnect();
-        // logger('client.getSyncState', Matrix.getSyncState());
+        // logger.debug('client.getSyncState', Matrix.getSyncState());
         assert.ifError(Matrix.isConnected());
     });
     
     // it('test matrix true config connect from sdk-client', async () => {
     //     const {connect, disconnect} = await init(config.matrix);
     //     client = await connect();
-    //     logger('client.getSyncState', client.getSyncState());
+    //     logger.debug('client.getSyncState', client.getSyncState());
     //     assert.ok(client.clientRunning);
     //     await disconnect();
-    //     logger('client.getSyncState', client.getSyncState());
+    //     logger.debug('client.getSyncState', client.getSyncState());
     //     assert.ifError(client.clientRunning);
     // });
 
@@ -55,15 +55,15 @@ describe('Matrix api', async function() {
     // it('test matrixApi', async () => {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     // const initconf = await init(config.matrix);
-    //     // logger('connect', connect);
-    //     // logger('init', initconf);
+    //     // logger.debug('connect', connect);
+    //     // logger.debug('init', initconf);
     //     const expected = ['createRoom', 'getRoomId', 'getRoomByAlias', 'getRoomMembers', 'invite', 'sendHtmlMessage', 'createAlias', 'setRoomName', 'setRoomTopic'];
     //     const api = await connect();
     //     const result = Object.values(api).map(func => func.name)
     //     assert.ok(expected, result);
     //     (await disconnect())();
     //     assert.ifError(client.clientRunning);
-    //     logger('helpers', helpers);
+    //     logger.debug('helpers', helpers);
     // });
 
     

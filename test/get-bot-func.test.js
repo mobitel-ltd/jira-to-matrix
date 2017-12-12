@@ -31,20 +31,20 @@ describe('bot func', function() {
 
     it('test correct JSON', () => {
         const result = typeof firstBody;
-        logger('result', result);
+        logger.debug('result', result);
         assert.equal(result, 'object');
     });
 
     it('test correct funcs ', () => {
         const result = getBotFunc(firstBody);
-        logger('result', result);
+        logger.debug('result', result);
         const expected = ['postComment'];
         assert.deepEqual(result, expected);
     });
 
     it('test correct funcs seconBody', () => {
         const result = getBotFunc(secondBody);
-        logger('result', result);
+        logger.debug('result', result);
         const expected = [
             'inviteNewMembers', 
             'postEpicUpdates', 
@@ -55,7 +55,7 @@ describe('bot func', function() {
 
     it('async arr expect', () => {
         const funcsForBot = getBotFunc(firstBody);
-        logger('funcsForBot', Array.isArray(funcsForBot));
+        logger.debug('funcsForBot', Array.isArray(funcsForBot));
         const result = funcsForBot.map(func => bot[func]);
         assert.ok(Array.isArray(result));
     });
@@ -65,7 +65,7 @@ describe('bot func', function() {
         const postCommentData = getPostCommentData(firstBody);
         const body = {mclient, ...postCommentData};
         const result = await postComment(body);
-        logger('result', result);
+        logger.debug('result', result);
         assert.ok(result);
         Matrix.disconnect();
     })
@@ -74,10 +74,10 @@ describe('bot func', function() {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     const mclient = await connect();
     //     const createRoomData = getCreateRoomData(secondBody);
-    //     logger('createRoomData', createRoomData);
+    //     logger.debug('createRoomData', createRoomData);
     //     const body = {mclient, ...createRoomData};
     //     const result = await createRoom(body);
-    //     logger('result', result);
+    //     logger.debug('result', result);
     //     assert.ok(result);
     //     await disconnect();
     // })
@@ -86,10 +86,10 @@ describe('bot func', function() {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     const mclient = await connect();
     //     const inviteNewMembersData = getInviteNewMembersData(secondBody);
-    //     logger('inviteNewMembersData', inviteNewMembersData);
+    //     logger.debug('inviteNewMembersData', inviteNewMembersData);
     //     const body = {mclient, ...inviteNewMembersData};
     //     const result = await inviteNewMembers(body);
-    //     logger('result', result);
+    //     logger.debug('result', result);
     //     assert.ok(result);
     //     await disconnect();
     // })
@@ -98,10 +98,10 @@ describe('bot func', function() {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     const mclient = await connect();
     //     const postNewLinksData = getPostNewLinksData(secondBody);
-    //     logger('inviteNewMembersData', postNewLinksData);
+    //     logger.debug('inviteNewMembersData', postNewLinksData);
     //     const body = {mclient, ...postNewLinksData};
     //     const result = await postNewLinks(body);
-    //     logger('result', result);
+    //     logger.debug('result', result);
     //     assert.ok(result);
     //     await disconnect();
     // })
@@ -110,10 +110,10 @@ describe('bot func', function() {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     const mclient = await connect();
     //     const postEpicUpdatesData = getPostEpicUpdatesData(secondBody);
-    //     logger('postEpicUpdates', postEpicUpdatesData);
+    //     logger.debug('postEpicUpdates', postEpicUpdatesData);
     //     const body = {mclient, ...postEpicUpdatesData};
     //     const result = await postEpicUpdates(body);
-    //     logger('result', result);
+    //     logger.debug('result', result);
     //     assert.ok(result);
     //     await disconnect();
     // })
@@ -122,10 +122,10 @@ describe('bot func', function() {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     const mclient = await connect();
     //     const postLinkedChangesData = getPostLinkedChangesData(secondBody);
-    //     logger('postLinkedChanges', postLinkedChangesData);
+    //     logger.debug('postLinkedChanges', postLinkedChangesData);
     //     const body = {mclient, ...postLinkedChangesData};
     //     const result = await postLinkedChanges(body);
-    //     logger('result', result);
+    //     logger.debug('result', result);
     //     assert.ok(result);
     //     await disconnect();
     // })
@@ -134,10 +134,10 @@ describe('bot func', function() {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     const mclient = await connect();
     //     const postIssueUpdatesData = getPostIssueUpdatesData(secondBody);
-    //     logger('postIssueUpdates', postIssueUpdatesData);
+    //     logger.debug('postIssueUpdates', postIssueUpdatesData);
     //     const body = {mclient, ...postIssueUpdatesData};
     //     const result = await postIssueUpdates(body);
-    //     logger('result', result);
+    //     logger.debug('result', result);
     //     assert.ok(result);
     //     await disconnect();
     // })
@@ -146,10 +146,10 @@ describe('bot func', function() {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     const mclient = await connect();
     //     const postProjectUpdatesData = getPostProjectUpdatesData(secondBody);
-    //     logger('postProjectUpdates', postProjectUpdatesData);
+    //     logger.debug('postProjectUpdates', postProjectUpdatesData);
     //     const body = {mclient, ...postProjectUpdatesData};
     //     const result = await postProjectUpdates(body);
-    //     logger('result', result);
+    //     logger.debug('result', result);
     //     assert.ok(result);
     //     await disconnect();
     // })

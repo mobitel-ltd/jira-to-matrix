@@ -15,20 +15,20 @@ describe('Auth Jira', function() {
                 base64: authForJiraClient,
             },
         });
-        logger('authForJiraClient', authForJiraClient);
+        logger.debug('authForJiraClient', authForJiraClient);
         const data = await jira.issue.getIssue({issueKey: 'BBCOM-931'});
-        logger('jira client', data);
+        logger.debug('jira client', data);
         assert.ok(jira);
     });
 
     it('test fetch', async () => {
-        // logger('fetchJSON', fetchJSON);
+        // logger.debug('fetchJSON', fetchJSON);
         const testUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/26171';
         const result = await fetchJSON(
             testUrl,
             auth()
         );
-        logger('result', result);
+        logger.debug('result', result);
 
         assert.ok(result);
     });

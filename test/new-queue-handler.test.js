@@ -25,10 +25,10 @@ describe('new-queue-handler', function() {
         const result = await newQueueHandler(mclient);
         assert.ok(result);
 
-        logger('parsedForQueue', result);
+        logger.debug('parsedForQueue', result);
         const keys = (await redis.keysAsync('prefix*'))
             .filter(key => key.indexOf('|') === -1);;
-        logger('keys', keys);
+        logger.debug('keys', keys);
 
         assert.deepEqual(keys, []);
     });
@@ -37,21 +37,21 @@ describe('new-queue-handler', function() {
         const result = await newQueueHandler(mclient);
         assert.ok(result);
 
-        logger('parsedForQueue', result);
+        logger.debug('parsedForQueue', result);
         const keys = (await redis.keysAsync('prefix*'))
             .filter(key => key.indexOf('|') === -1);;
-        logger('keys', keys);
+        logger.debug('keys', keys);
 
         assert.deepEqual(keys, []);
     });
 
     after(async () => {
         const keys = await redis.keysAsync('*');
-        logger('keys', keys);
+        logger.debug('keys', keys);
 
         if (keys.length > 0) {
             const parsedKeys = keys.map(key => key.replace('test-jira-hooks:', ''));
-            logger('parsedKeys', parsedKeys);
+            logger.debug('parsedKeys', parsedKeys);
             await redis.delAsync(parsedKeys);
         }
 
