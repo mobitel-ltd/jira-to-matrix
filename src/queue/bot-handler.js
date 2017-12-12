@@ -7,7 +7,7 @@ const parsers = require('./parse-body.js');
 const {features} = require('../config');
 const {fp} = require('../utils');
 
-const isCommentEvent = ({webhookEvent, issue_event_type_name}) => {
+const isCommentEvent = ({webhookEvent, issue_event_type_name: issueEventTypeName}) => {
     const propNotIn = Ramda.complement(fp.propIn);
     return Ramda.anyPass([
         fp.propIn('webhookEvent', ['comment_created', 'comment_updated']),
@@ -15,7 +15,7 @@ const isCommentEvent = ({webhookEvent, issue_event_type_name}) => {
             Ramda.propEq('webhookEvent', 'jira:issue_updated'),
             propNotIn('issue_event_type_name', ['issue_commented', 'issue_comment_edited']),
         ]),
-    ])({webhookEvent, issue_event_type_name} || {});
+    ])({webhookEvent, issueEventTypeName} || {});
 };
 
 const shouldPostComment = body => Boolean(
