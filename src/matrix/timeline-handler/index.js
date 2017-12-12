@@ -4,22 +4,28 @@ const logger = require('../../modules/log.js')(module);
 const translate = require('../../locales');
 const {postfix} = require('../../config').matrix;
 const commands = require('./commands');
+const {parseBody} = require('./checker.js');
+
 
 const eventFromMatrix = async (event, room, sender, matrixClient) => {
-    const {body} = event.getContent();
-    const command = body.match(/!\w+\b/);
+    // logger.debug('\nroom', room);
+    // logger.debug('\nsender', sender);
 
-    if (!command || command.index !== 0) {
+    logger.debug('event.getContent()', event.getContent());
+    const {body} = event.getContent();
+    logger.debug('body', body);
+
+    const {commandName, bodyText} = parseBody(body);
+
+    if (!commandName) {
+        logger.info(`${sender} sent message:\n ${body}`);
         return;
     }
-
-    logger.info(`${sender} sent message:\n ${body}`);
-
-    let roomName = room.getCanonicalAlias();
-    roomName = roomName.slice(1, -postfix);
-    const commandName = command[0].substring(1);
+    logger.debug('command name', commandName);
+    const roomName = room.getCanonicalAlias().slice(1, -postfix);
 
     const params = {
+        bodyText,
         event,
         room,
         body,
