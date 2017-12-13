@@ -15,6 +15,7 @@ module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
     if (status !== 201) {
         const post = translate('errorMatrixComment');
         await matrixClient.sendHtmlMessage(room.roomId, post, post);
+
         return `
             Comment from ${sender} for ${roomName} not published
             \nJira have status ${status}

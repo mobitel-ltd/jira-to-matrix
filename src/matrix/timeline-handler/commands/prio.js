@@ -4,9 +4,7 @@ const translate = require('../../../locales');
 const {checkNamePriority, BASE_URL} = require('./helper.js');
 const {shemaFields} = require('./schemas.js');
 
-module.exports = async ({body, room, roomName, matrixClient}) => {
-    const prioName = body.substring(6).trim();
-
+module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     const {fields} = await jiraRequest.fetchJSON(
         `${BASE_URL}/${roomName}/editmeta`,
         auth()
@@ -19,7 +17,7 @@ module.exports = async ({body, room, roomName, matrixClient}) => {
     const priorities = fields.priority.allowedValues;
 
     const priority = priorities.reduce((prev, cur, index) => {
-        if (checkNamePriority(cur, index, prioName)) {
+        if (checkNamePriority(cur, index, bodyText)) {
             return {id: cur.id, name: cur.name};
         }
         return prev;

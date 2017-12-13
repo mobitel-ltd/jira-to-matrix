@@ -72,6 +72,25 @@ const searchUser = async name => {
     }
 };
 
+// Parse body of event from Matrix
+const parseEventBody = body => {
+    try {
+        const commandName = body
+            .split(' ')[0]
+            .match(/^!\w+$/g)[0]
+            .substring(1);
+        logger.debug(commandName);
+        const bodyText = body
+            .replace(`!${commandName}`, '')
+            .trim();
+
+        return {commandName, bodyText};
+    } catch (err) {
+        return {};
+    }
+};
+
+
 const BASE_URL = `${url}/rest/api/2/issue`;
 
 module.exports = {
@@ -81,4 +100,5 @@ module.exports = {
     searchUser,
     getAllUsers,
     BASE_URL,
+    parseEventBody,
 };

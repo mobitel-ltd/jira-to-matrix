@@ -1,42 +1,50 @@
 const logger = require('../../modules/log.js')(module);
-// const jiraCommands = require('./jira-commands.js');
-// const matrixCommands = require('./matrix-commands.js');
 const translate = require('../../locales');
 const {postfix} = require('../../config').matrix;
 const commands = require('./commands');
-const {parseBody} = require('./checker.js');
+const {parseEventBody} = require('./commands/helper.js');
 
 
 const eventFromMatrix = async (event, room, sender, matrixClient) => {
     // logger.debug('\nroom', room);
     // logger.debug('\nsender', sender);
 
-    logger.debug('event.getContent()', event.getContent());
-    const {body} = event.getContent();
-    logger.debug('body', body);
+    try {
+        logger.debug('event.getContent()', event.getContent());
+        const {body} = event.getContent();
+        logger.debug('body', body);
 
-    const {commandName, bodyText} = parseBody(body);
+        const {commandName, bodyText} = parseEventBody(body);
 
-    if (!commandName) {
-        logger.info(`${sender} sent message:\n ${body}`);
-        return;
-    }
-    logger.debug('command name', commandName);
-    const roomName = room.getCanonicalAlias().slice(1, -postfix);
+        if (!commandName) {
+            logger.info(`${sender} sent message:\n ${body}`);
 
-    const params = {
-        bodyText,
-        event,
-        room,
-        body,
-        roomName,
-        sender,
-        matrixClient,
-    };
+            return;
+        }
 
-    if (commands[commandName]) {
-        const message = await commands[commandName](params);
-        return message;
+        const roomName = room.getCanonicalAlias().slice(1, -postfix);
+
+        const params = {
+            bodyText,
+            event,
+            room,
+            body,
+            roomName,
+            sender,
+            matrixClient,
+        };
+
+        if (commands[commandName]) {
+            const message = await commands[commandName](params);
+
+            return message;
+        }
+
+        logger.warn(`Command ${commandName} not found`);
+    } catch (err) {
+        logger.error('Error in event handling');
+
+        throw err;
     }
 };
 

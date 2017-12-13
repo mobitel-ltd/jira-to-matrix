@@ -1,25 +1,33 @@
 const assert = require('assert');
 const logger = require('../src/modules/log.js')(module);
 
-const {parseBody} = require('../src/matrix/timeline-handler/checker.js');
+const {parseEventBody} = require('../src/matrix/timeline-handler/commands/helper.js');
 
 describe('command handler test', () => {
-    const expected = 'help';
     it('correct command name', () => {
         const body = '!help';
-        const {commandName} = parseBody(body);
-        assert.equal(commandName, expected);
+        const {commandName, bodyText} = parseEventBody(body);
+        assert.equal(commandName, 'help');
+        assert.equal(bodyText, '');
     });
 
     it('correct command name', () => {
         const body = '!op gogogogo';
-        const result = parseBody(body);
-        assert.deepEqual(result, {commandName: 'op', bodyText: 'gogogogo'});
+        const {commandName, bodyText} = parseEventBody(body);
+        assert.equal(commandName, 'op');
+        assert.equal(bodyText, 'gogogogo');
     });
 
-    it('correct command name', () => {
+    it('false command name', () => {
         const body = 'help';
-        const result = parseBody(body);
-        assert.equal(result, null);
+        const {commandName, bodyText} = parseEventBody(body);
+        assert.equal(commandName, null);
+    });
+
+    it('false command name', () => {
+        const body = '!!help';
+        const {commandName, bodyText} = parseEventBody(body);
+        assert.equal(commandName, null);
+        assert.equal(bodyText, null);
     });
 });
