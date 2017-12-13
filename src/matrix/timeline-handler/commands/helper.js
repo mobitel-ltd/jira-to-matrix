@@ -79,7 +79,6 @@ const parseEventBody = body => {
             .split(' ')[0]
             .match(/^!\w+$/g)[0]
             .substring(1);
-        logger.debug(commandName);
         const bodyText = body
             .replace(`!${commandName}`, '')
             .trim();

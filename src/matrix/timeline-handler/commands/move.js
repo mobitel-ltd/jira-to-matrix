@@ -3,8 +3,9 @@ const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {schemaMove} = require('./schemas.js');
 const {checkCommand, BASE_URL} = require('./helper.js');
+const logger = require('../../../modules/log.js')(module);
 
-const getListCommand = async roomName => {
+const getMoveId = async (body, roomName) => {
     // List of available commands
     const {transitions} = await jiraRequest.fetchJSON(
         `${BASE_URL}/${roomName}/transitions`,
@@ -14,28 +15,30 @@ const getListCommand = async roomName => {
     if (!transitions) {
         throw new Error(`Jira not return list transitions for ${roomName}`);
     }
+    logger.debug('transitions', transitions);
 
-    return transitions.map(({name, id}) => ({name, id}));
+    const moveId = transitions.reduce((acc, {name, id}, index) => {
+        // check command
+        if (checkCommand(body, name, index)) {
+            return {name, id};
+        }
+
+        const postListCommands = `${{name, id}}&nbsp;&nbsp;${index + 1})&nbsp;${name}<br>`;
+
+        return `<b>${translate('listJiraCommand')}:</b><br>${postListCommands}`;
+    }, {});
+
+
+    return moveId;
 };
 
 module.exports = async ({body, room, roomName, matrixClient}) => {
-    const listCommands = await getListCommand(roomName);
+    logger.debug('body', body);
+    logger.debug('roomName', roomName);
+    const moveId = await getMoveId(body, roomName);
 
-    const moveId = listCommands.reduce((res, cur, index) => {
-        // check command
-        if (checkCommand(body, cur.name, index)) {
-            return {id: cur.id, name: cur.name};
-        }
-        return res;
-    }, 0);
-
-    if (!moveId) {
-        let postListCommands = listCommands.reduce(
-            (res, cur, index) => `${res}&nbsp;&nbsp;${index + 1})&nbsp;${cur.name}<br>`,
-            ''
-        );
-        postListCommands = `<b>${translate('listJiraCommand')}:</b><br>${postListCommands}`;
-        await matrixClient.sendHtmlMessage(room.roomId, 'list commands', postListCommands);
+    if (typeof(moveId) === String) {
+        await matrixClient.sendHtmlMessage(room.roomId, 'list commands', moveId);
         return;
     }
 

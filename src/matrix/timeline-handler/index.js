@@ -10,15 +10,14 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
     // logger.debug('\nsender', sender);
 
     try {
-        logger.debug('event.getContent()', event.getContent());
         const {body} = event.getContent();
-        logger.debug('body', body);
 
         const {commandName, bodyText} = parseEventBody(body);
+        logger.debug('commandName', commandName);
+        logger.debug('bodyText', bodyText);
 
         if (!commandName) {
-            logger.info(`${sender} sent message:\n ${body}`);
-
+            logger.debug(`${sender} sent message:\n ${body}`);
             return;
         }
 
@@ -56,8 +55,7 @@ const handler = async function Handler(event, room, toStartOfTimeline) {
     // matrixClient
     const self = this;
 
-    let sender = event.getSender();
-    sender = sender.slice(1, -postfix);
+    const sender = event.getSender().slice(1, -postfix);
 
     try {
         const command = await eventFromMatrix(event, room, sender, self);
