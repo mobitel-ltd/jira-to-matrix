@@ -39,6 +39,8 @@ describe('Matrix api', async function() {
         const body = '!move';
         const roomName = 'BBCOM-1233';
         const result = await getMoveId(body, roomName);
-        assert.equal(result, 'smyh');
+        assert.deepEqual(typeof(result), 'string');
+        const expected = `<b>Список доступных команд:</b><br>${{name: 'Reopened', id: 111}}&nbsp;&nbsp;1)&nbsp;Reopened<br>`;
+        assert.deepEqual(result, expected);
     });
 });

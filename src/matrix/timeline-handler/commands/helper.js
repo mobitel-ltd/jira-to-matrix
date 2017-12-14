@@ -12,7 +12,7 @@ const checkUser = (user, name) =>
     || ~user.displayName.toLowerCase().indexOf(name.toLowerCase());
 
 const checkCommand = (body, name, index) =>
-    ~body.toLowerCase().indexOf(name.toLowerCase())
+    body.toLowerCase() === name.toLowerCase()
     || ~body.indexOf(String(index + 1));
 
 const checkNamePriority = (priority, index, name) =>

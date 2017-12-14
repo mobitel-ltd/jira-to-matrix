@@ -83,4 +83,4 @@ typings/
 test/fixtures/config.*
 
 # log
-src/logs/*
+logs/
