@@ -84,3 +84,6 @@ test/fixtures/config.*
 
 # log
 logs/
+
+# rdb
+dump.rdb

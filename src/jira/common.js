@@ -29,7 +29,7 @@ const getChangelogField = Ramda.curry(
                 Ramda.pathOr([], ['changelog', 'items']),
                 Ramda.find(Ramda.propEq('field', fieldName))
             ),
-            Ramda.always(undefined)
+            Ramda.always(null)
         )(hook)
 );
 

@@ -6,9 +6,6 @@ const {parseEventBody} = require('./commands/helper.js');
 
 
 const eventFromMatrix = async (event, room, sender, matrixClient) => {
-    // logger.debug('\nroom', room);
-    // logger.debug('\nsender', sender);
-
     try {
         const {body} = event.getContent();
 

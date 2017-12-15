@@ -48,7 +48,7 @@ const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
         if (typeEvent === 'issue_created') {
             await newEpic(roomId, mclient, data);
         }
-        
+
         if (typeEvent === 'issue_generic') {
             await epicChanged(roomId, mclient, data);
         }

@@ -13,6 +13,7 @@ const create = async (client, issue) => {
     );
 
     const options = {
+        // eslint-disable-next-line camelcase
         room_alias_name: issue.key,
         invite: participants,
         name: helpers.composeRoomName(issue),
@@ -34,6 +35,7 @@ const createRoomProject = async (client, project) => {
     }
 
     const options = {
+        // eslint-disable-next-line camelcase
         room_alias_name: project.key,
         invite: [helpers.userID(project.lead.key)],
         name: project.name,
