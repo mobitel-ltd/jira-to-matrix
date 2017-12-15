@@ -1,7 +1,3 @@
-## Лицензия
-[wtfpl]: wtfpl-badge-1.png "WTFPL License :)"
-![No WTFPL License image :(][wtfpl]
-
 ## Стек технологий
 - NodeJS 7.8+ [Документация](https://nodejs.org/dist/latest-v5.x/docs/api/)
 - Redis 3+ [Документация](https://redis.io/documentation)
@@ -10,31 +6,50 @@
 - Riot [free Matrix group chat](https://about.riot.im/)
 - Jira [development tool used by agile teams](https://www.atlassian.com/software/jira)
 
+## Установка и запуск
+1. [Сохранените](https://help.github.com/articles/cloning-a-repository/) данный репозиторий.
+2. Зайдите в директорию, содержащую `package.json` данного проекта и запутите команду `npm install`. [Подробнее](https://docs.npmjs.com/cli/install).
+3. Убедитесь, что конфиг сформирован верно, Redis, Jira и Riot работают. 
+4. Зайдите в директорию, содержащую `package.json` данного проекта и запутите команду `npm run start`. Это начинает работу бота.
+
 ## Конфиг
 
-В корне проекта присутствует файл config.example.js, в котором с перечислением типов данных для каждого параметра. Работа бота стрится на основе конфига, пример ниже:  
+Работа бота стрится на основе конфига, пример ниже:  
 ```js
 {
-  port: 4100, // where to listen JIRA webhooks
-    lang: 'en', // a language bot talks to users in
+      // where to listen JIRA webhooks
+    port: 4100,
+     // a language bot talks to users in
+    lang: 'en',
+    // jira params
     jira: {
+        // url of your jira 
         url: 'https://jira.example.org',
+        // jira user name
         user: 'bot',
+        // user password
         password: 'key',
     },
     // list of available actions for current user
     features: {
+        // create room
         createRoom: true,
+        // invite new member in room
         inviteNewMembers: true,
+        // post comment in Riot
         postComments: true,
+        // create/update issue in jira and associated room in Riot
         postIssueUpdates: true,
+        // create/update epic in jira and associated room in Riot
         epicUpdates: {
             newIssuesInEpic: 'on',
             issuesStatusChanged: 'on',
             field: 'customfield_10006',
             fieldAlias: 'Epic Link',
         },
+        // create new associated in Riot with other rooms (issue in Jira)
         newLinks: true,
+        // update links in Riot with other rooms (issue in Jira)
         postChangesToLinks: {
             on: true,
             // Not to post to closed issues (3 - id of status category "Done")
@@ -52,26 +67,29 @@
         host: '127.0.0.1',
         port: 6379,
         prefix: 'jira-hooks:',
-        ttl: 60 * 60 * 24 * 30, // seconds (30 days here)
     },
-    ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
     // Matrix params
     matrix: {
+        // domain name of your Matrix server
         domain: 'matrix.example.org',
-        user: 'bot', // short name, before colon, without @
+        // short name, before colomn, without @
+        user: 'bot',
         password: 'key',
-        tokenTTL: 10 * 60, // new token request interval (10 minutes here)
-        syncTimeoutSec: 20, // seconds
     },
-    // log params based on winston
+    // log params based on winston https://github.com/winstonjs/winston
     log: {
+        // type of log output
         type: 'both',
+        // path to log file
         filePath: 'logs/service',
+        // log level saved in file
         fileLevel: 'silly',
+        // log level in console
         consoleLevel: 'debug',
     }
 }
 ```
+`src/config/validate-config.js` содержит файл с перечислением валидных типов данных для каждого параметра. 
 
 ## Описание работы
 
@@ -96,7 +114,7 @@ Result of handling redis key <redisKey> --- <true/false>
 
 ### Matrix client
 
-Для работы с `Riot` используется [SDK Mtrix](https://github.com/matrix-org/matrix-js-sdk). При запуске бота происходит подключение к домену матрикса (`matrix.domain` из конфига) под `userId` вида `@${config.matrix.user}:${config.matrix.domain}`. После успешной авторизации и поключення лог должен вывести сообщение вида:  
+Для работы с `Riot` используется [SDK Matrix](https://github.com/matrix-org/matrix-js-sdk). При запуске бота происходит подключение к домену матрикса (`matrix.domain` из конфига) под `userId` вида `@${config.matrix.user}:${config.matrix.domain}`. После успешной авторизации и поключення лог должен вывести сообщение вида:  
 ```
 createClient OK BaseUrl: https://<домен>, userId: @<имя_пользователя>:<домен>, password: <пароль>
 Started connect to matrixClient
@@ -156,3 +174,7 @@ Command <имя команды> not found
     data: <данные для обработчика>,
 }
 ```
+
+## Лицензия
+[wtfpl]: wtfpl-badge-1.png "WTFPL License :)"
+![No WTFPL License image :(][wtfpl]
