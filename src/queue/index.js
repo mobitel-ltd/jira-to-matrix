@@ -41,7 +41,7 @@ module.exports = async client => {
                 return `${redisKey} --- false`;
             }
         }));
-        botFuncHandlingResult.forEach(value => logger.info('result of Promise.all in queue', value));
+        botFuncHandlingResult.forEach(value => logger.info('Result of handling redis key', value));
 
         return true;
     } catch (err) {

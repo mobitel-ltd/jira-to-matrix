@@ -44,6 +44,7 @@ const getLogger = function getLogger(module) {
             colorize: true,
             level: logConfig.consoleLevel,
             json: false,
+            prettyPrint: true,
         }));
     }
 

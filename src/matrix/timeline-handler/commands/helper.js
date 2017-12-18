@@ -12,7 +12,7 @@ const checkUser = (user, name) =>
     || ~user.displayName.toLowerCase().indexOf(name.toLowerCase());
 
 const checkCommand = (body, name, index) =>
-    ~body.toLowerCase().indexOf(name.toLowerCase())
+    body.toLowerCase() === name.toLowerCase()
     || ~body.indexOf(String(index + 1));
 
 const checkNamePriority = (priority, index, name) =>
@@ -72,6 +72,24 @@ const searchUser = async name => {
     }
 };
 
+// Parse body of event from Matrix
+const parseEventBody = body => {
+    try {
+        const commandName = body
+            .split(' ')[0]
+            .match(/^!\w+$/g)[0]
+            .substring(1);
+        const bodyText = body
+            .replace(`!${commandName}`, '')
+            .trim();
+
+        return {commandName, bodyText};
+    } catch (err) {
+        return {};
+    }
+};
+
+
 const BASE_URL = `${url}/rest/api/2/issue`;
 
 module.exports = {
@@ -81,4 +99,5 @@ module.exports = {
     searchUser,
     getAllUsers,
     BASE_URL,
+    parseEventBody,
 };
