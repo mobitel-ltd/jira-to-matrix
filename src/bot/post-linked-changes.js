@@ -23,7 +23,7 @@ const handleLink = async (body, link, mclient) => {
     postStatusChanged(roomID, body, mclient);
 };
 
-const postLinkedChanges = async ({mclient, links, data, status}) => {
+module.exports = async ({mclient, links, data, status}) => {
     try {
         if (!links || links.length === 0 || typeof status !== 'string') {
             logger.debug('no links to change');
@@ -37,5 +37,3 @@ const postLinkedChanges = async ({mclient, links, data, status}) => {
         throw err;
     }
 };
-
-module.exports = {postLinkedChanges};

@@ -33,7 +33,7 @@ const newEpic = async (roomId, mclient, data) => {
     );
 };
 
-const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
+module.exports = async ({mclient, typeEvent, projectOpts, data}) => {
     try {
         if (!projectOpts) {
             logger.debug('No project in body.issue.fields');
@@ -57,5 +57,3 @@ const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
         throw err;
     }
 };
-
-module.exports = {postProjectUpdates};

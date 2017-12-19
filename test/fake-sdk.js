@@ -1,13 +1,3 @@
-// createRoom,
-// // getRoomMembers,
-// getRoomId,
-// getRoomByAlias,
-// invite,
-// sendHtmlMessage,
-// createAlias,
-// setRoomName,
-// setRoomTopic
-
 const assert = require('assert');
 global.Olm = require('olm');
 const sdk = require('matrix-js-sdk');
@@ -35,11 +25,9 @@ describe("MatrixClient opts", function() {
         beforeEach(function() {
             client = new MatrixClient({
                 request: httpBackend.requestFn,
-                store: undefined,
                 baseUrl: baseUrl,
                 userId: userId,
                 accessToken: accessToken,
-                scheduler: new sdk.MatrixScheduler(),
             });
         });
 

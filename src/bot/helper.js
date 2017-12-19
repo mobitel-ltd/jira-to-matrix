@@ -11,23 +11,38 @@ const getNewStatus = Ramda.pipe(
     Ramda.propOr(null, 'toString')
 );
 
-const postStatusChanged = async (roomID, issue, mclient) => {
+const postStatusData = issue => {
     const status = getNewStatus(issue);
     logger.debug('status is ', status);
     if (typeof status !== 'string') {
+        return {};
+    }
+    const baseValues = {status, ref: jira.issue.ref(issue.key)};
+    const values = ['name', 'key', 'summary']
+        .reduce((acc, key) => ({...acc, [key]: issue[key]}), baseValues);
+
+    const body = translate('statusHasChanged', values);
+    const htmlBody = marked(translate('statusHasChangedMessage', values, values.name));
+
+    return {body, htmlBody};
+};
+
+const postStatusChanged = async (mclient, roomID, data) => {
+    const {body, htmlBody} = postStatusData(data);
+    if (!body) {
         return;
     }
-    const values = ['name', 'key', 'summary'].map(key => issue[key]);
-    values['issue.ref'] = jira.issue.ref(issue.key);
-    values.status = status;
-    await mclient.sendHtmlMessage(
-        roomID,
-        translate('statusHasChanged', values),
-        marked(translate('statusHasChangedMessage', values, values[name]))
-    );
+    try {
+        await mclient.sendHtmlMessage(roomID, body, htmlBody);
+    } catch (err) {
+        logger.error('Error in postStatusChanged');
+
+        throw err;
+    }
 };
 
 module.exports = {
     getNewStatus,
+    postStatusData,
     postStatusChanged,
 };

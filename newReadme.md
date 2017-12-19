@@ -5,13 +5,13 @@ A bot (web-service) which:
 * listens to JIRA Webhooks and sends some stuff to Matrix;
 * use command from Matrix Riot to integrate with Jira and make different actions.
 
-## Features
-+ Creates a room for every new issue;  
-+ Invites new participants to the room;
-+ Posts any issue updates to the room;
-+ Appropriately renames the room if the issue was moved to another project;
-+ Post new links to related rooms. Notifies when a related issue's status changes;
-+ Talks in English or Russian only (easily extendible, see `src/locales`).
+## Особенности
++ Создает комнату для каждой новой задачи;
++ Приглашает новых участников в комнату;
++ Информирует о любых изменениях задач в комнату;
++ Переименовывает в соответствующее название комнату, если задача переведена в другой проект;
++ Добавляет новые ссылки на связанные комнаты. Сигнализирует, когда статус связанной задачи изменен.
++ Поддерживает только русский и английский языки (легко расширяемо, смотри `src/locales`).
 
 ## Стек технологий
 - NodeJS 7.8+ [Документация](https://nodejs.org/dist/latest-v5.x/docs/api/)
@@ -154,14 +154,14 @@ Disconnected from Matrix
 ---|---
 !help|список команд с описанием
 !comment|создает комментарий в Jira issue
-!assign <имя пользователя>|закрепит задачу за выбранным пользователем
+!assign <`имя пользователя`>|закрепит задачу за выбранным пользователем
 !move|выводит список новых возможных состояний задачи
-!move <index>/<transition>|меняет статус задачи
-!spec <имя пользователя>|добавляет наблюдателя над задачей
+!move <`индекс задачи`>/<`статус задачи`>|меняет статус задачи
+!spec <`имя пользователя`>|добавляет наблюдателя над задачей
 !prio|выводит список возможных приоритетов задачи
-!move <index>/<transition>|меняет приоритет задачи
-!op <имя пользователя>|даёт права модератора выбранному пользователю
-(admins only) !invite <название комнаты>|приглашает текущего пользователя в комнату
+!prio <`индекс приоритета`>/<`название приоритета`>|меняет приоритет задачи
+(admins only) !op <`имя пользователя`>|даёт права модератора выбранному пользователю
+(admins only) !invite <`название комнаты`>|приглашает текущего пользователя в комнату
 
 Все эти команды доступны только в комнатах задач Jira.
 Получить список команд внутри самого `Riot` можно с помощью первой команды из списка - `!help`.
@@ -190,10 +190,5 @@ Command <имя команды> not found
 }
 ```
 
-## Лицензия
-[wtfpl]: wtfpl-badge-1.png "WTFPL License :)"
-![No WTFPL License image :(][wtfpl]
-
 ## Status
-~~The project is in a rough shape and under active development.~~ Fixed  
-It is successfully deployed in a medium-size company.
+Успешно развернут в средней по велечине компании.

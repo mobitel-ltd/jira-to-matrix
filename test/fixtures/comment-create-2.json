@@ -3454,6 +3454,79 @@
                     "name": "To Do"
                 }
             }
+        },
+        "changelog": {
+            "startAt": 0,
+            "maxResults": 2,
+            "total": 2,
+            "items": [
+                {
+                    "field": "resolution",
+                    "fieldtype": "jira",
+                    "from": null,
+                    "fromString": null,
+                    "to": "5",
+                    "toString": "Cannot Reproduce"
+                },
+                {
+                    "field": "status",
+                    "fieldtype": "jira",
+                    "from": "1",
+                    "fromString": "Open",
+                    "to": "6",
+                    "toString": "Closed"
+                }
+            ],
+            "histories": [
+                {
+                    "id": "14108198",
+                    "author": {
+                        "self": "https://issues.apache.org/jira/rest/api/2/user?username=erickerickson",
+                        "name": "erickerickson",
+                        "key": "erickerickson",
+                        "emailAddress": "erickerickson at gmail dot com",
+                        "avatarUrls": {
+                            "48x48": "https://issues.apache.org/jira/secure/useravatar?avatarId=10452",
+                            "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&avatarId=10452",
+                            "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&avatarId=10452",
+                            "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&avatarId=10452"
+                        },
+                        "displayName": "Erick Erickson",
+                        "active": true,
+                        "timeZone": "America/New_York"
+                    },
+                    "created": "2014-06-24T20:37:37.751+0000"
+                },
+                {
+                    "id": "16391189",
+                    "author": {
+                        "self": "https://issues.apache.org/jira/rest/api/2/user?username=gmcdonald",
+                        "name": "gmcdonald",
+                        "key": "ipv6guru",
+                        "emailAddress": "ipv6guru at gmail dot com",
+                        "avatarUrls": {
+                            "48x48": "https://issues.apache.org/jira/secure/useravatar?ownerId=ipv6guru&avatarId=10405",
+                            "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&ownerId=ipv6guru&avatarId=10405",
+                            "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&ownerId=ipv6guru&avatarId=10405",
+                            "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&ownerId=ipv6guru&avatarId=10405"
+                        },
+                        "displayName": "Gavin",
+                        "active": true,
+                        "timeZone": "Australia/Melbourne"
+                    },
+                    "created": "2017-10-11T11:11:45.825+0000",
+                    "items": [
+                        {
+                            "field": "Workflow",
+                            "fieldtype": "jira",
+                            "from": "12871572",
+                            "fromString": "classic default workflow",
+                            "to": "13406802",
+                            "toString": "patch-available, re-open possible"
+                        }
+                    ]
+                }
+            ]
         }
     },
     "comment": {

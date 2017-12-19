@@ -3,11 +3,11 @@ const jira = require('../jira');
 const helpers = require('../matrix/helpers.js');
 const logger = require('../modules/log.js')(module);
 
-const inviteNewMembers = async ({mclient, issue}) => {
+module.exports = async ({mclient, issue}) => {
     logger.debug('inviteNewMembers start');
     try {
-        const participants = (await jira.issue.collectParticipants(issue))
-            .map(helpers.userID);
+        const collectParticipants = await jira.issue.collectParticipants(issue);
+        const participants = collectParticipants.map(helpers.userID);
 
         const room = await mclient.getRoomByAlias(issue.key);
         if (!room) {
@@ -20,11 +20,8 @@ const inviteNewMembers = async ({mclient, issue}) => {
 
         await Promise.all(newMembers.map(async userID => {
             await mclient.invite(room.roomId, userID);
+            logger.info(`New member ${userID} invited to ${issue.key}`);
         }));
-
-        if (newMembers.length > 0) {
-            logger.info(`New members invited to ${issue.key}: ${newMembers}`);
-        }
 
         return newMembers;
     } catch (err) {
@@ -32,5 +29,3 @@ const inviteNewMembers = async ({mclient, issue}) => {
         throw err;
     }
 };
-
-module.exports = {inviteNewMembers};

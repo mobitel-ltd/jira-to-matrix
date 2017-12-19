@@ -20,7 +20,7 @@ const pickRendered = (issue, comment) => {
     return result;
 };
 
-const postComment = async ({mclient, issueID, headerText, comment, author}) => {
+module.exports = async ({mclient, issueID, headerText, comment, author}) => {
     logger.info('post comment start');
     try {
         logger.debug('data for post comment', {issueID, headerText, comment, author});
@@ -48,5 +48,3 @@ const postComment = async ({mclient, issueID, headerText, comment, author}) => {
         throw err;
     }
 };
-
-module.exports = {postComment};

@@ -1,5 +1,6 @@
 const {paramsToQueryString, fp} = require('../src/utils');
 const assert = require('assert');
+const hook = require('./fixtures/comment-create-2.json');
 
 describe('paramsToQueryString', () => {
     it('Prop in an array', () => { 
@@ -49,5 +50,16 @@ describe('paramsToQueryString', () => {
             const result = fp.nonEmptyString(sample[0]);
             assert.deepEqual(result, sample[1]); 
         });
+    });
+
+    it('Paths', () => {
+        const result = fp.paths([		
+            'user.name',		
+            'issue.key',		
+            'issue.fields.summary',		
+        ], hook);
+        const expected = ['jira_test', 'BBCOM-956', 'BBCOM-956'];
+
+        assert.deepEqual(result, expected);
     });
 });

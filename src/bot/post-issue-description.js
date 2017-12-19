@@ -76,7 +76,7 @@ const getTutorial = () => `
     Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
     `;
 
-const postIssueDescription = async ({mclient, issue, newRoomID}) => {
+module.exports = async ({mclient, issue, newRoomID}) => {
     const post = await getPost(issue);
     const formatted = Object.assign(
         {},
@@ -98,5 +98,3 @@ const postIssueDescription = async ({mclient, issue, newRoomID}) => {
         getTutorial()
     );
 };
-
-module.exports = {postIssueDescription};

@@ -1,7 +1,7 @@
 const redis = require('../redis-client');
 const logger = require('../modules/log.js')(module);
 
-const newSave = async data => {
+module.exports = async data => {
     try {
         const {redisKey, ...restData} = data;
         const bodyToJSON = JSON.stringify(restData);
@@ -13,6 +13,3 @@ const newSave = async data => {
         throw err;
     }
 };
-
-
-module.exports = {newSave};

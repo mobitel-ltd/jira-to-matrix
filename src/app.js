@@ -18,12 +18,14 @@ const connectToMatrix = () => (async () => {
     return connection;
 })();
 
-const tryRedis = () =>
-    setInterval(() => queuePush.emit('startQueueHandler'), 30 * 60 * 1000);
+const CHECK_QUEUE_DELAY = 30 * 60 * 1000;
 
+const checkQueueInterval = setInterval(() => {
+    queuePush.emit('startQueueHandler');
+}, CHECK_QUEUE_DELAY);
 
 const client = connectToMatrix();
-tryRedis();
+checkQueueInterval.unref();
 
 const app = express();
 
@@ -67,8 +69,6 @@ server.listen(conf.port, () => {
     logger.info(`Server is listening on port ${conf.port}`);
 });
 
-tryRedis();
-
 queuePush.on('startQueueHandler', async () => {
     logger.info('queuePush start');
     if (client) {
@@ -76,27 +76,17 @@ queuePush.on('startQueueHandler', async () => {
     }
 });
 
-const onExit = () => {
-    clearInterval(tryRedis());
+const onExit = err => {
+    logger.error('Jira Bot stoped ', err);
+    clearInterval(checkQueueInterval);
     Matrix.disconnect();
+
     if (server.listening) {
-        server.close(() => {
-            process.exit();
-        });
-
-        return;
+        server.close();
     }
-    process.exit();
-};
 
-process.on('uncaughtException', err => {
-    if (err.errno === 'EADDRINUSE') {
-        logger.warn(`Port ${conf.port} is in use!\n${err}`);
-    } else {
-        logger.error(`Uncaught exception!\n${err}`);
-    }
     process.exit(1);
-});
+};
 
 process.on('exit', onExit);
 process.on('SIGINT', onExit);

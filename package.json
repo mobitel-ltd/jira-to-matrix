@@ -7,6 +7,7 @@
     "node": ">=7.10"
   },
   "scripts": {
+    "eslint": "eslint",
     "start": "node src/app.js",
     "start-dev": "NODE_ENV=development node src/app.js",
     "test": "NODE_ENV=test mocha",
@@ -20,7 +21,8 @@
     "eslint-plugin-import": "^2.3.0",
     "fakeredis": "^2.0.0",
     "matrix-mock-request": "^1.2.1",
-    "mocha": "^4.0.1"
+    "mocha": "^4.0.1",
+    "nock": "^9.1.4"
   },
   "dependencies": {
     "await-to-js": "^1.0.1",

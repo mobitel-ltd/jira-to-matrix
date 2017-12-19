@@ -1,5 +1,4 @@
 const Ramda = require('ramda');
-const to = require('await-to-js').default;
 const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const redis = require('../redis-client');
@@ -25,25 +24,26 @@ const postLink = async (issue, relation, related, mclient) => {
 };
 
 const handleLink = async (issueLink, mclient) => {
-    const link = await jira.link.get(issueLink.id);
-    if (!link) {
-        return;
+    try {
+        const link = await jira.link.get(issueLink.id);
+        if (!link) {
+            return;
+        }
+        const isNew = await redis.setnxAsync(`link|${link.id}`, '1');
+
+        if (!isNew) {
+            return;
+        }
+        await postLink(link.inwardIssue, link.type.outward, link.outwardIssue, mclient);
+        await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
+    } catch (err) {
+        logger.error(`Redis error while SETNX new link`);
+
+        throw err;
     }
-    const [err, isNew] = await to(
-        redis.setnxAsync(`link|${link.id}`, '1')
-    );
-    if (err) {
-        logger.error(`Redis error while SETNX new link\n${err.message}`);
-        return;
-    }
-    if (!isNew) {
-        return;
-    }
-    await postLink(link.inwardIssue, link.type.outward, link.outwardIssue, mclient);
-    await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
 };
 
-const postNewLinks = async ({mclient, links}) => {
+module.exports = async ({mclient, links}) => {
     logger.info('start postNewLinks');
     try {
         if (!links || links.length === 0) {
@@ -60,5 +60,3 @@ const postNewLinks = async ({mclient, links}) => {
         throw err;
     }
 };
-
-module.exports = {postNewLinks};
