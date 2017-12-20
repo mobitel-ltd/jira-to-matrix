@@ -4,7 +4,7 @@ const firstBody = require('./fixtures/comment-create-1.json');
 const secondBody = require('./fixtures/comment-create-2.json');
 const parsers = require('../src/queue/parse-body.js');
 const bot = require('../src/bot');
-const {getBotFunc, getParserName, getFuncAndBody} = require('../src/queue/bot-handler.js');
+const {getBotFunc, getParserName, getFuncAndBody, isCommentEvent} = require('../src/queue/bot-handler.js');
 const getParsedAndSaveToRedis = require('../src/queue/get-parsed-and-save-to-redis.js');
 const conf = require('./fixtures/config.js');
 const redis = require('../src/redis-client.js');
@@ -26,6 +26,13 @@ describe('get-bot-data', function() {
     };
 
     const {prefix} = conf.redis;
+
+    it('isCommentEvent', () => {
+        const result1 = isCommentEvent(firstBody);
+        assert.ok(result1);
+        const result2 = isCommentEvent(secondBody);
+        assert.equal(result2, false);
+    })
 
     it('test correct firstBody parse', async () => {
         const parsedForQueue = await getParsedAndSaveToRedis(firstBody);

@@ -39,7 +39,6 @@ describe('get-bot-data', function() {
         logger.debug('result', result);
         const expectedFuncs = [
             "getInviteNewMembersData",
-            'getPostCommentData',
             "getPostEpicUpdatesData",
             "getPostNewLinksData",
         ];
@@ -60,15 +59,6 @@ describe('get-bot-data', function() {
                     "key": "BBCOM-956",
                     "url": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-956/watchers",
                 },
-            },
-            {
-                "author": "jira_test",
-                "comment": {
-                    "body": "111",
-                    "id": "31023",
-                },
-                'headerText': "jira_test добавил(а) комментарий",
-                'issueID': "26313",
             },
             {
                 "data": {
