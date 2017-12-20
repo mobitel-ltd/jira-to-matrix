@@ -12,7 +12,7 @@ const isCommentEvent = ({webhookEvent, issue_event_type_name: issueEventTypeName
         fp.propIn('webhookEvent', ['comment_created', 'comment_updated']),
         Ramda.allPass([
             Ramda.propEq('webhookEvent', 'jira:issue_updated'),
-            propNotIn('issue_event_type_name', ['issue_commented', 'issue_comment_edited']),
+            propNotIn('issueEventTypeName', ['issue_commented', 'issue_comment_edited']),
         ]),
     ])({webhookEvent, issueEventTypeName} || {});
 };
