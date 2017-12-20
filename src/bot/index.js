@@ -1,14 +1,14 @@
-const {newSave} = require('./save-incoming');
+const newSave = require('./save-incoming');
 const isIgnore = require('./stop-if-user-ignored');
-const {createRoom} = require('./create-room');
-const {postIssueDescription} = require('./post-issue-description');
-const {inviteNewMembers} = require('./invite-new-members');
-const {postComment} = require('./post-comment');
+const createRoom = require('./create-room');
+const postIssueDescription = require('./post-issue-description');
+const inviteNewMembers = require('./invite-new-members');
+const postComment = require('./post-comment');
 const {postIssueUpdates} = require('./post-issue-updates');
 const {postEpicUpdates} = require('./post-epic-updates');
-const {postProjectUpdates} = require('./post-project-updates');
-const {postNewLinks} = require('./post-new-links');
-const {postLinkedChanges} = require('./post-linked-changes');
+const postProjectUpdates = require('./post-project-updates');
+const postNewLinks = require('./post-new-links');
+const postLinkedChanges = require('./post-linked-changes');
 
 module.exports = {
     newSave,

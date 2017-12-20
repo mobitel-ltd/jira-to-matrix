@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-// const lodash = require('lodash');
 const conf = require('../config').matrix;
 const logger = require('../modules/log.js')(module);
 const cbTimeline = require('./timeline-handler');
@@ -19,9 +17,9 @@ const createRoom = client => async options => {
 
 const getRoomId = client => async alias => {
     try {
-        const {room_id} = await client.getRoomIdForAlias(getAlias(alias));
+        const {room_id: roomId} = await client.getRoomIdForAlias(getAlias(alias));
 
-        return room_id;
+        return roomId;
     } catch (err) {
         logger.error(
             `Error while getting room id for ${alias} from Matrix`
@@ -50,7 +48,7 @@ const getRoomByAlias = client => async alias => {
 //         logger.warn(`Don't return room for alias ${roomAlias}`);
 //         return;
 //     }
-//     return lodash.values(room.currentState.members).map(member => member.userId);
+//     return Object.values(room.currentState.members).map(member => member.userId);
 // };
 
 const invite = client => async (roomId, userId) => {
@@ -77,10 +75,8 @@ const sendHtmlMessage = client => async (roomId, body, htmlBody) => {
 
 const createAlias = client => async (alias, roomId) => {
     try {
-        await client.createAlias(
-            getAlias(alias),
-            roomId
-        );
+        const newAlias = getAlias(alias);
+        await client.createAlias(newAlias, roomId);
     } catch (err) {
         logger.error(`Error while creating alias for a room`);
 

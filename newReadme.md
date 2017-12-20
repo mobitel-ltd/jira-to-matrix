@@ -18,11 +18,11 @@ A bot (web-service) which:
 - Redis 3+ [Документация](https://redis.io/documentation)
 - ES2016+
 - ESLint [linting utility for JavaScript](http://eslint.org/)
-- Riot [free Matrix group chat](https://about.riot.im/)
+- Riot [free Matrix group chat](https://about.riot.im/) Далее `Riot` используется в качестве примера веб-клиента Matrix.
 - Jira [development tool used by agile teams](https://www.atlassian.com/software/jira)
 
 ## Установка и запуск
-1. [Сохранените](https://help.github.com/articles/cloning-a-repository/) данный репозиторий.
+1. [Сохраните](https://help.github.com/articles/cloning-a-repository/) данный репозиторий.
 2. Зайдите в директорию, содержащую `package.json` данного проекта и запутите команду `npm install`. [Подробнее](https://docs.npmjs.com/cli/install).
 3. Убедитесь, что конфиг сформирован верно, Redis, Jira и Riot работают. 
 4. Зайдите в директорию, содержащую `package.json` данного проекта и запутите команду `npm run start`. Это начинает работу бота.

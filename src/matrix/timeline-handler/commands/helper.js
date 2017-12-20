@@ -6,6 +6,8 @@ const {fetchJSON} = require('../../../utils');
 const {jira} = require('../../../config');
 const {url} = jira;
 
+const BASE_URL = `${url}/rest/api/2/issue`;
+
 // Checking occurrences of current name
 const checkUser = (user, name) =>
     ~user.name.toLowerCase().indexOf(name.toLowerCase())
@@ -42,11 +44,11 @@ const getUsers = async (num, startAt, acc) => {
 };
 
 // Let get all users even if they are more 1000
+const MAX_USERS = 999;
+const START_AT = 0;
+const START_ACC = [];
+
 const getAllUsers = async () => {
-    const MAX_USERS = 999;
-    const START_AT = 0;
-    const START_ACC = [];
-    // eslint-disable-next-line
     try {
         const allUsers = await getUsers(MAX_USERS, START_AT, START_ACC);
         return allUsers;
@@ -89,8 +91,6 @@ const parseEventBody = body => {
     }
 };
 
-
-const BASE_URL = `${url}/rest/api/2/issue`;
 
 module.exports = {
     checkUser,

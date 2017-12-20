@@ -1,4 +1,3 @@
-const lodash = require('lodash');
 const Ramda = require('ramda');
 const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
@@ -10,7 +9,7 @@ const {composeRoomName} = require('../matrix/helpers.js');
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
 
-const getheaderText = ({comment, webhookEvent}) => {
+const getHeaderText = ({comment, webhookEvent}) => {
     const fullName = Ramda.path(['author', 'displayName'], comment);
     const event = isCommentHook(webhookEvent) ?
         webhookEvent :
@@ -21,7 +20,7 @@ const getheaderText = ({comment, webhookEvent}) => {
 const getPostCommentData = body => {
     logger.debug(`Enter in function create comment for hook {${body.webhookEvent}}`);
 
-    const headerText = getheaderText(body);
+    const headerText = getHeaderText(body);
 
     const issueID = jira.issue.extractID(JSON.stringify(body));
     logger.debug('issueID', issueID);
@@ -30,7 +29,7 @@ const getPostCommentData = body => {
         id: body.comment.id,
     };
 
-    const author = lodash.get(body, 'comment.author.name');
+    const author = Ramda.path(['comment', 'author', 'name'], body);
 
     return {issueID, headerText, comment, author};
 };
@@ -66,12 +65,12 @@ const getCreateRoomData = body => {
         }
     }
     const collectParticipantsBody = [
-        lodash.get(issue, 'fields.creator.name'),
-        lodash.get(issue, 'fields.reporter.name'),
-        lodash.get(issue, 'fields.assignee.name'),
+        Ramda.path(['fields', 'creator', 'name'], issue),
+        Ramda.path(['fields', 'reporter', 'name'], issue),
+        Ramda.path(['fields', 'assignee', 'name'], issue),
     ];
 
-    const url = lodash.get(issue, 'fields.watches.self');
+    const url = Ramda.path(['fields', 'watches', 'self'], issue);
     const summary = Ramda.path(['fields', 'summary'], issue);
     const newIssue = {key: issue.key, collectParticipantsBody, url, summary};
 
@@ -84,11 +83,11 @@ const getInviteNewMembersData = body => {
     const {issue} = body;
 
     const collectParticipantsBody = [
-        lodash.get(issue, 'fields.creator.name'),
-        lodash.get(issue, 'fields.reporter.name'),
-        lodash.get(issue, 'fields.assignee.name'),
+        Ramda.path(['fields', 'creator', 'name'], issue),
+        Ramda.path(['fields', 'reporter', 'name'], issue),
+        Ramda.path(['fields', 'assignee', 'name'], issue),
     ];
-    const url = lodash.get(issue, 'fields.watches.self');
+    const url = Ramda.path(['fields', 'watches', 'self'], issue);
 
     const newIssue = {key: issue.key, collectParticipantsBody, url};
 
@@ -145,13 +144,12 @@ const getPostLinkedChangesData = body => {
 // PostProjectUpdates
 const getPostProjectUpdatesData = body => {
     const typeEvent = body.issue_event_type_name;
-    const projectOpts = body.issue.fields.project;
     const {issue} = body;
-    const data = {
-        key: issue.key,
-        summary: issue.summary,
-        name: body.user.name,
-    };
+    const projectOpts = issue.fields.project;
+    const name = Ramda.path(['user', 'name'], body);
+    const {summary, key} = issue;
+    const data = {key, summary, name};
+
     return {typeEvent, projectOpts, data};
 };
 

@@ -1,14 +1,14 @@
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot');
-const {shouldCreateRoom} = require('./bot-handler.js');
+const {isCreateRoom} = require('./bot-handler.js');
 const {createRoom} = require('../bot');
 
 module.exports = async client => {
     try {
         const prefix = process.env.NODE_ENV === 'test' ? 'test-jira-hooks:' : 'jira-hooks:';
-        const redisKeys = (await redis.keysAsync(`${prefix}*`))
-            .filter(key => key.indexOf('|') === -1);
+        const allKeys = await redis.keysAsync(`${prefix}*`);
+        const redisKeys = allKeys.filter(key => key.indexOf('|') === -1);
         logger.debug('Keys from redis', redisKeys);
 
         const dataFromRedis = await Promise.all(redisKeys.map(async key => {
@@ -22,16 +22,17 @@ module.exports = async client => {
             return result;
         }));
 
-        dataFromRedis.forEach(value => logger.debug('dataFromRedis', value));
+        logger.debug('dataFromRedis', dataFromRedis);
 
         const botFuncHandlingResult = await Promise.all(dataFromRedis.map(async ({redisKey, funcName, data}) => {
             try {
+                const mclient = await client;
                 const {createRoomData} = data;
-                if (shouldCreateRoom(createRoomData)) {
-                    await createRoom({...createRoomData, mclient: await client});
+                if (isCreateRoom(createRoomData)) {
+                    await createRoom({...createRoomData, mclient});
                 }
 
-                await bot[funcName]({...data, mclient: await client});
+                await bot[funcName]({...data, mclient});
                 await redis.delAsync(redisKey);
 
                 return `${redisKey} --- true`;

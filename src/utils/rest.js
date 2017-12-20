@@ -1,7 +1,6 @@
 const Ramda = require('ramda');
 const fetch = require('node-fetch');
 const logger = require('../modules/log.js')(module);
-const to = require('await-to-js').default;
 
 /**
  * @param {String} url URL to JIRA API
@@ -13,21 +12,19 @@ const fetchJSON = async (url, basicAuth) => {
         headers: {Authorization: basicAuth},
         timeout: 11000,
     };
-    const [err, response] = await to(fetch(url, options));
-    if (err) {
-        logger.error(`Error while getting ${url}:\n${err}`);
-        return;
-    }
+    try {
+        const response = await fetch(url, options);
+        logger.info(`response from jira have status: ${response.status}`,
+            `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
-    logger.info(`response from jira have status: ${response.status}`,
-        `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
+        const object = await response.json();
 
-    const [parseErr, object] = await to(response.json());
-    if (parseErr) {
-        logger.error(`Error while parsing JSON from ${url}:\n${parseErr}`);
-        return;
+        return object;
+    } catch (err) {
+        logger.error(`Error in fetchJSON ${url}:\n ${err}`);
+
+        return null;
     }
-    return object;
 };
 
 const fetchPostJSON = async (url, basicAuth, body) => {
@@ -37,16 +34,17 @@ const fetchPostJSON = async (url, basicAuth, body) => {
         headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
         timeout: 11000,
     };
-    const [err, response] = await to(fetch(url, options));
-    if (err) {
-        logger.error(`Error while getting ${url}:\n${err}`);
-        return;
+    try {
+        const response = await fetch(url, options);
+        logger.debug(`response from jira have status: ${response.status}`,
+            `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
+
+        return response;
+    } catch (err) {
+        logger.error(`Error while getting ${url}:\n ${err}`);
+
+        return null;
     }
-
-    logger.debug(`response from jira have status: ${response.status}`,
-        `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
-
-    return response;
 };
 
 const fetchPutJSON = async (url, basicAuth, body) => {
@@ -56,16 +54,17 @@ const fetchPutJSON = async (url, basicAuth, body) => {
         headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
         timeout: 11000,
     };
-    const [err, response] = await to(fetch(url, options));
-    if (err) {
+    try {
+        const response = await fetch(url, options);
+        logger.debug(`response from jira have status: ${response.status}`,
+            `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
+
+        return response;
+    } catch (err) {
         logger.error(`Error while getting ${url}:\n${err}`);
-        return;
+
+        return null;
     }
-
-    logger.debug(`response from jira have status: ${response.status}`,
-        `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
-
-    return response;
 };
 
 /**

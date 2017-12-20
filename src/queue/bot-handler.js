@@ -1,6 +1,5 @@
 const logger = require('../modules/log.js')(module);
 const Ramda = require('ramda');
-const lodash = require('lodash');
 const parsers = require('./parse-body.js');
 
 // const bot = require('../bot');
@@ -18,14 +17,14 @@ const isCommentEvent = ({webhookEvent, issue_event_type_name: issueEventTypeName
     ])({webhookEvent, issueEventTypeName} || {});
 };
 
-const shouldPostComment = body => Boolean(
+const isPostComment = body => Boolean(
     typeof body === 'object'
     && isCommentEvent(body)
     && typeof body.comment === 'object'
     && features.postComments
 );
 
-const shouldPostIssueUpdates = body => Boolean(
+const isPostIssueUpdates = body => Boolean(
     typeof body === 'object'
     && body.webhookEvent === 'jira:issue_updated'
     && typeof body.changelog === 'object'
@@ -34,7 +33,7 @@ const shouldPostIssueUpdates = body => Boolean(
     && features.postIssueUpdates
 );
 
-const shouldCreateRoom = body => Boolean(
+const isCreateRoom = body => Boolean(
     body
     && typeof body.issue === 'object'
     && body.issue.key
@@ -42,14 +41,14 @@ const shouldCreateRoom = body => Boolean(
     && features.createRoom
 );
 
-const shouldMemberInvite = body => Boolean(
+const isMemberInvite = body => Boolean(
     typeof body === 'object'
     && body.webhookEvent === 'jira:issue_updated'
     && typeof body.issue === 'object'
     && features.inviteNewMembers
 );
 
-const shouldPostEpicUpdates = body => Boolean(
+const isPostEpicUpdates = body => Boolean(
     typeof body === 'object'
     && (
         body.webhookEvent === 'jira:issue_updated'
@@ -59,7 +58,7 @@ const shouldPostEpicUpdates = body => Boolean(
     && features.epicUpdates.on()
 );
 
-const shouldPostProjectUpdates = body => Boolean(
+const isPostProjectUpdates = body => Boolean(
     typeof body === 'object'
     && (
         body.webhookEvent === 'jira:issue_updated'
@@ -75,7 +74,7 @@ const shouldPostProjectUpdates = body => Boolean(
     && features.epicUpdates.on()
 );
 
-const shouldPostNewLinks = body => Boolean(
+const isPostNewLinks = body => Boolean(
     typeof body === 'object'
     && (
         body.webhookEvent === 'jira:issue_updated'
@@ -85,7 +84,7 @@ const shouldPostNewLinks = body => Boolean(
     && features.newLinks
 );
 
-const shouldPostLinkedChanges = body => Boolean(
+const isPostLinkedChanges = body => Boolean(
     typeof body === 'object'
     && body.webhookEvent === 'jira:issue_updated'
     && typeof body.changelog === 'object'
@@ -95,25 +94,22 @@ const shouldPostLinkedChanges = body => Boolean(
 
 const getBotFunc = body => {
     const actionFuncs = {
-        // createRoom: shouldCreateRoom(body),
-        postIssueUpdates: shouldPostIssueUpdates(body),
-        inviteNewMembers: shouldMemberInvite(body),
-        postComment: shouldPostComment(body),
-        postEpicUpdates: shouldPostEpicUpdates(body),
-        postProjectUpdates: shouldPostProjectUpdates(body),
-        postNewLinks: shouldPostNewLinks(body),
-        postLinkedChanges: shouldPostLinkedChanges(body),
+        // createRoom: isCreateRoom(body),
+        postIssueUpdates: isPostIssueUpdates(body),
+        inviteNewMembers: isMemberInvite(body),
+        postComment: isPostComment(body),
+        postEpicUpdates: isPostEpicUpdates(body),
+        postProjectUpdates: isPostProjectUpdates(body),
+        postNewLinks: isPostNewLinks(body),
+        postLinkedChanges: isPostLinkedChanges(body),
     };
-
 
     const funcArr = Object.keys(actionFuncs).filter(key => actionFuncs[key]);
     return funcArr;
 };
 
-const getParserName = func => {
-    const startCase = lodash.startCase(lodash.camelCase(func));
-    return `get${startCase.split(' ').join('')}Data`;
-};
+const getParserName = func =>
+    `get${func[0].toUpperCase()}${func.slice(1)}Data`;
 
 const getFuncAndBody = body => {
     const botFunc = getBotFunc(body);
@@ -121,7 +117,7 @@ const getFuncAndBody = body => {
 
     const result = botFunc.reduce((acc, funcName) => {
         let createRoomData = null;
-        if (shouldCreateRoom(body)) {
+        if (isCreateRoom(body)) {
             createRoomData = parsers.getCreateRoomData(body);
         }
 
@@ -144,12 +140,12 @@ module.exports = {
     getFuncAndBody,
     getParserName,
     getBotFunc,
-    shouldPostComment,
-    shouldPostIssueUpdates,
-    shouldCreateRoom,
-    shouldMemberInvite,
-    shouldPostEpicUpdates,
-    shouldPostProjectUpdates,
-    shouldPostNewLinks,
-    shouldPostLinkedChanges,
+    isPostComment,
+    isPostIssueUpdates,
+    isCreateRoom,
+    isMemberInvite,
+    isPostEpicUpdates,
+    isPostProjectUpdates,
+    isPostNewLinks,
+    isPostLinkedChanges,
 };

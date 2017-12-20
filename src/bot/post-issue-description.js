@@ -1,4 +1,4 @@
-const lodash = require('lodash');
+const Ramda = require('ramda');
 const htmlToText = require('html-to-text').fromString;
 const jira = require('../jira');
 const logger = require('../modules/log.js')(module);
@@ -6,7 +6,7 @@ const translate = require('../locales');
 
 const getTextIssue = (issue, address) => {
     const text = String(
-        lodash.get(issue.fields, address) || translate('miss')
+        Ramda.path(['fields', 'address'], issue) || translate('miss')
     ).trim();
 
     return text;
@@ -29,10 +29,9 @@ const getPost = async issue => {
         const epic = await jira.issue.getFormatted(epicLink);
         let nameEpic;
         if (typeof epic === 'object' && epic.key === epicLink) {
-            nameEpic = String(lodash.get(epic.renderedField, 'customfield_10005')
-                || lodash.get(epic.fields, 'customfield_10005')
-                || epicLink
-            );
+            const renderedField = Ramda.path(['renderedField', 'customfield_10005'], epic);
+            const fields = Ramda.path(['fields', 'customfield_10005'], epic);
+            nameEpic = String(renderedField || fields || epicLink);
         }
 
         logger.info(`Epic name: ${nameEpic}; epic key: ${epicLink}`);
@@ -71,18 +70,15 @@ const getPost = async issue => {
     return post;
 };
 
-const getTutorial = () => `
+const getTutorial = `
     <br>
     Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
     `;
 
-const postIssueDescription = async ({mclient, issue, newRoomID}) => {
+module.exports = async ({mclient, issue, newRoomID}) => {
     const post = await getPost(issue);
-    const formatted = Object.assign(
-        {},
-        {post},
-        await jira.issue.renderedValues(issue.id, ['description'])
-    );
+    const renderedValues = await jira.issue.renderedValues(issue.id, ['description']);
+    const formatted = {post, ...renderedValues};
 
     // description
     await mclient.sendHtmlMessage(
@@ -95,8 +91,6 @@ const postIssueDescription = async ({mclient, issue, newRoomID}) => {
     await mclient.sendHtmlMessage(
         newRoomID,
         'Send tutorial',
-        getTutorial()
+        getTutorial
     );
 };
-
-module.exports = {postIssueDescription};

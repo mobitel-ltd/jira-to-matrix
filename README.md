@@ -22,3 +22,5 @@ It is successfully deployed in a medium-size company.
 
 ___
 Developed with Node 8.1. Probably will work on any version having async/await.
+
+[Russian README](https://github.com/mobitel-ltd/jira-to-matrix/blob/BBCOM-1244/newReadme.md)

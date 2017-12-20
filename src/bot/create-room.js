@@ -4,74 +4,71 @@ const logger = require('../modules/log.js')(module);
 const {postIssueDescription} = require('./');
 
 const create = async (client, issue) => {
-    if (!client) {
-        logger.debug(`Not exist matrix client. Key: ${issue.key}`);
-        return;
-    }
-    const participants = (await jira.issue.collectParticipants(issue)).map(
-        helpers.userID
-    );
+    try {
+        const collectParticipants = await jira.issue.collectParticipants(issue);
+        const participants = collectParticipants.map(helpers.userID);
 
-    const options = {
-        // eslint-disable-next-line camelcase
-        room_alias_name: issue.key,
-        invite: participants,
-        name: helpers.composeRoomName(issue),
-        topic: jira.issue.ref(issue.key),
-    };
+        const options = {
+            // eslint-disable-next-line camelcase
+            room_alias_name: issue.key,
+            invite: participants,
+            name: helpers.composeRoomName(issue),
+            topic: jira.issue.ref(issue.key),
+        };
 
-    const response = await client.createRoom(options);
-    if (!response) {
-        return;
+        const response = await client.createRoom(options);
+        if (!response) {
+            return;
+        }
+        logger.info(`Created room for ${issue.key}: ${response.room_id}`);
+        return response.room_id;
+    } catch (err) {
+        logger.error('Error in create');
+
+        throw err;
     }
-    logger.info(`Created room for ${issue.key}: ${response.room_id}`);
-    return response.room_id;
 };
 
 const createRoomProject = async (client, project) => {
-    if (!client) {
-        logger.debug(`Not exist matrix client. Project: ${project}`);
-        return;
-    }
+    try {
+        const options = {
+            // eslint-disable-next-line camelcase
+            room_alias_name: project.key,
+            invite: [helpers.userID(project.lead.key)],
+            name: project.name,
+            topic: jira.issue.refProject(project.key),
+        };
 
-    const options = {
-        // eslint-disable-next-line camelcase
-        room_alias_name: project.key,
-        invite: [helpers.userID(project.lead.key)],
-        name: project.name,
-        topic: jira.issue.refProject(project.key),
-    };
+        const response = await client.createRoom(options);
+        if (!response) {
+            return;
+        }
+        logger.info(`Created room for project ${project.key}: ${response.room_id}`);
+        return response.room_id;
+    } catch (err) {
+        logger.error('createRoomProject Error');
 
-    const response = await client.createRoom(options);
-    if (!response) {
-        return;
+        throw err;
     }
-    logger.info(`Created room for project ${project.key}: ${response.room_id}`);
-    return response.room_id;
 };
 
-const createRoom = async ({mclient, issue, webhookEvent, projectOpts}) => {
+module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
     logger.info('room creating');
     try {
+        if (!mclient) {
+            logger.error(`Not exist matrix client. Key: ${issue.key}`);
+
+            throw 'No Matrix client';
+        }
+
         const room = await mclient.getRoomId(issue.key);
 
-        let newRoomID;
-        if (room) {
-            logger.debug(`Room the issue ${issue.key} is already exists`);
-        } else {
+        if (webhookEvent === 'jira:issue_created' || !room) {
             logger.debug(`Start creating the room for  issue ${issue.key}`);
-            newRoomID = await create(mclient, issue);
-        }
-
-        if (webhookEvent === 'jira:issue_created') {
-            logger.debug(`Start creating the room for issue ${issue.key}`);
-            newRoomID = await create(mclient, issue);
-        } else {
-            logger.debug('room should not be created');
-        }
-
-        if (newRoomID && mclient) {
+            const newRoomID = await create(mclient, issue);
             await postIssueDescription({mclient, issue, newRoomID});
+        } else {
+            logger.debug('Room should not be created');
         }
 
         if (!projectOpts) {
@@ -84,7 +81,7 @@ const createRoom = async ({mclient, issue, webhookEvent, projectOpts}) => {
         if (roomProject) {
             logger.debug(`Room for project ${projectOpts.key} is already exists`);
         } else {
-            logger.warn(`Try to create a room for project ${projectOpts.key}`);
+            logger.debug(`Try to create a room for project ${projectOpts.key}`);
             const project = await jira.issue.getProject(projectOpts.id);
             await createRoomProject(mclient, project);
         }
@@ -94,5 +91,3 @@ const createRoom = async ({mclient, issue, webhookEvent, projectOpts}) => {
         return false;
     }
 };
-
-module.exports = {createRoom};
