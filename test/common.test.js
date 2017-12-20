@@ -1,7 +1,7 @@
 const {webHookUser} = require('../src/jira/common');
 const assert = require('assert');
 
-describe('shouldCreateRoom', () => {
+describe('isCreateRoom', () => {
     it('Extract username from JIRA webhook', () => {
         const samples = [
             [{

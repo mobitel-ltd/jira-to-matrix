@@ -1,14 +1,14 @@
-const {shouldCreateRoom} = require('../src/queue/bot-handler.js');
+const {isCreateRoom} = require('../src/queue/bot-handler.js');
 const assert = require('assert');
 
 describe('Dif funcs testing', function() {
-    it('shouldCreateRoom for null', () => {
-        const result = shouldCreateRoom(null);
+    it('isCreateRoom for null', () => {
+        const result = isCreateRoom(null);
         assert.equal(result, false);
     });
 
-    it('shouldCreateRoom for body', () => {
-        const result = shouldCreateRoom(null);
+    it('isCreateRoom for body', () => {
+        const result = isCreateRoom(null);
         const body = {
             "timestamp": 1512034084304,
             "webhookEvent": "comment_created",

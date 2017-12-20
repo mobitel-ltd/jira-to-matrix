@@ -1,366 +1,60 @@
 {
-    "expand": "renderedFields,names,schema,transitions,operations,editmeta,changelog",
-    "id": "12723457",
-    "self": "https://issues.apache.org/jira/rest/api/latest/issue/12723457",
-    "key": "SOLR-6198",
-    "fields": {
-        "issuetype": {
-            "self": "https://issues.apache.org/jira/rest/api/2/issuetype/1",
-            "id": "1",
-            "description": "A problem which impairs or prevents the functions of the product.",
-            "iconUrl": "https://issues.apache.org/jira/images/icons/issuetypes/bug.png",
-            "name": "Bug",
-            "subtask": false
-        },
+    "renderedFields": {
+        "issuetype": null,
         "timespent": null,
-        "project": {
-            "self": "https://issues.apache.org/jira/rest/api/2/project/12310230",
-            "id": "12310230",
-            "key": "SOLR",
-            "name": "Solr",
-            "avatarUrls": {
-                "48x48": "https://issues.apache.org/jira/secure/projectavatar?pid=12310230&avatarId=22151",
-                "24x24": "https://issues.apache.org/jira/secure/projectavatar?size=small&pid=12310230&avatarId=22151",
-                "16x16": "https://issues.apache.org/jira/secure/projectavatar?size=xsmall&pid=12310230&avatarId=22151",
-                "32x32": "https://issues.apache.org/jira/secure/projectavatar?size=medium&pid=12310230&avatarId=22151"
-            },
-            "projectCategory": {
-                "self": "https://issues.apache.org/jira/rest/api/2/projectCategory/10150",
-                "id": "10150",
-                "description": "Lucene-related projects",
-                "name": "Lucene"
-            }
-        },
-        "fixVersions": [],
+        "project": null,
+        "customfield_10110": null,
+        "customfield_10111": null,
         "aggregatetimespent": null,
-        "resolution": {
-            "self": "https://issues.apache.org/jira/rest/api/2/resolution/5",
-            "id": "5",
-            "description": "All attempts at reproducing this issue failed, or not enough information was available to reproduce the issue. Reading the code produces no clues as to why this behavior would occur. If more information appears later, please reopen the issue.",
-            "name": "Cannot Reproduce"
-        },
-        "customfield_12312322": null,
-        "customfield_12310220": "2014-06-24 20:37:37.745",
-        "customfield_12312520": null,
-        "customfield_12312323": null,
-        "customfield_12312521": "Tue Jun 24 20:41:19 UTC 2014",
-        "customfield_12310420": "401644",
-        "customfield_12312320": null,
-        "customfield_12310222": "1_*:*_1_*:*_930340_*|*_6_*:*_1_*:*_0",
-        "customfield_12312321": null,
-        "customfield_12312120": null,
-        "customfield_12312121": {
-            "completeCycles": []
-        },
-        "resolutiondate": "2014-06-24T20:37:37.719+0000",
-        "workratio": -1,
-        "customfield_12312328": null,
-        "customfield_12312329": null,
-        "customfield_12312923": null,
-        "customfield_12312326": null,
-        "customfield_12312920": null,
-        "customfield_12310300": null,
-        "customfield_12312327": null,
-        "customfield_12312921": null,
-        "customfield_12312324": null,
-        "customfield_12312720": null,
-        "customfield_12312325": null,
+        "resolution": null,
+        "customfield_10302": "",
+        "customfield_10108": null,
+        "resolutiondate": null,
+        "workratio": null,
         "lastViewed": null,
-        "watches": {
-            "self": "https://issues.apache.org/jira/rest/api/2/issue/SOLR-6198/watchers",
-            "watchCount": 3,
-            "isWatching": false
-        },
-        "created": "2014-06-24T20:22:07.411+0000",
-        "priority": {
-            "self": "https://issues.apache.org/jira/rest/api/2/priority/4",
-            "iconUrl": "https://issues.apache.org/jira/images/icons/priorities/minor.png",
-            "name": "Minor",
-            "id": "4"
-        },
-        "labels": [
-            "core.properties"
-        ],
-        "customfield_12312333": null,
-        "customfield_12312334": null,
-        "customfield_12310310": "0.0",
-        "customfield_12312331": null,
-        "customfield_12312332": null,
+        "watches": null,
+        "created": "08/сен/17 11:43 AM",
+        "priority": null,
+        "customfield_10103": null,
+        "customfield_10301": null,
+        "customfield_10810": null,
+        "customfield_10811": null,
         "timeestimate": null,
         "aggregatetimeoriginalestimate": null,
-        "customfield_12312330": null,
-        "customfield_12311120": null,
-        "versions": [
-            {
-                "self": "https://issues.apache.org/jira/rest/api/2/version/12326793",
-                "id": "12326793",
-                "description": "Bugfix release after 4.8",
-                "name": "4.8.1",
-                "archived": false,
-                "released": true,
-                "releaseDate": "2014-05-20"
-            }
-        ],
-        "issuelinks": [],
-        "customfield_12312339": null,
+        "customfield_10813": null,
+        "customfield_10814": null,
+        "issuelinks": null,
         "assignee": null,
-        "customfield_12312337": null,
-        "customfield_12312338": null,
-        "updated": "2014-06-24T20:41:19.218+0000",
-        "customfield_12312335": null,
-        "customfield_12312336": null,
-        "status": {
-            "self": "https://issues.apache.org/jira/rest/api/2/status/6",
-            "description": "The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",
-            "iconUrl": "https://issues.apache.org/jira/images/icons/statuses/closed.png",
-            "name": "Closed",
-            "id": "6",
-            "statusCategory": {
-                "self": "https://issues.apache.org/jira/rest/api/2/statuscategory/3",
-                "id": 3,
-                "key": "done",
-                "colorName": "green",
-                "name": "Done"
-            }
-        },
-        "components": [
-            {
-                "self": "https://issues.apache.org/jira/rest/api/2/component/12313102",
-                "id": "12313102",
-                "name": "multicore",
-                "description": "All issues related to CoreContainer, CoreAdminHandler and other multicore related parts of Solr."
-            }
-        ],
+        "updated": "четверг 3:10 PM",
+        "status": null,
+        "components": null,
         "timeoriginalestimate": null,
-        "description": "I started the example server using {{java -jar start.jar -Dsolr.solr.home=C:\\solr\\home}}. In C:\\sor\\home is a directory named core, in which there is a file named core.properties, with the following content:\n\nname=test\nconfig=config.xml\nschema=schema.xml\ndataDir=data\n\nAfter starting Solr the name of the core is 'core' according to the Core Admin page, not 'test' as expected. ",
-        "customfield_10010": null,
+        "description": "<p>Задача<\/p>",
         "timetracking": {},
-        "customfield_12312026": null,
-        "customfield_12312422": null,
-        "customfield_12312620": [],
-        "customfield_12312023": null,
-        "customfield_12312024": null,
-        "customfield_12312420": null,
-        "customfield_12312340": null,
+        "customfield_10006": null,
+        "customfield_10600": "",
+        "customfield_10602": null,
+        "customfield_10800": null,
+        "customfield_10009": null,
+        "attachment": [],
+        "customfield_10801": null,
         "aggregatetimeestimate": null,
-        "customfield_12312022": null,
-        "customfield_12312341": null,
-        "customfield_12312220": null,
-        "customfield_12310921": null,
-        "customfield_12310920": "401717",
-        "customfield_12312823": null,
-        "summary": "Core name in core.properties is ignored",
-        "creator": {
-            "self": "https://issues.apache.org/jira/rest/api/2/user?username=michielvoo",
-            "name": "michielvoo",
-            "key": "michielvoo",
-            "emailAddress": "apache dot org at websites dot michielvoo dot net",
-            "avatarUrls": {
-                "48x48": "https://issues.apache.org/jira/secure/useravatar?avatarId=10452",
-                "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&avatarId=10452",
-                "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&avatarId=10452",
-                "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&avatarId=10452"
-            },
-            "displayName": "Michiel van Oosterhout",
-            "active": true,
-            "timeZone": "Europe/Berlin"
-        },
-        "subtasks": [],
-        "customfield_12310291": null,
-        "reporter": {
-            "self": "https://issues.apache.org/jira/rest/api/2/user?username=michielvoo",
-            "name": "michielvoo",
-            "key": "michielvoo",
-            "emailAddress": "apache dot org at websites dot michielvoo dot net",
-            "avatarUrls": {
-                "48x48": "https://issues.apache.org/jira/secure/useravatar?avatarId=10452",
-                "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&avatarId=10452",
-                "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&avatarId=10452",
-                "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&avatarId=10452"
-            },
-            "displayName": "Michiel van Oosterhout",
-            "active": true,
-            "timeZone": "Europe/Berlin"
-        },
-        "customfield_12310290": null,
-        "aggregateprogress": {
-            "progress": 0,
-            "total": 0
-        },
-        "customfield_12311024": null,
-        "environment": "Windows 8.1\nOracle Corporation Java HotSpot(TM) 64-Bit Server VM 1.7.0_60",
-        "customfield_12311020": null,
+        "customfield_10802": null,
+        "customfield_10803": null,
+        "customfield_10804": null,
+        "customfield_10805": null,
+        "customfield_10806": null,
+        "customfield_10807": null,
+        "customfield_10808": null,
+        "customfield_10809": null,
+        "summary": null,
+        "creator": null,
+        "subtasks": null,
+        "reporter": null,
+        "aggregateprogress": null,
+        "customfield_10004": null,
+        "environment": "",
         "duedate": null,
-        "customfield_12310250": null,
-        "progress": {
-            "progress": 0,
-            "total": 0
-        },
-        "comment": {
-            "startAt": 0,
-            "maxResults": 2,
-            "total": 2,
-            "comments": [
-                {
-                    "self": "https://issues.apache.org/jira/rest/api/2/issue/12723457/comment/14042647",
-                    "id": "14042647",
-                    "author": {
-                        "self": "https://issues.apache.org/jira/rest/api/2/user?username=erickerickson",
-                        "name": "erickerickson",
-                        "key": "erickerickson",
-                        "emailAddress": "erickerickson at gmail dot com",
-                        "avatarUrls": {
-                            "48x48": "https://issues.apache.org/jira/secure/useravatar?avatarId=10452",
-                            "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&avatarId=10452",
-                            "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&avatarId=10452",
-                            "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&avatarId=10452"
-                        },
-                        "displayName": "Erick Erickson",
-                        "active": true,
-                        "timeZone": "America/New_York"
-                    },
-                    "body": "Please raise questions like this on the user's list before raising a JIRA.\n\n1> this worked for me fine with a trunk build.\n2> likely your solr.xml file is still configured to define the cores so the properties file is being ignored.\n\nI did have to copy solrconfig.xml to config.xml to make your entry work though.\n\nP.S. we can reopen this JIRA if it actually turns out that there is a problem.",
-                    "updateAuthor": {
-                        "self": "https://issues.apache.org/jira/rest/api/2/user?username=erickerickson",
-                        "name": "erickerickson",
-                        "key": "erickerickson",
-                        "emailAddress": "erickerickson at gmail dot com",
-                        "avatarUrls": {
-                            "48x48": "https://issues.apache.org/jira/secure/useravatar?avatarId=10452",
-                            "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&avatarId=10452",
-                            "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&avatarId=10452",
-                            "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&avatarId=10452"
-                        },
-                        "displayName": "Erick Erickson",
-                        "active": true,
-                        "timeZone": "America/New_York"
-                    },
-                    "created": "2014-06-24T20:37:37.745+0000",
-                    "updated": "2014-06-24T20:37:37.745+0000"
-                },
-                {
-                    "self": "https://issues.apache.org/jira/rest/api/2/issue/12723457/comment/14042652",
-                    "id": "14042652",
-                    "author": {
-                        "self": "https://issues.apache.org/jira/rest/api/2/user?username=michielvoo",
-                        "name": "michielvoo",
-                        "key": "michielvoo",
-                        "emailAddress": "apache dot org at websites dot michielvoo dot net",
-                        "avatarUrls": {
-                            "48x48": "https://issues.apache.org/jira/secure/useravatar?avatarId=10452",
-                            "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&avatarId=10452",
-                            "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&avatarId=10452",
-                            "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&avatarId=10452"
-                        },
-                        "displayName": "Michiel van Oosterhout",
-                        "active": true,
-                        "timeZone": "Europe/Berlin"
-                    },
-                    "body": "Sorry.\n\nPS. It was due to a unicode signature.",
-                    "updateAuthor": {
-                        "self": "https://issues.apache.org/jira/rest/api/2/user?username=michielvoo",
-                        "name": "michielvoo",
-                        "key": "michielvoo",
-                        "emailAddress": "apache dot org at websites dot michielvoo dot net",
-                        "avatarUrls": {
-                            "48x48": "https://issues.apache.org/jira/secure/useravatar?avatarId=10452",
-                            "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&avatarId=10452",
-                            "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&avatarId=10452",
-                            "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&avatarId=10452"
-                        },
-                        "displayName": "Michiel van Oosterhout",
-                        "active": true,
-                        "timeZone": "Europe/Berlin"
-                    },
-                    "created": "2014-06-24T20:41:19.218+0000",
-                    "updated": "2014-06-24T20:41:19.218+0000"
-                }
-            ]
-        },
-        "votes": {
-            "self": "https://issues.apache.org/jira/rest/api/2/issue/SOLR-6198/votes",
-            "votes": 0,
-            "hasVoted": false
-        },
-        "worklog": {
-            "startAt": 0,
-            "maxResults": 20,
-            "total": 0,
-            "worklogs": []
-        },
-        "customfield_12311820": "0|i1x4u7:"
-    },
-    "changelog": {
-        "startAt": 0,
-        "maxResults": 2,
-        "total": 2,
-        "histories": [
-            {
-                "id": "14108198",
-                "author": {
-                    "self": "https://issues.apache.org/jira/rest/api/2/user?username=erickerickson",
-                    "name": "erickerickson",
-                    "key": "erickerickson",
-                    "emailAddress": "erickerickson at gmail dot com",
-                    "avatarUrls": {
-                        "48x48": "https://issues.apache.org/jira/secure/useravatar?avatarId=10452",
-                        "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&avatarId=10452",
-                        "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&avatarId=10452",
-                        "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&avatarId=10452"
-                    },
-                    "displayName": "Erick Erickson",
-                    "active": true,
-                    "timeZone": "America/New_York"
-                },
-                "created": "2014-06-24T20:37:37.751+0000",
-                "items": [
-                    {
-                        "field": "resolution",
-                        "fieldtype": "jira",
-                        "from": null,
-                        "fromString": null,
-                        "to": "5",
-                        "toString": "Cannot Reproduce"
-                    },
-                    {
-                        "field": "status",
-                        "fieldtype": "jira",
-                        "from": "1",
-                        "fromString": "Open",
-                        "to": "6",
-                        "toString": "Closed"
-                    }
-                ]
-            },
-            {
-                "id": "16391189",
-                "author": {
-                    "self": "https://issues.apache.org/jira/rest/api/2/user?username=gmcdonald",
-                    "name": "gmcdonald",
-                    "key": "ipv6guru",
-                    "emailAddress": "ipv6guru at gmail dot com",
-                    "avatarUrls": {
-                        "48x48": "https://issues.apache.org/jira/secure/useravatar?ownerId=ipv6guru&avatarId=10405",
-                        "24x24": "https://issues.apache.org/jira/secure/useravatar?size=small&ownerId=ipv6guru&avatarId=10405",
-                        "16x16": "https://issues.apache.org/jira/secure/useravatar?size=xsmall&ownerId=ipv6guru&avatarId=10405",
-                        "32x32": "https://issues.apache.org/jira/secure/useravatar?size=medium&ownerId=ipv6guru&avatarId=10405"
-                    },
-                    "displayName": "Gavin",
-                    "active": true,
-                    "timeZone": "Australia/Melbourne"
-                },
-                "created": "2017-10-11T11:11:45.825+0000",
-                "items": [
-                    {
-                        "field": "Workflow",
-                        "fieldtype": "jira",
-                        "from": "12871572",
-                        "fromString": "classic default workflow",
-                        "to": "13406802",
-                        "toString": "patch-available, re-open possible"
-                    }
-                ]
-            }
-        ]
+        "progress": null
     }
 }

@@ -2,7 +2,6 @@ const {getFuncAndBody} = require('./bot-handler.js');
 const {isIgnore, newSave} = require('../bot');
 const logger = require('../modules/log.js')(module);
 
-
 module.exports = async body => {
     try {
         isIgnore(body);

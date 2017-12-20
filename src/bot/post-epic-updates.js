@@ -1,10 +1,8 @@
-const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const translate = require('../locales');
 const redis = require('../redis-client');
 const jira = require('../jira');
-const {fp} = require('../utils');
 const {epicUpdates: epicConf} = require('../config').features;
 const {postStatusChanged} = require('./helper.js');
 
@@ -22,6 +20,29 @@ const isInEpic = async (epicID, issueID) => {
     }
 };
 
+const getNewIssueMessageBody = ({summary, key}) => {
+    const issueRef = jira.issue.ref(key);
+    const values = {key, issueRef, summary};
+    logger.debug('values', values);
+
+    const body = translate('newIssueInEpic');
+    const message = translate('issueAddedToEpic', values);
+    const htmlBody = marked(message);
+
+    return {body, htmlBody};
+};
+
+const sendNewIssueMessage = async (mclient, roomID, {body, htmlBody}) => {
+    try {
+        const success = await mclient.sendHtmlMessage(roomID, body, htmlBody);
+        return success;
+    } catch (err) {
+        logger.error('Error in sendNewIssueMessage');
+
+        throw err;
+    }
+};
+
 const saveToEpic = async (epicID, issueID) => {
     try {
         await redis.saddAsync(epicRedisKey(epicID), issueID);
@@ -32,23 +53,7 @@ const saveToEpic = async (epicID, issueID) => {
     }
 };
 
-const sendMessageNewIssue = async (mclient, epic, newIssue) => {
-    const values = fp.paths([
-        'epic.fields.summary',
-        'issue.key',
-        'issue.summary',
-    ], {epic, issue: newIssue});
-    values['epic.ref'] = jira.issue.ref(epic.key);
-    values['issue.ref'] = jira.issue.ref(newIssue.key);
-    const success = await mclient.sendHtmlMessage(
-        epic.roomID,
-        translate('newIssueInEpic'),
-        marked(translate('issueAddedToEpic', values))
-    );
-    return success;
-};
-
-const postNewIssue = async (epic, issue, mclient) => {
+const postNewIssue = async (roomID, {epic, issue}, mclient) => {
     try {
         logger.debug('postNewIssue');
 
@@ -57,7 +62,8 @@ const postNewIssue = async (epic, issue, mclient) => {
             logger.debug(`${issue} Already saved in Redis`);
             return;
         }
-        const success = await sendMessageNewIssue(mclient, epic, issue);
+        const newIssueMessageBody = getNewIssueMessageBody(issue);
+        const success = await sendNewIssueMessage(mclient, roomID, newIssueMessageBody);
         if (success) {
             logger.info(
                 `Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`
@@ -71,7 +77,7 @@ const postNewIssue = async (epic, issue, mclient) => {
     }
 };
 
-module.exports = async ({mclient, data, epicKey}) => {
+const postEpicUpdates = async ({mclient, data, epicKey}) => {
     try {
         logger.info('postEpicUpdates start');
         if (!epicKey) {
@@ -88,10 +94,9 @@ module.exports = async ({mclient, data, epicKey}) => {
             logger.debug('no roomID');
             return true;
         }
-        const epicPlus = Ramda.assoc('roomID', roomID, epic);
 
         if (epicConf.newIssuesInEpic === 'on') {
-            await postNewIssue(epicPlus, data, mclient);
+            await postNewIssue(roomID, {epic, issue: data}, mclient);
         }
         if (epicConf.issuesStatusChanged === 'on') {
             await postStatusChanged(roomID, data, mclient);
@@ -102,3 +107,5 @@ module.exports = async ({mclient, data, epicKey}) => {
         throw err;
     }
 };
+
+module.exports = {getNewIssueMessageBody, postEpicUpdates};

@@ -1,51 +1,36 @@
-const Ramda = require('ramda');
 const jira = require('../jira');
 const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
 
-const helpers = {
-    fieldNames: items => Ramda.pipe(
-        Ramda.map(Ramda.prop('field')),
-        Ramda.uniq
-    )(items || []),
+const fieldNames = items =>
+    items.reduce((acc, {field}) =>
+        (field ? [...acc, field] : acc), []);
 
-    toStrings: items =>
-        items.reduce((result, item) =>
-            Ramda.merge(result, {[item.field]: item.toString}),
-        {}),
-};
+const itemsToString = items =>
+    items.reduce((acc, {field, toString}) =>
+        (field ? {...acc, [field]: toString} : acc), {});
 
 const composeText = ({author, fields, formattedValues}) => {
-    const messageHeader = () => `${author} ${translate('issue_updated', null, author)}`;
-    const changesDescription = () =>
-        fields.map(field => `${field}: ${formattedValues[field]}`);
+    const messageHeader = `${author} ${translate('issue_updated', null, author)}`;
+    const changesDescription = fields.map(field =>
+        `${field}: ${formattedValues[field]}`);
 
-    return [messageHeader(author)]
-        .concat(changesDescription(fields, formattedValues))
-        .join('<br>');
+    return [messageHeader, ...changesDescription].join('<br>');
 };
 
-
-const postUpdateInfo = async (mclient, roomID, body) => {
+const postUpdateInfo = async (mclient, roomID, {changelog, key, user}) => {
     try {
-        const {changelog, key, user} = body;
-        const fields = helpers.fieldNames(changelog.items);
+        const author = user.displayName;
+        const fields = fieldNames(changelog.items);
+        const changelogItemsTostring = itemsToString(changelog.items);
+        const renderedValues = await jira.issue.renderedValues(key, fields);
 
-        const formattedValues = Object.assign(
-            {},
-            helpers.toStrings(changelog.items),
-            await jira.issue.renderedValues(key, fields)
-        );
+        const formattedValues = {...changelogItemsTostring, ...renderedValues};
 
-        await mclient.sendHtmlMessage(
-            roomID,
-            translate('issueHasChanged'),
-            composeText({
-                author: Ramda.path(['displayName'], user),
-                fields,
-                formattedValues,
-            })
-        );
+        const htmlBody = composeText({author, fields, formattedValues});
+        const body = translate('issueHasChanged');
+
+        await mclient.sendHtmlMessage(roomID, body, htmlBody);
 
         logger.debug(`Posted updates to ${key}`);
     } catch (err) {
@@ -112,6 +97,7 @@ const postIssueUpdates = async body => {
 
 module.exports.postIssueUpdates = postIssueUpdates;
 module.exports.forTests = {
-    toStrings: helpers.toStrings,
+    itemsToString,
     composeText,
+    fieldNames,
 };

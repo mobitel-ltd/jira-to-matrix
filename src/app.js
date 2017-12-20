@@ -12,10 +12,15 @@ const newQueueHandler = require('../src/queue');
 const queuePush = new EventEmitter();
 
 const connectToMatrix = () => (async () => {
-    const connection = await Matrix.connect();
+    try {
+        const connection = await Matrix.connect();
+        queuePush.emit('startQueueHandler');
 
-    queuePush.emit('startQueueHandler');
-    return connection;
+        return connection;
+    } catch (err) {
+        logger.error('No Matrix connection ', err);
+        return null;
+    }
 })();
 
 const CHECK_QUEUE_DELAY = 30 * 60 * 1000;

@@ -22,7 +22,8 @@ const postStatusData = issue => {
         .reduce((acc, key) => ({...acc, [key]: issue[key]}), baseValues);
 
     const body = translate('statusHasChanged', values);
-    const htmlBody = marked(translate('statusHasChangedMessage', values, values.name));
+    const message = translate('statusHasChangedMessage', values, values.name);
+    const htmlBody = marked(message);
 
     return {body, htmlBody};
 };

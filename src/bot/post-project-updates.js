@@ -25,12 +25,11 @@ const newEpic = async (roomId, mclient, data) => {
         'issue.fields.summary': data.fields.summary,
     };
     values['issue.ref'] = jira.issue.ref(data.key);
+    const body = translate('newEpicInProject');
+    const message = translate('epicAddedToProject', values, values['user.name']);
+    const htmlBody = marked(message);
 
-    await mclient.sendHtmlMessage(
-        roomId,
-        translate('newEpicInProject'),
-        marked(translate('epicAddedToProject', values, values['user.name']))
-    );
+    await mclient.sendHtmlMessage(roomId, body, htmlBody);
 };
 
 module.exports = async ({mclient, typeEvent, projectOpts, data}) => {

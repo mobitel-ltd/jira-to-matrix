@@ -46,7 +46,8 @@ describe('bot func', function() {
         const result = getBotFunc(secondBody);
         logger.debug('result', result);
         const expected = [
-            'inviteNewMembers', 
+            'inviteNewMembers',
+            "postComment", 
             'postEpicUpdates', 
             'postNewLinks', 
         ];
@@ -60,15 +61,15 @@ describe('bot func', function() {
         assert.ok(Array.isArray(result));
     });
 
-    it('postComment', async () => {
-        const mclient = await Matrix.connect();
-        const postCommentData = getPostCommentData(firstBody);
-        const body = {mclient, ...postCommentData};
-        const result = await postComment(body);
-        logger.debug('result', result);
-        assert.ok(result);
-        Matrix.disconnect();
-    })
+    // it('postComment', async () => {
+    //     const mclient = await Matrix.connect();
+    //     const postCommentData = getPostCommentData(firstBody);
+    //     const body = {mclient, ...postCommentData};
+    //     const result = await postComment(body);
+    //     logger.debug('result', result);
+    //     assert.ok(result);
+    //     Matrix.disconnect();
+    // })
 
     // it('createRoom', async () => {
     //     const {connect, disconnect, helpers} = matrixApi;

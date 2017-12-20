@@ -35,7 +35,6 @@
     "jest": "^21.2.1",
     "jira-connector": "^2.7.0",
     "joi": "^10.5.2",
-    "lodash": "^4.17.4",
     "marked": "^0.3.6",
     "matrix-js-sdk": "^0.8.5",
     "moment": "^2.18.1",

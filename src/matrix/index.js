@@ -99,9 +99,16 @@ class Matrix {
      * @returns {Class} connected MatrixClient with api for Jira
      */
     async connect() {
-        await this._getClient();
-        const result = await apiClient(this.client);
-        return result;
+        try {
+            await this._getClient();
+            const result = await apiClient(this.client);
+
+            return result;
+        } catch (err) {
+            logger.error('Error in Matrix connection');
+
+            throw err;
+        }
     }
 
     /**

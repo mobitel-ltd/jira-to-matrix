@@ -1,7 +1,6 @@
 // @flow
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const lodash = require('lodash');
 const conf = require('../config');
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
@@ -27,12 +26,13 @@ const extractID = json => {
 const collectParticipants = async ({url, collectParticipantsBody}) => {
     if (url) {
         const body = await fetchJSON(url, auth());
-        if (body && body.watchers instanceof Array) {
+        if (body && Array.isArray(body.watchers)) {
             const watchers = body.watchers.map(one => one.name);
             collectParticipantsBody.push(...watchers);
         }
     }
-    return lodash.uniq(collectParticipantsBody.filter(one => !!one));
+    const result = new Set(collectParticipantsBody.filter(Boolean));
+    return [...result];
 };
 
 /* :Array<{}>*/
@@ -56,9 +56,11 @@ const getProject = async (id, params) => {
 };
 
 /* :string*/
-const getFormatted = issueID => {
+const getFormatted = async issueID => {
     const params = [{expand: 'renderedFields'}];
-    return get(issueID, params);
+    const result = await get(issueID, params);
+
+    return result;
 };
 
 /* :string*/
@@ -66,9 +68,11 @@ const getFormatted = issueID => {
 const renderedValues = async (issueID, fields) => {
     const issue = await getFormatted(issueID);
     if (!issue) {
-        logger.warn('issue from jira.issue.renderedValues is not defained');
+        logger.warn('issue from jira.issue.renderedValues is not defined');
+
         return;
     }
+
     return Ramda.pipe(
         Ramda.pick(fields),
         Ramda.filter(value => !!value)
