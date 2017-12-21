@@ -58,7 +58,11 @@ describe('paramsToQueryString', () => {
             'issue.key',		
             'issue.fields.summary',		
         ], hook);
-        const expected = ['jira_test', 'BBCOM-956', 'BBCOM-956'];
+        const expected = { 
+            'user.name': 'jira_test',
+            'issue.key': 'BBCOM-956',
+            'issue.fields.summary': 'BBCOM-956',
+        };
 
         assert.deepEqual(result, expected);
     });

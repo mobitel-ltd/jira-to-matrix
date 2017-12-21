@@ -58,6 +58,7 @@ class Matrix {
      */
     _executor(resolve) {
         const syncHandler = state => {
+            logger.debug('state', state);
             if (state === 'SYNCING') {
                 logger.info('well connected');
                 resolve(this.client);
