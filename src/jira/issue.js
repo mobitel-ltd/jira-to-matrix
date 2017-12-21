@@ -1,18 +1,23 @@
-// @flow
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const conf = require('../config');
+const {url: jiraUrl} = require('../config').jira;
 const {auth} = require('./common');
 const {fetchJSON, paramsToQueryString} = require('../utils');
 
-/* :string*/
-const refProject = projectKey => `${conf.jira.url}/projects/${projectKey}`;
+/**
+ * Get url for jira project by key
+ * @param {string} key key of jira project
+ * @param {string} type by default 'browse', param of url
+ * @return {string} url
+ */
+const ref = (key, type = 'browse') =>
+    [jiraUrl, type, key].join('/');
 
-/* :string*/
-const ref = issueKey => `${conf.jira.url}/browse/${issueKey}`;
-
-/* :string*/
-/* :?string*/
+/**
+ * Get issue ID from jira webhook
+ * @param {object} json jira webhook
+ * @return {string} issue ID
+ */
 const extractID = json => {
     const matches = /\/issue\/(\d+)\//.exec(json);
     if (!matches) {
@@ -22,12 +27,17 @@ const extractID = json => {
     return matches[1];
 };
 
-/* :{}*/
+/**
+ * Make jira request to get watchers of issue from url and add to collectParticipantsBody
+ * @param {string} url url for request 
+ * @param {array} collectParticipantsBody array of users linked to current issue
+ * @return {array} jira response with issue
+ */
 const collectParticipants = async ({url, collectParticipantsBody}) => {
     if (url) {
         const body = await fetchJSON(url, auth());
         if (body && Array.isArray(body.watchers)) {
-            const watchers = body.watchers.map(one => one.name);
+            const watchers = body.watchers.map(item => item.name);
             collectParticipantsBody.push(...watchers);
         }
     }
@@ -35,9 +45,14 @@ const collectParticipants = async ({url, collectParticipantsBody}) => {
     return [...result];
 };
 
-/* :Array<{}>*/
+/**
+ * Make GET request to jira by issueID and params
+ * @param {string} id issue ID in jira
+ * @param {string} params url params
+ * @return {object} jira response with issue
+ */
 const get = async (id, params) => {
-    const url = `${conf.jira.url}/rest/api/2/issue/${id}${paramsToQueryString(params)}`;
+    const url = `${jiraUrl}/rest/api/2/issue/${id}${paramsToQueryString(params)}`;
     logger.debug('url for jira fetch', url);
     const issue = await fetchJSON(
         url,
@@ -46,16 +61,25 @@ const get = async (id, params) => {
     return issue;
 };
 
-const getProject = async (id, params) => {
-    const url = `${conf.jira.url}/rest/api/2/project/${id}${paramsToQueryString(params)}`;
-    const issue = await fetchJSON(
+/**
+ * Make GET request to jira by projectID
+ * @param {string} id project ID in jira
+ * @return {object} jira response with issue
+ */
+const getProject = async id => {
+    const url = `${jiraUrl}/rest/api/2/project/${id}}`;
+    const project = await fetchJSON(
         url,
         auth()
     );
-    return issue;
+    return project;
 };
 
-/* :string*/
+/**
+ * Make request to jira by issueID adding renderedFields
+ * @param {string} issueID issue ID in jira
+ * @return {object} jira response
+ */
 const getFormatted = async issueID => {
     const params = [{expand: 'renderedFields'}];
     const result = await get(issueID, params);
@@ -63,8 +87,12 @@ const getFormatted = async issueID => {
     return result;
 };
 
-/* :string*/
-/* :string[]*/
+/**
+ * Make request to jira by issueID adding renderedFields and filter by fields
+ * @param {string} issueID issue ID in jira
+ * @param {object} fields fields for filtering
+ * @return {object} data from fields
+ */
 const renderedValues = async (issueID, fields) => {
     const issue = await getFormatted(issueID);
     if (!issue) {
@@ -80,7 +108,6 @@ const renderedValues = async (issueID, fields) => {
 };
 
 module.exports = {
-    refProject,
     ref,
     extractID,
     collectParticipants,

@@ -1,8 +1,8 @@
-const {getBotFunc} = require('../src/queue/bot-handler');
+const {getBotFunc} = require('../../src/queue/bot-handler');
 const assert = require('assert');
-const logger = require('../src/modules/log.js')(module);
-const firstBody = require('./fixtures/comment-create-1.json');
-const secondBody = require('./fixtures/comment-create-2.json');
+const logger = require('../../src/modules/log.js')(module);
+const firstBody = require('../fixtures/comment-create-1.json');
+const secondBody = require('../fixtures/comment-create-2.json');
 const {
     postEpicUpdates, 
     postComment,
@@ -12,9 +12,9 @@ const {
     postLinkedChanges,
     postIssueUpdates,
     postProjectUpdates,
-} = require('../src/bot');
-const bot = require('../src/bot');
-const Matrix = require('../src/matrix/');
+} = require('../../src/bot');
+const bot = require('../../src/bot');
+const Matrix = require('../../src/matrix/');
 const {
     getPostEpicUpdatesData, 
     getPostCommentData, 
@@ -24,7 +24,7 @@ const {
     getPostLinkedChangesData,
     getPostIssueUpdatesData,
     getPostProjectUpdatesData,
-} = require('../src/queue/parse-body.js');
+} = require('../../src/queue/parse-body.js');
 
 describe('bot func', function() {
     this.timeout(15000);
@@ -47,7 +47,6 @@ describe('bot func', function() {
         logger.debug('result', result);
         const expected = [
             'inviteNewMembers',
-            "postComment", 
             'postEpicUpdates', 
             'postNewLinks', 
         ];

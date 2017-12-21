@@ -18,14 +18,16 @@ const isCommentEvent = ({webhookEvent, issue_event_type_name: issueEventTypeName
 };
 
 const isPostComment = body => Boolean(
-    typeof body === 'object'
+    body
+    && typeof body === 'object'
     && isCommentEvent(body)
     && typeof body.comment === 'object'
     && features.postComments
 );
 
 const isPostIssueUpdates = body => Boolean(
-    typeof body === 'object'
+    body
+    && typeof body === 'object'
     && body.webhookEvent === 'jira:issue_updated'
     && typeof body.changelog === 'object'
     && typeof body.issue === 'object'
@@ -42,14 +44,16 @@ const isCreateRoom = body => Boolean(
 );
 
 const isMemberInvite = body => Boolean(
-    typeof body === 'object'
+    body
+    && typeof body === 'object'
     && body.webhookEvent === 'jira:issue_updated'
     && typeof body.issue === 'object'
     && features.inviteNewMembers
 );
 
 const isPostEpicUpdates = body => Boolean(
-    typeof body === 'object'
+    body
+    && typeof body === 'object'
     && (
         body.webhookEvent === 'jira:issue_updated'
         || (body.webhookEvent === 'jira:issue_created' && typeof body.changelog === 'object')
@@ -59,7 +63,8 @@ const isPostEpicUpdates = body => Boolean(
 );
 
 const isPostProjectUpdates = body => Boolean(
-    typeof body === 'object'
+    body
+    && typeof body === 'object'
     && (
         body.webhookEvent === 'jira:issue_updated'
         || (body.webhookEvent === 'jira:issue_created')
@@ -75,7 +80,8 @@ const isPostProjectUpdates = body => Boolean(
 );
 
 const isPostNewLinks = body => Boolean(
-    typeof body === 'object'
+    body
+    && typeof body === 'object'
     && (
         body.webhookEvent === 'jira:issue_updated'
         || body.webhookEvent === 'jira:issue_created'
@@ -85,7 +91,8 @@ const isPostNewLinks = body => Boolean(
 );
 
 const isPostLinkedChanges = body => Boolean(
-    typeof body === 'object'
+    body
+    && typeof body === 'object'
     && body.webhookEvent === 'jira:issue_updated'
     && typeof body.changelog === 'object'
     && typeof body.issue === 'object'

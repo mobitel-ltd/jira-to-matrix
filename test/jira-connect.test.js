@@ -22,7 +22,7 @@ describe('Auth Jira', function() {
             })
             .get('/jira/rest/api/2/issue/26171')
             .reply(200, {result: true});  
-    })
+    });
     // it('test Jira client', async () => {
     //     const authForJiraClient = auth().split(' ')[1];
     //     const jira = new JiraClient( {

@@ -36,7 +36,7 @@ const createRoomProject = async (client, project) => {
             room_alias_name: project.key,
             invite: [helpers.userID(project.lead.key)],
             name: project.name,
-            topic: jira.issue.refProject(project.key),
+            topic: jira.issue.ref(project.key, 'projects'),
         };
 
         const response = await client.createRoom(options);

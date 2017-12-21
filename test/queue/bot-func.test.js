@@ -1,4 +1,4 @@
-const {isCreateRoom} = require('../src/queue/bot-handler.js');
+const {isCreateRoom} = require('../../src/queue/bot-handler.js');
 const assert = require('assert');
 
 describe('Dif funcs testing', function() {

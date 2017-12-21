@@ -1,10 +1,10 @@
 const assert = require('assert');
-const logger = require('../src/modules/log.js')(module);
-const firstBody = require('./fixtures/comment-create-1.json');
-const secondBody = require('./fixtures/comment-create-2.json');
-const parsers = require('../src/queue/parse-body.js');
-const bot = require('../src/bot');
-const {getBotFunc, getParserName, getFuncAndBody} = require('../src/queue/bot-handler.js');
+const logger = require('../../src/modules/log.js')(module);
+const firstBody = require('../fixtures/comment-create-1.json');
+const secondBody = require('../fixtures/comment-create-2.json');
+const parsers = require('../../src/queue/parse-body.js');
+const bot = require('../../src/bot');
+const {getBotFunc, getParserName, getFuncAndBody} = require('../../src/queue/bot-handler.js');
 
 describe('get-bot-data', function() {
     it('test correct firstBody parse', () => {

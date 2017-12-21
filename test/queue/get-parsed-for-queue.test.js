@@ -1,13 +1,13 @@
 const assert = require('assert');
-const logger = require('../src/modules/log.js')(module);
-const firstBody = require('./fixtures/comment-create-1.json');
-const secondBody = require('./fixtures/comment-create-2.json');
-const parsers = require('../src/queue/parse-body.js');
-const bot = require('../src/bot');
-const {getBotFunc, getParserName, getFuncAndBody, isCommentEvent} = require('../src/queue/bot-handler.js');
-const getParsedAndSaveToRedis = require('../src/queue/get-parsed-and-save-to-redis.js');
-const conf = require('./fixtures/config.js');
-const redis = require('../src/redis-client.js');
+const logger = require('../../src/modules/log.js')(module);
+const firstBody = require('../fixtures/comment-create-1.json');
+const secondBody = require('../fixtures/comment-create-2.json');
+const parsers = require('../../src/queue/parse-body.js');
+const bot = require('../../src/bot');
+const {getBotFunc, getParserName, getFuncAndBody, isCommentEvent} = require('../../src/queue/bot-handler.js');
+const getParsedAndSaveToRedis = require('../../src/queue/get-parsed-and-save-to-redis.js');
+const conf = require('../fixtures/config.js');
+const redis = require('../../src/redis-client.js');
 
 describe('get-bot-data', function() {
     const redisKey = 'postComment_1512034084304';

@@ -82,7 +82,7 @@ queuePush.on('startQueueHandler', async () => {
 });
 
 const onExit = err => {
-    logger.error('Jira Bot stoped ', err);
+    logger.warn('Jira Bot stoped ', err);
     clearInterval(checkQueueInterval);
     Matrix.disconnect();
 

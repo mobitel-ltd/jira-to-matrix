@@ -3,10 +3,24 @@ const fakeConfig = require('./fixtures/config');
 const Matrix = require('../src/matrix');
 const assert = require('assert');
 const logger = require('../src/modules/log.js')(module);
+const nock = require('nock');
 
 describe('Matrix api', async function() {
     this.timeout(15000);
     let client;
+    const {password, userId, baseUrl} = config.matrix;
+
+    before(() => {
+        nock(baseUrl)
+            .get('/sync')
+            .reply('SYNCING')
+            .post('/_matrix/client/r0/login', {
+                type: "m.login.password",
+                user: userId,
+                password,
+            })
+            .reply(200, {access_token: 'accessToken'});  
+    });
 
     it('test matrix true config connect from sdk-client', async () => {
         client = await Matrix.connect();

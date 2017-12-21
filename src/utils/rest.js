@@ -2,11 +2,6 @@ const Ramda = require('ramda');
 const fetch = require('node-fetch');
 const logger = require('../modules/log.js')(module);
 
-/**
- * @param {String} url URL to JIRA API
- * @param {String} basicAuth Authorization parameters for API
- * @returns {Promise} ???
- */
 const fetchJSON = async (url, basicAuth) => {
     const options = {
         headers: {Authorization: basicAuth},
@@ -67,10 +62,6 @@ const fetchPutJSON = async (url, basicAuth, body) => {
     }
 };
 
-/**
- * @param {Array} params ???
- * @return {*} ???
-*/
 const paramsToQueryString = params => {
     const toStrings = Ramda.map(Ramda.pipe(
         Ramda.mapObjIndexed((value, key) => `${key}=${value}`),
