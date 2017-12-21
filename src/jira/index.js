@@ -1,7 +1,5 @@
-/* eslint-disable global-require */
-module.exports = Object.assign(
-    require('./common'),
-    {issue: require('./issue')},
-    {epic: require('./epic')},
-    {link: require('./link')}
-);
+const common = require('./common');
+const issue = require('./issue');
+const link = require('./link');
+
+module.exports = {...common, issue, link};

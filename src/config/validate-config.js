@@ -56,10 +56,10 @@ const schema = obj({
         syncTimeoutSec: int,
     }),
     log: {
-        type: 'both',
-        filePath: 'logs/service',
-        fileLevel: 'silly',
-        consoleLevel: 'debug',
+        type: string,
+        filePath: string,
+        fileLevel: string,
+        consoleLevel: string,
     },
 });
 
