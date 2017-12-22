@@ -114,7 +114,11 @@ const inviteBot = async function InviteBot(event) {
     let sender = event.getSender();
     sender = sender.slice(1, -conf.postfix);
 
-    if (!conf.admins.includes(sender) && sender !== conf.user) {
+    if (
+        !conf.admins.includes(sender)
+        && sender !== conf.user
+        && event.getStateKey() === conf.userId
+    ) {
         await this.leave(event.getRoomId());
         return;
     }
