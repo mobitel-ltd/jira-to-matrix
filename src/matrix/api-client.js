@@ -31,9 +31,9 @@ const getRoomId = client => async alias => {
 
 const getRoomByAlias = client => async alias => {
     try {
-        const roomID = await client.getRoomIdForAlias(getAlias(alias));
+        const {room_id: roomId} = await client.getRoomIdForAlias(getAlias(alias));
 
-        const room = await client.getRoom(roomID.room_id);
+        const room = await client.getRoom(roomId);
         return room;
     } catch (err) {
         logger.error(`Error while getting room id for ${alias} from Matrix:`);
@@ -41,15 +41,6 @@ const getRoomByAlias = client => async alias => {
         throw err;
     }
 };
-
-// const getRoomMembers = () => async function GetRoomMembers(roomAlias) {
-//     const room = await this.getRoomByAlias(roomAlias);
-//     if (!room) {
-//         logger.warn(`Don't return room for alias ${roomAlias}`);
-//         return;
-//     }
-//     return Object.values(room.currentState.members).map(member => member.userId);
-// };
 
 const invite = client => async (roomId, userId) => {
     try {
@@ -106,7 +97,6 @@ const setRoomTopic = client => async (roomId, topic) => {
 
 const api = {
     createRoom,
-    // getRoomMembers,
     getRoomId,
     getRoomByAlias,
     invite,

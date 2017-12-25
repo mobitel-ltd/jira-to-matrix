@@ -1,26 +1,31 @@
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const marked = require('marked');
-const redis = require('../redis-client');
+const redis = require('../redis-client.js');
 const jira = require('../jira');
 const translate = require('../locales');
+
+const getPostLinkMessageBody = ({relation, related}) => {
+    const {key} = related;
+    const issueRef = jira.issue.ref(key);
+    const summary = Ramda.path(['fields', 'summary'], related);
+    const values = {key, relation, summary, issueRef};
+
+    const body = translate('newLink');
+    const message = translate('newLinkMessage', values);
+    const htmlBody = marked(message);
+
+    return {body, htmlBody};
+};
 
 const postLink = async (issue, relation, related, mclient) => {
     const roomID = await mclient.getRoomId(issue.key);
     if (!roomID) {
         return;
     }
-    const values = {
-        relation,
-        key: related.key,
-        summary: Ramda.path(['fields', 'summary'], related),
-        ref: jira.issue.ref(related.key),
-    };
-    await mclient.sendHtmlMessage(
-        roomID,
-        translate('newLink'),
-        marked(translate('newLinkMessage', values))
-    );
+
+    const {body, htmlBody} = getPostLinkMessageBody({relation, related});
+    await mclient.sendHtmlMessage(roomID, body, htmlBody);
 };
 
 const handleLink = async (issueLink, mclient) => {
@@ -32,12 +37,13 @@ const handleLink = async (issueLink, mclient) => {
         const isNew = await redis.setnxAsync(`link|${link.id}`, '1');
 
         if (!isNew) {
+            logger.info(`link ${link.id} is already been posted to room`);
             return;
         }
         await postLink(link.inwardIssue, link.type.outward, link.outwardIssue, mclient);
         await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
     } catch (err) {
-        logger.error(`Redis error while SETNX new link`);
+        logger.error(`HandleLink error in post link`);
 
         throw err;
     }

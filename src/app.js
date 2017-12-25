@@ -28,7 +28,6 @@ const CHECK_QUEUE_DELAY = 30 * 60 * 1000;
 const checkQueueInterval = setInterval(() => {
     queuePush.emit('startQueueHandler');
 }, CHECK_QUEUE_DELAY);
-
 const client = connectToMatrix();
 checkQueueInterval.unref();
 

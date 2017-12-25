@@ -23,7 +23,6 @@ const isInEpic = async (epicID, issueID) => {
 const getNewIssueMessageBody = ({summary, key}) => {
     const issueRef = jira.issue.ref(key);
     const values = {key, issueRef, summary};
-    logger.debug('values', values);
 
     const body = translate('newIssueInEpic');
     const message = translate('issueAddedToEpic', values);
