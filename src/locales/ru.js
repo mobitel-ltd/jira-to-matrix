@@ -9,16 +9,16 @@ const dict = Object.freeze({
     issue_updated: 'изменил%{f} задачу',
     issueHasChanged: 'Задача изменена',
     statusHasChanged: '%{key} "%{summary}" теперь в статусе "%{status}"',
-    statusHasChangedMessage: '%{name} изменил%{f} статус связанной задачи [%{key} "%{summary}"](%{ref}) на **%{status}**',
+    statusHasChangedMessage: '%{name} изменил%{f} статус связанной задачи [%{key} "%{summary}"](%{issueRef}) на **%{status}**',
     newIssueInEpic: 'Новая задача в эпике',
     issueAddedToEpic: 'К эпику добавлена задача [%{key} %{summary}](%{issueRef})',
     newLink: 'Новый линк',
-    newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{ref})',
+    newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{issueRef})',
     miss: 'отсутствует',
-    epicAddedToProject: 'К проекту добавлен эпик [%{issue.key} %{issue.fields.summary}](%{issue.ref})',
+    epicAddedToProject: 'К проекту добавлен эпик [%{key} %{summary}](%{issueRef})',
     newEpicInProject: 'Новый эпик в проекте',
     statusEpicChanged: 'Эпик изменён',
-    statusEpicChangedMessage: '%{user.name} изменил%{f} статус связанного эпика [%{issue.key} "%{issue.fields.summary}"](%{issue.ref}) на **%{status}**',
+    statusEpicChangedMessage: '%{name} изменил%{f} статус связанного эпика [%{key} "%{summary}"](%{issueRef}) на **%{status}**',
     errorMatrixCommands: 'Что-то пошло не так! Ваш запрос не выполнен, пожалуйста, попробуйте еще раз',
     errorMatrixAssign: 'ОШИБКА! Пользователь "%{assignee}" не существует',
     successMatrixAssign: 'Пользователь %{assignee} назначен исполнителем задачи',
@@ -55,5 +55,4 @@ const tValues = function tValues(values, personName) {
     return Ramda.assoc('f', ending, values);
 };
 
-module.exports.dict = dict;
-module.exports.tValues = tValues;
+module.exports = {dict, tValues};

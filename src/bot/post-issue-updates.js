@@ -95,9 +95,11 @@ const postIssueUpdates = async body => {
     }
 };
 
-module.exports.postIssueUpdates = postIssueUpdates;
-module.exports.forTests = {
-    itemsToString,
-    composeText,
-    fieldNames,
+module.exports = {
+    postIssueUpdates,
+    forTests: {
+        itemsToString,
+        composeText,
+        fieldNames,
+    },
 };

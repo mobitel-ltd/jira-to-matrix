@@ -1,11 +1,8 @@
 const Ramda = require('ramda');
 const path = require('path');
 const validate = require('./validate-config.js');
-// const logger = require('../modules/log.js')(module);
 
 const env = process.env.NODE_ENV || 'development';
-
-// logger.debug(`process.env.NODE_ENV ${env}`);
 
 const configPath = {
     development: './',

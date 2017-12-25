@@ -132,12 +132,12 @@ const getFuncAndBody = body => {
             ...parsers[getParserName(funcName)](body),
             createRoomData,
         };
-        logger.debug('data', data);
 
         const redisKey = `${funcName}_${body.timestamp}`;
         logger.debug('redisKey', redisKey);
+        const state = false;
 
-        return [...acc, {redisKey, funcName, data}];
+        return [...acc, {redisKey, funcName, data, state}];
     }, []);
 
     return result;

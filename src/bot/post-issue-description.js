@@ -79,11 +79,12 @@ module.exports = async ({mclient, issue, newRoomID}) => {
     const post = await getPost(issue);
     const renderedValues = await jira.issue.renderedValues(issue.id, ['description']);
     const formatted = {post, ...renderedValues};
+    const htmlBody = htmlToText(formatted);
 
     // description
     await mclient.sendHtmlMessage(
         newRoomID,
-        htmlToText(formatted),
+        htmlBody,
         formatted.post
     );
 

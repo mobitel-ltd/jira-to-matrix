@@ -2,6 +2,7 @@ const assert = require('assert');
 const logger = require('../../src/modules/log.js')(module);
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
+const fivesBody = require('../fixtures/5.json');
 const parsers = require('../../src/queue/parse-body.js');
 const bot = require('../../src/bot');
 const {getBotFunc, getParserName, getFuncAndBody} = require('../../src/queue/bot-handler.js');
@@ -30,6 +31,26 @@ describe('get-bot-data', function() {
         }];
 
         assert.deepEqual(parsedData, expectedData);
+    });
+
+    it('test correct objects', () => {
+        const correctBody = getFuncAndBody(firstBody);
+        const expected = [{
+            redisKey: 'postComment_1512034084304',
+            funcName: 'postComment',
+            data: {
+                createRoomData: null,
+                issueID: '26313',
+                headerText: 'jira_test добавил(а) комментарий',
+                comment: { 
+                    body: '12345', 
+                    id: '31039', 
+                },
+                author: 'jira_test' 
+            }
+        }];
+
+        assert.deepEqual(correctBody, expected);
     });
 
     it('test correct secondBody parse', () => {
@@ -77,24 +98,35 @@ describe('get-bot-data', function() {
         assert.deepEqual(parsedData, expectedData);
     });
     
-    it('test correct objects', () => {
-        logger.debug('getFuncAndBody', getFuncAndBody);
-        const correctBody = getFuncAndBody(firstBody);
-        const expected = [{
-            redisKey: 'postComment_1512034084304',
-            funcName: 'postComment',
-            data: {
-                createRoomData: null,
-                issueID: '26313',
-                headerText: 'jira_test добавил(а) комментарий',
-                comment: { 
-                    body: '12345', 
-                    id: '31039', 
+    it('test correct objects fivesBody', () => {
+        const correctBody = getFuncAndBody(fivesBody);
+        logger.debug(correctBody);
+        const expected = [
+            {
+                "issue": {
+                    "collectParticipantsBody": [
+                        "jira_test",
+                        "jira_test",
+                        "jira_test",
+                    ],
+                    "key": "BBCOM-956",
+                    "url": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-956/watchers",
                 },
-                author: 'jira_test' 
-            }
-        }];
+            },
+            {
+                "data": {
+                    "changelog": undefined,
+                    "id": "26313",
+                    "key": "BBCOM-956",
+                    "name": "jira_test",
+                    "summary": "BBCOM-956",
+                },
+                "epicKey": "BBCOM-801",
+            },
+            {
+                "links": [],
+            }];
 
-        assert.deepEqual(correctBody, expected);
+        assert.deepEqual(correctBody, expected.length);
     })
 });

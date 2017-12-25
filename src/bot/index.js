@@ -1,14 +1,14 @@
-const newSave = require('./save-incoming');
-const isIgnore = require('./stop-if-user-ignored');
-const createRoom = require('./create-room');
-const postIssueDescription = require('./post-issue-description');
-const inviteNewMembers = require('./invite-new-members');
-const postComment = require('./post-comment');
-const {postIssueUpdates} = require('./post-issue-updates');
-const {postEpicUpdates} = require('./post-epic-updates');
-const postProjectUpdates = require('./post-project-updates');
-const postNewLinks = require('./post-new-links');
-const postLinkedChanges = require('./post-linked-changes');
+const newSave = require('./save-incoming.js');
+const isIgnore = require('./stop-if-user-ignored.js');
+const createRoom = require('./create-room.js');
+const postIssueDescription = require('./post-issue-description.js');
+const inviteNewMembers = require('./invite-new-members.js');
+const postComment = require('./post-comment.js');
+const {postIssueUpdates} = require('./post-issue-updates.js');
+const {postEpicUpdates} = require('./post-epic-updates.js');
+const {postProjectUpdates} = require('./post-project-updates.js');
+const postNewLinks = require('./post-new-links.js');
+const postLinkedChanges = require('./post-linked-changes.js');
 
 module.exports = {
     newSave,

@@ -30,10 +30,10 @@ it('getting hook\'s changelog items fields', () => {
 
 it('composing html for issue-updated message', () => {
     const result = composeText({
-        author: 'Username',
+        author: 'Автор',
         fields: ['description'],
         formattedValues: {description: '<p>new description</p>'},
     });
-    const expected = 'Username изменил(а) задачу<br>description: <p>new description</p>';
+    const expected = 'Автор изменил(а) задачу<br>description: <p>new description</p>';
     assert.deepEqual(result, expected);
 });

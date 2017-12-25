@@ -147,8 +147,10 @@ const getPostProjectUpdatesData = body => {
     const {issue} = body;
     const projectOpts = issue.fields.project;
     const name = Ramda.path(['user', 'name'], body);
-    const {summary, key} = issue;
-    const data = {key, summary, name};
+    const summary = Ramda.path(['fields', 'summary'], issue);
+    const status = Ramda.path(['fields', 'status', 'name'], issue);
+    const {key} = issue;
+    const data = {key, summary, name, status};
 
     return {typeEvent, projectOpts, data};
 };

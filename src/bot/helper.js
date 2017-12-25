@@ -17,7 +17,8 @@ const postStatusData = issue => {
     if (typeof status !== 'string') {
         return {};
     }
-    const baseValues = {status, ref: jira.issue.ref(issue.key)};
+    const issueRef = jira.issue.ref(issue.key);
+    const baseValues = {status, issueRef};
     const values = ['name', 'key', 'summary']
         .reduce((acc, key) => ({...acc, [key]: issue[key]}), baseValues);
 

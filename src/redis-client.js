@@ -11,8 +11,8 @@ const createClient = config => {
     let result;
     try {
         result = redis.createClient(config);
-    } catch (error) {
-        logger.error(`Error while creating redis client ${error}`);
+    } catch (err) {
+        logger.error(`Error while creating redis client`, err);
         process.exit(1);
     }
     return result;
