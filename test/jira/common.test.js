@@ -1,4 +1,4 @@
-const {webHookUser} = require('../src/jira/common');
+const {webHookUser} = require('../../src/jira/common');
 const assert = require('assert');
 
 describe('isCreateRoom', () => {

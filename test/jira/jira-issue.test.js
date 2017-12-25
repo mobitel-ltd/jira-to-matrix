@@ -1,12 +1,12 @@
 const assert = require('assert');
 const logger = require('../src/modules/log.js')(module);
 // const JiraClient = require('jira-connector');
-const {auth} = require('../src/jira/common');
-const {renderedValues, ref} = require('../src/jira/issue');
+const {auth} = require('../../src/jira/common');
+const {renderedValues, ref} = require('../../src/jira/issue');
 const nock = require('nock');
 const querystring = require('querystring');
-const secondBody = require('./fixtures/comment-create-2.json');
-const issueBody = require('./fixtures/response.json');
+const secondBody = require('../fixtures/comment-create-2.json');
+const issueBody = require('../fixtures/response.json');
 
 describe('Auth Jira', function() {
     this.timeout(15000);

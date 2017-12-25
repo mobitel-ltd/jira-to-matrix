@@ -8,13 +8,13 @@ const bot = require('../../src/bot');
 const {getBotFunc, getParserName, getFuncAndBody} = require('../../src/queue/bot-handler.js');
 
 describe('get-bot-data', function() {
+
     it('test correct firstBody parse', () => {
         const funcArr = getBotFunc(firstBody);
-        logger.debug('funcArr', funcArr);
         const result = funcArr.map(getParserName);
-        logger.debug('result', result);
         const expected = ['getPostCommentData'];
         assert.deepEqual(result, expected);
+
         const parsedData = result.map(element => {
             const result = parsers[element](firstBody);
             logger.debug('parsedData', result);
@@ -35,6 +35,7 @@ describe('get-bot-data', function() {
 
     it('test correct objects', () => {
         const correctBody = getFuncAndBody(firstBody);
+        
         const expected = [{
             redisKey: 'postComment_1512034084304',
             funcName: 'postComment',
@@ -55,15 +56,14 @@ describe('get-bot-data', function() {
 
     it('test correct secondBody parse', () => {
         const funcArr = getBotFunc(secondBody);
-        logger.debug('funcArr', funcArr);
         const result = funcArr.map(getParserName);
-        logger.debug('result', result);
         const expectedFuncs = [
             "getInviteNewMembersData",
             "getPostEpicUpdatesData",
             "getPostNewLinksData",
         ];
         assert.deepEqual(result, expectedFuncs);
+
         const parsedData = result.map(element => {
             const result = parsers[element](secondBody);
             logger.debug(`parsedData ${element}`, result);
@@ -97,36 +97,4 @@ describe('get-bot-data', function() {
 
         assert.deepEqual(parsedData, expectedData);
     });
-    
-    it('test correct objects fivesBody', () => {
-        const correctBody = getFuncAndBody(fivesBody);
-        logger.debug(correctBody);
-        const expected = [
-            {
-                "issue": {
-                    "collectParticipantsBody": [
-                        "jira_test",
-                        "jira_test",
-                        "jira_test",
-                    ],
-                    "key": "BBCOM-956",
-                    "url": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-956/watchers",
-                },
-            },
-            {
-                "data": {
-                    "changelog": undefined,
-                    "id": "26313",
-                    "key": "BBCOM-956",
-                    "name": "jira_test",
-                    "summary": "BBCOM-956",
-                },
-                "epicKey": "BBCOM-801",
-            },
-            {
-                "links": [],
-            }];
-
-        assert.deepEqual(correctBody, expected.length);
-    })
 });

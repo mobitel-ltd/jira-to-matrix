@@ -1,5 +1,4 @@
-/* eslint-disable no-undef, no-console */
-const {fieldNames, itemsToString, composeText} = require('../src/bot/post-issue-updates').forTests;
+const {fieldNames, itemsToString, composeText} = require('../../src/bot/post-issue-updates').forTests;
 const assert = require('assert');
 
 const items = [
