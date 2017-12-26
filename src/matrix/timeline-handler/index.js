@@ -1,36 +1,46 @@
-const logger = require('simple-color-logger')();
-// const jiraCommands = require('./jira-commands.js');
-// const matrixCommands = require('./matrix-commands.js');
+const logger = require('../../modules/log.js')(module);
 const translate = require('../../locales');
 const {postfix} = require('../../config').matrix;
 const commands = require('./commands');
+const {parseEventBody} = require('./commands/helper.js');
+
 
 const eventFromMatrix = async (event, room, sender, matrixClient) => {
-    const {body} = event.getContent();
-    const command = body.match(/!\w+\b/);
+    try {
+        const {body} = event.getContent();
 
-    if (!command || command.index !== 0) {
-        return;
-    }
+        const {commandName, bodyText} = parseEventBody(body);
+        logger.debug('commandName', commandName);
+        logger.debug('bodyText', bodyText);
 
-    logger.info(`${sender} sent message:\n ${body}`);
+        if (!commandName) {
+            logger.debug(`${sender} sent message:\n ${body}`);
+            return;
+        }
 
-    let roomName = room.getCanonicalAlias();
-    roomName = roomName.slice(1, -postfix);
-    const commandName = command[0].substring(1);
+        const roomName = room.getCanonicalAlias().slice(1, -postfix);
 
-    const params = {
-        event,
-        room,
-        body,
-        roomName,
-        sender,
-        matrixClient,
-    };
+        const params = {
+            bodyText,
+            event,
+            room,
+            body,
+            roomName,
+            sender,
+            matrixClient,
+        };
 
-    if (commands[commandName]) {
-        const message = await commands[commandName](params);
-        return message;
+        if (commands[commandName]) {
+            const message = await commands[commandName](params);
+
+            return message;
+        }
+
+        logger.warn(`Command ${commandName} not found`);
+    } catch (err) {
+        logger.error('Error in event handling');
+
+        throw err;
     }
 };
 
@@ -42,8 +52,7 @@ const handler = async function Handler(event, room, toStartOfTimeline) {
     // matrixClient
     const self = this;
 
-    let sender = event.getSender();
-    sender = sender.slice(1, -postfix);
+    const sender = event.getSender().slice(1, -postfix);
 
     try {
         const command = await eventFromMatrix(event, room, sender, self);

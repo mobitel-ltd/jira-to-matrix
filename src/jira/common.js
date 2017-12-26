@@ -2,13 +2,22 @@ const Ramda = require('ramda');
 const {fp} = require('../utils');
 const conf = require('../config');
 
-function auth()/* :string*/ {
+/**
+ * Authorization for a request of jira
+ * @return {string} Authorization in base64 encoding
+ */
+const auth = () => {
     const {user, password} = conf.jira;
     const encoded = new Buffer(`${user}:${password}`).toString('base64');
     return `Basic ${encoded}`;
-}
+};
 
-function webHookUser(hook/* :{}*/) {
+/**
+ * Get author of webhook from jira
+ * @param {object} hook webhook body
+ * @return {string} username
+ */
+const webHookUser = hook => {
     const paths = [
         ['comment', 'author', 'name'],
         ['user', 'name'],
@@ -17,8 +26,14 @@ function webHookUser(hook/* :{}*/) {
         Ramda.map(Ramda.path(Ramda.__, hook)),
         Ramda.find(fp.nonEmptyString)
     )(paths);
-}
+};
 
+/**
+ * Get changelog field body from webhook from jira
+ * @param {string} key key of changelog field
+ * @param {object} hook webhook body
+ * @return {object} changelog field
+ */
 const getChangelogField = Ramda.curry(
     (fieldName, hook) =>
         Ramda.ifElse(
@@ -27,7 +42,7 @@ const getChangelogField = Ramda.curry(
                 Ramda.pathOr([], ['changelog', 'items']),
                 Ramda.find(Ramda.propEq('field', fieldName))
             ),
-            Ramda.always(undefined)
+            Ramda.always(null)
         )(hook)
 );
 

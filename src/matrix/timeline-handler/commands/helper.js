@@ -1,10 +1,12 @@
 const querystring = require('querystring');
 const {auth} = require('../../../jira/common.js');
 
-const logger = require('simple-color-logger')();
+const logger = require('../../../modules/log.js')(module);
 const {fetchJSON} = require('../../../utils');
 const {jira} = require('../../../config');
 const {url} = jira;
+
+const BASE_URL = `${url}/rest/api/2/issue`;
 
 // Checking occurrences of current name
 const checkUser = (user, name) =>
@@ -12,7 +14,7 @@ const checkUser = (user, name) =>
     || ~user.displayName.toLowerCase().indexOf(name.toLowerCase());
 
 const checkCommand = (body, name, index) =>
-    ~body.toLowerCase().indexOf(name.toLowerCase())
+    body.toLowerCase() === name.toLowerCase()
     || ~body.indexOf(String(index + 1));
 
 const checkNamePriority = (priority, index, name) =>
@@ -42,11 +44,11 @@ const getUsers = async (num, startAt, acc) => {
 };
 
 // Let get all users even if they are more 1000
+const MAX_USERS = 999;
+const START_AT = 0;
+const START_ACC = [];
+
 const getAllUsers = async () => {
-    const MAX_USERS = 999;
-    const START_AT = 0;
-    const START_ACC = [];
-    // eslint-disable-next-line
     try {
         const allUsers = await getUsers(MAX_USERS, START_AT, START_ACC);
         return allUsers;
@@ -72,7 +74,23 @@ const searchUser = async name => {
     }
 };
 
-const BASE_URL = `${url}/rest/api/2/issue`;
+// Parse body of event from Matrix
+const parseEventBody = body => {
+    try {
+        const commandName = body
+            .split(' ')[0]
+            .match(/^!\w+$/g)[0]
+            .substring(1);
+        const bodyText = body
+            .replace(`!${commandName}`, '')
+            .trim();
+
+        return {commandName, bodyText};
+    } catch (err) {
+        return {};
+    }
+};
+
 
 module.exports = {
     checkUser,
@@ -81,4 +99,8 @@ module.exports = {
     searchUser,
     getAllUsers,
     BASE_URL,
+<<<<<<< HEAD
+    parseEventBody,
+=======
+>>>>>>> master
 };

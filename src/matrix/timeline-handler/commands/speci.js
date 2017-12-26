@@ -25,8 +25,8 @@ const addUserInWatchers = async (room, roomName, user, matrixClient) => {
     return `User ${user} was added in watchers for issue ${roomName}`;
 };
 
-module.exports = async ({body, room, roomName, matrixClient}) => {
-    let user = body.substring(6).trim();
+module.exports = async ({bodyText, room, roomName, matrixClient}) => {
+    let user = bodyText;
 
     let jiraWatcher = await jiraRequest.fetchPostJSON(
         `${BASE_URL}/${roomName}/watchers`,

@@ -1,8 +1,7 @@
 /* eslint-disable camelcase */
 const {domain, admins} = require('../../../config').matrix;
 
-const getRoomId = async (body, matrixClient) => {
-    const room = body.substring(8).trim();
+const getRoomId = async (room, matrixClient) => {
     if (~room.indexOf(domain)) {
         const {room_id} = await matrixClient.getRoomIdForAlias(room);
         return room_id;
@@ -14,12 +13,12 @@ const getRoomId = async (body, matrixClient) => {
     return room_id;
 };
 
-module.exports = async ({body, sender, matrixClient}) => {
+module.exports = async ({bodyText, sender, matrixClient}) => {
     if (!admins.includes(sender)) {
         return;
     }
 
-    const roomId = await getRoomId(body, matrixClient);
+    const roomId = await getRoomId(bodyText, matrixClient);
     const userId = `@${sender}:${domain}`;
     await matrixClient.invite(roomId, userId);
 };

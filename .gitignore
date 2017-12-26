@@ -21,7 +21,7 @@
 *_development*
 
 # Logs
-src/logs/*.*
+logs/*.*
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -78,3 +78,6 @@ typings/
 
 # dev config 
 /config.js
+
+# test
+/test

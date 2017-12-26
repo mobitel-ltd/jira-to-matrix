@@ -1,58 +1,21 @@
-// const {features} = require('../config');
-const parse = require('./parse-incoming');
-const save = require('./save-incoming');
-const stopIf = require('./stop-if-user-ignored');
-const connectToMatrix = require('./connect-to-matrix');
-const createRoom = require('./create-room').middleware;
-const postIssueDescription = require('./post-issue-description');
-const inviteNew = require('./invite-new-members').middleware;
-const postComment = require('./post-comment').middleware;
-const postIssueUpdates = require('./post-issue-updates').middleware;
-const postEpicUpdates = require('./post-epic-updates').middleware;
-const postProjectUpdates = require('./post-project-updates');
-const postNewLinks = require('./post-new-links');
-const postLinkedChanges = require('./post-linked-changes');
+const newSave = require('./save-incoming.js');
+const isIgnore = require('./stop-if-user-ignored.js');
+const createRoom = require('./create-room.js');
+const postIssueDescription = require('./post-issue-description.js');
+const inviteNewMembers = require('./invite-new-members.js');
+const postComment = require('./post-comment.js');
+const {postIssueUpdates} = require('./post-issue-updates.js');
+const {postEpicUpdates} = require('./post-epic-updates.js');
+const {postProjectUpdates} = require('./post-project-updates.js');
+const postNewLinks = require('./post-new-links.js');
+const postLinkedChanges = require('./post-linked-changes.js');
 
-// function createApp(express) {
-//     const app = express.Router();
-//     app.use(parse);
-//     app.use(save);
-//     app.use(stopIf);
-//     // app.use(connectToMatrix);
-//     if (features.createRoom) {
-//         app.use(createRoom);
-//         app.use(postIssueDescription);
-//     }
-//     if (features.inviteNewMembers) {
-//         app.use(inviteNew);
-//     }
-//     if (features.postIssueUpdates) {
-//         app.use(postIssueUpdates);
-//     }
-//     if (features.postComments) {
-//         app.use(postComment);
-//     }
-//     if (features.epicUpdates.on()) {
-//         app.use(postEpicUpdates);
-//         app.use(postProjectUpdates);
-//     }
-//     if (features.newLinks) {
-//         app.use(postNewLinks);
-//     }
-//     if (features.postChangesToLinks.on) {
-//         app.use(postLinkedChanges);
-//     }
-//     return app;
-// }
-
-// module.exports.createApp = createApp;
 module.exports = {
-    parse,
-    save,
-    stopIf,
+    newSave,
+    isIgnore,
     createRoom,
     postIssueDescription,
-    inviteNew,
+    inviteNewMembers,
     postComment,
     postIssueUpdates,
     postEpicUpdates,

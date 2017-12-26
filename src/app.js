@@ -1,29 +1,36 @@
-// @flow
-/* eslint-disable no-use-before-define */
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
-const conf = require('./config');
-const matrix = require('./matrix');
-const logger = require('simple-color-logger')();
-const {checkNodeVersion} = require('./utils');
-const cachedQueue = require('./queue').queue;
-const queueHandler = require('./queue').handler;
 const EventEmitter = require('events');
+
+const conf = require('./config');
+const Matrix = require('./matrix');
+const logger = require('./modules/log.js')(module);
+const getParsedAndSaveToRedis = require('../src/queue/get-parsed-and-save-to-redis.js');
+const newQueueHandler = require('../src/queue');
+
 const queuePush = new EventEmitter();
 
-if (!checkNodeVersion()) {
-    process.exit(1);
-}
+const connectToMatrix = () => (async () => {
+    try {
+        const connection = await Matrix.connect();
+        queuePush.emit('startQueueHandler');
 
-process.on('uncaughtException', err => {
-    if (err.errno === 'EADDRINUSE') {
-        logger.error(`Port ${conf.port} is in use!\n${err}`);
-    } else {
-        logger.error(`Uncaught exception!\n${err}`);
+        return connection;
+    } catch (err) {
+        logger.error('No Matrix connection ', err);
+        return null;
     }
-    process.exit(1);
-});
+})();
+
+const CHECK_QUEUE_DELAY = 30 * 60 * 1000;
+
+const checkQueueInterval = setInterval(() => {
+    queuePush.emit('startQueueHandler');
+}, CHECK_QUEUE_DELAY);
+checkQueueInterval.unref();
+
+const client = connectToMatrix();
 
 const app = express();
 
@@ -32,11 +39,16 @@ app.use(bodyParser.json({
     limit: '20mb',
 }));
 
-app.post('/', (req, res, next) => {
-    cachedQueue.push(req.body);
-    if (!client) {
-        next(new Error('Matrix client is not exist'));
+app.post('/', async (req, res, next) => {
+    logger.silly('Jira body', req.body);
+
+    // return false if user in body is ignored
+    const saveStatus = await getParsedAndSaveToRedis(req.body);
+
+    if (saveStatus) {
+        queuePush.emit('startQueueHandler');
     }
+
     next();
 });
 
@@ -44,6 +56,7 @@ app.post('/', (req, res, next) => {
 app.get('/', (req, res) => {
     res.end(`Version ${conf.version}`);
 });
+
 // end any request for it not to hang
 app.use((req, res) => {
     res.end();
@@ -51,7 +64,7 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     if (err) {
-        logger.info(err);
+        logger.error(err);
     }
     res.end();
 });
@@ -61,49 +74,24 @@ server.listen(conf.port, () => {
     logger.info(`Server is listening on port ${conf.port}`);
 });
 
-const onExit = async function onExit() {
-    await matrix.disconnect();
-    if (server.listening) {
-        server.close(() => {
-            process.exit();
-        });
-        return;
-    }
-    process.exit();
-};
-
-
-const connectToMatrix = async matrix => {
-    let client = await matrix.connect();
-    while (!client) {
-        client = await connectToMatrix(matrix);
-    }
-    return client;
-};
-
-const checkQueue = () => {
-    if (cachedQueue.length > 0) {
-        queuePush.emit('notEmpty');
-    }
-};
-
-let client = connectToMatrix(matrix);
-
-const checkingQueueInterval = setInterval(checkQueue, 500);
-checkingQueueInterval.unref();
-
-queuePush.on('notEmpty', async () => {
-    let success;
+queuePush.on('startQueueHandler', async () => {
+    logger.info('queuePush start');
     if (client) {
-        const lastReq = cachedQueue.pop();
-        success = await queueHandler(lastReq, client, cachedQueue);
-    }
-
-    if (!success && client) {
-        client = null;
-        client = await connectToMatrix(matrix);
+        await newQueueHandler(client);
     }
 });
+
+const onExit = err => {
+    logger.warn('Jira Bot stoped ', err);
+    clearInterval(checkQueueInterval);
+    Matrix.disconnect();
+
+    if (server.listening) {
+        server.close();
+    }
+
+    process.exit(1);
+};
 
 process.on('exit', onExit);
 process.on('SIGINT', onExit);
