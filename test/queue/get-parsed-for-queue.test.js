@@ -83,7 +83,7 @@ describe('get-bot-data', function() {
 
 
         if (keys.length > 0) {
-            const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
+            const parsedKeys = keys.map(key => key.replace(`${prefix}:`, ''));
             logger.debug('parsedKeys', parsedKeys);
             await redis.delAsync(parsedKeys);
         }

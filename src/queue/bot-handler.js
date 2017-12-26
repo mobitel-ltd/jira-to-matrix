@@ -1,6 +1,7 @@
 const logger = require('../modules/log.js')(module);
 const Ramda = require('ramda');
 const parsers = require('./parse-body.js');
+const {getNewStatus} = require('../bot/helper.js');
 
 // const bot = require('../bot');
 const {features} = require('../config');
@@ -87,21 +88,23 @@ const isPostNewLinks = body => Boolean(
         || body.webhookEvent === 'jira:issue_created'
     )
     && typeof body.issue === 'object'
+    && Ramda.pathOr([], ['issue', 'fields', 'issuelinks'])(body).length > 0
     && features.newLinks
 );
 
 const isPostLinkedChanges = body => Boolean(
     body
+    && features.postChangesToLinks.on
     && typeof body === 'object'
     && body.webhookEvent === 'jira:issue_updated'
     && typeof body.changelog === 'object'
     && typeof body.issue === 'object'
-    && features.postChangesToLinks.on
+    && Ramda.pathOr([], ['issue', 'fields', 'issuelinks'])(body).length > 0
+    && typeof getNewStatus(body) === 'string'
 );
 
 const getBotFunc = body => {
     const actionFuncs = {
-        // createRoom: isCreateRoom(body),
         postIssueUpdates: isPostIssueUpdates(body),
         inviteNewMembers: isMemberInvite(body),
         postComment: isPostComment(body),
@@ -135,9 +138,8 @@ const getFuncAndBody = body => {
 
         const redisKey = `${funcName}_${body.timestamp}`;
         logger.debug('redisKey', redisKey);
-        const state = false;
 
-        return [...acc, {redisKey, funcName, data, state}];
+        return [...acc, {redisKey, funcName, data}];
     }, []);
 
     return result;

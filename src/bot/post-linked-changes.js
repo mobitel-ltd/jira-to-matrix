@@ -1,37 +1,28 @@
-const Ramda = require('ramda');
-const {postChangesToLinks: conf} = require('../config').features;
 const {postStatusChanged} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
 
-const handleLink = async (body, link, mclient) => {
-    const destIssue = Ramda.either(
-        Ramda.prop('outwardIssue'),
-        Ramda.prop('inwardIssue')
-    )(link);
-    if (!destIssue) {
-        logger.debug('no destIssue in handleLink');
-        return;
+const handleLink = async (data, key, mclient) => {
+    try {
+        const roomID = await mclient.getRoomId(key);
+        if (!roomID) {
+            return;
+        }
+        logger.debug('roomID', roomID);
+        await postStatusChanged({mclient, roomID, data});
+    } catch (err) {
+        logger.error('Error in handleLink in postLinkedChanges');
+
+        throw err;
     }
-    const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
-    if (conf.ignoreDestStatusCat.includes(destStatusCat)) {
-        return;
-    }
-    const roomID = await mclient.getRoomId(destIssue.key);
-    if (!roomID) {
-        return;
-    }
-    postStatusChanged(roomID, body, mclient);
 };
 
-module.exports = async ({mclient, links, data, status}) => {
+module.exports = async ({mclient, linksKeys, data}) => {
     try {
-        if (!links || links.length === 0 || typeof status !== 'string') {
-            logger.debug('no links to change');
-            return true;
-        }
-        await Promise.all(links.map(async link => {
-            await handleLink(data, link, mclient);
+        await Promise.all(linksKeys.map(async key => {
+            await handleLink(data, key, mclient);
         }));
+
+        return true;
     } catch (err) {
         logger.error('error in postLinkedChanges');
         throw err;

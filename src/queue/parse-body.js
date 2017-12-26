@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
 const jira = require('../jira');
-const {epicUpdates: epicConf} = require('../config').features;
+const {epicUpdates: epicConf, postChangesToLinks} = require('../config').features;
 const {getNewStatus} = require('../bot/helper.js');
 const {composeRoomName} = require('../matrix/helpers.js');
 
@@ -97,8 +97,8 @@ const getInviteNewMembersData = body => {
 // PostNewLinksData
 
 const getPostNewLinksData = body => {
-    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
-
+    const allLinks = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
+    const links = allLinks.map(link => (link ? link.id : link));
     return {links};
 };
 
@@ -106,18 +106,14 @@ const getPostNewLinksData = body => {
 
 const getPostEpicUpdatesData = body => {
     const {issue} = body;
+    const {key, id, changelog} = issue;
     const epicKey = Ramda.path(['fields', epicConf.field], issue);
 
     const summary = Ramda.path(['fields', 'summary'], issue);
     const name = Ramda.path(['user', 'name'], body);
+    const status = getNewStatus(body);
 
-    const data = {
-        key: issue.key,
-        summary,
-        id: issue.id,
-        changelog: issue.changelog,
-        name,
-    };
+    const data = {key, summary, id, changelog, name, status};
 
     return {epicKey, data};
 };
@@ -125,20 +121,33 @@ const getPostEpicUpdatesData = body => {
 // Post link data
 const getPostLinkedChangesData = body => {
     const {issue} = body;
+    const {key, changelog, id} = issue;
+
     const links = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
+    const linksKeys = links.reduce((acc, link) => {
+        const destIssue = Ramda.either(
+            Ramda.prop('outwardIssue'),
+            Ramda.prop('inwardIssue')
+        )(link);
+        if (!destIssue) {
+            logger.debug('no destIssue in handleLink');
+            return acc;
+        }
+        const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
+        if (postChangesToLinks.ignoreDestStatusCat.includes(destStatusCat)) {
+            logger.debug('no includes destStatusCat');
+            return acc;
+        }
+        return [...acc, destIssue.key];
+    }, []);
+
     const status = getNewStatus(body);
     const summary = Ramda.path(['fields', 'summary'], issue);
     const name = Ramda.path(['user', 'name'], body);
 
-    const data = {
-        key: issue.key,
-        summary,
-        id: issue.id,
-        changelog: issue.changelog,
-        name,
-    };
+    const data = {status, key, summary, id, changelog, name};
 
-    return {links, data, status};
+    return {linksKeys, data};
 };
 
 // PostProjectUpdates

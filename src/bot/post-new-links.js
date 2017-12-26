@@ -28,9 +28,10 @@ const postLink = async (issue, relation, related, mclient) => {
     await mclient.sendHtmlMessage(roomID, body, htmlBody);
 };
 
-const handleLink = async (issueLink, mclient) => {
+const handleLink = async (issueLinkId, mclient) => {
     try {
-        const link = await jira.link.get(issueLink.id);
+        const link = await jira.link.get(issueLinkId);
+        logger.silly('link', link);
         if (!link) {
             return;
         }
@@ -52,17 +53,14 @@ const handleLink = async (issueLink, mclient) => {
 module.exports = async ({mclient, links}) => {
     logger.info('start postNewLinks');
     try {
-        if (!links || links.length === 0) {
-            logger.debug('No links to handle');
-            return true;
-        }
-
         await Promise.all(links.map(async issueLink => {
             await handleLink(issueLink, mclient);
         }));
+
         return true;
     } catch (err) {
         logger.error('error in postNewLinks');
+
         throw err;
     }
 };
