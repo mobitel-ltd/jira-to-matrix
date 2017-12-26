@@ -99,5 +99,8 @@ module.exports = {
     searchUser,
     getAllUsers,
     BASE_URL,
+<<<<<<< HEAD
     parseEventBody,
+=======
+>>>>>>> master
 };
