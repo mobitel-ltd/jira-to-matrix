@@ -5,22 +5,25 @@ const translate = require('../locales');
 const marked = require('marked');
 
 const getNewStatus = Ramda.pipe(
-    Ramda.pathOr([], ['changelog', 'items']),
+    Ramda.pathOr([], ['issue', 'changelog', 'items']),
     Ramda.filter(Ramda.propEq('field', 'status')),
     Ramda.head,
     Ramda.propOr(null, 'toString')
 );
 
-const postStatusData = issue => {
-    const status = getNewStatus(issue);
+const postStatusData = data => {
+    const {status} = data;
     logger.debug('status is ', status);
     if (typeof status !== 'string') {
+        logger.warn('No status in postStatusData');
+
         return {};
     }
-    const issueRef = jira.issue.ref(issue.key);
+
+    const issueRef = jira.issue.ref(data.key);
     const baseValues = {status, issueRef};
     const values = ['name', 'key', 'summary']
-        .reduce((acc, key) => ({...acc, [key]: issue[key]}), baseValues);
+        .reduce((acc, key) => ({...acc, [key]: data[key]}), baseValues);
 
     const body = translate('statusHasChanged', values);
     const message = translate('statusHasChangedMessage', values, values.name);
@@ -29,9 +32,10 @@ const postStatusData = issue => {
     return {body, htmlBody};
 };
 
-const postStatusChanged = async (mclient, roomID, data) => {
+const postStatusChanged = async ({mclient, roomID, data}) => {
     const {body, htmlBody} = postStatusData(data);
     if (!body) {
+        logger.warn('No body for sending to Matrix');
         return;
     }
     try {
