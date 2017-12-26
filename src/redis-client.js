@@ -21,7 +21,7 @@ const createClient = config => {
 const client = createClient(conf.redis);
 
 client.on('error', err => {
-    logger.error(`Redis error:\n${err}`);
+    logger.error('Redis error:', err);
     if (/\bECONNREFUSED\b/.test(err.message || '')) {
         process.exit(1);
     }
