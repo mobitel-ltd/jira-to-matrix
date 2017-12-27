@@ -2,6 +2,7 @@ const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const EventEmitter = require('events');
+const StateMachine = require('javascript-state-machine');
 
 const conf = require('./config');
 const Matrix = require('./matrix');
@@ -11,17 +12,54 @@ const newQueueHandler = require('../src/queue');
 
 const queuePush = new EventEmitter();
 
-const connectToMatrix = () => (async () => {
-    try {
-        const connection = await Matrix.connect();
-        queuePush.emit('startQueueHandler');
+const matrixFsm = new StateMachine({
+    init: 'empty',
+    transitions: [
+        {name: 'connectToMatrix', from: 'empty', to: 'matrixConnection'},
+        {name: 'matrixConnected', from: 'matrixConnection', to: 'matrixConnected'},
+        {name: 'fakeConnect', from: 'matrixConnection', to: 'empty'},
 
-        return connection;
-    } catch (err) {
-        logger.error('No Matrix connection ', err);
-        return null;
-    }
-})();
+    ],
+    methods: {
+        onConnectToMatrix: () => (async () => {
+            try {
+                const connection = await Matrix.connect();
+                queuePush.emit('startQueueHandler');
+
+                matrixFsm.onMatrixConnected();
+                return connection;
+            } catch (err) {
+                matrixFsm.onFakeConnect();
+                return null;
+            }
+        })(),
+        onFakeConnect: () => logger.error('No Matrix connection '),
+        onMatrixConnected: () => logger.info('Mattrix connected'),
+
+    },
+});
+
+const queueFsm = new StateMachine({
+    init: 'empty',
+    transitions: [
+        {name: 'queueHandler', from: 'empty', to: 'dataHandling'},
+        {name: 'isHandled', from: ['waiting', 'dataHandling'], to: 'empty'},
+        {name: 'isWaiting', from: 'dataHandling', to: 'waiting'},
+    ],
+    methods: {
+        onQueueHandler: state => {
+            logger.debug('state', state);
+            if (queueFsm.is('empty')) {
+                fsm.queueHandler
+                queuePush.emit('startQueueHandler');
+            }
+        },
+        onIsHandled: () => logger.info('Redis data is handling'),
+        onIsWaiting: () => logger.info('Redis data is is waiting for handling'),
+    },
+
+
+});
 
 const CHECK_QUEUE_DELAY = 30 * 60 * 1000;
 
@@ -30,7 +68,7 @@ const checkQueueInterval = setInterval(() => {
 }, CHECK_QUEUE_DELAY);
 checkQueueInterval.unref();
 
-const client = connectToMatrix();
+const client = matrixFsm.onConnectToMatrix();
 
 const app = express();
 
@@ -44,9 +82,9 @@ app.post('/', async (req, res, next) => {
 
     // return false if user in body is ignored
     const saveStatus = await getParsedAndSaveToRedis(req.body);
-
     if (saveStatus) {
-        queuePush.emit('startQueueHandler');
+        logger.debug('queueFsm.state', queueFsm.state);
+        queueFsm.is('empty') ? queueFsm.onQueueHandler() : queueFsm.onIsWaiting();
     }
 
     next();
@@ -77,7 +115,12 @@ server.listen(conf.port, () => {
 queuePush.on('startQueueHandler', async () => {
     logger.info('queuePush start');
     if (client) {
+        logger.debug('queueFsm.state', queueFsm.state);
         await newQueueHandler(client);
+    }
+    if (queueFsm.is('waiting')) {
+        queueFsm.onIsHandled();
+        queuePush.emit('startQueueHandler');
     }
 });
 

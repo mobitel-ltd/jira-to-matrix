@@ -3,6 +3,7 @@ const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {schemaComment} = require('./schemas.js');
 const {BASE_URL} = require('./helper.js');
+const logger = require('../../../modules/log.js')(module);
 
 module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
     // post comment in issue
@@ -11,7 +12,7 @@ module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
         auth(),
         schemaComment(sender, bodyText)
     );
-
+    logger.debug('status', status);
     if (status !== 201) {
         const post = translate('errorMatrixComment');
         await matrixClient.sendHtmlMessage(room.roomId, post, post);
@@ -22,7 +23,5 @@ module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
         `;
     }
 
-    const post = translate('successMatrixComment');
-    await matrixClient.sendHtmlMessage(room.roomId, post, post);
     return `Comment from ${sender} for ${roomName}`;
 };
