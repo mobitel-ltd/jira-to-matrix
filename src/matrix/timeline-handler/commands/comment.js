@@ -22,7 +22,5 @@ module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
         `;
     }
 
-    const post = translate('successMatrixComment');
-    await matrixClient.sendHtmlMessage(room.roomId, post, post);
     return `Comment from ${sender} for ${roomName}`;
 };

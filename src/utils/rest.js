@@ -9,7 +9,7 @@ const fetchJSON = async (url, basicAuth) => {
     };
     try {
         const response = await fetch(url, options);
-        logger.info(`response from jira have status: ${response.status}`,
+        logger.info(`GET response from jira have status: ${response.status}`,
             `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
         const object = await response.json();
@@ -31,7 +31,7 @@ const fetchPostJSON = async (url, basicAuth, body) => {
     };
     try {
         const response = await fetch(url, options);
-        logger.debug(`response from jira have status: ${response.status}`,
+        logger.debug(`POST response from jira have status: ${response.status}`,
             `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
         return response;
@@ -51,7 +51,7 @@ const fetchPutJSON = async (url, basicAuth, body) => {
     };
     try {
         const response = await fetch(url, options);
-        logger.debug(`response from jira have status: ${response.status}`,
+        logger.debug(`PUT response from jira have status: ${response.status}`,
             `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
         return response;

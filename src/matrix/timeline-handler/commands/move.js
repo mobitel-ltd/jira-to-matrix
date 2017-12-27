@@ -51,7 +51,5 @@ module.exports = async ({bodyText, body, room, roomName, matrixClient}) => {
         return `Issue ${roomName} not changed status`;
     }
 
-    const post = translate('successMoveJira', moveId);
-    await matrixClient.sendHtmlMessage(room.roomId, post, post);
     return `Issue ${roomName} changed status`;
 };
