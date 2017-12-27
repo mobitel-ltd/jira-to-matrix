@@ -98,7 +98,7 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
             await postNewIssue(roomID, {epic, issue: data}, mclient);
         }
         if (epicConf.issuesStatusChanged === 'on') {
-            await postStatusChanged(roomID, data, mclient);
+            await postStatusChanged({roomID, data, mclient});
         }
         return true;
     } catch (err) {
