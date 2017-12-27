@@ -48,7 +48,7 @@ const invite = client => async (roomId, userId) => {
 
         return response;
     } catch (err) {
-        logger.error(`Error while inviting a new member to a room:\n ${err}`);
+        logger.error('Error while inviting a new member to a room:', err);
 
         throw err;
     }
@@ -114,7 +114,11 @@ const inviteBot = async function InviteBot(event) {
     let sender = event.getSender();
     sender = sender.slice(1, -conf.postfix);
 
-    if (!conf.admins.includes(sender) && sender !== conf.user) {
+    if (
+        !conf.admins.includes(sender)
+        && sender !== conf.user
+        && event.getStateKey() === conf.userId
+    ) {
         await this.leave(event.getRoomId());
         return;
     }
@@ -134,7 +138,7 @@ const removeListener = (eventName, listener, matrixClient) => {
 
 module.exports = matrixClient => {
     if (!matrixClient) {
-        logger.error('\'matrixClient\' is undefined');
+        logger.error('matrixClient is undefined');
         return;
     }
 
