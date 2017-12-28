@@ -18,7 +18,7 @@ class Matrix {
     }
 
     /**
-     * @private 
+     * @private
      * @param {string} baseUrl from config.
      * @param {string} userId from config.
      * @param {string} password from config.
@@ -42,11 +42,11 @@ class Matrix {
                 accessToken,
                 userId,
             });
-            logger.debug(`createClient OK BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
+            logger.debug(`createClient OK BaseUrl: ${baseUrl}, userId: ${userId}`);
             logger.info('Started connect to matrixClient');
             this.client = matrixClient;
         } catch (err) {
-            logger.error(`createClient error. BaseUrl: ${baseUrl}, userId: ${userId}, password: ${password}`);
+            logger.error(`createClient error. BaseUrl: ${baseUrl}, userId: ${userId}`);
             throw err;
         }
     }

@@ -2,6 +2,8 @@ const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const EventEmitter = require('events');
+const StateMachine = require('javascript-state-machine');
+const StateMachineHistory = require('javascript-state-machine/lib/history');
 
 const conf = require('./config');
 const Matrix = require('./matrix');
@@ -11,10 +13,30 @@ const newQueueHandler = require('../src/queue');
 
 const queuePush = new EventEmitter();
 
+const queueFsm = new StateMachine({
+    init: 'empty',
+    transitions: [
+        {name: 'queueHandler', from: ['waiting', 'empty'], to: 'dataHandling'},
+        {name: 'handled', from: 'dataHandling', to: 'empty'},
+        {name: 'wait', from: ['waiting', 'dataHandling'], to: 'waiting'},
+    ],
+    methods: {
+        onQueueHandler: () => {
+            logger.debug('Start Redis data handling');
+            queuePush.emit('startQueueHandler');
+        },
+        onHandled: () => logger.debug('Redis data is handling'),
+        onWait: () => logger.debug('Event not finished. Redis data is waiting for handling'),
+    },
+    plugins: [
+        new StateMachineHistory(),
+    ],
+});
+
 const connectToMatrix = () => (async () => {
     try {
         const connection = await Matrix.connect();
-        queuePush.emit('startQueueHandler');
+        queueFsm.queueHandler();
 
         return connection;
     } catch (err) {
@@ -46,7 +68,7 @@ app.post('/', async (req, res, next) => {
     const saveStatus = await getParsedAndSaveToRedis(req.body);
 
     if (saveStatus) {
-        queuePush.emit('startQueueHandler');
+        queueFsm.is('empty') ? queueFsm.queueHandler() : queueFsm.wait();
     }
 
     next();
@@ -75,14 +97,18 @@ server.listen(conf.port, () => {
 });
 
 queuePush.on('startQueueHandler', async () => {
-    logger.info('queuePush start');
+    logger.info('QueuePush start');
     if (client) {
+        logger.debug('queueFsm.state', queueFsm.state);
         await newQueueHandler(client);
     }
+    queueFsm.is('waiting') ? queueFsm.queueHandler() : queueFsm.handled();
+    logger.debug('history', queueFsm.history);
+    queueFsm.clearHistory();
 });
 
 const onExit = err => {
-    logger.warn('Jira Bot stoped ', err);
+    logger.warn('Jira Bot stopped ', err);
     clearInterval(checkQueueInterval);
     Matrix.disconnect();
 
