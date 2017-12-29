@@ -1,11 +1,11 @@
-const jira = require('../jira');
+const {issue: {getCollectParticipants, getProject, ref}} = require('../jira');
 const helpers = require('../matrix/helpers.js');
 const logger = require('../modules/log.js')(module);
 const {postIssueDescription} = require('./');
 
 const create = async (client, issue) => {
     try {
-        const collectParticipants = await jira.issue.collectParticipants(issue);
+        const collectParticipants = await getCollectParticipants(issue);
         const participants = collectParticipants.map(helpers.userID);
 
         const options = {
@@ -13,7 +13,7 @@ const create = async (client, issue) => {
             room_alias_name: issue.key,
             invite: participants,
             name: helpers.composeRoomName(issue),
-            topic: jira.issue.ref(issue.key),
+            topic: ref(issue.key),
         };
 
         const response = await client.createRoom(options);
@@ -36,7 +36,7 @@ const createRoomProject = async (client, project) => {
             room_alias_name: project.key,
             invite: [helpers.userID(project.lead.key)],
             name: project.name,
-            topic: jira.issue.ref(project.key, 'projects'),
+            topic: ref(project.key, 'projects'),
         };
 
         const response = await client.createRoom(options);
@@ -82,12 +82,13 @@ module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
             logger.debug(`Room for project ${projectOpts.key} is already exists`);
         } else {
             logger.debug(`Try to create a room for project ${projectOpts.key}`);
-            const project = await jira.issue.getProject(projectOpts.id);
+            const project = await getProject(projectOpts.id);
             await createRoomProject(mclient, project);
         }
         return true;
     } catch (err) {
         logger.error('Error in room creating');
+
         return false;
     }
 };

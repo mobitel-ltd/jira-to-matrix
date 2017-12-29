@@ -3,7 +3,7 @@ const assert = require('assert');
 const hook = require('./fixtures/comment-create-2.json');
 
 describe('paramsToQueryString', () => {
-    it('Prop in an array', () => { 
+    it('Prop in an array', () => {
         const samples = [
             ['prop', [1, 2], {prop: 1}, true],
             ['prop', [undefined, 2], {prop: undefined}, true],
@@ -18,7 +18,7 @@ describe('paramsToQueryString', () => {
             const fn1 = fp.propIn(sample[0]);
             const fn = fn1(sample[1]);
             const result = fn(sample[2]);
-            assert.deepEqual(result, sample[3]); 
+            assert.deepEqual(result, sample[3]);
         });
     });
 
@@ -33,7 +33,7 @@ describe('paramsToQueryString', () => {
         ];
         samples.forEach(sample => {
             const result = paramsToQueryString(sample.input);
-            assert.deepEqual(result, sample.result); 
+            assert.deepEqual(result, sample.result);
         });
     });
 
@@ -48,17 +48,17 @@ describe('paramsToQueryString', () => {
         ];
         samples.forEach(sample => {
             const result = fp.nonEmptyString(sample[0]);
-            assert.deepEqual(result, sample[1]); 
+            assert.deepEqual(result, sample[1]);
         });
     });
 
     it('Paths', () => {
-        const result = fp.paths([		
-            'user.name',		
-            'issue.key',		
-            'issue.fields.summary',		
+        const result = fp.paths([
+            'user.name',
+            'issue.key',
+            'issue.fields.summary',
         ], hook);
-        const expected = { 
+        const expected = {
             'user.name': 'jira_test',
             'issue.key': 'BBCOM-956',
             'issue.fields.summary': 'BBCOM-956',

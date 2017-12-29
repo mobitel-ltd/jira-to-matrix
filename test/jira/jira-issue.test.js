@@ -1,8 +1,8 @@
 const assert = require('assert');
-const logger = require('../src/modules/log.js')(module);
+const logger = require('../../src/modules/log.js')(module);
 // const JiraClient = require('jira-connector');
 const {auth} = require('../../src/jira/common');
-const {renderedValues, ref} = require('../../src/jira/issue');
+const {getRenderedValues, ref} = require('../../src/jira/issue');
 const nock = require('nock');
 const querystring = require('querystring');
 const secondBody = require('../fixtures/comment-create-2.json');
@@ -29,14 +29,14 @@ describe('Auth Jira', function() {
             }
             })
             .get(`/jira/rest/api/2/issue/26313?expand=renderedFields`)
-            .reply(200, issueBody);  
+            .reply(200, issueBody);
     });
 
-    it('renderedValues test', async () => {
+    it('getRenderedValues test', async () => {
         // logger.debug('fetchJSON', fetchJSON);
-    
-        const renderedValuesData = await renderedValues(issue.id, ['description']);
-        assert.deepEqual(renderedValuesData, { description: '<p>Задача</p>' });
+
+        const getRenderedValuesData = await getRenderedValues(issue.id, ['description']);
+        assert.deepEqual(getRenderedValuesData, { description: '<p>Задача</p>' });
     });
 
     it('ref test', () => {

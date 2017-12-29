@@ -6,7 +6,7 @@ const logger = require('../modules/log.js')(module);
 module.exports = async ({mclient, issue}) => {
     logger.debug('inviteNewMembers start');
     try {
-        const collectParticipants = await jira.issue.collectParticipants(issue);
+        const collectParticipants = await jira.issue.getCollectParticipants(issue);
         const participants = collectParticipants.map(helpers.userID);
 
         const room = await mclient.getRoomByAlias(issue.key);

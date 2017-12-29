@@ -29,20 +29,26 @@ const extractID = json => {
 
 /**
  * Make jira request to get watchers of issue from url and add to collectParticipantsBody
- * @param {string} url url for request 
+ * @param {string} url url for request
  * @param {array} collectParticipantsBody array of users linked to current issue
  * @return {array} jira response with issue
  */
-const collectParticipants = async ({url, collectParticipantsBody}) => {
-    if (url) {
+const getCollectParticipants = async ({url, collectParticipantsBody}) => {
+    try {
         const body = await fetchJSON(url, auth());
         if (body && Array.isArray(body.watchers)) {
             const watchers = body.watchers.map(item => item.name);
             collectParticipantsBody.push(...watchers);
         }
+
+        const result = new Set(collectParticipantsBody.filter(Boolean));
+
+        return [...result];
+    } catch (err) {
+        logger.error('getCollectParticipants error');
+
+        throw err;
     }
-    const result = new Set(collectParticipantsBody.filter(Boolean));
-    return [...result];
 };
 
 /**
@@ -51,14 +57,21 @@ const collectParticipants = async ({url, collectParticipantsBody}) => {
  * @param {string} params url params
  * @return {object} jira response with issue
  */
-const get = async (id, params) => {
-    const url = `${jiraUrl}/rest/api/2/issue/${id}${paramsToQueryString(params)}`;
-    logger.debug('url for jira fetch', url);
-    const issue = await fetchJSON(
-        url,
-        auth()
-    );
-    return issue;
+const getIssue = async (id, params) => {
+    try {
+        const url = `${jiraUrl}/rest/api/2/issue/${id}${paramsToQueryString(params)}`;
+        logger.debug('url for jira fetch', url);
+        const issue = await fetchJSON(
+            url,
+            auth()
+        );
+
+        return issue;
+    } catch (err) {
+        logger.error('Error in get issue');
+
+        throw err;
+    }
 };
 
 /**
@@ -67,12 +80,19 @@ const get = async (id, params) => {
  * @return {object} jira response with issue
  */
 const getProject = async id => {
-    const url = `${jiraUrl}/rest/api/2/project/${id}}`;
-    const project = await fetchJSON(
-        url,
-        auth()
-    );
-    return project;
+    try {
+        const url = `${jiraUrl}/rest/api/2/project/${id}}`;
+        const project = await fetchJSON(
+            url,
+            auth()
+        );
+
+        return project;
+    } catch (err) {
+        logger.error('getProject error');
+
+        throw err;
+    }
 };
 
 /**
@@ -80,11 +100,16 @@ const getProject = async id => {
  * @param {string} issueID issue ID in jira
  * @return {object} jira response
  */
-const getFormatted = async issueID => {
-    const params = [{expand: 'renderedFields'}];
-    const result = await get(issueID, params);
+const getIssueFormatted = async issueID => {
+    try {
+        const params = [{expand: 'renderedFields'}];
+        const result = await getIssue(issueID, params);
 
-    return result;
+        return result;
+    } catch (err) {
+        logger.error('getIssueFormatted Error');
+        throw err;
+    }
 };
 
 /**
@@ -93,26 +118,27 @@ const getFormatted = async issueID => {
  * @param {object} fields fields for filtering
  * @return {object} data from fields
  */
-const renderedValues = async (issueID, fields) => {
-    const issue = await getFormatted(issueID);
-    if (!issue) {
-        logger.warn('issue from jira.issue.renderedValues is not defined');
+const getRenderedValues = async (issueID, fields) => {
+    try {
+        const issue = await getIssueFormatted(issueID);
 
-        return;
+        return Ramda.pipe(
+            Ramda.pick(fields),
+            Ramda.filter(value => !!value)
+        )(issue.renderedFields);
+    } catch (err) {
+        logger.error('getRenderedValues error');
+
+        throw err;
     }
-
-    return Ramda.pipe(
-        Ramda.pick(fields),
-        Ramda.filter(value => !!value)
-    )(issue.renderedFields);
 };
 
 module.exports = {
     ref,
     extractID,
-    collectParticipants,
-    get,
+    getCollectParticipants,
+    getIssue,
     getProject,
-    getFormatted,
-    renderedValues,
+    getIssueFormatted,
+    getRenderedValues,
 };

@@ -21,12 +21,12 @@ describe('fetchJSON tetsing', function() {
             }
             })
             .get('/jira/rest/api/2/issue/26171')
-            .reply(200, {result: true});  
+            .reply(200, {result: true});
     });
 
     it('test fetch', async () => {
         const testUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/26171';
-        
+
         const result = await fetchJSON(testUrl, auth());
         logger.debug('result', result);
 
@@ -34,11 +34,15 @@ describe('fetchJSON tetsing', function() {
     });
 
     it('test fetch with error url', async () => {
-        const testUrl = 'https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171';
-        
-        const result = await fetchJSON(testUrl, auth());
-        logger.debug('result', result);
+        try {
+            const testUrl = 'https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171';
 
-        assert.equal(result, null);
+            const result = await fetchJSON(testUrl, auth());
+        } catch (err) {
+            const funcErr = () => {
+                throw err
+            };
+            assert.throws(funcErr, /Error in fetchJSON/);
+        }
     });
 });

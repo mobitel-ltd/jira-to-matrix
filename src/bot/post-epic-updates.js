@@ -2,7 +2,7 @@ const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const translate = require('../locales');
 const redis = require('../redis-client');
-const jira = require('../jira');
+const {issue: {ref, getIssue}} = require('../jira');
 const {epicUpdates: epicConf} = require('../config').features;
 const {postStatusChanged} = require('./helper.js');
 
@@ -21,7 +21,7 @@ const isInEpic = async (epicID, issueID) => {
 };
 
 const getNewIssueMessageBody = ({summary, key}) => {
-    const issueRef = jira.issue.ref(key);
+    const issueRef = ref(key);
     const values = {key, issueRef, summary};
 
     const body = translate('newIssueInEpic');
@@ -83,16 +83,8 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
             logger.debug('no epicKey');
             return true;
         }
-        const epic = await jira.issue.get(epicKey);
-        if (!epic) {
-            logger.debug('no epic');
-            return true;
-        }
+        const epic = await getIssue(epicKey);
         const roomID = await mclient.getRoomId(epicKey);
-        if (!roomID) {
-            logger.debug('no roomID');
-            return true;
-        }
 
         if (epicConf.newIssuesInEpic === 'on') {
             await postNewIssue(roomID, {epic, issue: data}, mclient);
@@ -103,6 +95,7 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
         return true;
     } catch (err) {
         logger.error('error in postEpicUpdates');
+
         throw err;
     }
 };

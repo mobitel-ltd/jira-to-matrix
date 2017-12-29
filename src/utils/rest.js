@@ -9,7 +9,7 @@ const fetchJSON = async (url, basicAuth) => {
     };
     try {
         const response = await fetch(url, options);
-        logger.info(`response from jira have status: ${response.status}`,
+        logger.info(`GET response from jira have status: ${response.status}`,
             `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
         const object = await response.json();
@@ -18,7 +18,7 @@ const fetchJSON = async (url, basicAuth) => {
     } catch (err) {
         logger.error(`Error in fetchJSON ${url} `, err);
 
-        return null;
+        throw 'Error in fetchJSON';
     }
 };
 
@@ -30,15 +30,15 @@ const fetchPostJSON = async (url, basicAuth, body) => {
         timeout: 11000,
     };
     try {
-        const response = await fetch(url, options);
-        logger.debug(`response from jira have status: ${response.status}`,
+        const status = await fetch(url, options);
+        logger.debug(`POST response from jira have status: ${status}`,
             `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
-        return response;
+        return status;
     } catch (err) {
-        logger.error(`Error while getting ${url}: `, err);
+        logger.error(`POST Error while getting ${url}: `, err);
 
-        return null;
+        throw 'Error in fetchPostJSON';
     }
 };
 
@@ -51,12 +51,12 @@ const fetchPutJSON = async (url, basicAuth, body) => {
     };
     try {
         const response = await fetch(url, options);
-        logger.debug(`response from jira have status: ${response.status}`,
+        logger.debug(`PUT response from jira have status: ${response.status}`,
             `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
         return response;
     } catch (err) {
-        logger.error(`Error while getting ${url}: `, err);
+        logger.error(`PUT Error while getting ${url}: `, err);
 
         return null;
     }

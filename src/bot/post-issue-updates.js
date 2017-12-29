@@ -23,7 +23,7 @@ const postUpdateInfo = async (mclient, roomID, {changelog, key, user}) => {
         const author = user.displayName;
         const fields = fieldNames(changelog.items);
         const changelogItemsTostring = itemsToString(changelog.items);
-        const renderedValues = await jira.issue.renderedValues(key, fields);
+        const renderedValues = await jira.issue.getRenderedValues(key, fields);
 
         const formattedValues = {...changelogItemsTostring, ...renderedValues};
 
