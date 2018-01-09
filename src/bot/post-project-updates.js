@@ -1,41 +1,10 @@
-const translate = require('../locales');
-const marked = require('marked');
-const jira = require('../jira');
+const {getNewEpicMessageBody, getEpicChangedMessageBody} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
 
-const getEpicChangedMessageBody = ({summary, key, status, name}) => {
-    const issueRef = jira.issue.ref(key);
-    const values = {name, key, summary, status, issueRef};
-
-    const body = translate('statusEpicChanged');
-    const message = translate('statusEpicChangedMessage', values, values.name);
-    const htmlBody = marked(message);
-
-    return {body, htmlBody};
-};
-
-const getNewEpicMessageBody = ({key, summary}) => {
-    const issueRef = jira.issue.ref(key);
-    const values = {key, summary, issueRef};
-
-    const body = translate('newEpicInProject');
-    const message = translate('epicAddedToProject', values, values.name);
-    const htmlBody = marked(message);
-
-    return {body, htmlBody};
-};
-
-const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
+module.exports = async ({mclient, typeEvent, projectOpts, data}) => {
+    logger.debug('Post project updates start');
     try {
-        if (!projectOpts) {
-            logger.debug('No project in body.issue.fields');
-            return true;
-        }
-
         const roomId = await mclient.getRoomId(projectOpts.key);
-        if (!roomId) {
-            return;
-        }
 
         if (typeEvent === 'issue_created') {
             const {body, htmlBody} = getNewEpicMessageBody(data);
@@ -46,10 +15,10 @@ const postProjectUpdates = async ({mclient, typeEvent, projectOpts, data}) => {
             const {body, htmlBody} = getEpicChangedMessageBody(data);
             await mclient.sendHtmlMessage(roomId, body, htmlBody);
         }
+
+        return true;
     } catch (err) {
         logger.error('error in postProjectUpdates');
         throw err;
     }
 };
-
-module.exports = {postProjectUpdates, getNewEpicMessageBody, getEpicChangedMessageBody};

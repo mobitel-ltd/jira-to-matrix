@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const htmlToText = require('html-to-text').fromString;
-const {issue: {getIssueFormatted, getRenderedValues}} = require('../jira');
+const {getIssueFormatted, getRenderedValues} = require('../jira').issue;
 const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 

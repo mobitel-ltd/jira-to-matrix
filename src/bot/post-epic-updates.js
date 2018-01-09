@@ -2,7 +2,7 @@ const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const translate = require('../locales');
 const redis = require('../redis-client');
-const {issue: {ref, getIssue}} = require('../jira');
+const {getProjectUrl, getIssue} = require('../jira').issue;
 const {epicUpdates: epicConf} = require('../config').features;
 const {postStatusChanged} = require('./helper.js');
 
@@ -21,7 +21,7 @@ const isInEpic = async (epicID, issueID) => {
 };
 
 const getNewIssueMessageBody = ({summary, key}) => {
-    const issueRef = ref(key);
+    const issueRef = getProjectUrl(key);
     const values = {key, issueRef, summary};
 
     const body = translate('newIssueInEpic');
@@ -31,20 +31,10 @@ const getNewIssueMessageBody = ({summary, key}) => {
     return {body, htmlBody};
 };
 
-const sendNewIssueMessage = async (mclient, roomID, {body, htmlBody}) => {
-    try {
-        const success = await mclient.sendHtmlMessage(roomID, body, htmlBody);
-        return success;
-    } catch (err) {
-        logger.error('Error in sendNewIssueMessage');
-
-        throw err;
-    }
-};
-
 const saveToEpic = async (epicID, issueID) => {
     try {
-        await redis.saddAsync(epicRedisKey(epicID), issueID);
+        const status = await redis.saddAsync(epicRedisKey(epicID), issueID);
+        logger.debug(`${epicRedisKey(epicID)} of ${issueID} have status ${status}`);
     } catch (err) {
         logger.error(`Redis error while adding issue to epic`);
 
@@ -54,21 +44,18 @@ const saveToEpic = async (epicID, issueID) => {
 
 const postNewIssue = async (roomID, {epic, issue}, mclient) => {
     try {
-        logger.debug('postNewIssue');
-
         const saved = await isInEpic(epic.id, issue.id);
         if (saved) {
-            logger.debug(`${issue} Already saved in Redis`);
+            logger.debug(`${issue.id} Already saved in Redis by ${epic.id}`);
+
             return;
         }
-        const newIssueMessageBody = getNewIssueMessageBody(issue);
-        const success = await sendNewIssueMessage(mclient, roomID, newIssueMessageBody);
-        if (success) {
-            logger.info(
-                `Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`
-            );
-            await saveToEpic(epic.id, issue.id);
-        }
+
+        const {body, htmlBody} = getNewIssueMessageBody(issue);
+        await mclient.sendHtmlMessage(roomID, body, htmlBody);
+
+        logger.info(`Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`);
+        await saveToEpic(epic.id, issue.id);
     } catch (err) {
         logger.error('Error in postNewIssue');
 
@@ -77,12 +64,8 @@ const postNewIssue = async (roomID, {epic, issue}, mclient) => {
 };
 
 const postEpicUpdates = async ({mclient, data, epicKey}) => {
+    logger.info('postEpicUpdates start');
     try {
-        logger.info('postEpicUpdates start');
-        if (!epicKey) {
-            logger.debug('no epicKey');
-            return true;
-        }
         const epic = await getIssue(epicKey);
         const roomID = await mclient.getRoomId(epicKey);
 
@@ -92,9 +75,10 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
         if (epicConf.issuesStatusChanged === 'on') {
             await postStatusChanged({roomID, data, mclient});
         }
+
         return true;
     } catch (err) {
-        logger.error('error in postEpicUpdates');
+        logger.error('Error in postEpicUpdates');
 
         throw err;
     }

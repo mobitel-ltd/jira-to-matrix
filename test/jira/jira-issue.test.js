@@ -2,7 +2,7 @@ const assert = require('assert');
 const logger = require('../../src/modules/log.js')(module);
 // const JiraClient = require('jira-connector');
 const {auth} = require('../../src/jira/common');
-const {getRenderedValues, ref} = require('../../src/jira/issue');
+const {getRenderedValues, getProjectUrl} = require('../../src/jira').issue;
 const nock = require('nock');
 const querystring = require('querystring');
 const secondBody = require('../fixtures/comment-create-2.json');
@@ -39,11 +39,11 @@ describe('Auth Jira', function() {
         assert.deepEqual(getRenderedValuesData, { description: '<p>Задача</p>' });
     });
 
-    it('ref test', () => {
-        const projectResult = ref(issue.id, 'projects');
+    it('getProjectUrl test', () => {
+        const projectResult = getProjectUrl(issue.id, 'projects');
         assert.equal(projectResult, 'https://jira.bingo-boom.ru/jira/projects/26313');
 
-        const issueResult = ref(issue.id);
+        const issueResult = getProjectUrl(issue.id);
         assert.equal(issueResult, 'https://jira.bingo-boom.ru/jira/browse/26313');
     });
 

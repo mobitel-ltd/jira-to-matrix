@@ -10,7 +10,7 @@ const {fetchJSON, paramsToQueryString} = require('../utils');
  * @param {string} type by default 'browse', param of url
  * @return {string} url
  */
-const ref = (key, type = 'browse') =>
+const getProjectUrl = (key, type = 'browse') =>
     [jiraUrl, type, key].join('/');
 
 /**
@@ -49,6 +49,20 @@ const getCollectParticipants = async ({url, collectParticipantsBody}) => {
 
         throw err;
     }
+};
+
+/**
+ * Make GET request to jira by ID to get linked issues
+ * @param {string} id linked issue ID in jira
+ * @return {object} jira response with issue
+ */
+const getLinkedIssue = async id => {
+    const body = await fetchJSON(
+        `${jiraUrl}/rest/api/2/issueLink/${id}`,
+        auth()
+    );
+
+    return body;
 };
 
 /**
@@ -134,11 +148,12 @@ const getRenderedValues = async (issueID, fields) => {
 };
 
 module.exports = {
-    ref,
+    getProjectUrl,
     extractID,
     getCollectParticipants,
     getIssue,
     getProject,
     getIssueFormatted,
     getRenderedValues,
+    getLinkedIssue,
 };

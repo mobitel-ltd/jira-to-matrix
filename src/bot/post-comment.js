@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const htmlToString = require('html-to-text').fromString;
 const logger = require('../modules/log.js')(module);
 
-const {issue: {getIssueFormatted}} = require('../jira');
+const {getIssueFormatted} = require('../jira').issue;
 
 const pickRendered = (issue, comment) => {
     const comments = Ramda.path(['renderedFields', 'comment', 'comments'], issue);
@@ -20,9 +20,8 @@ const pickRendered = (issue, comment) => {
 };
 
 module.exports = async ({mclient, issueID, headerText, comment, author}) => {
-    logger.info('post comment start');
+    logger.debug('Post comment start');
     try {
-        logger.debug('data for post comment', {issueID, headerText, comment, author});
         const issue = await getIssueFormatted(issueID);
         const roomId = await mclient.getRoomId(issue.key);
         logger.debug(`Room for comment ${issue.key}: ${!!roomId} \n`);

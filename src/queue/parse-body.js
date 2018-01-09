@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
 const jira = require('../jira');
-const {epicUpdates: epicConf, postChangesToLinks} = require('../config').features;
+const {epicUpdates, postChangesToLinks} = require('../config').features;
 const {getNewStatus} = require('../bot/helper.js');
 const {composeRoomName} = require('../matrix/helpers.js');
 
@@ -107,7 +107,8 @@ const getPostNewLinksData = body => {
 const getPostEpicUpdatesData = body => {
     const {issue} = body;
     const {key, id, changelog} = issue;
-    const epicKey = Ramda.path(['fields', epicConf.field], issue);
+    const {field} = epicUpdates;
+    const epicKey = Ramda.path(['fields', field], issue);
 
     const summary = Ramda.path(['fields', 'summary'], issue);
     const name = Ramda.path(['user', 'name'], body);

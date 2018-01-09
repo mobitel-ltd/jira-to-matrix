@@ -52,6 +52,8 @@ const isMemberInvite = body => Boolean(
     && features.inviteNewMembers
 );
 
+const {field: epicUpdatesField} = features.epicUpdates;
+
 const isPostEpicUpdates = body => Boolean(
     body
     && typeof body === 'object'
@@ -60,6 +62,7 @@ const isPostEpicUpdates = body => Boolean(
         || (body.webhookEvent === 'jira:issue_created' && typeof body.changelog === 'object')
     )
     && typeof body.issue === 'object'
+    && Ramda.path(['issue', 'fields', epicUpdatesField], body)
     && features.epicUpdates.on()
 );
 
@@ -72,7 +75,8 @@ const isPostProjectUpdates = body => Boolean(
     )
     && typeof body.issue === 'object'
     && typeof body.issue.fields === 'object'
-    && body.issue.fields.issuetype.name === 'Epic'
+    // && Ramda.path(['issue', 'fields', 'project'], body)
+    // && Ramda.pathEq(['issue', 'fields', 'issuetype', 'name'], 'Epic')(body)
     && (
         body.issue_event_type_name === 'issue_generic'
         || body.issue_event_type_name === 'issue_created'

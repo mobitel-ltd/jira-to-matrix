@@ -1,4 +1,4 @@
-const {issue: {getCollectParticipants, getProject, ref}} = require('../jira');
+const {getCollectParticipants, getProject, getProjectUrl} = require('../jira').issue;
 const helpers = require('../matrix/helpers.js');
 const logger = require('../modules/log.js')(module);
 const {postIssueDescription} = require('./');
@@ -13,7 +13,7 @@ const create = async (client, issue) => {
             room_alias_name: issue.key,
             invite: participants,
             name: helpers.composeRoomName(issue),
-            topic: ref(issue.key),
+            topic: getProjectUrl(issue.key),
         };
 
         const response = await client.createRoom(options);
@@ -36,7 +36,7 @@ const createRoomProject = async (client, project) => {
             room_alias_name: project.key,
             invite: [helpers.userID(project.lead.key)],
             name: project.name,
-            topic: ref(project.key, 'projects'),
+            topic: getProjectUrl(project.key, 'projects'),
         };
 
         const response = await client.createRoom(options);

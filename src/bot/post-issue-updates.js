@@ -1,4 +1,4 @@
-const jira = require('../jira');
+const {getProjectUrl, getRenderedValues} = require('../jira').issue;
 const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
 
@@ -23,7 +23,7 @@ const postUpdateInfo = async (mclient, roomID, {changelog, key, user}) => {
         const author = user.displayName;
         const fields = fieldNames(changelog.items);
         const changelogItemsTostring = itemsToString(changelog.items);
-        const renderedValues = await jira.issue.getRenderedValues(key, fields);
+        const renderedValues = await getRenderedValues(key, fields);
 
         const formattedValues = {...changelogItemsTostring, ...renderedValues};
 
@@ -54,7 +54,7 @@ const move = async (mclient, roomID, body) => {
         logger.info(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
     }
 
-    await mclient.setRoomTopic(roomID, jira.issue.ref(issueKey));
+    await mclient.setRoomTopic(roomID, getProjectUrl(issueKey));
 };
 
 const rename = async (mclient, roomID, body) => {

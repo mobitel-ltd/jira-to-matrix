@@ -1,12 +1,12 @@
 const Ramda = require('ramda');
-const jira = require('../jira');
+const {getCollectParticipants} = require('../jira').issue;
 const helpers = require('../matrix/helpers.js');
 const logger = require('../modules/log.js')(module);
 
 module.exports = async ({mclient, issue}) => {
     logger.debug('inviteNewMembers start');
     try {
-        const collectParticipants = await jira.issue.getCollectParticipants(issue);
+        const collectParticipants = await getCollectParticipants(issue);
         const participants = collectParticipants.map(helpers.userID);
 
         const room = await mclient.getRoomByAlias(issue.key);
@@ -26,6 +26,7 @@ module.exports = async ({mclient, issue}) => {
         return newMembers;
     } catch (err) {
         logger.error('error in inviteNewMembers');
+
         throw err;
     }
 };
