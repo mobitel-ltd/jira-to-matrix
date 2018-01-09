@@ -23,24 +23,31 @@ const checkNamePriority = (priority, index, name) =>
 
 // recursive function to get users by num and startAt (start position in jira list of users)
 const getUsers = async (num, startAt, acc) => {
-    const params = {
-        username: '@boom',
-        startAt,
-        maxResults: num,
-    };
+    try {
+        const params = {
+            username: '@boom',
+            startAt,
+            maxResults: num,
+        };
 
-    const queryPararms = querystring.stringify(params);
+        const queryPararms = querystring.stringify(params);
 
-    const users = await fetchJSON(
-        `${url}/rest/api/2/user/search?${queryPararms}`,
-        auth()
-    );
-    let resultAcc = [...acc, ...users];
-    if (users.length >= num) {
-        resultAcc = await getUsers(num, startAt + num, resultAcc);
+        const users = await fetchJSON(
+            `${url}/rest/api/2/user/search?${queryPararms}`,
+            auth()
+        );
+        let resultAcc = [...acc, ...users];
+        if (users.length >= num) {
+            resultAcc = await getUsers(num, startAt + num, resultAcc);
+        }
+        logger.info('Number of users', resultAcc.length);
+
+        return resultAcc;
+    } catch (err) {
+        logger.error('getUsers error');
+
+        throw err;
     }
-    logger.info('Number of users', resultAcc.length);
-    return resultAcc;
 };
 
 // Let get all users even if they are more 1000

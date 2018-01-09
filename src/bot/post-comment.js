@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const htmlToString = require('html-to-text').fromString;
 const logger = require('../modules/log.js')(module);
 
-const jira = require('../jira');
+const {getIssueFormatted} = require('../jira').issue;
 
 const pickRendered = (issue, comment) => {
     const comments = Ramda.path(['renderedFields', 'comment', 'comments'], issue);
@@ -20,30 +20,22 @@ const pickRendered = (issue, comment) => {
 };
 
 module.exports = async ({mclient, issueID, headerText, comment, author}) => {
-    logger.info('post comment start');
+    logger.debug('Post comment start');
     try {
-        logger.debug('data for post comment', {issueID, headerText, comment, author});
-        const issue = await jira.issue.getFormatted(issueID);
-
-        if (!issue) {
-            throw new Error('no issue');
-        }
-
+        const issue = await getIssueFormatted(issueID);
         const roomId = await mclient.getRoomId(issue.key);
         logger.debug(`Room for comment ${issue.key}: ${!!roomId} \n`);
 
-        if (!roomId) {
-            throw new Error('no roomId');
-        }
-
         const commentBody = pickRendered(issue, comment);
-        const message = `${headerText}: <br>${commentBody}`;
-        await mclient.sendHtmlMessage(roomId, htmlToString(message), message);
+        const htmlBody = `${headerText}: <br>${commentBody}`;
+        const body = htmlToString(htmlBody);
+        await mclient.sendHtmlMessage(roomId, body, htmlBody);
         logger.debug(`Posted comment ${commentBody} to ${issue.key} from ${author}\n`);
 
         return true;
     } catch (err) {
         logger.error('error in Post comment');
+
         throw err;
     }
 };

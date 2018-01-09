@@ -1,4 +1,4 @@
-const jiraRequest = require('../../../utils');
+const {fetchJSON, fetchPostJSON} = require('../../../utils');
 const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {schemaMove} = require('./schemas.js');
@@ -7,7 +7,7 @@ const logger = require('../../../modules/log.js')(module);
 
 const getMoveId = async (bodyText, roomName) => {
     // List of available commands
-    const {transitions} = await jiraRequest.fetchJSON(
+    const {transitions} = await fetchJSON(
         `${BASE_URL}/${roomName}/transitions`,
         auth()
     );
@@ -29,27 +29,31 @@ const getMoveId = async (bodyText, roomName) => {
 };
 
 module.exports = async ({bodyText, body, room, roomName, matrixClient}) => {
-    logger.debug('body', body);
-    logger.debug('roomName', roomName);
-    const moveId = await getMoveId(bodyText, roomName);
+    try {
+        const moveId = await getMoveId(bodyText, roomName);
+        if (typeof(moveId) === 'string') {
+            await matrixClient.sendHtmlMessage(room.roomId, 'list commands', moveId);
+            return;
+        }
 
-    if (typeof(moveId) === 'string') {
-        await matrixClient.sendHtmlMessage(room.roomId, 'list commands', moveId);
-        return;
+        // canged status issue
+        const status = await fetchPostJSON(
+            `${BASE_URL}/${roomName}/transitions`,
+            auth(),
+            schemaMove(moveId.id)
+        );
+
+        if (status !== 204) {
+            const post = translate('errorMoveJira');
+            await matrixClient.sendHtmlMessage(room.roomId, 'ERROR', post);
+
+            return `Issue ${roomName} not changed status`;
+        }
+
+        return `Issue ${roomName} changed status`;
+    } catch (err) {
+        logger.error('Matrix move command error');
+
+        throw err;
     }
-
-    // canged status issue
-    const {status} = await jiraRequest.fetchPostJSON(
-        `${BASE_URL}/${roomName}/transitions`,
-        auth(),
-        schemaMove(moveId.id)
-    );
-
-    if (status !== 204) {
-        const post = translate('errorMoveJira');
-        await matrixClient.sendHtmlMessage(room.roomId, 'ERROR', post);
-        return `Issue ${roomName} not changed status`;
-    }
-
-    return `Issue ${roomName} changed status`;
 };
