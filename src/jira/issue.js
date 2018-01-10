@@ -73,7 +73,9 @@ const getLinkedIssue = async id => {
  */
 const getIssue = async (id, params) => {
     try {
-        const url = `${jiraUrl}/rest/api/2/issue/${id}${paramsToQueryString(params)}`;
+        const queryParams = paramsToQueryString(params);
+        logger.debug('query', queryParams);
+        const url = `${jiraUrl}/rest/api/2/issue/${id}${queryParams}`;
         logger.debug('url for jira fetch', url);
         const issue = await fetchJSON(
             url,
@@ -136,10 +138,12 @@ const getRenderedValues = async (issueID, fields) => {
     try {
         const issue = await getIssueFormatted(issueID);
 
-        return Ramda.pipe(
+        const renderedValues = Ramda.pipe(
             Ramda.pick(fields),
             Ramda.filter(value => !!value)
         )(issue.renderedFields);
+
+        return renderedValues;
     } catch (err) {
         logger.error('getRenderedValues error');
 

@@ -13,61 +13,67 @@ const getTextIssue = (issue, address) => {
 };
 
 const getPost = async issue => {
-    const assigneeName = getTextIssue(issue, 'assignee.displayName');
-    const assigneeEmail = getTextIssue(issue, 'assignee.emailAddress');
-    const reporterName = getTextIssue(issue, 'reporter.displayName');
-    const reporterEmail = getTextIssue(issue, 'reporter.emailAddress');
-    const typeName = getTextIssue(issue, 'issuetype.name');
-    const epicLink = getTextIssue(issue, 'customfield_10006');
-    const estimateTime = getTextIssue(issue, 'reporter.timeestimate');
-    const description = getTextIssue(issue, 'description');
-    const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
-    let post;
+    try {
+        const assigneeName = getTextIssue(issue, 'assignee.displayName');
+        const assigneeEmail = getTextIssue(issue, 'assignee.emailAddress');
+        const reporterName = getTextIssue(issue, 'reporter.displayName');
+        const reporterEmail = getTextIssue(issue, 'reporter.emailAddress');
+        const typeName = getTextIssue(issue, 'issuetype.name');
+        const epicLink = getTextIssue(issue, 'customfield_10006');
+        const estimateTime = getTextIssue(issue, 'reporter.timeestimate');
+        const description = getTextIssue(issue, 'description');
+        const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
+        let post;
 
-    /* eslint-disable no-negated-condition */
-    if (epicLink !== translate('miss')) {
-        const epic = await getIssueFormatted(epicLink);
-        let nameEpic;
-        if (typeof epic === 'object' && epic.key === epicLink) {
-            const renderedField = Ramda.path(['renderedField', 'customfield_10005'], epic);
-            const fields = Ramda.path(['fields', 'customfield_10005'], epic);
-            nameEpic = String(renderedField || fields || epicLink);
+        /* eslint-disable no-negated-condition */
+        if (epicLink !== translate('miss')) {
+            const epic = await getIssueFormatted(epicLink);
+            let nameEpic;
+            if (typeof epic === 'object' && epic.key === epicLink) {
+                const renderedField = Ramda.path(['renderedField', 'customfield_10005'], epic);
+                const fields = Ramda.path(['fields', 'customfield_10005'], epic);
+                nameEpic = String(renderedField || fields || epicLink);
+            }
+
+            logger.info(`Epic name: ${nameEpic}; epic key: ${epicLink}`);
+
+            post = `
+                Assignee:
+                    <br>${indent}${assigneeName}
+                    <br>${indent}${assigneeEmail}<br>
+                <br>Reporter:
+                    <br>${indent}${reporterName}
+                    <br>${indent}${reporterEmail}<br>
+                <br>Type:
+                    <br>${indent}${typeName}<br>
+                <br>Epic link:
+                    <br>${indent}${nameEpic} (${epicLink})
+                    <br>${indent}\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>
+                <br>Estimate time:
+                    <br>${indent}${estimateTime}<br>
+                <br>Description:
+                    <br>${indent}${description}<br>`;
+        } else {
+            post = `
+                Assignee:
+                    <br>${indent}${assigneeName}
+                    <br>${indent}${assigneeEmail}<br>
+                <br>Reporter:
+                    <br>${indent}${reporterName}
+                    <br>${indent}${reporterEmail}<br>
+                <br>Type:
+                    <br>${indent}${typeName}<br>
+                <br>Estimate time:
+                    <br>${indent}${estimateTime}<br>
+                <br>Description:
+                    <br>${indent}${description}<br>`;
         }
+        return post;
+    } catch (err) {
+        logger.error('getPost error');
 
-        logger.info(`Epic name: ${nameEpic}; epic key: ${epicLink}`);
-
-        post = `
-            Assignee:
-                <br>${indent}${assigneeName}
-                <br>${indent}${assigneeEmail}<br>
-            <br>Reporter:
-                <br>${indent}${reporterName}
-                <br>${indent}${reporterEmail}<br>
-            <br>Type:
-                <br>${indent}${typeName}<br>
-            <br>Epic link:
-                <br>${indent}${nameEpic} (${epicLink})
-                <br>${indent}\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>
-            <br>Estimate time:
-                <br>${indent}${estimateTime}<br>
-            <br>Description:
-                <br>${indent}${description}<br>`;
-    } else {
-        post = `
-            Assignee:
-                <br>${indent}${assigneeName}
-                <br>${indent}${assigneeEmail}<br>
-            <br>Reporter:
-                <br>${indent}${reporterName}
-                <br>${indent}${reporterEmail}<br>
-            <br>Type:
-                <br>${indent}${typeName}<br>
-            <br>Estimate time:
-                <br>${indent}${estimateTime}<br>
-            <br>Description:
-                <br>${indent}${description}<br>`;
+        throw err;
     }
-    return post;
 };
 
 const getTutorial = `
@@ -76,8 +82,10 @@ const getTutorial = `
     `;
 
 module.exports = async ({mclient, issue, newRoomID}) => {
+    logger.debug('Post issue description start');
     try {
         const post = await getPost(issue);
+        logger.debug(issue);
         const renderedValues = await getRenderedValues(issue.id, ['description']);
         const formatted = {post, ...renderedValues};
         const htmlBody = htmlToText(formatted);

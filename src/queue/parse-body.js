@@ -3,8 +3,7 @@ const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
 const jira = require('../jira');
 const {epicUpdates, postChangesToLinks} = require('../config').features;
-const {getNewStatus} = require('../bot/helper.js');
-const {composeRoomName} = require('../matrix/helpers.js');
+const {composeRoomName, getNewStatus} = require('../bot/helper.js');
 
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
@@ -51,6 +50,7 @@ const isProjectEvent = body => Boolean(
 );
 
 const getCreateRoomData = body => {
+    logger.debug('id', body.issue.id);
     const {issue, webhookEvent} = body;
     logger.debug(`issue: ${issue.key}`);
 
@@ -72,7 +72,8 @@ const getCreateRoomData = body => {
 
     const url = Ramda.path(['fields', 'watches', 'self'], issue);
     const summary = Ramda.path(['fields', 'summary'], issue);
-    const newIssue = {key: issue.key, collectParticipantsBody, url, summary};
+    const {key, id} = issue;
+    const newIssue = {key, id, collectParticipantsBody, url, summary};
 
     return {issue: newIssue, webhookEvent, projectOpts};
 };

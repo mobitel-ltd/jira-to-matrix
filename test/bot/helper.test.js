@@ -2,7 +2,16 @@ const assert = require('assert');
 const logger = require('../../src/modules/log.js')(module);
 const thirdBody = require('../fixtures/comment-create-3.json');
 const secondBody = require('../fixtures/comment-create-2.json');
-const {postStatusData, getNewStatus, getEpicChangedMessageBody, getNewEpicMessageBody} = require('../../src/bot/helper');
+const {
+    postStatusData,
+    getNewStatus,
+    getEpicChangedMessageBody,
+    getNewEpicMessageBody,
+    getNewIssueMessageBody,
+    fieldNames,
+    itemsToString,
+    composeText
+} = require('../../src/bot/helper');
 const {getPostEpicUpdatesData} = require('../../src/queue/parse-body');
 const {getPostProjectUpdatesData} = require('../../src/queue/parse-body');
 
@@ -57,5 +66,19 @@ describe('Helper tests', () => {
         const {body, htmlBody} = postStatusData(data);
         assert.equal(body, null);
         assert.equal(htmlBody, null);
+    });
+
+    it('getNewIssueMessageBody', () => {
+        const data = {
+            key: 'BBCOM-956',
+            summary: 'lalalla',
+            id: '26313',
+            changelog: null,
+            name: 'jira_test',
+        };
+
+        const {body, htmlBody} = getNewIssueMessageBody(data);
+        assert.equal(body, 'Новая задача в эпике');
+        assert.equal(htmlBody, '<p>К эпику добавлена задача <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">BBCOM-956 lalalla</a></p>\n');
     });
 });

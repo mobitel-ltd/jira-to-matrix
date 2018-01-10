@@ -7,7 +7,8 @@ const getAlias = alias => `#${alias}:${conf.domain}`;
 
 const createRoom = client => async options => {
     try {
-        await client.createRoom(Object.assign({visibility: 'private'}, options));
+        const {room_id: roomId} = await client.createRoom({visibility: 'private', ...options});
+        return roomId;
     } catch (err) {
         logger.error(`Error while creating room`);
 

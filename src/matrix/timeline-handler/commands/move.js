@@ -31,7 +31,7 @@ const getMoveId = async (bodyText, roomName) => {
 module.exports = async ({bodyText, body, room, roomName, matrixClient}) => {
     try {
         const moveId = await getMoveId(bodyText, roomName);
-        if (typeof(moveId) === 'string') {
+        if (typeof moveId === 'string') {
             await matrixClient.sendHtmlMessage(room.roomId, 'list commands', moveId);
             return;
         }

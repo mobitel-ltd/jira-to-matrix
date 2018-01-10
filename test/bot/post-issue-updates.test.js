@@ -1,38 +1,72 @@
-const {fieldNames, itemsToString, composeText} = require('../../src/bot/post-issue-updates').forTests;
+const nock = require('nock');
 const assert = require('assert');
+const {auth} = require('../../src/jira/common');
+const logger = require('../../src/modules/log.js')(module);
+const JSONbody = require('../fixtures/comment-create-4.json');
+const {getPostIssueUpdatesData} = require('../../src/queue/parse-body.js');
+const {isPostIssueUpdates} = require('../../src/queue/bot-handler.js');
+const {postIssueUpdates} = require('../../src/bot');
+const response = require('../fixtures/response.json');
 
-const items = [
-    {
-        field: 'assignee',
-        toString: 'someone',
-    },
-    {
-        field: 'description',
-        toString: 'new descr',
-    },
-];
-
-it('hook\'s changelog items to strings', () => {
-    const result = itemsToString(items);
-    const value = {
-        assignee: 'someone',
-        description: 'new descr',
+describe('Post issue updates test', () => {
+    const sendHtmlMessage = (roomId, body, htmlBody) => {
+        assert.equal(roomId, 'roomIdBBCOM-1233');
+        assert.equal('Задача изменена', body);
+        logger.debug('htmlBody', htmlBody);
+        const expectedHtmlBody = 'jira_test изменил(а) задачу<br>status: Paused';
+        assert.equal(htmlBody, expectedHtmlBody);
+        return true;
     };
-    assert.deepEqual(result, value);
-});
 
-it('getting hook\'s changelog items fields', () => {
-    const result = fieldNames(items);
-    const value = [ 'assignee', 'description' ];
-    assert.deepEqual(result, value);
-});
+    const getRoomId = id => id ? `roomId${id}` : null;
 
-it('composing html for issue-updated message', () => {
-    const result = composeText({
-        author: 'Автор',
-        fields: ['description'],
-        formattedValues: {description: '<p>new description</p>'},
+    const setRoomName = (oldName, newName) => {
+        if (!oldName) {
+            throw 'No Old name';
+        }
+        logger.debug(`New name of ${oldName} is ${newName}`);
+    }
+
+    const mclient = {sendHtmlMessage, getRoomId, setRoomName};
+
+    const postIssueUpdatesData = getPostIssueUpdatesData(JSONbody);
+    logger.debug('postIssueUpdatesData', postIssueUpdatesData);
+
+    before(() => {
+        const {epicKey} = postIssueUpdatesData;
+        nock('https://jira.bingo-boom.ru', {
+            reqheaders: {
+                Authorization: auth()
+            }
+            })
+            .get(`/jira/rest/api/2/issue/BBCOM-1233`)
+            .query({expand: 'renderedFields'})
+            .reply(200, {...response, id: 28516})
+            .get(url => url.indexOf('null') > 0)
+            .reply(404);
     });
-    const expected = 'Автор изменил(а) задачу<br>description: <p>new description</p>';
-    assert.deepEqual(result, expected);
+
+    it('Is correct postIssueUpdatesData', async () => {
+        const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
+        assert.ok(result);
+    });
+
+    it('Get links', async () => {
+        const result = isPostIssueUpdates(JSONbody);
+        assert.ok(result);
+    });
+
+    it('Get error with empty issueID', async () => {
+        const newBody = {...postIssueUpdatesData, issueKey: null};
+        logger.debug('newBody', newBody);
+
+        try {
+            const result = await postIssueUpdates({mclient, ...newBody});
+        } catch (err) {
+            const funcErr = () => {
+                throw err
+            };
+            assert.throws(funcErr, /No Old name/);
+        }
+    });
 });
