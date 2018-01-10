@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const htmlToText = require('html-to-text').fromString;
-const jira = require('../jira');
+const {getIssueFormatted, getRenderedValues} = require('../jira').issue;
 const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 
@@ -26,7 +26,7 @@ const getPost = async issue => {
 
     /* eslint-disable no-negated-condition */
     if (epicLink !== translate('miss')) {
-        const epic = await jira.issue.getFormatted(epicLink);
+        const epic = await getIssueFormatted(epicLink);
         let nameEpic;
         if (typeof epic === 'object' && epic.key === epicLink) {
             const renderedField = Ramda.path(['renderedField', 'customfield_10005'], epic);
@@ -37,34 +37,34 @@ const getPost = async issue => {
         logger.info(`Epic name: ${nameEpic}; epic key: ${epicLink}`);
 
         post = `
-            Assignee: 
+            Assignee:
                 <br>${indent}${assigneeName}
                 <br>${indent}${assigneeEmail}<br>
-            <br>Reporter: 
+            <br>Reporter:
                 <br>${indent}${reporterName}
                 <br>${indent}${reporterEmail}<br>
             <br>Type:
                 <br>${indent}${typeName}<br>
-            <br>Epic link: 
+            <br>Epic link:
                 <br>${indent}${nameEpic} (${epicLink})
                 <br>${indent}\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>
-            <br>Estimate time: 
+            <br>Estimate time:
                 <br>${indent}${estimateTime}<br>
-            <br>Description: 
+            <br>Description:
                 <br>${indent}${description}<br>`;
     } else {
         post = `
-            Assignee: 
+            Assignee:
                 <br>${indent}${assigneeName}
                 <br>${indent}${assigneeEmail}<br>
-            <br>Reporter: 
+            <br>Reporter:
                 <br>${indent}${reporterName}
                 <br>${indent}${reporterEmail}<br>
             <br>Type:
-                <br>${indent}${typeName}<br>   
-            <br>Estimate time: 
+                <br>${indent}${typeName}<br>
+            <br>Estimate time:
                 <br>${indent}${estimateTime}<br>
-            <br>Description: 
+            <br>Description:
                 <br>${indent}${description}<br>`;
     }
     return post;
@@ -76,22 +76,28 @@ const getTutorial = `
     `;
 
 module.exports = async ({mclient, issue, newRoomID}) => {
-    const post = await getPost(issue);
-    const renderedValues = await jira.issue.renderedValues(issue.id, ['description']);
-    const formatted = {post, ...renderedValues};
-    const htmlBody = htmlToText(formatted);
+    try {
+        const post = await getPost(issue);
+        const renderedValues = await getRenderedValues(issue.id, ['description']);
+        const formatted = {post, ...renderedValues};
+        const htmlBody = htmlToText(formatted);
 
-    // description
-    await mclient.sendHtmlMessage(
-        newRoomID,
-        htmlBody,
-        formatted.post
-    );
+        // description
+        await mclient.sendHtmlMessage(
+            newRoomID,
+            htmlBody,
+            formatted.post
+        );
 
-    // tutorial jira commands
-    await mclient.sendHtmlMessage(
-        newRoomID,
-        'Send tutorial',
-        getTutorial
-    );
+        // tutorial jira commands
+        await mclient.sendHtmlMessage(
+            newRoomID,
+            'Send tutorial',
+            getTutorial
+        );
+    } catch (err) {
+        logger.error('post issue discription error');
+
+        throw err;
+    }
 };
