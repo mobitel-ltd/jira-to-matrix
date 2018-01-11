@@ -5,6 +5,7 @@ module.exports = async ({mclient, typeEvent, projectOpts, data}) => {
     logger.debug('Post project updates start');
     try {
         const roomId = await mclient.getRoomId(projectOpts.key);
+        logger.debug('roomID', roomId);
 
         if (typeEvent === 'issue_created') {
             const {body, htmlBody} = getNewEpicMessageBody(data);

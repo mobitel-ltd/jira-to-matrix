@@ -20,14 +20,14 @@ describe('get-bot-data', function() {
             logger.debug('parsedData', result);
             return result;
         });
-        const expectedData = [{ 
+        const expectedData = [{
             issueID: '26313',
             headerText: 'jira_test добавил(а) комментарий',
-            comment: { 
-                body: '12345', 
-                id: '31039', 
+            comment: {
+                body: '12345',
+                id: '31039',
             },
-            author: 'jira_test' 
+            author: 'jira_test'
         }];
 
         assert.deepEqual(parsedData, expectedData);
@@ -35,7 +35,7 @@ describe('get-bot-data', function() {
 
     it('test correct objects', () => {
         const correctBody = getFuncAndBody(firstBody);
-        
+
         const expected = [{
             redisKey: 'postComment_1512034084304',
             funcName: 'postComment',
@@ -43,11 +43,11 @@ describe('get-bot-data', function() {
                 createRoomData: null,
                 issueID: '26313',
                 headerText: 'jira_test добавил(а) комментарий',
-                comment: { 
-                    body: '12345', 
-                    id: '31039', 
+                comment: {
+                    body: '12345',
+                    id: '31039',
                 },
-                author: 'jira_test' 
+                author: 'jira_test'
             }
         }];
 
@@ -60,7 +60,6 @@ describe('get-bot-data', function() {
         const expectedFuncs = [
             "getInviteNewMembersData",
             "getPostEpicUpdatesData",
-            "getPostNewLinksData",
         ];
         assert.deepEqual(result, expectedFuncs);
 
@@ -87,13 +86,12 @@ describe('get-bot-data', function() {
                     "id": "26313",
                     "key": "BBCOM-956",
                     "name": "jira_test",
+                    'status': null,
                     "summary": "BBCOM-956",
                 },
                 "epicKey": "BBCOM-801",
             },
-            {
-                "links": [],
-            }];
+        ];
 
         assert.deepEqual(parsedData, expectedData);
     });

@@ -17,11 +17,11 @@ describe('get-bot-data', function() {
             createRoomData: null,
             issueID: '26313',
             headerText: 'jira_test добавил(а) комментарий',
-            comment: { 
-                body: '12345', 
-                id: '31039', 
+            comment: {
+                body: '12345',
+                id: '31039',
             },
-            author: 'jira_test' 
+            author: 'jira_test'
         },
     };
 
@@ -45,7 +45,7 @@ describe('get-bot-data', function() {
         const redisValue = await redis.getAsync(redisKey);
         const keys = await redis.keysAsync(`${prefix}*`);
         logger.debug('keys', keys);
-        
+
         logger.debug('redisValue', redisValue);
         const result = JSON.parse(redisValue);
         logger.debug('result', result);
@@ -54,7 +54,7 @@ describe('get-bot-data', function() {
         await redis.delAsync(redisKey);
         const newResult = await redis.getAsync(redisKey);
         logger.debug('newResult', newResult);
-        
+
         assert.equal(newResult, null);
         // const result = JSON.parse(dataFromRedis);
 
@@ -83,7 +83,7 @@ describe('get-bot-data', function() {
 
 
         if (keys.length > 0) {
-            const parsedKeys = keys.map(key => key.replace(`${prefix}:`, ''));
+            const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
             logger.debug('parsedKeys', parsedKeys);
             await redis.delAsync(parsedKeys);
         }

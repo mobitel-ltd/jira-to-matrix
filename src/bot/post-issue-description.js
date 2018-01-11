@@ -4,24 +4,16 @@ const {getIssueFormatted, getRenderedValues} = require('../jira').issue;
 const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 
-const getTextIssue = (issue, address) => {
-    const text = String(
-        Ramda.path(['fields', 'address'], issue) || translate('miss')
-    ).trim();
-
-    return text;
-};
-
-const getPost = async issue => {
+const getPost = async ({assigneeName,
+    assigneeEmail,
+    reporterName,
+    reporterEmail,
+    typeName,
+    epicLink,
+    estimateTime,
+    description,
+}) => {
     try {
-        const assigneeName = getTextIssue(issue, 'assignee.displayName');
-        const assigneeEmail = getTextIssue(issue, 'assignee.emailAddress');
-        const reporterName = getTextIssue(issue, 'reporter.displayName');
-        const reporterEmail = getTextIssue(issue, 'reporter.emailAddress');
-        const typeName = getTextIssue(issue, 'issuetype.name');
-        const epicLink = getTextIssue(issue, 'customfield_10006');
-        const estimateTime = getTextIssue(issue, 'reporter.timeestimate');
-        const description = getTextIssue(issue, 'description');
         const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
         let post;
 
@@ -84,27 +76,19 @@ const getTutorial = `
 module.exports = async ({mclient, issue, newRoomID}) => {
     logger.debug('Post issue description start');
     try {
-        const post = await getPost(issue);
-        logger.debug(issue);
+        const post = await getPost(issue.descriptionFields);
+        logger.debug('post', post);
         const renderedValues = await getRenderedValues(issue.id, ['description']);
-        const formatted = {post, ...renderedValues};
-        const htmlBody = htmlToText(formatted);
+        const {post: htmlBody} = {post, ...renderedValues};
+        const body = htmlToText(htmlBody);
 
         // description
-        await mclient.sendHtmlMessage(
-            newRoomID,
-            htmlBody,
-            formatted.post
-        );
+        await mclient.sendHtmlMessage(newRoomID, body, htmlBody);
 
         // tutorial jira commands
-        await mclient.sendHtmlMessage(
-            newRoomID,
-            'Send tutorial',
-            getTutorial
-        );
+        await mclient.sendHtmlMessage(newRoomID, 'Send tutorial', getTutorial);
     } catch (err) {
-        logger.error('post issue discription error');
+        logger.error('post issue description error');
 
         throw err;
     }
