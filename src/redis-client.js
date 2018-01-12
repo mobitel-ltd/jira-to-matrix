@@ -1,4 +1,3 @@
-// @flow
 const redis = require('redis');
 const bluebird = require('bluebird');
 const conf = require('./config');

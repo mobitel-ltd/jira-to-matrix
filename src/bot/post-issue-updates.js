@@ -1,38 +1,13 @@
-const {getProjectUrl, getRenderedValues} = require('../jira').issue;
-const translate = require('../locales');
+const {getProjectUrl} = require('../jira').issue;
 const logger = require('../modules/log.js')(module);
+const {getIssueUpdateInfoMessageBody} = require('./helper.js');
 
-const fieldNames = items =>
-    items.reduce((acc, {field}) =>
-        (field ? [...acc, field] : acc), []);
-
-const itemsToString = items =>
-    items.reduce((acc, {field, toString}) =>
-        (field ? {...acc, [field]: toString} : acc), {});
-
-const composeText = ({author, fields, formattedValues}) => {
-    const messageHeader = `${author} ${translate('issue_updated', null, author)}`;
-    const changesDescription = fields.map(field =>
-        `${field}: ${formattedValues[field]}`);
-
-    return [messageHeader, ...changesDescription].join('<br>');
-};
-
-const postUpdateInfo = async (mclient, roomID, {changelog, key, user}) => {
+const postUpdateInfo = async (mclient, roomID, data) => {
     try {
-        const author = user.displayName;
-        const fields = fieldNames(changelog.items);
-        const changelogItemsTostring = itemsToString(changelog.items);
-        const renderedValues = await getRenderedValues(key, fields);
-
-        const formattedValues = {...changelogItemsTostring, ...renderedValues};
-
-        const htmlBody = composeText({author, fields, formattedValues});
-        const body = translate('issueHasChanged');
-
+        const {body, htmlBody} = await getIssueUpdateInfoMessageBody(data);
         await mclient.sendHtmlMessage(roomID, body, htmlBody);
 
-        logger.debug(`Posted updates to ${key}`);
+        logger.debug(`Posted updates to ${roomID}`);
     } catch (err) {
         logger.error('Error postUpdateInfo');
 
@@ -40,48 +15,32 @@ const postUpdateInfo = async (mclient, roomID, {changelog, key, user}) => {
     }
 };
 
-
-const move = async (mclient, roomID, body) => {
-    const {issueKey, fieldKey, summary} = body;
-
+const move = async (mclient, roomID, {issueKey, fieldKey, summary}) => {
     if (!(fieldKey && summary)) {
         return;
     }
 
-    const success = await mclient.createAlias(fieldKey.toString, roomID);
-
-    if (success) {
-        logger.info(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
-    }
+    await mclient.createAlias(fieldKey.toString, roomID);
+    logger.info(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
 
     await mclient.setRoomTopic(roomID, getProjectUrl(issueKey));
 };
 
-const rename = async (mclient, roomID, body) => {
-    const {summary, roomName, issueKey} = body;
-
+const rename = async (mclient, roomID, {summary, roomName, issueKey}) => {
     if (!summary && !issueKey) {
         return;
     }
 
-    const success = await mclient.setRoomName(roomID, roomName);
-
-    if (success) {
-        logger.info(`Successfully renamed room ${issueKey}`);
-    }
+    await mclient.setRoomName(roomID, roomName);
+    logger.info(`Successfully renamed room ${issueKey}`);
 };
 
-const postIssueUpdates = async body => {
+module.exports = async ({mclient, ...body}) => {
     try {
         logger.debug('Start postIssueUpdates');
-        const {issueKey, mclient} = body;
-        const roomID = await mclient.getRoomId(issueKey);
 
-        if (!roomID) {
-            logger.debug('No roomId');
-
-            return true;
-        }
+        const roomID = await mclient.getRoomId(body.issueKey);
+        logger.debug('RoomId in Post issue updates is ', roomID);
 
         await move(mclient, roomID, body);
         await rename(mclient, roomID, body);
@@ -93,13 +52,4 @@ const postIssueUpdates = async body => {
 
         throw err;
     }
-};
-
-module.exports = {
-    postIssueUpdates,
-    forTests: {
-        itemsToString,
-        composeText,
-        fieldNames,
-    },
 };

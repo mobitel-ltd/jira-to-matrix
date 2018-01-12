@@ -25,6 +25,7 @@ module.exports = async ({mclient, linksKeys, data}) => {
         return true;
     } catch (err) {
         logger.error('error in postLinkedChanges');
+
         throw err;
     }
 };

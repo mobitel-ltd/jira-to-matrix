@@ -3,8 +3,7 @@ const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
 const jira = require('../jira');
 const {epicUpdates, postChangesToLinks} = require('../config').features;
-const {getNewStatus} = require('../bot/helper.js');
-const {composeRoomName} = require('../matrix/helpers.js');
+const {composeRoomName, getNewStatus} = require('../bot/helper.js');
 
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
@@ -23,7 +22,6 @@ const getPostCommentData = body => {
     const headerText = getHeaderText(body);
 
     const issueID = jira.issue.extractID(JSON.stringify(body));
-    logger.debug('issueID', issueID);
     const comment = {
         body: body.comment.body,
         id: body.comment.id,
@@ -35,6 +33,15 @@ const getPostCommentData = body => {
 };
 
 // Create room
+const getTextIssue = (issue, address) => {
+    const params = address.split('.');
+    const text = String(
+        Ramda.path(['fields', ...params], issue) || translate('miss')
+    ).trim();
+
+    return text;
+};
+
 const isEpic = body => Boolean(
     typeof body === 'object'
     && typeof body.issue === 'object'
@@ -52,7 +59,6 @@ const isProjectEvent = body => Boolean(
 
 const getCreateRoomData = body => {
     const {issue, webhookEvent} = body;
-    logger.debug(`issue: ${issue.key}`);
 
     let projectOpts;
     if (isEpic(body) || isProjectEvent(body)) {
@@ -69,10 +75,21 @@ const getCreateRoomData = body => {
         Ramda.path(['fields', 'reporter', 'name'], issue),
         Ramda.path(['fields', 'assignee', 'name'], issue),
     ];
+    const descriptionFields = {
+        assigneeName: getTextIssue(issue, 'assignee.displayName'),
+        assigneeEmail: getTextIssue(issue, 'assignee.emailAddress'),
+        reporterName: getTextIssue(issue, 'reporter.displayName'),
+        reporterEmail: getTextIssue(issue, 'reporter.emailAddress'),
+        typeName: getTextIssue(issue, 'issuetype.name'),
+        epicLink: getTextIssue(issue, 'customfield_10006'),
+        estimateTime: getTextIssue(issue, 'timetracking.originalEstimate'),
+        description: getTextIssue(issue, 'description'),
+    };
 
     const url = Ramda.path(['fields', 'watches', 'self'], issue);
     const summary = Ramda.path(['fields', 'summary'], issue);
-    const newIssue = {key: issue.key, collectParticipantsBody, url, summary};
+    const {key, id} = issue;
+    const newIssue = {key, id, collectParticipantsBody, url, summary, descriptionFields};
 
     return {issue: newIssue, webhookEvent, projectOpts};
 };

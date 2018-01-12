@@ -7,7 +7,8 @@ const getAlias = alias => `#${alias}:${conf.domain}`;
 
 const createRoom = client => async options => {
     try {
-        await client.createRoom(Object.assign({visibility: 'private'}, options));
+        const {room_id: roomId} = await client.createRoom({visibility: 'private', ...options});
+        return roomId;
     } catch (err) {
         logger.error(`Error while creating room`);
 
@@ -18,14 +19,13 @@ const createRoom = client => async options => {
 const getRoomId = client => async alias => {
     try {
         const {room_id: roomId} = await client.getRoomIdForAlias(getAlias(alias));
-
         return roomId;
     } catch (err) {
-        logger.error(
-            `Error while getting room id for ${alias} from Matrix`
+        logger.warn(
+            `No room id for ${alias} from Matrix`
         );
 
-        throw err;
+        return null;
     }
 };
 
@@ -36,9 +36,9 @@ const getRoomByAlias = client => async alias => {
         const room = await client.getRoom(roomId);
         return room;
     } catch (err) {
-        logger.error(`Error while getting room id for ${alias} from Matrix:`);
+        logger.warn(`No room id for ${alias} from Matrix:`);
 
-        throw err;
+        return null;
     }
 };
 
@@ -58,8 +58,11 @@ const sendHtmlMessage = client => async (roomId, body, htmlBody) => {
     try {
         await client.sendHtmlMessage(roomId, body, htmlBody);
     } catch (err) {
-        logger.error(`Error while sending message to a room`);
+        if (err.message.indexOf(`${conf.userId} not in room`) > 0) {
+            logger.warn(err.message);
 
+            return null;
+        }
         throw err;
     }
 };

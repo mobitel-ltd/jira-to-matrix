@@ -2,12 +2,12 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const redis = require('../redis-client.js');
-const jira = require('../jira');
+const {getProjectUrl, getLinkedIssue} = require('../jira').issue;
 const translate = require('../locales');
 
 const getPostLinkMessageBody = ({relation, related}) => {
     const {key} = related;
-    const issueRef = jira.issue.ref(key);
+    const issueRef = getProjectUrl(key);
     const summary = Ramda.path(['fields', 'summary'], related);
     const values = {key, relation, summary, issueRef};
 
@@ -30,7 +30,7 @@ const postLink = async (issue, relation, related, mclient) => {
 
 const handleLink = async (issueLinkId, mclient) => {
     try {
-        const link = await jira.link.get(issueLinkId);
+        const link = await getLinkedIssue(issueLinkId);
         logger.silly('link', link);
         if (!link) {
             return;
