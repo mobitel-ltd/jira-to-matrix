@@ -1,98 +1,121 @@
 const assert = require('assert');
 const logger = require('../../src/modules/log.js')(module);
-const firstBody = require('../fixtures/comment-create-1.json');
-const secondBody = require('../fixtures/comment-create-2.json');
-const fivesBody = require('../fixtures/5.json');
+const firstJSON = require('../fixtures/comment-create-1.json');
+const secondJSON = require('../fixtures/comment-create-2.json');
 const parsers = require('../../src/queue/parse-body.js');
 const bot = require('../../src/bot');
 const {getBotFunc, getParserName, getFuncAndBody} = require('../../src/queue/bot-handler.js');
 
 describe('get-bot-data', function() {
+    const firstBodyArr = getBotFunc(firstJSON);
+    const secondBodyArr = getBotFunc(secondJSON);
 
-    it('test correct firstBody parse', () => {
-        const funcArr = getBotFunc(firstBody);
-        const result = funcArr.map(getParserName);
-        const expected = ['getPostCommentData'];
-        assert.deepEqual(result, expected);
+    it('test correct getBotFunc', () => {
+        const firstBodyArrExpected = [ 'postComment' ];
+        const secondBodyArrExpected = [ 'inviteNewMembers', 'postEpicUpdates' ];
 
-        const parsedData = result.map(element => {
-            const result = parsers[element](firstBody);
-            logger.debug('parsedData', result);
-            return result;
-        });
-        const expectedData = [{
-            issueID: '26313',
-            headerText: 'jira_test добавил(а) комментарий',
-            comment: {
-                body: '12345',
-                id: '31039',
-            },
-            author: 'jira_test'
-        }];
+        assert.deepEqual(firstBodyArrExpected, firstBodyArr);
+        assert.deepEqual(secondBodyArrExpected, secondBodyArr);
+    })
 
-        assert.deepEqual(parsedData, expectedData);
+    it('test correct getParserName', () => {
+        const getParserNameFirst = firstBodyArr.map(getParserName);
+        const getParserNameSecond = secondBodyArr.map(getParserName);
+
+        const firstBodyArrExpected = ['getPostCommentData'];
+        assert.deepEqual(getParserNameFirst, firstBodyArrExpected);
+
+        const secondBodyArrExpected = [ 'getInviteNewMembersData', 'getPostEpicUpdatesData' ];
+        assert.deepEqual(getParserNameSecond, secondBodyArrExpected);
     });
 
-    it('test correct objects', () => {
-        const correctBody = getFuncAndBody(firstBody);
+    it('test correct getFuncAndBody', () => {
+        const funcAndBodyFirst = getFuncAndBody(firstJSON);
+        const funcAndBodySecond = getFuncAndBody(secondJSON);
 
-        const expected = [{
-            redisKey: 'postComment_1512034084304',
-            funcName: 'postComment',
-            data: {
+        const firstBodyArrExpected = [
+            {
+                redisKey: 'rooms',
                 createRoomData: null,
-                issueID: '26313',
-                headerText: 'jira_test добавил(а) комментарий',
-                comment: {
-                    body: '12345',
-                    id: '31039',
-                },
-                author: 'jira_test'
+            },
+            {
+                redisKey: 'postComment_1512034084304',
+                funcName: 'postComment',
+                data: {
+                    issueID: '26313',
+                    headerText: 'jira_test добавил(а) комментарий',
+                    comment: {
+                        body: '12345',
+                        id: '31039',
+                    },
+                    author: 'jira_test'
+                }
             }
-        }];
-
-        assert.deepEqual(correctBody, expected);
-    });
-
-    it('test correct secondBody parse', () => {
-        const funcArr = getBotFunc(secondBody);
-        const result = funcArr.map(getParserName);
-        const expectedFuncs = [
-            "getInviteNewMembersData",
-            "getPostEpicUpdatesData",
         ];
-        assert.deepEqual(result, expectedFuncs);
 
-        const parsedData = result.map(element => {
-            const result = parsers[element](secondBody);
-            logger.debug(`parsedData ${element}`, result);
-            return result;
-        });
-        const expectedData = [
+        const secondBodyArrExpected = [
             {
-                "issue": {
-                    "collectParticipantsBody": [
-                        "jira_test",
-                        "jira_test",
-                        "jira_test",
-                    ],
-                    "key": "BBCOM-956",
-                    "url": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-956/watchers",
+                redisKey: 'rooms',
+                createRoomData: {
+                    "issue": {
+                        "collectParticipantsBody": [
+                            "jira_test",
+                            "jira_test",
+                            "jira_test",
+                        ],
+                        "descriptionFields": {
+                            "assigneeEmail": "jira_test@bingo-boom.ru",
+                            "assigneeName": "jira_test",
+                            "description": "dafdasfadf",
+                            "epicLink": "BBCOM-801",
+                            "estimateTime": "отсутствует",
+                            "reporterEmail": "jira_test@bingo-boom.ru",
+                            "reporterName": "jira_test",
+                            "typeName": "Task",
+                        },
+                        "id": "26313",
+                        "key": "BBCOM-956",
+                        "summary": "BBCOM-956",
+                        "url": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-956/watchers",
+                    },
+                    "projectOpts": undefined,
+                    "webhookEvent": "jira:issue_updated"
+
                 },
             },
             {
-                "data": {
-                    "changelog": undefined,
-                    "id": "26313",
-                    "key": "BBCOM-956",
-                    "name": "jira_test",
-                    'status': null,
-                    "summary": "BBCOM-956",
-                },
-                "epicKey": "BBCOM-801",
+                redisKey: 'inviteNewMembers_1511973439683',
+                funcName: 'inviteNewMembers',
+                data: {
+                    "issue": {
+                        "collectParticipantsBody": [
+                            "jira_test",
+                            "jira_test",
+                            "jira_test",
+                        ],
+                        "key": "BBCOM-956",
+                        "url": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-956/watchers",
+                    },
+                }
             },
+            {
+                redisKey: 'postEpicUpdates_1511973439683',
+                funcName: 'postEpicUpdates',
+                data: {
+                    data: {
+                            "changelog": undefined,
+                            "id": "26313",
+                            "key": "BBCOM-956",
+                            "name": "jira_test",
+                            'status': null,
+                            "summary": "BBCOM-956",
+                        },
+                    epicKey: "BBCOM-801",
+                },
+            }
         ];
 
-        assert.deepEqual(parsedData, expectedData);
+        assert.deepEqual(funcAndBodyFirst, firstBodyArrExpected);
+        assert.deepEqual(funcAndBodySecond, secondBodyArrExpected);
     });
 });

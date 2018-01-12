@@ -125,26 +125,29 @@ const getBotFunc = body => {
 const getParserName = func =>
     `get${func[0].toUpperCase()}${func.slice(1)}Data`;
 
+// Эту переменную можно в конфиг добавить, она по сути константа
+const redisRoomsKey = 'rooms';
+
 const getFuncAndBody = body => {
     const botFunc = getBotFunc(body);
     logger.debug('Array of functions we should handle', botFunc);
 
-    const result = botFunc.reduce((acc, funcName) => {
-        let createRoomData = null;
-        if (isCreateRoom(body)) {
-            createRoomData = parsers.getCreateRoomData(body);
-        }
+    let createRoomData = null;
+    if (isCreateRoom(body)) {
+        createRoomData = parsers.getCreateRoomData(body);
+    }
+    const roomsData = {redisKey: redisRoomsKey, createRoomData};
 
+    const result = botFunc.reduce((acc, funcName) => {
         const data = {
             ...parsers[getParserName(funcName)](body),
-            createRoomData,
         };
 
         const redisKey = `${funcName}_${body.timestamp}`;
         logger.debug('redisKey', redisKey);
 
         return [...acc, {redisKey, funcName, data}];
-    }, []);
+    }, [roomsData]);
 
     return result;
 };
