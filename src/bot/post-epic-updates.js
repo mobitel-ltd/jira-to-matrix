@@ -1,10 +1,8 @@
 const logger = require('../modules/log.js')(module);
-const marked = require('marked');
-const translate = require('../locales');
 const redis = require('../redis-client');
-const {getProjectUrl, getIssue} = require('../jira').issue;
+const {getIssue} = require('../jira').issue;
 const {epicUpdates: epicConf} = require('../config').features;
-const {postStatusChanged} = require('./helper.js');
+const {postStatusChanged, getNewIssueMessageBody} = require('./helper.js');
 
 const epicRedisKey = epicID => `epic|${epicID}`;
 
@@ -18,17 +16,6 @@ const isInEpic = async (epicID, issueID) => {
 
         throw err;
     }
-};
-
-const getNewIssueMessageBody = ({summary, key}) => {
-    const issueRef = getProjectUrl(key);
-    const values = {key, issueRef, summary};
-
-    const body = translate('newIssueInEpic');
-    const message = translate('issueAddedToEpic', values);
-    const htmlBody = marked(message);
-
-    return {body, htmlBody};
 };
 
 const saveToEpic = async (epicID, issueID) => {
@@ -63,7 +50,7 @@ const postNewIssue = async (roomID, {epic, issue}, mclient) => {
     }
 };
 
-const postEpicUpdates = async ({mclient, data, epicKey}) => {
+module.exports = async ({mclient, data, epicKey}) => {
     logger.info('postEpicUpdates start');
     try {
         const epic = await getIssue(epicKey);
@@ -83,5 +70,3 @@ const postEpicUpdates = async ({mclient, data, epicKey}) => {
         throw err;
     }
 };
-
-module.exports = {getNewIssueMessageBody, postEpicUpdates};

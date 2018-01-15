@@ -1,50 +1,53 @@
 const {getCollectParticipants, getProject, getProjectUrl} = require('../jira').issue;
-const helpers = require('../matrix/helpers.js');
+const {composeRoomName, getUserID} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
-const {postIssueDescription} = require('./');
+const postIssueDescription = require('./post-issue-description.js');
 
 const create = async (client, issue) => {
     try {
         const collectParticipants = await getCollectParticipants(issue);
-        const participants = collectParticipants.map(helpers.userID);
+        const invite = collectParticipants.map(getUserID);
+
+        const {key} = issue;
+        const name = composeRoomName(issue);
+        const topic = getProjectUrl(key);
 
         const options = {
             // eslint-disable-next-line camelcase
-            room_alias_name: issue.key,
-            invite: participants,
-            name: helpers.composeRoomName(issue),
-            topic: getProjectUrl(issue.key),
+            room_alias_name: key,
+            invite,
+            name,
+            topic,
         };
 
-        const response = await client.createRoom(options);
-        if (!response) {
-            return;
-        }
-        logger.info(`Created room for ${issue.key}: ${response.room_id}`);
-        return response.room_id;
+        const roomId = await client.createRoom(options);
+
+        logger.info(`Created room for ${key}: ${roomId}`);
+        return roomId;
     } catch (err) {
-        logger.error('Error in create');
+        logger.error('Error in room create');
 
         throw err;
     }
 };
 
-const createRoomProject = async (client, project) => {
+const createRoomProject = async (client, {key, lead, name}) => {
     try {
+        const invite = [getUserID(lead.key)];
+        const topic = getProjectUrl(key, 'projects');
+
         const options = {
             // eslint-disable-next-line camelcase
-            room_alias_name: project.key,
-            invite: [helpers.userID(project.lead.key)],
-            name: project.name,
-            topic: getProjectUrl(project.key, 'projects'),
+            room_alias_name: key,
+            invite,
+            name,
+            topic,
         };
 
-        const response = await client.createRoom(options);
-        if (!response) {
-            return;
-        }
-        logger.info(`Created room for project ${project.key}: ${response.room_id}`);
-        return response.room_id;
+        const roomId = await client.createRoom(options);
+
+        logger.info(`Created room for project ${key}: ${roomId}`);
+        return roomId;
     } catch (err) {
         logger.error('createRoomProject Error');
 
@@ -53,22 +56,19 @@ const createRoomProject = async (client, project) => {
 };
 
 module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
-    logger.info('room creating');
+    logger.debug('Room creating');
     try {
-        if (!mclient) {
-            logger.error(`Not exist matrix client. Key: ${issue.key}`);
+        logger.debug('data for creating', issue);
+        const roomID = await mclient.getRoomId(issue.key);
+        logger.debug('roomID', roomID);
 
-            throw 'No Matrix client';
-        }
+        if (roomID) {
+            logger.debug('Room should not be created');
+        } else {
+            logger.debug(`Start creating the room for issue ${issue.key}`);
 
-        const room = await mclient.getRoomId(issue.key);
-
-        if (webhookEvent === 'jira:issue_created' || !room) {
-            logger.debug(`Start creating the room for  issue ${issue.key}`);
             const newRoomID = await create(mclient, issue);
             await postIssueDescription({mclient, issue, newRoomID});
-        } else {
-            logger.debug('Room should not be created');
         }
 
         if (!projectOpts) {
@@ -89,6 +89,6 @@ module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
     } catch (err) {
         logger.error('Error in room creating');
 
-        return false;
+        throw err;
     }
 };

@@ -1,10 +1,24 @@
 const redis = require('../redis-client');
 const logger = require('../modules/log.js')(module);
 
-module.exports = async data => {
+module.exports = async ({redisKey, ...restData}) => {
     try {
-        const {redisKey, ...restData} = data;
-        const bodyToJSON = JSON.stringify(restData);
+        let redisValue = restData;
+        if (redisKey === 'rooms') {
+            const {createRoomData} = restData;
+            if (!createRoomData) {
+                return;
+            }
+
+            const currentRedisRoomData = await redis.getAsync('rooms');
+            const currentRedisRoomDataParsed = JSON.parse(currentRedisRoomData);
+
+            redisValue = currentRedisRoomDataParsed
+                ? [...currentRedisRoomDataParsed, createRoomData]
+                : [createRoomData];
+        }
+
+        const bodyToJSON = JSON.stringify(redisValue);
 
         await redis.setAsync(redisKey, bodyToJSON);
         logger.info('data saved by redis. RedisKey: ', redisKey);
