@@ -81,7 +81,7 @@ describe('Create room test', () => {
         await handleRedisRooms(mclient, roomsKeys);
 
         const newRoomsKeys = await getRedisRooms();
-        assert.deepEqual(newRoomsKeys, []);
+        assert.equal(newRoomsKeys, null);
     });
 
     after(async () => {

@@ -12,25 +12,11 @@ const redis = require('../../src/redis-client.js');
 
 describe('get-bot-data', function() {
     const expectedFuncKeys = [
-        "test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225",
         "test-jira-hooks:postProjectUpdates_2018-1-11 13:08:04,225",
+        "test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225",
     ];
 
     const expectedData = [
-        {
-            redisKey: 'postEpicUpdates_2018-1-11 13:08:04,225',
-            funcName: 'postEpicUpdates',
-            data: {
-                epicKey: 'BBCOM-801',
-                data: {
-                    key: 'BBCOM-1398',
-                    summary: 'Test',
-                    id: '30369',
-                    name: 'jira_test',
-                    status: null
-                },
-            }
-        },
         {
             redisKey: 'postProjectUpdates_2018-1-11 13:08:04,225',
             funcName: 'postProjectUpdates',
@@ -58,7 +44,22 @@ describe('get-bot-data', function() {
                         status: 'Open'
                     },
             }
-        }];
+        },
+        {
+            redisKey: 'postEpicUpdates_2018-1-11 13:08:04,225',
+            funcName: 'postEpicUpdates',
+            data: {
+                epicKey: 'BBCOM-801',
+                data: {
+                    key: 'BBCOM-1398',
+                    summary: 'Test',
+                    id: '30369',
+                    name: 'jira_test',
+                    status: null
+                },
+            }
+        },
+];
 
     const expectedRoom = [
         {
@@ -165,7 +166,7 @@ describe('get-bot-data', function() {
         await handleRedisRooms(mclient, roomsKeys);
 
         const newRoomsKeys = await getRedisRooms();
-        assert.deepEqual(newRoomsKeys, []);
+        assert.deepEqual(newRoomsKeys, null);
     });
 
     after(async () => {

@@ -4,10 +4,10 @@ const logger = require('../../src/modules/log.js')(module);
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
 const {
-    postEpicUpdates, 
+    postEpicUpdates,
     postComment,
-    createRoom, 
-    inviteNewMembers, 
+    createRoom,
+    inviteNewMembers,
     postNewLinks,
     postLinkedChanges,
     postIssueUpdates,
@@ -16,10 +16,10 @@ const {
 const bot = require('../../src/bot');
 const Matrix = require('../../src/matrix/');
 const {
-    getPostEpicUpdatesData, 
-    getPostCommentData, 
-    getCreateRoomData, 
-    getInviteNewMembersData, 
+    getPostEpicUpdatesData,
+    getPostCommentData,
+    getCreateRoomData,
+    getInviteNewMembersData,
     getPostNewLinksData,
     getPostLinkedChangesData,
     getPostIssueUpdatesData,
@@ -47,8 +47,7 @@ describe('bot func', function() {
         logger.debug('result', result);
         const expected = [
             'inviteNewMembers',
-            'postEpicUpdates', 
-            'postNewLinks', 
+            'postEpicUpdates',
         ];
         assert.deepEqual(result, expected);
     });
@@ -129,7 +128,7 @@ describe('bot func', function() {
     //     assert.ok(result);
     //     await disconnect();
     // })
-   
+
     // it('postIssueUpdates', async () => {
     //     const {connect, disconnect, helpers} = matrixApi;
     //     const mclient = await connect();

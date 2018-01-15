@@ -6,17 +6,15 @@ const secondBody = require('../fixtures/comment-create-2.json');
 const jsonBody = require('../fixtures/comment-create-3.json');
 const Matrix = require('../../src/matrix/');
 const {postStatusData} = require('../../src/bot/helper');
-const {getPostEpicUpdatesData} = require('../../src/queue/parse-body');
-const {getNewIssueMessageBody} = require('../../src/bot/post-epic-updates');
-const {getEpicChangedMessageBody, getNewEpicMessageBody} = require('../../src/bot/post-project-updates');
-const {getPostProjectUpdatesData} = require('../../src/queue/parse-body');
+const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/queue/parse-body');
+const {getNewIssueMessageBody, getEpicChangedMessageBody, getNewEpicMessageBody} = require('../../src/bot/helper.js');
 
 describe('bot func', function() {
     this.timeout(15000);
     before(() => {
         nock('https://matrix.bingo-boom.ru')
             .get('/')
-            .reply(200, {result: true});  
+            .reply(200, {result: true});
     })
 
     it('error sendHtmlMessage', async () => {
@@ -38,30 +36,30 @@ describe('bot func', function() {
         const expected = `<p>jira_test изменил(а) статус связанной задачи <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">BBCOM-956 &quot;BBCOM-956&quot;</a> на <strong>Closed</strong></p>\n`;
         assert.equal(htmlBody, expected);
     });
-   
+
     it('postStatusData with null', async () => {
-        const data = { 
+        const data = {
             key: 'BBCOM-956',
             summary: 'BBCOM-956',
             id: '26313',
             changelog: undefined,
             name: 'jira_test',
         };
-      
+
         logger.debug('data', data);
         const {body, htmlBody} = postStatusData(data);
         assert.equal(body, null);
     });
 
     it('getNewIssueMessageBody', async () => {
-        const data = { 
+        const data = {
             key: 'BBCOM-956',
             summary: 'lalalla',
             id: '26313',
             changelog: undefined,
             name: 'jira_test',
         };
-      
+
         const {body, htmlBody} = getNewIssueMessageBody(data);
         logger.debug('data', {body, htmlBody});
         assert.equal(body, 'Новая задача в эпике');
@@ -89,7 +87,7 @@ describe('bot func', function() {
         const expected = `<p>${data.name} изменил(а) статус связанного эпика <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">${data.key} &quot;${data.summary}&quot;</a> на <strong>${data.status}</strong></p>\n`;
         assert.equal(htmlBody, expected);
     });
-    
+
     it('getNewEpicMessageBody', async () => {
         const {data} = getPostProjectUpdatesData(secondBody);
         logger.debug('getPostProjectUpdatesData', data);

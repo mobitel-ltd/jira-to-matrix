@@ -3,7 +3,7 @@ const logger = require('../../src/modules/log.js')(module);
 const {newSave} = require('../../src/bot');
 const {prefix} = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
-const {getRedisKeys, getDataFromRedis, getRedisRooms} = require('../../src/queue/redis-data-handle.js');
+const {getRedisValue, getRedisKeys, getDataFromRedis, getRedisRooms} = require('../../src/queue/redis-data-handle.js');
 
 describe('get-bot-data', () => {
     const expectedFuncKeys1 = [
@@ -62,6 +62,22 @@ describe('get-bot-data', () => {
     const dataToSave2 = [...expectedFuncKeys2, room2];
     const dataToSave3 = [...expectedFuncKeys3, room3];
 
+    it('test no keys and rooms in redis', async () => {
+        const keys = await getRedisKeys();
+        expect(keys).to.be.empty;
+
+        const data = await getDataFromRedis();
+        expect(data).to.be.null;
+
+        const rooms = await getRedisRooms();
+        expect(rooms).to.be.null;
+    });
+
+    it('test no key', async () => {
+        const result = await getRedisValue('NO_SUCH_KEY');
+
+        expect(result).to.be.false;
+    });
 
     it('test correct redis save', async () => {
         await Promise.all(dataToSave1.map(newSave));
@@ -78,7 +94,7 @@ describe('get-bot-data', () => {
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
 
-    it('test  second correct redis save', async () => {
+    it('test second correct redis save', async () => {
         await Promise.all(dataToSave2.map(newSave));
 
         const redisKeys = await getRedisKeys();
