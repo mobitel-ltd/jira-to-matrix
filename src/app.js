@@ -25,7 +25,7 @@ const queueFsm = new StateMachine({
             logger.debug('Start Redis data handling');
             queuePush.emit('startQueueHandler');
         },
-        onHandled: () => logger.debug('Redis data is handling'),
+        onHandled: () => logger.debug('Redis data is handled'),
         onWait: () => logger.debug('Event not finished. Redis data is waiting for handling'),
     },
     plugins: [
