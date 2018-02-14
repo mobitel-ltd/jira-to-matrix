@@ -12,10 +12,25 @@ const getPost = async ({assigneeName,
     epicLink,
     estimateTime,
     description,
+    priority,
 }) => {
     try {
         const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
-        let post;
+        const post = `
+            Assignee:
+                <br>${indent}${assigneeName}
+                <br>${indent}${assigneeEmail}<br>
+            <br>Reporter:
+                <br>${indent}${reporterName}
+                <br>${indent}${reporterEmail}<br>
+            <br>Type:
+                <br>${indent}${typeName}<br>
+            <br>Estimate time:
+                <br>${indent}${estimateTime}<br>
+            <br>Description:
+                <br>${indent}${description}<br>
+            <br>Priority:
+                <br>${indent}${priority}<br>`;
 
         /* eslint-disable no-negated-condition */
         if (epicLink !== translate('miss')) {
@@ -29,36 +44,11 @@ const getPost = async ({assigneeName,
 
             logger.info(`Epic name: ${nameEpic}; epic key: ${epicLink}`);
 
-            post = `
-                Assignee:
-                    <br>${indent}${assigneeName}
-                    <br>${indent}${assigneeEmail}<br>
-                <br>Reporter:
-                    <br>${indent}${reporterName}
-                    <br>${indent}${reporterEmail}<br>
-                <br>Type:
-                    <br>${indent}${typeName}<br>
-                <br>Epic link:
-                    <br>${indent}${nameEpic} (${epicLink})
-                    <br>${indent}\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>
-                <br>Estimate time:
-                    <br>${indent}${estimateTime}<br>
-                <br>Description:
-                    <br>${indent}${description}<br>`;
-        } else {
-            post = `
-                Assignee:
-                    <br>${indent}${assigneeName}
-                    <br>${indent}${assigneeEmail}<br>
-                <br>Reporter:
-                    <br>${indent}${reporterName}
-                    <br>${indent}${reporterEmail}<br>
-                <br>Type:
-                    <br>${indent}${typeName}<br>
-                <br>Estimate time:
-                    <br>${indent}${estimateTime}<br>
-                <br>Description:
-                    <br>${indent}${description}<br>`;
+            const epicInfo = `
+            <br>Epic link:
+                <br>${indent}${nameEpic} (${epicLink})
+                <br>${indent}\thttps://jira.bingo-boom.ru/jira/browse/${epicLink}<br>`;
+            return `${post}${epicInfo}`;
         }
         return post;
     } catch (err) {
