@@ -84,6 +84,7 @@ const getCreateRoomData = body => {
         epicLink: getTextIssue(issue, 'customfield_10006'),
         estimateTime: getTextIssue(issue, 'timetracking.originalEstimate'),
         description: getTextIssue(issue, 'description'),
+        priority: getTextIssue(issue, 'priority.name'),
     };
 
     const url = Ramda.path(['fields', 'watches', 'self'], issue);

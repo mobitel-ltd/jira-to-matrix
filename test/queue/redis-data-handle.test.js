@@ -77,7 +77,8 @@ describe('get-bot-data', function() {
                     typeName: 'Task',
                     epicLink: 'BBCOM-801',
                     estimateTime: '1h',
-                    description: 'Info'
+                    description: 'Info',
+                    priority: 'Medium',
                 }
             },
             webhookEvent: 'jira:issue_created'
@@ -150,23 +151,19 @@ describe('get-bot-data', function() {
         await getParsedAndSaveToRedis(JSONbody);
         });
 
-    it('test correct firstBody parse', async () => {
+    it('test correct redisKeys', async () => {
         const redisKeys = await getRedisKeys();
-        assert.deepEqual(redisKeys, expectedFuncKeys);
-
-        const dataFromRedis = await getDataFromRedis();
-        assert.deepEqual(dataFromRedis, expectedData);
-
-        const roomsKeys = await getRedisRooms();
-        assert.deepEqual(roomsKeys, expectedRoom);
+        expect(redisKeys).to.have.all.members(expectedFuncKeys);
     });
 
-    it('test correct handleRedisRooms', async () => {
-        const roomsKeys = await getRedisRooms();
-        await handleRedisRooms(mclient, roomsKeys);
+    it('test correct dataFromRedis', async () => {
+        const dataFromRedis = await getDataFromRedis();
+        expect(dataFromRedis).to.have.deep.members(expectedData);
+    });
 
-        const newRoomsKeys = await getRedisRooms();
-        assert.deepEqual(newRoomsKeys, null);
+    it('test correct roomsKeys', async () => {
+        const roomsKeys = await getRedisRooms();
+        expect(roomsKeys).to.have.deep.members(expectedRoom);
     });
 
     after(async () => {

@@ -84,16 +84,26 @@ describe('Create room test', () => {
             logger.debug('body', formattedBody);
             logger.debug('htmlBody', formattedhtmlBody);
             const expectedBody = [
-                'Assignee: jira_test jira_test@bingo-boom.ruReporter: jira_test jira_test@bingo-boom.ruType: TaskEpic link: undefined (BBCOM-801) https://jira.bingo-boom.ru/jira/browse/BBCOM-801Estimate time: 1hDescription: Info',
+                'Assignee: jira_test jira_test@bingo-boom.ruReporter: jira_test jira_test@bingo-boom.ruType: TaskEstimate time: 1hDescription: InfoPriority: MediumEpic link: undefined (BBCOM-801) https://jira.bingo-boom.ru/jira/browse/BBCOM-801',
                 'Send tutorial'
             ];
-
-            expect(expectedBody).to.include(formattedBody);
+            'Epic link:<br>&nbsp;&nbsp;&nbsp;&nbsp;undefined (BBCOM-801)<br>&nbsp;&nbsp;&nbsp;&nbsp;\thttps://jira.bingo-boom.ru/jira/browse/BBCOM-801<br>'
+            expect(formattedBody).to.be.oneOf(expectedBody);
+            const infoBody = [
+                'Assignee:<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test@bingo-boom.ru<br><br>',
+                'Reporter:<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test@bingo-boom.ru<br><br>',
+                'Type:<br>&nbsp;&nbsp;&nbsp;&nbsp;Task<br><br>',
+                'Estimate time:<br>&nbsp;&nbsp;&nbsp;&nbsp;1h<br><br>',
+                'Description:<br>&nbsp;&nbsp;&nbsp;&nbsp;Info<br><br>',
+                'Priority:<br>&nbsp;&nbsp;&nbsp;&nbsp;Medium<br><br>',
+                'Epic link:<br>&nbsp;&nbsp;&nbsp;&nbsp;undefined (BBCOM-801)<br>&nbsp;&nbsp;&nbsp;&nbsp;\thttps://jira.bingo-boom.ru/jira/browse/BBCOM-801<br>',
+            ];
             const expectedHtmlBody = [
-                'Assignee:<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test@bingo-boom.ru<br><br>Reporter:<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test@bingo-boom.ru<br><br>Type:<br>&nbsp;&nbsp;&nbsp;&nbsp;Task<br><br>Epic link:<br>&nbsp;&nbsp;&nbsp;&nbsp;undefined (BBCOM-801)<br>&nbsp;&nbsp;&nbsp;&nbsp;	https://jira.bingo-boom.ru/jira/browse/BBCOM-801<br><br>Estimate time:<br>&nbsp;&nbsp;&nbsp;&nbsp;1h<br><br>Description:<br>&nbsp;&nbsp;&nbsp;&nbsp;Info<br>',
+                infoBody.join(''),
                 '<br>Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands',
             ];
-
+            // infoBody.forEach(item => expect(formattedhtmlBody).to.include(item));
+            // expectedHtmlBody.forEach(item => expect(formattedhtmlBody).to.equal(item));
             expect(expectedHtmlBody).to.include(formattedhtmlBody);
             return true;
         };

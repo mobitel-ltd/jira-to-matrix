@@ -6,19 +6,14 @@ const schemaComment = (sender, message) => {
 const schemaAssignee = assignee => JSON.stringify({'name': `${assignee}`});
 
 const schemaWatcher = watcher => `"${watcher}"`;
-/* eslint-disable comma-dangle */
 const schemaMove = id => JSON.stringify({
-    'transition': {
-        id
-    }
+    'transition': id,
 });
 
 const shemaFields = id => JSON.stringify({
     'fields': {
-        'priority': {
-            id
-        }
-    }
+        'priority': id,
+    },
 });
 
 module.exports = {
