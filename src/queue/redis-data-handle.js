@@ -4,7 +4,7 @@ const bot = require('../bot');
 
 const {createRoom, newSave} = bot;
 const ROOMS_KEY_NAME = 'rooms';
-const prefix = process.env.NODE_ENV === 'test' ? 'test-jira-hooks:' : 'jira-hooks:';
+const {prefix} = require('../config').redis;
 
 const getRedisKeys = async () => {
     try {
@@ -82,7 +82,7 @@ const getRedisRooms = async () => {
     try {
         const roomsKeyValue = await redis.getAsync(ROOMS_KEY_NAME);
         const createRoomData = JSON.parse(roomsKeyValue);
-        logger.debug('Redis rooms data', createRoomData);
+        logger.debug('Redis rooms data:', createRoomData);
 
         return createRoomData;
     } catch (err) {
@@ -101,7 +101,7 @@ const handleRedisRooms = async (client, roomsData) => {
 
             return null;
         } catch (err) {
-            logger.error('Error in newRoomsData. Data is ', data);
+            logger.error('Error in handle room data from redis. Data is ', data);
             logger.error('Error log', err);
 
             return data;

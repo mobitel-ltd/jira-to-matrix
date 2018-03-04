@@ -69,6 +69,7 @@ describe('get-bot-data', function() {
                             "description": "dafdasfadf",
                             "epicLink": "BBCOM-801",
                             "estimateTime": "отсутствует",
+                            "priority": "Blocker",
                             "reporterEmail": "jira_test@bingo-boom.ru",
                             "reporterName": "jira_test",
                             "typeName": "Task",

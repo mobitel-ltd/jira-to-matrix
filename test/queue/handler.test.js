@@ -4,7 +4,6 @@ const logger = require('../../src/modules/log.js')(module);
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
 const jsonBody = require('../fixtures/comment-create-3.json');
-const Matrix = require('../../src/matrix/');
 const {postStatusData} = require('../../src/bot/helper');
 const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/queue/parse-body');
 const {getNewIssueMessageBody, getEpicChangedMessageBody, getNewEpicMessageBody} = require('../../src/bot/helper.js');
@@ -17,18 +16,7 @@ describe('bot func', function() {
             .reply(200, {result: true});
     })
 
-    it('error sendHtmlMessage', async () => {
-        try {
-            const mclient = await Matrix.connect();
-            await mclient.sendHtmlMessage(null);
-        } catch (err) {
-            logger.debug('error', err);
-            assert.ok(err);
-            Matrix.disconnect();
-        }
-    });
-
-    it('postStatusData', async () => {
+     it('postStatusData', async () => {
         const {data} = getPostEpicUpdatesData(jsonBody);
         logger.debug('data', data);
         const {body, htmlBody} = postStatusData(data);

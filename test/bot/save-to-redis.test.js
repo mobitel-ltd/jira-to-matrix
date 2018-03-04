@@ -46,12 +46,14 @@ describe('get-bot-data', () => {
     ];
 
     const room1 = {
-            redisKey: 'rooms',
-            createRoomData: 'some data',
+        redisKey: 'rooms',
+        createRoomData: {
+            issue: 'some data',
+        },
     };
     const room2 = {
-            redisKey: 'rooms',
-            createRoomData: 'some data else',
+        redisKey: 'rooms',
+        createRoomData: {issue: 'some data else'},
     };
     const room3 = {
         redisKey: 'rooms',
@@ -88,7 +90,7 @@ describe('get-bot-data', () => {
 
         const roomsKeys = await getRedisRooms();
         const expectedRoom = [
-            'some data',
+            {issue: 'some data'},
         ];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
@@ -104,8 +106,8 @@ describe('get-bot-data', () => {
 
         const roomsKeys = await getRedisRooms();
         const expectedRoom = [
-            'some data',
-            'some data else',
+            {issue: 'some data'},
+            {issue: 'some data else'},
         ];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
@@ -121,8 +123,26 @@ describe('get-bot-data', () => {
 
         const roomsKeys = await getRedisRooms();
         const expectedRoom = [
-            'some data',
-            'some data else',
+            {issue: 'some data'},
+            {issue: 'some data else'},
+        ];
+
+
+        expect(roomsKeys).to.deep.equal(expectedRoom);
+    });
+
+    it('test don\'t save one room data two times', async () => {
+        await Promise.all(dataToSave2.map(newSave));
+
+        const redisKeys = await getRedisKeys();
+        const funcKeysData = await getDataFromRedis(redisKeys);
+        [...expectedFuncKeys1, ...expectedFuncKeys2]
+            .forEach(key => expect(funcKeysData).to.deep.include(key));
+
+        const roomsKeys = await getRedisRooms();
+        const expectedRoom = [
+            {issue: 'some data'},
+            {issue: 'some data else'},
         ];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);

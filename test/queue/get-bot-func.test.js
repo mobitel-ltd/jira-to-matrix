@@ -14,7 +14,6 @@ const {
     postProjectUpdates,
 } = require('../../src/bot');
 const bot = require('../../src/bot');
-const Matrix = require('../../src/matrix/');
 const {
     getPostEpicUpdatesData,
     getPostCommentData,
@@ -59,97 +58,4 @@ describe('bot func', function() {
         assert.ok(Array.isArray(result));
     });
 
-    // it('postComment', async () => {
-    //     const mclient = await Matrix.connect();
-    //     const postCommentData = getPostCommentData(firstBody);
-    //     const body = {mclient, ...postCommentData};
-    //     const result = await postComment(body);
-    //     logger.debug('result', result);
-    //     assert.ok(result);
-    //     Matrix.disconnect();
-    // })
-
-    // it('createRoom', async () => {
-    //     const {connect, disconnect, helpers} = matrixApi;
-    //     const mclient = await connect();
-    //     const createRoomData = getCreateRoomData(secondBody);
-    //     logger.debug('createRoomData', createRoomData);
-    //     const body = {mclient, ...createRoomData};
-    //     const result = await createRoom(body);
-    //     logger.debug('result', result);
-    //     assert.ok(result);
-    //     await disconnect();
-    // })
-
-    // it('inviteNewMembers', async () => {
-    //     const {connect, disconnect, helpers} = matrixApi;
-    //     const mclient = await connect();
-    //     const inviteNewMembersData = getInviteNewMembersData(secondBody);
-    //     logger.debug('inviteNewMembersData', inviteNewMembersData);
-    //     const body = {mclient, ...inviteNewMembersData};
-    //     const result = await inviteNewMembers(body);
-    //     logger.debug('result', result);
-    //     assert.ok(result);
-    //     await disconnect();
-    // })
-
-    // it('postNewLinks', async () => {
-    //     const {connect, disconnect, helpers} = matrixApi;
-    //     const mclient = await connect();
-    //     const postNewLinksData = getPostNewLinksData(secondBody);
-    //     logger.debug('inviteNewMembersData', postNewLinksData);
-    //     const body = {mclient, ...postNewLinksData};
-    //     const result = await postNewLinks(body);
-    //     logger.debug('result', result);
-    //     assert.ok(result);
-    //     await disconnect();
-    // })
-
-    // it('postEpicUpdates', async () => {
-    //     const {connect, disconnect, helpers} = matrixApi;
-    //     const mclient = await connect();
-    //     const postEpicUpdatesData = getPostEpicUpdatesData(secondBody);
-    //     logger.debug('postEpicUpdates', postEpicUpdatesData);
-    //     const body = {mclient, ...postEpicUpdatesData};
-    //     const result = await postEpicUpdates(body);
-    //     logger.debug('result', result);
-    //     assert.ok(result);
-    //     await disconnect();
-    // })
-
-    // it('postLinkedChanges', async () => {
-    //     const {connect, disconnect, helpers} = matrixApi;
-    //     const mclient = await connect();
-    //     const postLinkedChangesData = getPostLinkedChangesData(secondBody);
-    //     logger.debug('postLinkedChanges', postLinkedChangesData);
-    //     const body = {mclient, ...postLinkedChangesData};
-    //     const result = await postLinkedChanges(body);
-    //     logger.debug('result', result);
-    //     assert.ok(result);
-    //     await disconnect();
-    // })
-
-    // it('postIssueUpdates', async () => {
-    //     const {connect, disconnect, helpers} = matrixApi;
-    //     const mclient = await connect();
-    //     const postIssueUpdatesData = getPostIssueUpdatesData(secondBody);
-    //     logger.debug('postIssueUpdates', postIssueUpdatesData);
-    //     const body = {mclient, ...postIssueUpdatesData};
-    //     const result = await postIssueUpdates(body);
-    //     logger.debug('result', result);
-    //     assert.ok(result);
-    //     await disconnect();
-    // })
-
-    // it('postProjectUpdates', async () => {
-    //     const {connect, disconnect, helpers} = matrixApi;
-    //     const mclient = await connect();
-    //     const postProjectUpdatesData = getPostProjectUpdatesData(secondBody);
-    //     logger.debug('postProjectUpdates', postProjectUpdatesData);
-    //     const body = {mclient, ...postProjectUpdatesData};
-    //     const result = await postProjectUpdates(body);
-    //     logger.debug('result', result);
-    //     assert.ok(result);
-    //     await disconnect();
-    // })
 });

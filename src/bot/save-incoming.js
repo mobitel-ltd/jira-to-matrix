@@ -1,5 +1,7 @@
 const redis = require('../redis-client');
 const logger = require('../modules/log.js')(module);
+const {getRedisRooms} = require('../queue/redis-data-handle.js');
+const Ramda = require('ramda');
 
 module.exports = async ({redisKey, ...restData}) => {
     try {
@@ -10,12 +12,11 @@ module.exports = async ({redisKey, ...restData}) => {
                 return;
             }
 
-            const currentRedisRoomData = await redis.getAsync('rooms');
-            const currentRedisRoomDataParsed = JSON.parse(currentRedisRoomData);
+            const dataToAddToRedis = Array.isArray(createRoomData) ? createRoomData : [createRoomData];
+            logger.debug('New data for redis rooms:', dataToAddToRedis);
 
-            redisValue = currentRedisRoomDataParsed
-                ? [...currentRedisRoomDataParsed, createRoomData]
-                : [createRoomData];
+            const currentRedisRoomData = await getRedisRooms() || [];
+            redisValue = Ramda.union(currentRedisRoomData, dataToAddToRedis);
         }
 
         const bodyToJSON = JSON.stringify(redisValue);

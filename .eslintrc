@@ -16,9 +16,13 @@
     "node": true,
     "commonjs": true,
     "shared-node-browser": true,
-    "jest": true
+    "mocha": true
   },
+  "plugins": [
+    "mocha"
+  ],
   "rules": {
+    "mocha/no-exclusive-tests": "error",
     "array-callback-return": [
       "error"
     ],
