@@ -1,12 +1,13 @@
 const {getFuncAndBody} = require('./bot-handler.js');
-const {isIgnore, newSave} = require('../bot');
+const {isIgnore} = require('../bot');
+const {saveIncoming} = require('../queue/redis-data-handle.js');
 const logger = require('../modules/log.js')(module);
 
 module.exports = async body => {
     try {
         isIgnore(body);
         const parsedBody = getFuncAndBody(body);
-        await Promise.all(parsedBody.map(newSave));
+        await Promise.all(parsedBody.map(saveIncoming));
 
         return true;
     } catch (err) {
