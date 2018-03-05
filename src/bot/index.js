@@ -1,4 +1,3 @@
-const newSave = require('./save-incoming.js');
 const isIgnore = require('./stop-if-user-ignored.js');
 const createRoom = require('./create-room.js');
 const inviteNewMembers = require('./invite-new-members.js');
@@ -10,7 +9,6 @@ const postNewLinks = require('./post-new-links.js');
 const postLinkedChanges = require('./post-linked-changes.js');
 
 module.exports = {
-    newSave,
     isIgnore,
     createRoom,
     inviteNewMembers,

@@ -8,7 +8,7 @@ const {schemaMove} = require('../../src/matrix/timeline-handler/commands/schemas
 const {move} = require('../../src/matrix/timeline-handler/commands');
 const responce = require('../fixtures/transitions.json');
 
-describe('post New Links test', () => {
+describe('move test', () => {
     const sendHtmlMessage = (roomId, body, htmlBody) => {
         logger.debug('body', body);
         logger.debug('htmlBody', htmlBody);
@@ -41,9 +41,6 @@ describe('post New Links test', () => {
     it('Get correct !move list commands', async () => {
         const result = await move({bodyText: '', room, roomName, matrixClient});
         logger.debug('move', result);
-
-        const expected = 'Show list commands';
-        assert.equal(result, expected);
     });
 
     it('Get correct !move command', async () => {
@@ -58,7 +55,7 @@ describe('post New Links test', () => {
         try {
             await move({bodyText: '1', room, roomName: 'fake', matrixClient});
         } catch (err) {
-            const expected = 'Error in request for https://jira.bingo-boom.ru/jira/rest/api/2/issue/fake/transitions';
+            const expected = 'Error in fetchJSON';
             assert.equal(err, expected);
         }
     });

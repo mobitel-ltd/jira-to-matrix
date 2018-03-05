@@ -22,7 +22,7 @@ const redis = require('../../src/redis-client.js');
 const {expect} = chai;
 chai.use(sinonChai);
 
-describe('Create room test', () => {
+describe('Queue handler test', () => {
     let mclientStub;
     before(() => {
         mclientStub = stub();

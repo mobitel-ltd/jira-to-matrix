@@ -1,6 +1,6 @@
 const {expect} = require('chai');
 const logger = require('../../src/modules/log.js')(module);
-const {newSave} = require('../../src/bot');
+const {saveIncoming} = require('../../src/queue/redis-data-handle.js');
 const {prefix} = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
 const {getRedisValue, getRedisKeys, getDataFromRedis, getRedisRooms} = require('../../src/queue/redis-data-handle.js');
@@ -82,7 +82,7 @@ describe('get-bot-data', () => {
     });
 
     it('test correct redis save', async () => {
-        await Promise.all(dataToSave1.map(newSave));
+        await Promise.all(dataToSave1.map(saveIncoming));
 
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);
@@ -97,7 +97,7 @@ describe('get-bot-data', () => {
     });
 
     it('test second correct redis save', async () => {
-        await Promise.all(dataToSave2.map(newSave));
+        await Promise.all(dataToSave2.map(saveIncoming));
 
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);
@@ -114,7 +114,7 @@ describe('get-bot-data', () => {
     });
 
     it('test save empty room data', async () => {
-        await Promise.all(dataToSave3.map(newSave));
+        await Promise.all(dataToSave3.map(saveIncoming));
 
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);
@@ -132,7 +132,7 @@ describe('get-bot-data', () => {
     });
 
     it('test don\'t save one room data two times', async () => {
-        await Promise.all(dataToSave2.map(newSave));
+        await Promise.all(dataToSave2.map(saveIncoming));
 
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);

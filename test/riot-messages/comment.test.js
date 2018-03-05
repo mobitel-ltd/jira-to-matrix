@@ -7,7 +7,7 @@ const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js
 const {schemaComment} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {comment} = require('../../src/matrix/timeline-handler/commands');
 
-describe('post New Links test', () => {
+describe('comment test', () => {
     const sendHtmlMessage = (roomId, body, htmlBody) => {
         logger.debug('body', body);
         logger.debug('htmlBody', htmlBody);
@@ -34,7 +34,7 @@ describe('post New Links test', () => {
     });
 
 
-    it('Get links', async () => {
+    it('should comment', async () => {
         const room = {id: 12345};
 
         const result = await comment({bodyText, sender, room, roomName, matrixClient});
@@ -44,16 +44,14 @@ describe('post New Links test', () => {
         assert.equal(result, expected);
     });
 
-    it('Get links', async () => {
+    it('comment not published', async () => {
         const room = {id: 12345};
 
-        const result = await comment({bodyText, sender: null, room, roomName, matrixClient});
+        const commentAnswer = await comment({bodyText, sender: null, room, roomName, matrixClient});
+        const result = commentAnswer.replace(/(\r\n|\n|\r)/gm, '').trim();
         logger.debug('comment', result);
 
-        const expected = `
-            Comment from null for ${roomName} not published
-            \nJira have status 400
-        `;
+        const expected = `Comment from null for ${roomName} not published                Jira have status 400`;
         assert.equal(result, expected);
     });
 });

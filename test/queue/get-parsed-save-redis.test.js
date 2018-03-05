@@ -9,7 +9,7 @@ const getParsedAndSaveToRedis = require('../../src/queue/get-parsed-and-save-to-
 const conf = require('../fixtures/config.js');
 const redis = require('../../src/redis-client.js');
 
-describe('get-bot-data', function() {
+describe('get-parsed-save to redis', function() {
     const redisKey = 'postComment_1512034084304';
     const expected = {
         funcName: 'postComment',
