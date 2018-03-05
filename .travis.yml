@@ -8,7 +8,7 @@ install:
 
 branches:
   only:
-  - new-tests
+  - dev
 
 script:
   - npm run lint
