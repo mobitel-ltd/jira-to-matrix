@@ -46,7 +46,7 @@ module.exports = Object.freeze({
         syncTimeoutSec: 20, // seconds
     },
     log: {
-        type: 'both',
+        type: 'console',
         filePath: 'logs/service',
         fileLevel: 'silly',
         consoleLevel: 'debug',
