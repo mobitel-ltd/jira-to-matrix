@@ -120,7 +120,7 @@ Error in parsing  User ignored
 2. После сохранения новых данных от вебхука в Redis.
 3. Каждые 15 минут после старта при наличие данных Redis (отработка невыполненных действий, заблокированных по разным причинам).
 
-После обработки данных из Redis будет выведен лог с результатом обработки каждой записи в формате:  
+После обработки данных из Redis будет выведен лог с результатом обработки каждой записи в формате:
 ```
 Result of handling redis key <redisKey> --- <true/false>
 ```
@@ -128,7 +128,7 @@ Result of handling redis key <redisKey> --- <true/false>
 
 ### Matrix client
 
-Для работы с `Riot` используется [SDK Matrix](https://github.com/matrix-org/matrix-js-sdk). При запуске бота происходит подключение к домену матрикса (`matrix.domain` из конфига) под `userId` вида `@${config.matrix.user}:${config.matrix.domain}`. После успешной авторизации и поключення лог должен вывести сообщение вида:  
+Для работы с `Riot` используется [SDK Matrix](https://github.com/matrix-org/matrix-js-sdk). При запуске бота происходит подключение к домену матрикса (`matrix.domain` из конфига) под `userId` вида `@${config.matrix.user}:${config.matrix.domain}`. После успешной авторизации и поключення лог должен вывести сообщение вида:
 ```
 createClient OK BaseUrl: https://<домен>, userId: @<имя_пользователя>:<домен>, password: <пароль>
 Started connect to matrixClient

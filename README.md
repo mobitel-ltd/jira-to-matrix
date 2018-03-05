@@ -21,9 +21,6 @@ Make some config copying _config.example.js_. Run
 `$ node . -c "path_to_config"`
 It will say if something is wrong.
 
-Run command
-`npm run start`
-
 ### Status
 ~~The project is in a rough shape and under active development.~~ Fixed
 It is successfully deployed in a medium-size company.
@@ -31,3 +28,4 @@ It is successfully deployed in a medium-size company.
 ___
 Developed with Node 8.1. Probably will work on any version having async/await.
 
+[Russian README](https://github.com/mobitel-ltd/jira-to-matrix/blob/master/newReadme.md)
