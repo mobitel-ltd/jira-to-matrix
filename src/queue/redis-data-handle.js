@@ -1,10 +1,10 @@
+const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot');
 
-const {createRoom, newSave} = bot;
 const ROOMS_KEY_NAME = 'rooms';
-const prefix = process.env.NODE_ENV === 'test' ? 'test-jira-hooks:' : 'jira-hooks:';
+const {prefix} = require('../config').redis;
 
 const getRedisKeys = async () => {
     try {
@@ -82,7 +82,7 @@ const getRedisRooms = async () => {
     try {
         const roomsKeyValue = await redis.getAsync(ROOMS_KEY_NAME);
         const createRoomData = JSON.parse(roomsKeyValue);
-        logger.debug('Redis rooms data', createRoomData);
+        logger.debug('Redis rooms data:', createRoomData);
 
         return createRoomData;
     } catch (err) {
@@ -97,11 +97,11 @@ const handleRedisRooms = async (client, roomsData) => {
     const roomHandle = async data => {
         try {
             const mclient = await client;
-            await createRoom({...data, mclient});
+            await bot.createRoom({...data, mclient});
 
             return null;
         } catch (err) {
-            logger.error('Error in newRoomsData. Data is ', data);
+            logger.error('Error in handle room data from redis. Data is ', data);
             logger.error('Error log', err);
 
             return data;
@@ -122,7 +122,8 @@ const handleRedisRooms = async (client, roomsData) => {
                 redisKey: ROOMS_KEY_NAME,
                 createRoomData: filteredRooms,
             };
-            await newSave(dataToSave);
+            // eslint-disable-next-line
+            await saveIncoming(dataToSave);
         } else {
             logger.info('All rooms handled');
             await redis.delAsync(ROOMS_KEY_NAME);
@@ -132,7 +133,35 @@ const handleRedisRooms = async (client, roomsData) => {
     }
 };
 
+
+const saveIncoming = async ({redisKey, ...restData}) => {
+    try {
+        let redisValue = restData;
+        if (redisKey === 'rooms') {
+            const {createRoomData} = restData;
+            if (!createRoomData) {
+                return;
+            }
+
+            const dataToAddToRedis = Array.isArray(createRoomData) ? createRoomData : [createRoomData];
+            logger.debug('New data for redis rooms:', dataToAddToRedis);
+
+            const currentRedisRoomData = await getRedisRooms() || [];
+            redisValue = Ramda.union(currentRedisRoomData, dataToAddToRedis);
+        }
+
+        const bodyToJSON = JSON.stringify(redisValue);
+
+        await redis.setAsync(redisKey, bodyToJSON);
+        logger.info('data saved by redis. RedisKey: ', redisKey);
+    } catch (err) {
+        logger.error(`Error while saving to redis:\n${err.message}`);
+        throw err;
+    }
+};
+
 module.exports = {
+    saveIncoming,
     getRedisKeys,
     getDataFromRedis,
     getRedisRooms,

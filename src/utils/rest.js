@@ -30,9 +30,9 @@ const fetchPostJSON = async (url, basicAuth, body) => {
         timeout: 11000,
     };
     try {
-        const status = await fetch(url, options);
-        logger.debug(`POST response from jira have status: ${status}`,
-            `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
+        const {status} = await fetch(url, options);
+        logger.debug('POST response from jira have status:', status);
+        logger.debug(`Url: ${url}; Options: ${options.headers.Authorization}`);
 
         return status;
     } catch (err) {
