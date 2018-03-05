@@ -1,0 +1,17 @@
+language: node_js
+node_js:
+  - stable
+
+install:
+  - npm install -g codecov
+  - npm install
+
+branches:
+  only:
+  - new-tests
+
+script:
+  - npm run lint
+  - npm test
+  - npm run report-coverage
+  - codecov

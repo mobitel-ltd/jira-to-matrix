@@ -7,14 +7,16 @@
     "node": ">=7.10"
   },
   "scripts": {
-    "eslint": "eslint",
+    "lint": "eslint .",
     "start": "node src/app.js",
     "start-dev": "NODE_ENV=development node src/app.js",
-    "test": "NODE_ENV=test mocha",
-    "test-one": "NODE_ENV=test mocha ./test/bot/create-room.test.js --watch",
-    "fix": "eslint src/**/*.js --fix",
-    "testwatch": "NODE_ENV=test mocha --watch"
+    "test": "NODE_ENV=test nyc mocha test/* --exit",
+    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
+  "pre-commit": [
+    "lint",
+    "test"
+  ],
   "devDependencies": {
     "chai-sinon": "^2.8.1",
     "eslint": "^4.5.0",
@@ -24,6 +26,8 @@
     "matrix-mock-request": "^1.2.1",
     "mocha": "^4.0.1",
     "nock": "^9.1.4",
+    "nyc": "^11.4.1",
+    "pre-commit": "^1.2.2",
     "proxyquire": "^2.0.0",
     "sinon": "^4.4.2",
     "sinon-chai": "^2.14.0"
