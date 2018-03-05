@@ -80,9 +80,6 @@ typings/
 # dev config
 /config.js
 
-# features config
-test/fixtures/config.*
-
 # log
 logs/
 
