@@ -28,4 +28,4 @@ It is successfully deployed in a medium-size company.
 ___
 Developed with Node 8.1. Probably will work on any version having async/await.
 
-[Russian README](https://github.com/mobitel-ltd/jira-to-matrix/blob/master/newReadme.md)
+[Russian README](https://github.com/grigori-gru/jira-to-matrix/blob/master/newReadme.md)
