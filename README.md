@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/grigori-gru/jira-to-matrix.svg?branch=master)](https://travis-ci.org/grigori-gru/jira-to-matrix)
 [![codecov](https://codecov.io/gh/grigori-gru/jira-to-matrix/branch/master/graph/badge.svg)](https://codecov.io/gh/grigori-gru/jira-to-matrix)
-[![Dependency Status](https://img.shields.io/david/grigori-gru/jira-to-matrix.svg?style=flat-square)](https://david-dm.org/grigori-gru/jira-to-matrix)
+[![dependencies Status](https://david-dm.org/grigori-gru/jira-to-matrix/status.svg)](https://david-dm.org/grigori-gru/jira-to-matrix)
 
 A bot (web-service) which:
 

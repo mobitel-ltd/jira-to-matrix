@@ -48,7 +48,6 @@
     "moment": "^2.21.0",
     "node-fetch": "^2.1.1",
     "node-polyglot": "^2.2.2",
-    "olm": "https://matrix.org/packages/npm/olm/olm-2.2.2.tgz",
     "ramda": "^0.25.0",
     "redis": "^2.7.1",
     "ru-names": "^1.0.3",
