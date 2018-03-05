@@ -15,9 +15,14 @@
     "browser": true,
     "node": true,
     "commonjs": true,
-    "shared-node-browser": true
+    "shared-node-browser": true,
+    "mocha": true
   },
+  "plugins": [
+    "mocha"
+  ],
   "rules": {
+    "mocha/no-exclusive-tests": "error",
     "array-callback-return": [
       "error"
     ],

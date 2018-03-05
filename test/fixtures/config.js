@@ -1,12 +1,11 @@
 module.exports = Object.freeze({
     port: 4100, // where to listen JIRA webhooks
-    lang: 'en', // a language bot talks to users in
+    lang: 'ru', // a language bot talks to users in
     jira: {
-        url: 'https://jira.example.org',
-        user: 'bot',
-        password: 'key',
+        url: 'https://jira.bingo-boom.ru/jira',
+        user: 'jira_test_bot',
+        password: 'fakepasswprd',
     },
-    // Список допустимых действий для пользователя
     features: {
         createRoom: true,
         inviteNewMembers: true,
@@ -26,23 +25,30 @@ module.exports = Object.freeze({
         },
     },
     // useful for testing, add a test user into production config
-    usersToIgnore: ['jira_test'],
+    usersToIgnore: ['ivan'],
     testMode: {
         on: true,
-        users: ['ivan', 'masha'],
+        users: ['ivan', 'jira_test'],
     },
     redis: {
         host: '127.0.0.1',
         port: 6379,
-        prefix: 'jira-hooks:',
+        prefix: 'test-jira-hooks:',
         ttl: 60 * 60 * 24 * 30, // seconds (30 days here)
     },
     ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
     matrix: {
-        domain: 'matrix.example.org',
-        user: 'bot', // short name, before colon, without @
-        password: 'key',
-        tokenTTL: 10 * 60, // new token request interval (10 minutes here)
+        admins: ['jira_test'],
+        domain: 'matrix.bingo-boom.ru',
+        user: 'jira_test_bot', // short name, before colon, without @
+        password: 'fakepasswprd',
+        tokenTTL: 1, // new token request interval (10 minutes here)
         syncTimeoutSec: 20, // seconds
+    },
+    log: {
+        type: 'console',
+        filePath: 'logs/service',
+        fileLevel: 'silly',
+        consoleLevel: 'debug',
     },
 })

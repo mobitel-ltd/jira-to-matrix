@@ -1,4 +1,9 @@
 # JIRA to Matrix bot
+
+[![Build Status](https://travis-ci.org/grigori-gru/jira-to-matrix.svg?branch=master)](https://travis-ci.org/grigori-gru/jira-to-matrix)
+[![codecov](https://codecov.io/gh/grigori-gru/jira-to-matrix/branch/master/graph/badge.svg)](https://codecov.io/gh/grigori-gru/jira-to-matrix)
+[![dependencies Status](https://david-dm.org/grigori-gru/jira-to-matrix/status.svg)](https://david-dm.org/grigori-gru/jira-to-matrix)
+
 A bot (web-service) which:
 
 * listens to JIRA Webhooks and sends some stuff to Matrix;
@@ -23,4 +28,4 @@ It is successfully deployed in a medium-size company.
 ___
 Developed with Node 8.1. Probably will work on any version having async/await.
 
-[Russian README](https://github.com/mobitel-ltd/jira-to-matrix/blob/master/newReadme.md)
+[Russian README](https://github.com/grigori-gru/jira-to-matrix/blob/master/newReadme.md)

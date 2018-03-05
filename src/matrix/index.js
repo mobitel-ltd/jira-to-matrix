@@ -1,6 +1,6 @@
 const logger = require('../modules/log.js')(module);
 // Matrix requirement  https://github.com/matrix-org/matrix-js-sdk#end-to-end-encryption-support
-global.Olm = require('olm');
+// global.Olm = require('olm');
 const sdk = require('matrix-js-sdk');
 const {matrix} = require('../config');
 const apiClient = require('./api-client');
