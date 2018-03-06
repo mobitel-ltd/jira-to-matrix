@@ -1,11 +1,10 @@
 const {expect} = require('chai');
-const logger = require('../../src/modules/log.js')(module);
 const {saveIncoming} = require('../../src/queue/redis-data-handle.js');
 const {prefix} = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
 const {getRedisValue, getRedisKeys, getDataFromRedis, getRedisRooms} = require('../../src/queue/redis-data-handle.js');
 
-describe('get-bot-data', () => {
+describe('Save data to redis', () => {
     const expectedFuncKeys1 = [
         {
             redisKey: 'inviteNewMembers_1',
@@ -75,7 +74,7 @@ describe('get-bot-data', () => {
         expect(rooms).to.be.null;
     });
 
-    it('test no key', async () => {
+    it('test no fake key', async () => {
         const result = await getRedisValue('NO_SUCH_KEY');
 
         expect(result).to.be.false;
@@ -119,7 +118,7 @@ describe('get-bot-data', () => {
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);
         [...expectedFuncKeys1, ...expectedFuncKeys2, ...expectedFuncKeys3]
-        .forEach(key => expect(funcKeysData).to.deep.include(key));
+            .forEach(key => expect(funcKeysData).to.deep.include(key));
 
         const roomsKeys = await getRedisRooms();
         const expectedRoom = [

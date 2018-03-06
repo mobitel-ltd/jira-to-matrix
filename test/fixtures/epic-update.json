@@ -1,0 +1,1663 @@
+{
+    "timestamp": "2018-3-6 16:45:55,213",
+    "webhookEvent": "jira:issue_updated",
+    "issue_event_type_name": "issue_updated",
+    "user": {
+        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+        "name": "jira_test",
+        "key": "jira_test",
+        "emailAddress": "jira_test@bingo-boom.ru",
+        "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+            "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+            "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+            "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+        },
+        "displayName": "jira_test",
+        "active": true,
+        "timeZone": "Europe/Moscow"
+    },
+    "issue": {
+        "id": "25209",
+        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209",
+        "key": "BBCOM-801",
+        "fields": {
+            "issuetype": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issuetype/10001",
+                "id": "10001",
+                "description": "Created by JIRA Software - do not edit or delete. Issue type for a big user story that needs to be broken down.",
+                "iconUrl": "https://jira.bingo-boom.ru/jira/secure/viewavatar?size=xsmall&avatarId=10307&avatarType=issuetype",
+                "name": "Epic",
+                "subtask": false,
+                "avatarId": 10307
+            },
+            "timespent": null,
+            "project": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/project/10305",
+                "id": "10305",
+                "key": "BBCOM",
+                "name": "BB Common",
+                "avatarUrls": {
+                    "48x48": "https://jira.bingo-boom.ru/jira/secure/projectavatar?pid=10305&avatarId=10011",
+                    "24x24": "https://jira.bingo-boom.ru/jira/secure/projectavatar?size=small&pid=10305&avatarId=10011",
+                    "16x16": "https://jira.bingo-boom.ru/jira/secure/projectavatar?size=xsmall&pid=10305&avatarId=10011",
+                    "32x32": "https://jira.bingo-boom.ru/jira/secure/projectavatar?size=medium&pid=10305&avatarId=10011"
+                }
+            },
+            "aggregatetimespent": null,
+            "customfield_10302": null,
+            "resolutiondate": null,
+            "workratio": -1,
+            "lastViewed": "2018-03-06T16:45:38.429+0300",
+            "watches": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801/watchers",
+                "watchCount": 1,
+                "isWatching": true
+            },
+            "created": "2017-07-31T15:31:01.898+0300",
+            "priority": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/priority/10000",
+                "iconUrl": "https://jira.bingo-boom.ru/jira/images/icons/priorities/blocker.svg",
+                "name": "Blocker",
+                "id": "10000"
+            },
+            "customfield_10301": null,
+            "customfield_10810": null,
+            "customfield_10811": null,
+            "timeestimate": null,
+            "aggregatetimeoriginalestimate": null,
+            "customfield_10813": null,
+            "customfield_10814": null,
+            "assignee": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=gv_grudinin",
+                "name": "gv_grudinin",
+                "key": "gv_grudinin",
+                "emailAddress": "gv_grudinin@bingo-boom.ru",
+                "avatarUrls": {
+                    "48x48": "https://jira.bingo-boom.ru/jira/secure/useravatar?ownerId=gv_grudinin&avatarId=13108",
+                    "24x24": "https://jira.bingo-boom.ru/jira/secure/useravatar?size=small&ownerId=gv_grudinin&avatarId=13108",
+                    "16x16": "https://jira.bingo-boom.ru/jira/secure/useravatar?size=xsmall&ownerId=gv_grudinin&avatarId=13108",
+                    "32x32": "https://jira.bingo-boom.ru/jira/secure/useravatar?size=medium&ownerId=gv_grudinin&avatarId=13108"
+                },
+                "displayName": "Грудинин Григорий Владимирович",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
+            "updated": "2018-03-06T16:45:53.345+0300",
+            "status": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/status/6",
+                "description": "The issue is considered finished, the resolution is correct. Issues which are closed can be reopened.",
+                "iconUrl": "https://jira.bingo-boom.ru/jira/images/icons/statuses/closed.png",
+                "name": "Closed",
+                "id": "6",
+                "statusCategory": {
+                    "self": "https://jira.bingo-boom.ru/jira/rest/api/2/statuscategory/3",
+                    "id": 3,
+                    "key": "done",
+                    "colorName": "green",
+                    "name": "Done"
+                }
+            },
+            "timeoriginalestimate": null,
+            "description": "1",
+            "timetracking": {},
+            "customfield_10005": "Test epic 4",
+            "customfield_10600": null,
+            "customfield_10007": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/customFieldOption/10001",
+                "value": "To Do",
+                "id": "10001"
+            },
+            "customfield_10008": "ghx-label-6",
+            "customfield_10800": null,
+            "customfield_10602": [
+                {
+                    "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                    "name": "jira_test",
+                    "key": "jira_test",
+                    "emailAddress": "jira_test@bingo-boom.ru",
+                    "avatarUrls": {
+                        "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                        "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                        "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                        "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                    },
+                    "displayName": "jira_test",
+                    "active": true,
+                    "timeZone": "Europe/Moscow"
+                }
+            ],
+            "customfield_10009": "0|i024tz:",
+            "customfield_10801": null,
+            "aggregatetimeestimate": null,
+            "customfield_10802": null,
+            "customfield_10803": null,
+            "customfield_10804": null,
+            "customfield_10805": null,
+            "customfield_10806": null,
+            "customfield_10807": null,
+            "customfield_10808": null,
+            "customfield_10809": null,
+            "summary": "TE4",
+            "creator": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                "name": "jira_test",
+                "key": "jira_test",
+                "emailAddress": "jira_test@bingo-boom.ru",
+                "avatarUrls": {
+                    "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                    "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                    "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                    "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                },
+                "displayName": "jira_test",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
+            "subtasks": [],
+            "reporter": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                "name": "jira_test",
+                "key": "jira_test",
+                "emailAddress": "jira_test@bingo-boom.ru",
+                "avatarUrls": {
+                    "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                    "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                    "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                    "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                },
+                "displayName": "jira_test",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
+            "aggregateprogress": {
+                "progress": 0,
+                "total": 0
+            },
+            "customfield_10001": null,
+            "customfield_10004": null,
+            "duedate": null,
+            "progress": {
+                "progress": 0,
+                "total": 0
+            },
+            "comment": {
+                "comments": [
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28324",
+                        "id": "28324",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "test",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-12T12:45:36.104+0300",
+                        "updated": "2017-09-12T12:45:36.104+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28326",
+                        "id": "28326",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "test",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-12T12:46:38.017+0300",
+                        "updated": "2017-09-12T12:46:38.017+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28327",
+                        "id": "28327",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "test",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-12T12:47:15.282+0300",
+                        "updated": "2017-09-12T12:47:15.282+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28354",
+                        "id": "28354",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "test",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T10:38:05.726+0300",
+                        "updated": "2017-09-13T10:38:05.726+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28355",
+                        "id": "28355",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "test",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T10:38:35.203+0300",
+                        "updated": "2017-09-13T10:38:35.203+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28356",
+                        "id": "28356",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "test",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T10:39:22.074+0300",
+                        "updated": "2017-09-13T10:39:22.074+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28377",
+                        "id": "28377",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "1",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:27:13.424+0300",
+                        "updated": "2017-09-13T12:27:13.424+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28378",
+                        "id": "28378",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "2",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:27:27.403+0300",
+                        "updated": "2017-09-13T12:27:27.403+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28380",
+                        "id": "28380",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "еуые",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:35:52.012+0300",
+                        "updated": "2017-09-13T12:35:52.012+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28381",
+                        "id": "28381",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "3",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:36:32.074+0300",
+                        "updated": "2017-09-13T12:36:32.074+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28382",
+                        "id": "28382",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "4",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:37:01.044+0300",
+                        "updated": "2017-09-13T12:37:01.044+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28383",
+                        "id": "28383",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "5",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:37:27.754+0300",
+                        "updated": "2017-09-13T12:37:27.754+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28384",
+                        "id": "28384",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "6",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:38:14.089+0300",
+                        "updated": "2017-09-13T12:38:14.089+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28385",
+                        "id": "28385",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "7",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:38:22.064+0300",
+                        "updated": "2017-09-13T12:38:22.064+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28386",
+                        "id": "28386",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "8",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:39:25.749+0300",
+                        "updated": "2017-09-13T12:39:25.749+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28387",
+                        "id": "28387",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "9",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:40:15.692+0300",
+                        "updated": "2017-09-13T12:40:15.692+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28388",
+                        "id": "28388",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "10",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:41:13.564+0300",
+                        "updated": "2017-09-13T12:41:13.564+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28390",
+                        "id": "28390",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "11",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:42:24.333+0300",
+                        "updated": "2017-09-13T12:42:24.333+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28391",
+                        "id": "28391",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "12",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:45:30.945+0300",
+                        "updated": "2017-09-13T12:45:30.945+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28392",
+                        "id": "28392",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "еуые",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T12:57:04.827+0300",
+                        "updated": "2017-09-13T12:57:04.827+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28393",
+                        "id": "28393",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "еуые",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T13:01:01.171+0300",
+                        "updated": "2017-09-13T13:01:01.171+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28394",
+                        "id": "28394",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "13",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T13:07:54.771+0300",
+                        "updated": "2017-09-13T13:07:54.771+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28395",
+                        "id": "28395",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "14",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T13:09:10.642+0300",
+                        "updated": "2017-09-13T13:09:10.642+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28396",
+                        "id": "28396",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "15",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T13:12:05.238+0300",
+                        "updated": "2017-09-13T13:12:05.238+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28398",
+                        "id": "28398",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "16",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T13:14:33.512+0300",
+                        "updated": "2017-09-13T13:14:33.512+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28414",
+                        "id": "28414",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "еуые",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:18:05.516+0300",
+                        "updated": "2017-09-13T15:18:05.516+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28415",
+                        "id": "28415",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "17",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:18:16.665+0300",
+                        "updated": "2017-09-13T15:18:16.665+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28416",
+                        "id": "28416",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "18",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:21:45.483+0300",
+                        "updated": "2017-09-13T15:21:45.483+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28419",
+                        "id": "28419",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "19\n",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:39:01.034+0300",
+                        "updated": "2017-09-13T15:39:01.034+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28420",
+                        "id": "28420",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "20",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:39:17.555+0300",
+                        "updated": "2017-09-13T15:39:17.555+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28421",
+                        "id": "28421",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "21",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:40:06.332+0300",
+                        "updated": "2017-09-13T15:40:06.332+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28422",
+                        "id": "28422",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "22",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:40:51.316+0300",
+                        "updated": "2017-09-13T15:40:51.316+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28423",
+                        "id": "28423",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "23",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:41:47.121+0300",
+                        "updated": "2017-09-13T15:41:47.121+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28424",
+                        "id": "28424",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "24",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:42:08.398+0300",
+                        "updated": "2017-09-13T15:42:08.398+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28425",
+                        "id": "28425",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "25",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:43:14.222+0300",
+                        "updated": "2017-09-13T15:43:14.222+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28426",
+                        "id": "28426",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "26",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:44:11.691+0300",
+                        "updated": "2017-09-13T15:44:11.691+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28427",
+                        "id": "28427",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "27",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:45:16.944+0300",
+                        "updated": "2017-09-13T15:45:16.944+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28428",
+                        "id": "28428",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "28",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:48:07.762+0300",
+                        "updated": "2017-09-13T15:48:07.762+0300"
+                    },
+                    {
+                        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/25209/comment/28429",
+                        "id": "28429",
+                        "author": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "body": "29",
+                        "updateAuthor": {
+                            "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                            "name": "jira_test",
+                            "key": "jira_test",
+                            "emailAddress": "jira_test@bingo-boom.ru",
+                            "avatarUrls": {
+                                "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
+                                "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
+                                "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
+                                "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
+                            },
+                            "displayName": "jira_test",
+                            "active": true,
+                            "timeZone": "Europe/Moscow"
+                        },
+                        "created": "2017-09-13T15:48:36.638+0300",
+                        "updated": "2017-09-13T15:48:36.638+0300"
+                    }
+                ],
+                "maxResults": 39,
+                "total": 39,
+                "startAt": 0
+            },
+            "votes": {
+                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801/votes",
+                "votes": 0,
+                "hasVoted": false
+            },
+            "worklog": {
+                "startAt": 0,
+                "maxResults": 20,
+                "total": 0,
+                "worklogs": []
+            }
+        }
+    },
+    "changelog": {
+        "id": "147513",
+        "items": [
+            {
+                "field": "summary",
+                "fieldtype": "jira",
+                "from": null,
+                "fromString": "TE4 new",
+                "to": null,
+                "toString": "TE4"
+            }
+        ]
+    },
+    "level": "silly",
+    "message": "Jira body",
+    "label": "/src/app.js"
+}

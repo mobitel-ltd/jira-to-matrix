@@ -1,10 +1,8 @@
-const assert = require('assert');
+const {expect} = require('chai');
 const logger = require('../../src/modules/log.js')(module);
-const JiraClient = require('jira-connector');
 const {auth} = require('../../src/jira/common');
 const {fetchJSON} = require('../../src/utils/rest');
 const nock = require('nock');
-const fetch = require('node-fetch');
 
 describe('fetchJSON tetsing', function() {
     this.timeout(15000);
@@ -12,37 +10,53 @@ describe('fetchJSON tetsing', function() {
         headers: {Authorization: auth()},
         timeout: 11000,
     };
-
+    const request = {result: true};
     before(() => {
         logger.debug('auth', auth());
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test', {
             reqheaders: {
-                Authorization: auth()
-            }
+                Authorization: auth(),
+            },
             })
-            .get('/jira/rest/api/2/issue/26171')
-            .reply(200, {result: true});
-    });
+            .get('/jira/rest/api/2/issue/12345')
+            .reply(200, request)
+            .get('/jira/rest/api/2/issue/123456789')
+            .delay({
+                body: 12000,
+            })
+            .reply(200, request);
+        });
 
     it('test fetch', async () => {
-        const testUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/26171';
+        const testUrl = 'https://jira.test/jira/rest/api/2/issue/12345';
 
         const result = await fetchJSON(testUrl, auth());
         logger.debug('result', result);
 
-        assert.deepEqual(result, {result: true});
+        expect(result).to.deep.equal(request);
     });
 
     it('test fetch with error url', async () => {
+        const testUrl = 'https://notjira.test/jira/rest/api/2/issue/12345';
         try {
-            const testUrl = 'https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171';
-
-            const result = await fetchJSON(testUrl, auth());
+            await fetchJSON(testUrl, auth());
         } catch (err) {
             const funcErr = () => {
-                throw err
+                throw err;
             };
-            assert.throws(funcErr, /Error in fetchJSON/);
+            expect(funcErr).to.throw(/Error in fetchJSON/);
+        }
+    });
+
+    it('test fetch with timeout error, more 11 sec', async () => {
+        const testUrl = 'https://notjira.test/jira/rest/api/2/issue/12345';
+        try {
+            await fetchJSON(testUrl, auth());
+        } catch (err) {
+            const funcErr = () => {
+                throw err;
+            };
+            expect(funcErr).to.throw(/Error in fetchJSON/);
         }
     });
 });
