@@ -3,31 +3,9 @@ const assert = require('assert');
 const logger = require('../../src/modules/log.js')(module);
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
-const {
-    postEpicUpdates,
-    postComment,
-    createRoom,
-    inviteNewMembers,
-    postNewLinks,
-    postLinkedChanges,
-    postIssueUpdates,
-    postProjectUpdates,
-} = require('../../src/bot');
 const bot = require('../../src/bot');
-const {
-    getPostEpicUpdatesData,
-    getPostCommentData,
-    getCreateRoomData,
-    getInviteNewMembersData,
-    getPostNewLinksData,
-    getPostLinkedChangesData,
-    getPostIssueUpdatesData,
-    getPostProjectUpdatesData,
-} = require('../../src/queue/parse-body.js');
 
-describe('bot func', function() {
-    this.timeout(15000);
-
+describe('bot func', () => {
     it('test correct JSON', () => {
         const result = typeof firstBody;
         logger.debug('result', result);
@@ -57,5 +35,4 @@ describe('bot func', function() {
         const result = funcsForBot.map(func => bot[func]);
         assert.ok(Array.isArray(result));
     });
-
 });

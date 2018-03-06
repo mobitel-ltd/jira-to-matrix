@@ -19,6 +19,7 @@
     "mocha": true
   },
   "plugins": [
+    "chai-friendly",
     "mocha"
   ],
   "rules": {
@@ -109,7 +110,7 @@
     ],
     "max-nested-callbacks": [
       "error",
-      2
+      3
     ],
     "max-params": [
       "error",
@@ -256,14 +257,8 @@
     "no-unneeded-ternary": [
       "error"
     ],
-    "no-unused-expressions": [
-      "error",
-      {
-        "allowShortCircuit": true,
-        "allowTernary": true,
-        "allowTaggedTemplates": true
-      }
-    ],
+    "no-unused-expressions": 0,
+    "chai-friendly/no-unused-expressions": 2,
     "no-use-before-define": [
       "error"
     ],

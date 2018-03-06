@@ -11,6 +11,7 @@
     "start": "node src/app.js",
     "start-dev": "NODE_ENV=development node src/app.js",
     "test": "NODE_ENV=test nyc mocha test/* --exit",
+    "test-single": "NODE_ENV=test mocha",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "pre-commit": [
@@ -22,6 +23,7 @@
     "chai-sinon": "^2.8.1",
     "eslint": "^4.5.0",
     "eslint-config-google": "^0.9.1",
+    "eslint-plugin-chai-friendly": "^0.4.1",
     "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-mocha": "^4.12.1",
     "matrix-mock-request": "^1.2.1",

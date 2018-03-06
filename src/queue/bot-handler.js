@@ -76,7 +76,7 @@ const isPostProjectUpdates = body => Boolean(
     && typeof body.issue === 'object'
     && typeof body.issue.fields === 'object'
     // && Ramda.path(['issue', 'fields', 'project'], body)
-    // && Ramda.pathEq(['issue', 'fields', 'issuetype', 'name'], 'Epic')(body)
+    && Ramda.pathEq(['issue', 'fields', 'issuetype', 'name'], 'Epic')(body)
     && (
         body.issue_event_type_name === 'issue_generic'
         || body.issue_event_type_name === 'issue_created'

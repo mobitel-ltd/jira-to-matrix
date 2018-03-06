@@ -14,9 +14,9 @@ describe('isCreateRoom', () => {
             [{
                 comment: {author1: {name: 'user1'}},
                 user: {name1: 'user2'},
-            }, undefined],
-            [{comment: {}}, undefined],
-            [{}, undefined],
+            }, null],
+            [{comment: {}}, null],
+            [{}, null],
         ];
         samples.forEach(sample => {
             const result = webHookUser(sample[0]);
