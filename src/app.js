@@ -68,6 +68,7 @@ app.post('/', async (req, res, next) => {
     const saveStatus = await getParsedAndSaveToRedis(req.body);
 
     if (saveStatus) {
+        // eslint-disable-next-line
         queueFsm.is('empty') ? queueFsm.queueHandler() : queueFsm.wait();
     }
 
@@ -102,6 +103,7 @@ queuePush.on('startQueueHandler', async () => {
         logger.debug('queueFsm.state', queueFsm.state);
         await newQueueHandler(client);
     }
+    // eslint-disable-next-line
     queueFsm.is('waiting') ? queueFsm.queueHandler() : queueFsm.handled();
     logger.debug('history', queueFsm.history);
     queueFsm.clearHistory();
