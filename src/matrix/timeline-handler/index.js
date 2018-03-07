@@ -37,9 +37,7 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
 
         logger.warn(`Command ${commandName} not found`);
     } catch (err) {
-        logger.error('Error in event handling');
-
-        throw err;
+        throw ['Error in event handling', err].join('\n');
     }
 };
 

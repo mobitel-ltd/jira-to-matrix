@@ -78,9 +78,7 @@ const postStatusChanged = async ({mclient, roomID, data}) => {
 
         await mclient.sendHtmlMessage(roomID, body, htmlBody);
     } catch (err) {
-        logger.error('Error in postStatusChanged');
-
-        throw err;
+        throw ['Error in postStatusChanged', err].join('\n');
     }
 };
 
@@ -127,9 +125,7 @@ const getIssueUpdateInfoMessageBody = async ({changelog, key, user}) => {
 
         return {htmlBody, body};
     } catch (err) {
-        logger.error('Error in getIssueUpdateInfoMessageBody');
-
-        throw err;
+        throw ['Error in getIssueUpdateInfoMessageBody', err].join('\n');
     }
 };
 

@@ -34,8 +34,6 @@ module.exports = async ({mclient, issueID, headerText, comment, author}) => {
 
         return true;
     } catch (err) {
-        logger.error('error in Post comment');
-
-        throw err;
+        throw ['Error in Post comment', err].join('\n');
     }
 };

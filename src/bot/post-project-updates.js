@@ -19,7 +19,6 @@ module.exports = async ({mclient, typeEvent, projectOpts, data}) => {
 
         return true;
     } catch (err) {
-        logger.error('error in postProjectUpdates');
-        throw err;
+        throw ['Error in postProjectUpdates', err].join('\n');
     }
 };

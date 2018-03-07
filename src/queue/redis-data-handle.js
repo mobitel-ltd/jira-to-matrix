@@ -13,9 +13,7 @@ const getRedisKeys = async () => {
 
         return redisKeys;
     } catch (err) {
-        logger.error('getRedisKeys error');
-
-        throw err;
+        throw ['getRedisKeys error', err].join('\n');
     }
 };
 
@@ -155,8 +153,7 @@ const saveIncoming = async ({redisKey, ...restData}) => {
         await redis.setAsync(redisKey, bodyToJSON);
         logger.info('data saved by redis. RedisKey: ', redisKey);
     } catch (err) {
-        logger.error(`Error while saving to redis:\n${err.message}`);
-        throw err;
+        throw ['Error while saving to redis:', err].join('\n');
     }
 };
 

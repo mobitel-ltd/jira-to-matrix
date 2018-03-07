@@ -10,9 +10,7 @@ const createRoom = client => async options => {
         const {room_id: roomId} = await client.createRoom({visibility: 'private', ...options});
         return roomId;
     } catch (err) {
-        logger.error(`Error while creating room`);
-
-        throw err;
+        throw ['Error while creating room', err].join('\n');
     }
 };
 
@@ -48,9 +46,7 @@ const invite = client => async (roomId, userId) => {
 
         return response;
     } catch (err) {
-        logger.error('Error while inviting a new member to a room:', err);
-
-        throw err;
+        throw ['Error while inviting a new member to a room:', err].join('\n');
     }
 };
 
@@ -63,7 +59,7 @@ const sendHtmlMessage = client => async (roomId, body, htmlBody) => {
 
             return null;
         }
-        throw err;
+        throw ['Error in sendHtmlMessage', err].join('\n');
     }
 };
 
@@ -72,9 +68,7 @@ const createAlias = client => async (alias, roomId) => {
         const newAlias = getAlias(alias);
         await client.createAlias(newAlias, roomId);
     } catch (err) {
-        logger.error(`Error while creating alias for a room`);
-
-        throw err;
+        throw ['Error while creating alias for a room', err].join('\n');
     }
 };
 
@@ -82,9 +76,7 @@ const setRoomName = client => async (roomId, name) => {
     try {
         await client.setRoomName(roomId, name);
     } catch (err) {
-        logger.error(`Error while setting room name`);
-
-        throw err;
+        throw ['Error while setting room name', err].join('\n');
     }
 };
 
@@ -92,9 +84,7 @@ const setRoomTopic = client => async (roomId, topic) => {
     try {
         await client.setRoomTopic(roomId, topic);
     } catch (err) {
-        logger.error(`Error while setting room's topic`);
-
-        throw err;
+        throw [`Error while setting room's topic`, err].join('\n');
     }
 };
 

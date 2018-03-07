@@ -25,8 +25,6 @@ module.exports = async ({mclient, issue}) => {
 
         return newMembers;
     } catch (err) {
-        logger.error('error in inviteNewMembers');
-
-        throw err;
+        throw ['Error in inviteNewMembers', err].join('\n');
     }
 };

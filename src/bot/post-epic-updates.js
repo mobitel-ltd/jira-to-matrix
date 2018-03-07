@@ -12,9 +12,7 @@ const isInEpic = async (epicID, issueID) => {
         const saved = await redis.sismemberAsync(redisKey, issueID);
         return saved;
     } catch (err) {
-        logger.error(`Error while querying redis`);
-
-        throw err;
+        throw ['Error while querying redis', err].join('\n');
     }
 };
 
@@ -23,9 +21,7 @@ const saveToEpic = async (epicID, issueID) => {
         const status = await redis.saddAsync(epicRedisKey(epicID), issueID);
         logger.debug(`${epicRedisKey(epicID)} of ${issueID} have status ${status}`);
     } catch (err) {
-        logger.error(`Redis error while adding issue to epic`);
-
-        throw err;
+        throw ['Redis error while adding issue to epic', err].join('\n');
     }
 };
 
@@ -44,9 +40,7 @@ const postNewIssue = async (roomID, {epic, issue}, mclient) => {
         logger.info(`Notified epic ${epic.key} room about issue ${issue.key} added to epic "${epic.fields.summary}"`);
         await saveToEpic(epic.id, issue.id);
     } catch (err) {
-        logger.error('Error in postNewIssue');
-
-        throw err;
+        throw ['Error in postNewIssue', err].join('\n');
     }
 };
 
@@ -65,8 +59,6 @@ module.exports = async ({mclient, data, epicKey}) => {
 
         return true;
     } catch (err) {
-        logger.error('Error in postEpicUpdates');
-
-        throw err;
+        throw ['Error in postEpicUpdates', err].join('\n');
     }
 };
