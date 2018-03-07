@@ -44,9 +44,7 @@ const getUsers = async (num, startAt, acc) => {
 
         return resultAcc;
     } catch (err) {
-        logger.error('getUsers error');
-
-        throw err;
+        throw ['getUsers error', err].join('\n');
     }
 };
 

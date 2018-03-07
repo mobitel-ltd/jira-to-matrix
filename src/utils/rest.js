@@ -16,9 +16,7 @@ const fetchJSON = async (url, basicAuth) => {
 
         return object;
     } catch (err) {
-        logger.error(`Error in fetchJSON ${url} `, err);
-
-        throw 'Error in fetchJSON';
+        throw [`Error in fetchJSON ${url}`, err].join('\n');
     }
 };
 
@@ -36,9 +34,7 @@ const fetchPostJSON = async (url, basicAuth, body) => {
 
         return status;
     } catch (err) {
-        logger.error(`POST Error while getting ${url}: `, err);
-
-        throw 'Error in fetchPostJSON';
+        throw [`POST Error while getting ${url}: `, err].join('\n');
     }
 };
 

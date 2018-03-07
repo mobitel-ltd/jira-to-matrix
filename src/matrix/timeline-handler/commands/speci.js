@@ -4,7 +4,6 @@ const translate = require('../../../locales');
 const {domain} = require('../../../config').matrix;
 const {searchUser, BASE_URL} = require('./helper.js');
 const {schemaWatcher} = require('./schemas.js');
-const logger = require('../../../modules/log.js')(module);
 
 const addUserInWatchers = async (room, roomName, user, matrixClient) => {
     const post = translate('successWatcherJira');
@@ -79,8 +78,6 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
 
         return inviteMessage;
     } catch (err) {
-        logger.error('Matrix spec command error');
-
-        throw err;
+        throw ['Matrix spec command error', err].join('\n');
     }
 };

@@ -46,8 +46,7 @@ class Matrix {
             logger.info('Started connect to matrixClient');
             this.client = matrixClient;
         } catch (err) {
-            logger.error(`createClient error. BaseUrl: ${baseUrl}, userId: ${userId}`);
-            throw err;
+            throw [`createClient error. BaseUrl: ${baseUrl}, userId: ${userId}`, err].join('\n');
         }
     }
 
@@ -78,9 +77,7 @@ class Matrix {
             this.client.startClient();
             return new Promise(this._executor.bind(this));
         } catch (err) {
-            logger.error('Error in Matrix connection');
-
-            throw err;
+            throw ['Error in Matrix connection', err].join('\n');
         }
     }
 
@@ -105,9 +102,7 @@ class Matrix {
 
             return result;
         } catch (err) {
-            logger.error('Error in Matrix connection');
-
-            throw err;
+            throw ['Error in Matrix connection', err].join('\n');
         }
     }
 

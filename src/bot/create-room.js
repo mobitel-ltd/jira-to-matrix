@@ -25,9 +25,7 @@ const create = async (client, issue) => {
         logger.info(`Created room for ${key}: ${roomId}`);
         return roomId;
     } catch (err) {
-        logger.error('Error in room create');
-
-        throw err;
+        throw ['Error in room create', err].join('\n');
     }
 };
 
@@ -49,9 +47,7 @@ const createRoomProject = async (client, {key, lead, name}) => {
         logger.info(`Created room for project ${key}: ${roomId}`);
         return roomId;
     } catch (err) {
-        logger.error('createRoomProject Error');
-
-        throw err;
+        throw ['createRoomProject Error', err].join('\n');
     }
 };
 
@@ -87,8 +83,6 @@ module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
         }
         return true;
     } catch (err) {
-        logger.error('Error in room creating');
-
-        throw err;
+        throw ['Error in room creating', err].join('\n');
     }
 };

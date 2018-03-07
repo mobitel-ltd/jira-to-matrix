@@ -3,7 +3,6 @@ const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {checkNamePriority, BASE_URL} = require('./helper.js');
 const {shemaFields} = require('./schemas.js');
-const logger = require('../../../modules/log.js')(module);
 
 module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
@@ -49,8 +48,6 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
 
         return `Issue ${roomName} now has priority ${priority.name}`;
     } catch (err) {
-        logger.error('Matrix move command error');
-
-        throw err;
+        throw ['Matrix prio command error', err].join('\n');
     }
 };

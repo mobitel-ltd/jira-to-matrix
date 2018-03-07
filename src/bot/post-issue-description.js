@@ -52,9 +52,7 @@ const getPost = async ({assigneeName,
         }
         return post;
     } catch (err) {
-        logger.error('getPost error');
-
-        throw err;
+        throw ['Error in getPost', err].join('\n');
     }
 };
 
@@ -78,8 +76,6 @@ module.exports = async ({mclient, issue, newRoomID}) => {
         // tutorial jira commands
         await mclient.sendHtmlMessage(newRoomID, 'Send tutorial', getTutorial);
     } catch (err) {
-        logger.error('post issue description error');
-
-        throw err;
+        throw ['post issue description error', err].join('\n');
     }
 };

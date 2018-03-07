@@ -45,9 +45,7 @@ const getCollectParticipants = async ({url, collectParticipantsBody}) => {
 
         return [...result];
     } catch (err) {
-        logger.error('getCollectParticipants error');
-
-        throw err;
+        throw ['getCollectParticipants error', err].join('\n');
     }
 };
 
@@ -83,9 +81,7 @@ const getIssue = async (id, params) => {
 
         return issue;
     } catch (err) {
-        logger.error('Error in get issue');
-
-        throw err;
+        throw ['Error in get issue', err].join('\n');
     }
 };
 
@@ -104,9 +100,7 @@ const getProject = async id => {
 
         return project;
     } catch (err) {
-        logger.error('getProject error');
-
-        throw err;
+        throw ['getProject error', err].join('\n');
     }
 };
 
@@ -122,8 +116,7 @@ const getIssueFormatted = async issueID => {
 
         return result;
     } catch (err) {
-        logger.error('getIssueFormatted Error');
-        throw err;
+        throw ['getIssueFormatted Error', err].join('\n');
     }
 };
 
@@ -144,9 +137,7 @@ const getRenderedValues = async (issueID, fields) => {
 
         return renderedValues;
     } catch (err) {
-        logger.error('getRenderedValues error');
-
-        throw err;
+        throw ['getRenderedValues error', err].join('\n');
     }
 };
 
