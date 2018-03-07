@@ -27,7 +27,7 @@
                 "id": "10109",
                 "description": "A problem which impairs or prevents the functions of the product.",
                 "iconUrl": "https://jira.bingo-boom.ru/jira/secure/viewavatar?size=xsmall&avatarId=10303&avatarType=issuetype",
-                "name": "Bug",
+                "name": "Epic",
                 "subtask": false,
                 "avatarId": 10303
             },
