@@ -12,39 +12,10 @@ const redis = require('../../src/redis-client.js');
 
 describe('get-bot-data', function() {
     const expectedFuncKeys = [
-        "test-jira-hooks:postProjectUpdates_2018-1-11 13:08:04,225",
         "test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225",
     ];
 
     const expectedData = [
-        {
-            redisKey: 'postProjectUpdates_2018-1-11 13:08:04,225',
-            funcName: 'postProjectUpdates',
-            data: {
-                typeEvent: 'issue_created',
-                projectOpts:
-                    {
-                        self: 'https://jira.bingo-boom.ru/jira/rest/api/2/project/10305',
-                        id: '10305',
-                        key: 'BBCOM',
-                        name: 'BB Common',
-                        avatarUrls:
-                            {
-                                '48x48': 'https://jira.bingo-boom.ru/jira/secure/projectavatar?pid=10305&avatarId=10011',
-                                '24x24': 'https://jira.bingo-boom.ru/jira/secure/projectavatar?size=small&pid=10305&avatarId=10011',
-                                '16x16': 'https://jira.bingo-boom.ru/jira/secure/projectavatar?size=xsmall&pid=10305&avatarId=10011',
-                                '32x32': 'https://jira.bingo-boom.ru/jira/secure/projectavatar?size=medium&pid=10305&avatarId=10011'
-                            }
-                    },
-                data:
-                    {
-                        key: 'BBCOM-1398',
-                        summary: 'Test',
-                        name: 'jira_test',
-                        status: 'Open'
-                    },
-            }
-        },
         {
             redisKey: 'postEpicUpdates_2018-1-11 13:08:04,225',
             funcName: 'postEpicUpdates',

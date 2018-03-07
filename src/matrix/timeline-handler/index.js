@@ -14,7 +14,6 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
         logger.debug('bodyText', bodyText);
 
         if (!commandName) {
-            logger.debug(`${sender} sent message:\n ${body}`);
             return;
         }
 
