@@ -10,9 +10,7 @@ const handleLink = async (data, key, mclient) => {
         logger.debug('roomID', roomID);
         await postStatusChanged({mclient, roomID, data});
     } catch (err) {
-        logger.error('Error in handleLink in postLinkedChanges');
-
-        throw err;
+        throw ['Error in handleLink in postLinkedChanges', err].join('\n');
     }
 };
 
@@ -24,8 +22,6 @@ module.exports = async ({mclient, linksKeys, data}) => {
 
         return true;
     } catch (err) {
-        logger.error('error in postLinkedChanges');
-
-        throw err;
+        throw ['Error in postLinkedChanges', err].join('\n');
     }
 };

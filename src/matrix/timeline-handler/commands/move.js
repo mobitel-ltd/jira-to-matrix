@@ -52,8 +52,6 @@ module.exports = async ({bodyText, body, room, roomName, matrixClient}) => {
 
         return `Issue ${roomName} changed status`;
     } catch (err) {
-        logger.error('Matrix move command error');
-
-        throw err;
+        throw ['Matrix move command error', err].join('\n');
     }
 };

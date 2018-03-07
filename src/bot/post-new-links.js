@@ -44,9 +44,7 @@ const handleLink = async (issueLinkId, mclient) => {
         await postLink(link.inwardIssue, link.type.outward, link.outwardIssue, mclient);
         await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
     } catch (err) {
-        logger.error(`HandleLink error in post link`);
-
-        throw err;
+        throw ['HandleLink error in post link', err].join('\n');
     }
 };
 
@@ -59,8 +57,6 @@ module.exports = async ({mclient, links}) => {
 
         return true;
     } catch (err) {
-        logger.error('error in postNewLinks');
-
-        throw err;
+        throw ['Error in postNewLinks', err].join('\n');
     }
 };

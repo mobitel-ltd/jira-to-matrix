@@ -3,7 +3,6 @@ const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {schemaComment} = require('./schemas.js');
 const {BASE_URL} = require('./helper.js');
-const logger = require('../../../modules/log.js')(module);
 
 module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
     try {
@@ -26,8 +25,6 @@ module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
 
         return `Comment from ${sender} for ${roomName}`;
     } catch (err) {
-        logger.error('Matrix comment command error');
-
-        throw err;
+        throw ['Matrix comment command error', err].join('\n');
     }
 };

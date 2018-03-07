@@ -9,9 +9,7 @@ const postUpdateInfo = async (mclient, roomID, data) => {
 
         logger.debug(`Posted updates to ${roomID}`);
     } catch (err) {
-        logger.error('Error postUpdateInfo');
-
-        throw err;
+        throw ['Error in postUpdateInfo', err].join('\n');
     }
 };
 
@@ -48,8 +46,6 @@ module.exports = async ({mclient, ...body}) => {
 
         return true;
     } catch (err) {
-        logger.error('error in postIssueUpdates');
-
-        throw err;
+        throw ['Error in postIssueUpdates', err].join('\n');
     }
 };

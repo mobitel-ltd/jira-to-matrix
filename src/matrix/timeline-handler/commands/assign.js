@@ -4,7 +4,6 @@ const translate = require('../../../locales');
 const {postfix, domain} = require('../../../config').matrix;
 const {schemaAssignee, schemaWatcher} = require('./schemas.js');
 const {searchUser, BASE_URL} = require('./helper.js');
-const logger = require('../../../modules/log.js')(module);
 
 const getAssignee = event => {
     const {body} = event.getContent();
@@ -56,9 +55,7 @@ const addAssigneeInWatchers = async (room, roomName, assignee, matrixClient) => 
 
         return `The user ${assignee} now assignee issue ${roomName}`;
     } catch (err) {
-        logger.error('addAssigneeInWatchers error');
-
-        throw err;
+        throw ['addAssigneeInWatchers error', err].join('\n');
     }
 };
 
@@ -112,8 +109,6 @@ module.exports = async ({event, room, roomName, matrixClient}) => {
 
         return inviteMessage;
     } catch (err) {
-        logger.error('Matrix assign command error');
-
-        throw err;
+        throw ['Matrix assign command error', err].join('\n');
     }
 };

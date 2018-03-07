@@ -55,7 +55,11 @@ describe('move test', () => {
         try {
             await move({bodyText: '1', room, roomName: 'fake', matrixClient});
         } catch (err) {
-            const expected = 'Error in fetchJSON';
+            const expected = [
+                'Matrix move command error',
+                'Error in fetchJSON https://jira.bingo-boom.ru/jira/rest/api/2/issue/fake/transitions',
+                'FetchError: invalid json response body at https://jira.bingo-boom.ru/jira/rest/api/2/issue/fake/transitions reason: Unexpected end of JSON input'
+            ].join('\n');
             assert.equal(err, expected);
         }
     });
