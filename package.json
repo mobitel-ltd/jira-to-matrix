@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "start": "node src/app.js",
     "start-dev": "NODE_ENV=development node src/app.js",
+    "test-single": "NODE_ENV=test nyc mocha",
     "test": "NODE_ENV=test nyc mocha test/* --exit",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },

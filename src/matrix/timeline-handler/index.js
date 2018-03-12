@@ -10,8 +10,6 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
         const {body} = event.getContent();
 
         const {commandName, bodyText} = parseEventBody(body);
-        logger.debug('commandName', commandName);
-        logger.debug('bodyText', bodyText);
 
         if (!commandName) {
             return;

@@ -1,4 +1,5 @@
 const nock = require('nock');
+const {expect} = require('chai');
 const assert = require('assert');
 const {auth} = require('../../src/jira/common');
 const logger = require('../../src/modules/log.js')(module);
@@ -69,8 +70,10 @@ describe('post New Links test', () => {
             }
             })
             .get(`/jira/rest/api/2/issueLink/28516`)
+            .times(2)
             .reply(200, {...responce, id: 28516})
             .get(`/jira/rest/api/2/issueLink/30137`)
+            .times(2)
             .reply(200, {...responce, id: 30137});
     });
 
@@ -81,6 +84,19 @@ describe('post New Links test', () => {
 
         const result = await postNewLinks({mclient, links});
         assert.ok(result);
+    });
+
+    it('Handle links', async () => {
+        const links = [
+            '28516',
+            '30137',
+            '26500',
+        ];
+        try {
+            const result = await postNewLinks({mclient, links});
+        } catch (error) {
+            expect(error).to.be.ok;
+        }
     });
 
     it('Get empty links', async () => {

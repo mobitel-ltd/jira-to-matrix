@@ -5,7 +5,7 @@ const logger = require('../modules/log.js')(module);
 const fetchJSON = async (url, basicAuth) => {
     const options = {
         headers: {Authorization: basicAuth},
-        timeout: 11000,
+        timeout: 30000,
     };
     try {
         const response = await fetch(url, options);
@@ -25,7 +25,7 @@ const fetchPostJSON = async (url, basicAuth, body) => {
         method: 'POST',
         body,
         headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
-        timeout: 11000,
+        timeout: 30000,
     };
     try {
         const {status} = await fetch(url, options);
@@ -43,7 +43,7 @@ const fetchPutJSON = async (url, basicAuth, body) => {
         method: 'PUT',
         body,
         headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
-        timeout: 11000,
+        timeout: 30000,
     };
     try {
         const response = await fetch(url, options);
