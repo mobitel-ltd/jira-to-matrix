@@ -19,7 +19,7 @@ const move = async (mclient, roomID, {issueKey, fieldKey, summary}) => {
     }
 
     await mclient.createAlias(fieldKey.toString, roomID);
-    logger.info(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
+    logger.debug(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
 
     await mclient.setRoomTopic(roomID, getProjectUrl(issueKey));
 };
@@ -30,7 +30,7 @@ const rename = async (mclient, roomID, {summary, roomName, issueKey}) => {
     }
 
     await mclient.setRoomName(roomID, roomName);
-    logger.info(`Successfully renamed room ${issueKey}`);
+    logger.debug(`Successfully renamed room ${issueKey}`);
 };
 
 module.exports = async ({mclient, ...body}) => {

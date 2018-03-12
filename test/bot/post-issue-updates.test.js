@@ -63,10 +63,12 @@ describe('Post issue updates test', () => {
         try {
             const result = await postIssueUpdates({mclient, ...newBody});
         } catch (err) {
-            const funcErr = () => {
-                throw err
-            };
-            assert.throws(funcErr, /No Old name/);
+            const expected = [
+                'Error in postIssueUpdates',
+                'No Old name',
+            ].join('\n');
+
+            assert.deepEqual(err, expected);
         }
     });
 });
