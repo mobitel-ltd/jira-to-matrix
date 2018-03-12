@@ -64,7 +64,7 @@ const handleRedisData = async (client, dataFromRedis) => {
 
                 return `${redisKey} --- true`;
             } catch (err) {
-                logger.error(`Error in ${funcName}`, err);
+                logger.error(`Error in ${redisKey}\n`, err);
 
                 return `${redisKey} --- false`;
             }
