@@ -8,6 +8,7 @@ const {isPostEpicUpdates} = require('../../src/queue/bot-handler.js');
 const redis = require('../../src/redis-client.js');
 const {redis: {prefix}} = require('../fixtures/config.js');
 const {postEpicUpdates} = require('../../src/bot');
+const {expect} = require('chai');
 
 describe('Post epic updates test', () => {
     const responce = {
@@ -59,10 +60,13 @@ describe('Post epic updates test', () => {
         try {
             const result = await postEpicUpdates({mclient, ...newBody});
         } catch (err) {
-            const funcErr = () => {
-                throw err
-            };
-            assert.throws(funcErr, /Error in fetchJSON/);
+            const expected = [
+                'Error in postEpicUpdates',
+                'Error in get issue',
+                'Error in fetchJSON https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801',
+                'FetchError: request to https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801 failed, reason: Nock: No match for request {'
+            ].join('\n');
+            expect(err).to.include(expected);
         }
     });
 

@@ -121,10 +121,7 @@ describe('Create room test', () => {
         try {
             const result = await createRoom({mclient, ...newBody});
         } catch (err) {
-            const funcErr = () => {
-                throw err
-            };
-            assert.throws(funcErr, /Error in fetchJSON/);
+            assert.deepEqual(err, '');
         }
     });
 });

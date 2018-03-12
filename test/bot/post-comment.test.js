@@ -55,10 +55,14 @@ describe('Post comments test', () => {
         try {
             const result = await postComment({mclient, ...newBody});
         } catch (err) {
-            const funcErr = () => {
-                throw err
-            };
-            assert.throws(funcErr, /Error in fetchJSON/);
+            const expected = [
+                'Error in Post comment',
+                'getIssueFormatted Error',
+                'Error in get issue',
+                'Error in fetchJSON https://jira.bingo-boom.ru/jira/rest/api/2/issue/null?expand=renderedFields',
+                'FetchError: invalid json response body at https://jira.bingo-boom.ru/jira/rest/api/2/issue/null?expand=renderedFields reason: Unexpected end of JSON input',
+            ].join('\n');
+            assert.deepEqual(err, expected);
         }
     });
 });

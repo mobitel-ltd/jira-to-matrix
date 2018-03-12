@@ -39,10 +39,12 @@ describe('fetchJSON tetsing', function() {
 
             const result = await fetchJSON(testUrl, auth());
         } catch (err) {
-            const funcErr = () => {
-                throw err
-            };
-            assert.throws(funcErr, /Error in fetchJSON/);
+            const expected = [
+                'Error in fetchJSON https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171',
+                'FetchError: request to https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171 failed, reason: getaddrinfo ENOTFOUND notjira.bingo-boom.ru notjira.bingo-boom.ru:443',
+            ].join('\n');
+
+            assert.deepEqual(err, expected);
         }
     });
 });
