@@ -17,11 +17,14 @@ const move = async (mclient, roomID, {issueKey, fieldKey, summary}) => {
     if (!(fieldKey && summary)) {
         return;
     }
+    try {
+        await mclient.createAlias(fieldKey.toString, roomID);
+        logger.debug(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
 
-    await mclient.createAlias(fieldKey.toString, roomID);
-    logger.debug(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
-
-    await mclient.setRoomTopic(roomID, getProjectUrl(issueKey));
+        await mclient.setRoomTopic(roomID, getProjectUrl(issueKey));
+    } catch (err) {
+        throw ['Error in move issue', err].join('\n');
+    }
 };
 
 const rename = async (mclient, roomID, {summary, roomName, issueKey}) => {
