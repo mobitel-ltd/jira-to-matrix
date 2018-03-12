@@ -2,10 +2,12 @@ const Ramda = require('ramda');
 const fetch = require('node-fetch');
 const logger = require('../modules/log.js')(module);
 
+const FETCH_TIMEOUT = 30000;
+
 const fetchJSON = async (url, basicAuth) => {
     const options = {
         headers: {Authorization: basicAuth},
-        timeout: 30000,
+        timeout: FETCH_TIMEOUT,
     };
     try {
         const response = await fetch(url, options);
@@ -25,7 +27,7 @@ const fetchPostJSON = async (url, basicAuth, body) => {
         method: 'POST',
         body,
         headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
-        timeout: 30000,
+        timeout: FETCH_TIMEOUT,
     };
     try {
         const {status} = await fetch(url, options);
@@ -43,7 +45,7 @@ const fetchPutJSON = async (url, basicAuth, body) => {
         method: 'PUT',
         body,
         headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
-        timeout: 30000,
+        timeout: FETCH_TIMEOUT,
     };
     try {
         const response = await fetch(url, options);

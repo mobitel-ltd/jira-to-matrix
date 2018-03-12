@@ -51,7 +51,7 @@ describe('Post issue updates test', () => {
         assert.ok(result);
     });
 
-    it('Get links', async () => {
+    it('test isPostIssueUpdates', async () => {
         const result = isPostIssueUpdates(JSONbody);
         assert.ok(result);
     });
