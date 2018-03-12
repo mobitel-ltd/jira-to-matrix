@@ -479,6 +479,22 @@
                 "fromString": "In progress",
                 "to": "10602",
                 "toString": "Paused"
+            },
+            {
+                "field": "description",
+                "fieldtype": "jira",
+                "from": null,
+                "fromString": "gfasg<dfa",
+                "to": null,
+                "toString": "new description"
+            },
+            {
+                "field": "Key",
+                "fieldtype": "jira",
+                "from": null,
+                "fromString": "RN-83",
+                "to": null,
+                "toString": "BAO-193"
             }
         ]
     },

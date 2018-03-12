@@ -54,20 +54,27 @@ const sendHtmlMessage = client => async (roomId, body, htmlBody) => {
     try {
         await client.sendHtmlMessage(roomId, body, htmlBody);
     } catch (err) {
-        if (err.message.indexOf(`${conf.userId} not in room`) > 0) {
+        if (err.message.includes(`${conf.userId} not in room`)) {
             logger.warn(err.message);
 
             return null;
         }
+
         throw ['Error in sendHtmlMessage', err].join('\n');
     }
 };
 
 const createAlias = client => async (alias, roomId) => {
+    const newAlias = getAlias(alias);
     try {
-        const newAlias = getAlias(alias);
         await client.createAlias(newAlias, roomId);
     } catch (err) {
+        if (err.message.includes(`Room alias ${newAlias} already exists`)) {
+            logger.warn(err.message);
+
+            return null;
+        }
+        logger.error(err);
         throw ['Error while creating alias for a room', err].join('\n');
     }
 };
