@@ -1,6 +1,5 @@
 const nock = require('nock');
 const chai = require('chai');
-const assert = require('assert');
 const {auth} = require('../../src/jira/common');
 const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/comment-create-4.json');
@@ -15,11 +14,7 @@ chai.use(sinonChai);
 
 describe('Post issue updates test', () => {
     const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
-    const setRoomNameStub = stub().callsFake((oldName, newName) => {
-        if (!oldName) {
-            throw 'No Old name';
-        }
-    });
+    const setRoomNameStub = stub();
     const getRoomIdStub = stub().callsFake(id => id ? `roomId${id}` : null);
     const createAliasStub = stub();
     const setRoomTopicStub = stub();
@@ -33,6 +28,11 @@ describe('Post issue updates test', () => {
     };
 
     const postIssueUpdatesData = getPostIssueUpdatesData(JSONbody);
+    const expectedData = [
+        'roomIdRN-83',
+        'Задача изменена',
+        'jira_test изменил(а) задачу<br>status: Paused<br>description: <p>Задача</p><br>Key: BAO-193'
+    ];
 
     before(() => {
         const {epicKey} = postIssueUpdatesData;
@@ -42,12 +42,13 @@ describe('Post issue updates test', () => {
             }
             })
             .get(`/jira/rest/api/2/issue/BBCOM-1233`)
-            .times(2)
+            .times(6)
             .query({expand: 'renderedFields'})
             .reply(200, {...response, id: 28516})
             .get(url => url.indexOf('null') > 0)
             .reply(404);
     });
+
     it('Expect createAlias to be with error but postIssueUpdates should work', async () => {
         createAliasStub.callsFake((alias, roomId) => {
             try {
@@ -63,14 +64,9 @@ describe('Post issue updates test', () => {
             }
         });
 
-        // createAliasStub.throws('M_UNKNOWN: Room alias #BAO-193:matrix.bingo-boom.ru already exists');
         try {
             const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
-            expect(sendHtmlMessageStub).have.to.been.calledWithExactly(
-                'roomIdRN-83',
-                'Задача изменена',
-                'jira_test изменил(а) задачу<br>status: Paused<br>description: <p>Задача</p><br>Key: BAO-193'
-            );
+            expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
             expect(result).to.be.true;
         } catch (error) {
             logger.error(error)
@@ -83,11 +79,7 @@ describe('Post issue updates test', () => {
         createAliasStub.callsFake((fieldKey, roomID) => {});
 
         const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(
-            'roomIdRN-83',
-            'Задача изменена',
-            'jira_test изменил(а) задачу<br>status: Paused<br>description: <p>Задача</p><br>Key: BAO-193'
-        );
+        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
@@ -95,22 +87,71 @@ describe('Post issue updates test', () => {
 
     it('test isPostIssueUpdates', async () => {
         const result = isPostIssueUpdates(JSONbody);
-        assert.ok(result);
+        expect(result).to.be.ok;
     });
 
     it('Get error with empty issueID', async () => {
         const newBody = {...postIssueUpdatesData, issueKey: null};
-        logger.debug('newBody', newBody);
 
         try {
             const result = await postIssueUpdates({mclient, ...newBody});
         } catch (err) {
             const expected = [
                 'Error in postIssueUpdates',
-                'No Old name',
+                'No room for null in PostIssueUpdates',
             ].join('\n');
 
-            assert.deepEqual(err, expected);
+            expect(err).to.deep.equal(expected);
         }
     });
+
+    it('Get true with empty fieldkey', async () => {
+        const newBody = {...postIssueUpdatesData, fieldKey: null};
+
+        const result = await postIssueUpdates({mclient, ...newBody});
+        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(result).to.be.true;
+    });
+
+    it('Get true with empty summary', async () => {
+        const newBody = {...postIssueUpdatesData, summary: null};
+
+        const result = await postIssueUpdates({mclient, ...newBody});
+        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(result).to.be.true;
+    });
+
+    it('Get error in postUpdateInfo', async () => {
+        sendHtmlMessageStub.reset();
+        sendHtmlMessageStub.throws('Error!!!');
+
+        try {
+            const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
+        } catch (err) {
+            const expected = [
+                'Error in postIssueUpdates',
+                'Error in postUpdateInfo',
+                'Error!!!',
+            ].join('\n');
+
+            expect(err).to.deep.equal(expected);
+        }
+    });
+
+    it('Get error in move with createAlias', async () => {
+        createAliasStub.throws('Error!!!');
+
+        try {
+            const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
+        } catch (err) {
+            const expected = [
+                'Error in postIssueUpdates',
+                'Error in move issue',
+                'Error!!!',
+            ].join('\n');
+
+            expect(err).to.deep.equal(expected);
+        }
+    });
+
 });
