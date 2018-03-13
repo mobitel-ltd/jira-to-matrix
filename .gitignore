@@ -85,3 +85,6 @@ logs/
 
 # rdb
 dump.rdb
+
+# start local requests
+/test/start.js
