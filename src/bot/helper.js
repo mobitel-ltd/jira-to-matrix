@@ -8,7 +8,6 @@ const mconf = require('../config').matrix;
 
 const membersInvited = roomMembers =>
     Ramda.pipe(
-        Ramda.filter(Ramda.complement(Ramda.propEq('membership', 'leave'))),
         Ramda.values,
         Ramda.map(Ramda.prop('userId'))
     )(roomMembers);

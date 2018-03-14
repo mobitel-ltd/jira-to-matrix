@@ -3,6 +3,7 @@ const logger = require('../../src/modules/log.js')(module);
 const thirdBody = require('../fixtures/comment-create-3.json');
 const secondBody = require('../fixtures/comment-create-2.json');
 const {
+    membersInvited,
     postStatusData,
     getNewStatus,
     getEpicChangedMessageBody,
@@ -10,10 +11,13 @@ const {
     getNewIssueMessageBody,
     fieldNames,
     itemsToString,
-    composeText
+    composeText,
+    getUserID,
 } = require('../../src/bot/helper');
 const {getPostEpicUpdatesData} = require('../../src/queue/parse-body');
 const {getPostProjectUpdatesData} = require('../../src/queue/parse-body');
+
+const {expect} = require('chai');
 
 describe('Helper tests', () => {
     it('getEpicChangedMessageBody', () => {
@@ -80,5 +84,23 @@ describe('Helper tests', () => {
         const {body, htmlBody} = getNewIssueMessageBody(data);
         assert.equal(body, 'Новая задача в эпике');
         assert.equal(htmlBody, '<p>К эпику добавлена задача <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">BBCOM-956 lalalla</a></p>\n');
+    });
+
+    it('membersInvited test', () => {
+        const data = [
+            {userId: 'one', other: 'a'},
+            {userId: 'two', other: 'b'},
+            {userId: 'three', other: 'c'},
+        ];
+
+        const result = membersInvited(data);
+        expect(result).to.deep.equal(['one', 'two', 'three']);
+    });
+
+    it('getUserID test', () => {
+        const name = 'BBCOM';
+        const result = getUserID(name);
+
+        expect(result).to.equal('@BBCOM:matrix.bingo-boom.ru');
     });
 });

@@ -11,10 +11,11 @@ module.exports = async ({mclient, issue}) => {
 
         const room = await mclient.getRoomByAlias(issue.key);
         if (!room) {
-            throw new Error(`Matrix not return room for key ${issue.key}`);
+            logger.warn(`Matrix not return room for key ${issue.key} in inviteNewMembers`);
+            return;
         }
 
-        const members = membersInvited(room.currentState.members);
+        const members = membersInvited(room.getJoinedMembers());
         const newMembers = Ramda.difference(participants, members);
         logger.debug('Number of members to invite: ', newMembers.length);
 
