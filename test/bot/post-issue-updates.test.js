@@ -93,16 +93,18 @@ describe('Post issue updates test', () => {
     it('Get error with empty issueID', async () => {
         const newBody = {...postIssueUpdatesData, issueKey: null};
 
-        try {
+        // try {
             const result = await postIssueUpdates({mclient, ...newBody});
-        } catch (err) {
-            const expected = [
-                'Error in postIssueUpdates',
-                'No room for null in PostIssueUpdates',
-            ].join('\n');
+            expect(result).to.be.undefined;
+        // } catch (err) {
+        //     const expected = [
+        //         'Error in postIssueUpdates',
+        //         'No room for null in PostIssueUpdates',
+        //     ].join('\n');
+        //     logger.error(err);
 
-            expect(err).to.deep.equal(expected);
-        }
+        //     expect(err).to.deep.equal(expected);
+        // }
     });
 
     it('Get true with empty fieldkey', async () => {
@@ -133,7 +135,6 @@ describe('Post issue updates test', () => {
                 'Error in postUpdateInfo',
                 'Error!!!',
             ].join('\n');
-
             expect(err).to.deep.equal(expected);
         }
     });
