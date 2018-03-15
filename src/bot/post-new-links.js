@@ -38,7 +38,7 @@ const handleLink = async (issueLinkId, mclient) => {
         const isNew = await redis.setnxAsync(`link|${link.id}`, '1');
 
         if (!isNew) {
-            logger.info(`link ${link.id} is already been posted to room`);
+            logger.debug(`link ${link.id} is already been posted to room`);
             return;
         }
         await postLink(link.inwardIssue, link.type.outward, link.outwardIssue, mclient);
@@ -51,7 +51,7 @@ const handleLink = async (issueLinkId, mclient) => {
 };
 
 module.exports = async ({mclient, links}) => {
-    logger.info('start postNewLinks');
+    logger.debug('start postNewLinks');
     try {
         await Promise.all(links.map(async issueLink => {
             await handleLink(issueLink, mclient);

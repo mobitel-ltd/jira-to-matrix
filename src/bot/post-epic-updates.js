@@ -45,7 +45,7 @@ const postNewIssue = async (roomID, {epic, issue}, mclient) => {
 };
 
 module.exports = async ({mclient, data, epicKey}) => {
-    logger.info('postEpicUpdates start');
+    logger.debug('postEpicUpdates start');
     try {
         const epic = await getIssue(epicKey);
         const roomID = await mclient.getRoomId(epicKey);

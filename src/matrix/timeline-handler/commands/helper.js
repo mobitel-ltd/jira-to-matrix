@@ -40,7 +40,6 @@ const getUsers = async (num, startAt, acc) => {
         if (users.length >= num) {
             resultAcc = await getUsers(num, startAt + num, resultAcc);
         }
-        logger.info('Number of users', resultAcc.length);
 
         return resultAcc;
     } catch (err) {
@@ -71,7 +70,6 @@ const searchUser = async name => {
         const filteredUsers = allUsers.reduce((prev, cur) =>
             (checkUser(cur, name) ? [...prev, cur] : prev),
         []);
-        logger.info('Search users by name is ok');
         return filteredUsers;
     } catch (err) {
         logger.error('Search users is failed', err);

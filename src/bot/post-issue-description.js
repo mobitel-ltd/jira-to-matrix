@@ -42,8 +42,6 @@ const getPost = async ({assigneeName,
                 nameEpic = String(renderedField || fields || epicLink);
             }
 
-            logger.info(`Epic name: ${nameEpic}; epic key: ${epicLink}`);
-
             const epicInfo = `
             <br>Epic link:
                 <br>${indent}${nameEpic} (${epicLink})
