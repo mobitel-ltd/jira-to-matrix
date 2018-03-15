@@ -11,7 +11,7 @@ const fetchJSON = async (url, basicAuth) => {
     };
     try {
         const response = await fetch(url, options);
-        logger.info(`GET response from jira have status: ${response.status}`,
+        logger.debug(`GET response from jira have status: ${response.status}`,
             `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
 
         const object = await response.json();

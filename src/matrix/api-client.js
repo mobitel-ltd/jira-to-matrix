@@ -3,6 +3,9 @@ const logger = require('../modules/log.js')(module);
 const cbTimeline = require('./timeline-handler');
 const Ramda = require('ramda');
 
+// TODO: delete EVENT_EXCEPTION check in errors after resolving 'no-event' bug
+const EVENT_EXCEPTION = 'Could not find event';
+
 const getAlias = alias => `#${alias}:${conf.domain}`;
 
 const createRoom = client => async options => {
@@ -44,6 +47,12 @@ const invite = client => async (roomId, userId) => {
 
         return response;
     } catch (err) {
+        if (err.message.includes(EVENT_EXCEPTION)) {
+            logger.warn(err.message);
+
+            return null;
+        }
+
         throw ['Error while inviting a new member to a room:', err].join('\n');
     }
 };
@@ -52,7 +61,7 @@ const sendHtmlMessage = client => async (roomId, body, htmlBody) => {
     try {
         await client.sendHtmlMessage(roomId, body, htmlBody);
     } catch (err) {
-        if (err.message.includes(`${conf.userId} not in room`)) {
+        if (err.message.includes(`${conf.userId} not in room`) || err.message.includes(EVENT_EXCEPTION)) {
             logger.warn(err.message);
 
             return null;
@@ -81,6 +90,12 @@ const setRoomName = client => async (roomId, name) => {
     try {
         await client.setRoomName(roomId, name);
     } catch (err) {
+        if (err.message.includes(EVENT_EXCEPTION)) {
+            logger.warn(err.message);
+
+            return null;
+        }
+
         throw ['Error while setting room name', err].join('\n');
     }
 };
@@ -89,6 +104,12 @@ const setRoomTopic = client => async (roomId, topic) => {
     try {
         await client.setRoomTopic(roomId, topic);
     } catch (err) {
+        if (err.message.includes(EVENT_EXCEPTION)) {
+            logger.warn(err.message);
+
+            return null;
+        }
+
         throw [`Error while setting room's topic`, err].join('\n');
     }
 };

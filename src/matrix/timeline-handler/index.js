@@ -52,7 +52,7 @@ const handler = async function Handler(event, room, toStartOfTimeline) {
     try {
         const command = await eventFromMatrix(event, room, sender, self);
         if (command) {
-            logger.info(`${command}\n(did ${sender})`);
+            logger.debug(`${command}\n(did ${sender})`);
         }
     } catch (err) {
         const post = translate('errorMatrixCommands');
