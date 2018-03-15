@@ -21,7 +21,7 @@ module.exports = async ({mclient, issue}) => {
 
         await Promise.all(newMembers.map(async userID => {
             await mclient.invite(room.roomId, userID);
-            logger.info(`New member ${userID} invited to ${issue.key}`);
+            logger.debug(`New member ${userID} invited to ${issue.key}`);
         }));
 
         return newMembers;
