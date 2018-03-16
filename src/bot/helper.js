@@ -1,10 +1,26 @@
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const {getProjectUrl} = require('../jira').issue;
 const translate = require('../locales');
 const marked = require('marked');
-const {getRenderedValues} = require('../jira').issue;
-const mconf = require('../config').matrix;
+const {usersToIgnore, testMode, matrix} = require('../config');
+const {webHookUser, getCreator, issue} = require('../jira');
+const {getProjectUrl, getRenderedValues} = issue;
+
+const isIgnore = body => {
+    const username = webHookUser(body);
+    const creator = getCreator(body);
+    const isInUsersToIgnore = arr =>
+        [username, creator].reduce((acc, item) => {
+            logger.debug(arr);
+            logger.debug(acc);
+            return acc || arr.includes(item);
+        }, false);
+
+    const ignoreList = testMode.on ? testMode.users : usersToIgnore;
+    const ignoreStatus = isInUsersToIgnore(ignoreList);
+
+    return {username, creator, ignoreStatus};
+};
 
 const membersInvited = roomMembers =>
     Ramda.pipe(
@@ -12,7 +28,7 @@ const membersInvited = roomMembers =>
         Ramda.map(Ramda.prop('userId'))
     )(roomMembers);
 
-const getUserID = shortName => `@${shortName}:${mconf.domain}`;
+const getUserID = shortName => `@${shortName}:${matrix.domain}`;
 
 const composeRoomName = issue =>
     `${issue.key} ${issue.summary}`;
@@ -143,4 +159,5 @@ module.exports = {
     itemsToString,
     composeText,
     fieldNames,
+    isIgnore,
 };

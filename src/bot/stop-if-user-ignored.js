@@ -1,22 +1,11 @@
-const config = require('../config');
-const {webHookUser} = require('../jira');
 const logger = require('../modules/log.js')(module);
-
-const isIgnore = (body, conf) => {
-    const username = webHookUser(body);
-    return {
-        username,
-        ignore: username && (
-            conf.usersToIgnore.includes(username) ||
-            (conf.testMode.on && !conf.testMode.users.includes(username))
-        ),
-    };
-};
+const isIgnore = require('./helper');
 
 module.exports = body => {
-    const {ignore, username} = isIgnore(body, config);
-    logger.info(`User "${username}" ignored status: ${ignore}`);
-    if (ignore) {
+    const {ignoreStatus, username, creator} = isIgnore(body);
+    logger.info(`User "${username}", creator "${creator}" ignored status: ${ignoreStatus}`);
+
+    if (ignoreStatus) {
         throw 'User ignored';
     }
 };

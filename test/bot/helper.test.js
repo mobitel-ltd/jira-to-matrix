@@ -2,6 +2,23 @@ const assert = require('assert');
 const logger = require('../../src/modules/log.js')(module);
 const thirdBody = require('../fixtures/comment-create-3.json');
 const secondBody = require('../fixtures/comment-create-2.json');
+//  = require('../../src/bot/helper');
+const {getPostEpicUpdatesData} = require('../../src/queue/parse-body');
+const {getPostProjectUpdatesData} = require('../../src/queue/parse-body');
+
+const proxyquire = require('proxyquire');
+const chai = require('chai');
+const {stub} = require('sinon');
+const sinonChai = require('sinon-chai');
+const {expect} = chai;
+chai.use(sinonChai);
+
+const saddAsyncStub = stub();
+let testModeStub = {
+    on: true,
+    users: ['ivan', 'jira_test'],
+};
+
 const {
     membersInvited,
     postStatusData,
@@ -13,11 +30,12 @@ const {
     itemsToString,
     composeText,
     getUserID,
-} = require('../../src/bot/helper');
-const {getPostEpicUpdatesData} = require('../../src/queue/parse-body');
-const {getPostProjectUpdatesData} = require('../../src/queue/parse-body');
-
-const {expect} = require('chai');
+    isIgnore,
+    } = proxyquire('../../src/bot/helper.js', {
+    '../config': {
+        testMode: testModeStub,
+    },
+});
 
 describe('Helper tests', () => {
     it('getEpicChangedMessageBody', () => {
@@ -103,4 +121,31 @@ describe('Helper tests', () => {
 
         expect(result).to.equal('@BBCOM:matrix.bingo-boom.ru');
     });
+
+    describe('Test isIgnore', () => {
+        it('ignore user or creator', () => {
+            const {username, creator, ignoreStatus} = isIgnore(thirdBody);
+            expect(username).to.equal('jira_test');
+            expect(creator).to.equal('jira_test');
+            expect(ignoreStatus).to.be.false;
+        });
+
+        it('not ignore user or creator', () => {
+            const newBody = thirdBody;
+            newBody.user.name = 'ivan';
+            const {username, creator, ignoreStatus} = isIgnore(newBody);
+
+            expect(username).to.equal('ivan');
+            expect(creator).to.equal('jira_test');
+            expect(ignoreStatus).to.be.true;
+        });
+
+        // it('test mode false', () => {
+        //     testModeStub = {
+        //         on: false,
+        //     }
+        //     expect(() => isIgnore(thirdBody)).to.throw('User ignored');
+        // })
+    });
+
 });
