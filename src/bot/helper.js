@@ -9,7 +9,7 @@ const {getProjectUrl, getRenderedValues} = issue;
 const isStartEndUpdateStatus = body => {
     const isStart = getChangelogField('Start date', body);
     const isEnd = getChangelogField('End date', body);
-    return !!isStart && !!isEnd;
+    return !!isStart || !!isEnd;
 };
 
 const isIgnore = body => {
