@@ -3,23 +3,27 @@ const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 const marked = require('marked');
 const {usersToIgnore, testMode, matrix} = require('../config');
-const {webHookUser, getCreator, issue} = require('../jira');
+const {webHookUser, getCreator, issue, getChangelogField} = require('../jira');
 const {getProjectUrl, getRenderedValues} = issue;
+
+const isStartEndUpdateStatus = body => {
+    const isStart = getChangelogField('Start date', body);
+    const isEnd = getChangelogField('End date', body);
+    return !!isStart && !!isEnd;
+};
 
 const isIgnore = body => {
     const username = webHookUser(body);
+
     const creator = getCreator(body);
     const isInUsersToIgnore = arr =>
-        [username, creator].reduce((acc, item) => {
-            logger.debug(arr);
-            logger.debug(acc);
-            return acc || arr.includes(item);
-        }, false);
+        [username, creator].reduce((acc, item) =>
+            acc || arr.includes(item), false);
 
-    const ignoreList = testMode.on ? testMode.users : usersToIgnore;
-    const ignoreStatus = isInUsersToIgnore(ignoreList);
-
-    return {username, creator, ignoreStatus};
+    const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
+    const startEndUpdateStatus = isStartEndUpdateStatus(body);
+    const ignoreStatus = userIgnoreStatus || startEndUpdateStatus;
+    return {username, creator, startEndUpdateStatus, ignoreStatus};
 };
 
 const membersInvited = roomMembers =>
@@ -160,4 +164,5 @@ module.exports = {
     composeText,
     fieldNames,
     isIgnore,
+    isStartEndUpdateStatus,
 };
