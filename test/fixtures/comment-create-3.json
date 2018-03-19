@@ -3565,5 +3565,26 @@
             "created": "2017-11-29T19:37:19.584+0300",
             "updated": "2017-11-29T19:37:19.584+0300"
         }
+    },
+    "changelog": {
+        "id": "166629",
+        "items": [
+            {
+                "field": "Start date",
+                "fieldtype": "custom",
+                "from": "2018-03-30",
+                "fromString": "30/Mar/18",
+                "to": "2018-03-19",
+                "toString": "19/Mar/18"
+            },
+            {
+                "field": "End date",
+                "fieldtype": "custom",
+                "from": "2018-04-13",
+                "fromString": "13/Apr/18",
+                "to": "2018-04-02",
+                "toString": "2/Apr/18"
+            }
+        ]
     }
 }
