@@ -5,6 +5,7 @@ const Ramda = require('ramda');
 
 // TODO: delete EVENT_EXCEPTION check in errors after resolving 'no-event' bug
 const EVENT_EXCEPTION = 'Could not find event';
+const BOT_OUT_OF_ROOM_EXEPTION = `User ${conf.userId} not in room`;
 
 const getAlias = alias => `#${alias}:${conf.domain}`;
 
@@ -90,7 +91,7 @@ const setRoomName = client => async (roomId, name) => {
     try {
         await client.setRoomName(roomId, name);
     } catch (err) {
-        if (err.message.includes(EVENT_EXCEPTION)) {
+        if (err.message.includes(EVENT_EXCEPTION) || err.message.includes(BOT_OUT_OF_ROOM_EXEPTION)) {
             logger.warn(err.message);
 
             return null;
