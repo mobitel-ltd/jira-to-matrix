@@ -1,10 +1,34 @@
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const {getProjectUrl} = require('../jira').issue;
 const translate = require('../locales');
 const marked = require('marked');
-const {getRenderedValues} = require('../jira').issue;
-const mconf = require('../config').matrix;
+const {usersToIgnore, testMode, matrix} = require('../config');
+const {webHookUser, getCreator, issue, getChangelogField} = require('../jira');
+const {getProjectUrl, getRenderedValues} = issue;
+
+const isStartEndUpdateStatus = body => {
+    const isStart = getChangelogField('Start date', body);
+    const isEnd = getChangelogField('End date', body);
+    return !!isStart && !!isEnd;
+};
+
+const isIgnore = body => {
+    const username = webHookUser(body);
+    const creator = getCreator(body);
+
+    // eslint-disable-next-line
+    const isInUsersToIgnore = arr => {
+        // eslint-disable-next-line
+        return [username, creator].reduce((acc, item) => {
+            return acc || arr.includes(item);
+        }, false);
+    };
+
+    const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
+    const startEndUpdateStatus = isStartEndUpdateStatus(body);
+    const ignoreStatus = userIgnoreStatus || startEndUpdateStatus;
+    return {username, creator, startEndUpdateStatus, ignoreStatus};
+};
 
 const membersInvited = roomMembers =>
     Ramda.pipe(
@@ -12,7 +36,7 @@ const membersInvited = roomMembers =>
         Ramda.map(Ramda.prop('userId'))
     )(roomMembers);
 
-const getUserID = shortName => `@${shortName}:${mconf.domain}`;
+const getUserID = shortName => `@${shortName}:${matrix.domain}`;
 
 const composeRoomName = issue =>
     `${issue.key} ${issue.summary}`;
@@ -143,4 +167,6 @@ module.exports = {
     itemsToString,
     composeText,
     fieldNames,
+    isIgnore,
+    isStartEndUpdateStatus,
 };

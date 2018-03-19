@@ -63,7 +63,7 @@ describe('get-parsed-save to redis', function() {
         const ignoredName = {
             comment: {
                 author: {
-                    name: 'ivan',
+                    name: 'ignore',
                 },
             },
         };

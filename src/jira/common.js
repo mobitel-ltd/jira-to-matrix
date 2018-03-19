@@ -29,6 +29,15 @@ const webHookUser = hook => {
 };
 
 /**
+ * Get creator of issue in webhook from jira
+ * @param {object} hook webhook body
+ * @return {string} creator
+ */
+const getCreator = hook => {
+    const path = ['issue', 'fields', 'creator', 'name'];
+    return Ramda.pathOr('', path, hook);
+};
+/**
  * Get changelog field body from webhook from jira
  * @param {string} key key of changelog field
  * @param {object} hook webhook body
@@ -46,4 +55,4 @@ const getChangelogField = Ramda.curry(
         )(hook)
 );
 
-module.exports = {auth, webHookUser, getChangelogField};
+module.exports = {auth, webHookUser, getChangelogField, getCreator};
