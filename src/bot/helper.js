@@ -9,16 +9,20 @@ const {getProjectUrl, getRenderedValues} = issue;
 const isStartEndUpdateStatus = body => {
     const isStart = getChangelogField('Start date', body);
     const isEnd = getChangelogField('End date', body);
-    return !!isStart && !!isEnd;
+    return !!isStart || !!isEnd;
 };
 
 const isIgnore = body => {
     const username = webHookUser(body);
-
     const creator = getCreator(body);
-    const isInUsersToIgnore = arr =>
-        [username, creator].reduce((acc, item) =>
-            acc || arr.includes(item), false);
+
+    // eslint-disable-next-line
+    const isInUsersToIgnore = arr => {
+        // eslint-disable-next-line
+        return [username, creator].reduce((acc, item) => {
+            return acc || arr.includes(item);
+        }, false);
+    };
 
     const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
     const startEndUpdateStatus = isStartEndUpdateStatus(body);

@@ -123,6 +123,18 @@ describe('Helper tests', () => {
         const trueResult = isStartEndUpdateStatus(thirdBody);
         expect(trueResult).to.be.true;
 
+        const changelog = {
+            items: [
+                {
+                    field: 'Start date',
+                }
+            ]
+        };
+
+        const newBody = {...thirdBody, changelog};
+        const endResult = isStartEndUpdateStatus(newBody);
+        expect(endResult).to.be.true;
+
         const falseResult = isStartEndUpdateStatus(secondBody);
         expect(falseResult).to.be.false;
     });
@@ -169,11 +181,18 @@ describe('Helper tests', () => {
             expect(ignoreStatus).to.be.true;
         });
 
-        it('test ignore start/end change', () => {
-            const {username, creator, ignoreStatus} = isIgnore(thirdBody);
+        it('test ignore start/end only end or start', () => {
+            const changelog = {
+                items: [
+                    {
+                    field: 'End date',
+                }
+            ]
+            };
 
-            expect(username).to.equal('jira_test');
-            expect(creator).to.equal('jira_test');
+            const newBody = {...thirdBody, changelog};
+            const {username, creator, ignoreStatus} = isIgnore(newBody);
+
             expect(ignoreStatus).to.be.true;
         });
 
