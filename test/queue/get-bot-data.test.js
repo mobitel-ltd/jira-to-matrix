@@ -35,7 +35,7 @@ describe('get-bot-data', function() {
 
         const firstBodyArrExpected = [
             {
-                redisKey: 'rooms',
+                redisKey: 'newrooms',
                 createRoomData: null,
             },
             {
@@ -55,7 +55,7 @@ describe('get-bot-data', function() {
 
         const secondBodyArrExpected = [
             {
-                redisKey: 'rooms',
+                redisKey: 'newrooms',
                 createRoomData: {
                     "issue": {
                         "collectParticipantsBody": [

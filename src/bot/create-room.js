@@ -54,7 +54,6 @@ const createRoomProject = async (client, {key, lead, name}) => {
 module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
     logger.debug('Room creating');
     try {
-        logger.debug('data for creating', issue);
         const roomID = await mclient.getRoomId(issue.key);
         logger.debug('roomID', roomID);
 

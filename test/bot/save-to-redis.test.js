@@ -46,17 +46,17 @@ describe('get-bot-data', () => {
     ];
 
     const room1 = {
-        redisKey: 'rooms',
+        redisKey: 'newrooms',
         createRoomData: {
             issue: 'some data',
         },
     };
     const room2 = {
-        redisKey: 'rooms',
+        redisKey: 'newrooms',
         createRoomData: {issue: 'some data else'},
     };
     const room3 = {
-        redisKey: 'rooms',
+        redisKey: 'newrooms',
         createRoomData: null,
     };
 

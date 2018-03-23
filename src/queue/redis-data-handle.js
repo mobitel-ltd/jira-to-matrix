@@ -3,13 +3,14 @@ const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot');
 
-const ROOMS_KEY_NAME = 'rooms';
+// TODO: change until start correct bot work
+const ROOMS_KEY_NAME = 'newrooms';
 const {prefix} = require('../config').redis;
 
 const getRedisKeys = async () => {
     try {
         const allKeys = await redis.keysAsync(`${prefix}*`);
-        const redisKeys = allKeys.filter(key => !key.includes('|') && !key.includes('rooms'));
+        const redisKeys = allKeys.filter(key => !key.includes('|') && !key.includes(ROOMS_KEY_NAME));
 
         return redisKeys;
     } catch (err) {
@@ -99,8 +100,7 @@ const handleRedisRooms = async (client, roomsData) => {
 
             return null;
         } catch (err) {
-            logger.error('Error in handle room data from redis. Data is ', data);
-            logger.error('Error log', err);
+            logger.error('Error in handle room data\n', err);
 
             return data;
         }
@@ -135,7 +135,7 @@ const handleRedisRooms = async (client, roomsData) => {
 const saveIncoming = async ({redisKey, ...restData}) => {
     try {
         let redisValue = restData;
-        if (redisKey === 'rooms') {
+        if (redisKey === ROOMS_KEY_NAME) {
             const {createRoomData} = restData;
             if (!createRoomData) {
                 return;
