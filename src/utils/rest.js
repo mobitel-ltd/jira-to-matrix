@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const fetch = require('node-fetch');
 const logger = require('../modules/log.js')(module);
 
-const FETCH_TIMEOUT = 30000;
+const FETCH_TIMEOUT = 60000;
 
 const fetchJSON = async (url, basicAuth) => {
     const options = {

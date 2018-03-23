@@ -126,7 +126,8 @@ const getParserName = func =>
     `get${func[0].toUpperCase()}${func.slice(1)}Data`;
 
 // Эту переменную можно в конфиг добавить, она по сути константа
-const redisRoomsKey = 'rooms';
+// TODO: change until start correct bot work
+const redisRoomsKey = 'newrooms';
 
 const getFuncAndBody = body => {
     const botFunc = getBotFunc(body);
