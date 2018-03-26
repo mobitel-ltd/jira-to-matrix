@@ -1,7 +1,6 @@
 const nock = require('nock');
 const assert = require('assert');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/comment-create-4.json');
 const {getPostProjectUpdatesData} = require('../../src/queue/parse-body.js');
 const {isPostProjectUpdates} = require('../../src/queue/bot-handler.js');
@@ -23,7 +22,6 @@ describe('Post project updates test', () => {
     const sendHtmlMessage = (roomId, body, htmlBody) => {
         assert.equal(roomId, 'roomIdBBCOM');
         assert.equal('Эпик изменён', body);
-        logger.debug('htmlBody', htmlBody);
         const expectedHtmlBody = '<p>jira_test изменил(а) статус связанного эпика <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-1233">BBCOM-1233 &quot;POupok&quot;</a> на <strong>Paused</strong></p>\n';
 
         assert.equal(htmlBody, expectedHtmlBody);
@@ -33,7 +31,6 @@ describe('Post project updates test', () => {
     const mclient = {sendHtmlMessage, getRoomId};
 
     const postProjectUpdatesData = getPostProjectUpdatesData(JSONbody);
-    logger.debug('getPostProjectUpdatesData', postProjectUpdatesData);
 
     before(() => {
         const {epicKey} = postProjectUpdatesData;
@@ -48,7 +45,6 @@ describe('Post project updates test', () => {
 
     it('getPostProjectUpdatesData', () => {
         const result = isPostProjectUpdates(JSONbody);
-        logger.debug('result', result);
         assert.ok(result);
     });
 

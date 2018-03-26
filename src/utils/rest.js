@@ -1,62 +1,50 @@
 const Ramda = require('ramda');
-const fetch = require('node-fetch');
 const logger = require('../modules/log.js')(module);
+const requestPromise = require('request-promise-native');
 
-const FETCH_TIMEOUT = 60000;
+const TIMEOUT = 60000;
 
-const fetchJSON = async (url, basicAuth) => {
+const request = async (url, basicAuth) => {
     const options = {
         headers: {Authorization: basicAuth},
-        timeout: FETCH_TIMEOUT,
+        timeout: TIMEOUT,
     };
     try {
-        const response = await fetch(url, options);
-        logger.debug(`GET response from jira have status: ${response.status}`,
-            `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
-
-        const object = await response.json();
-
-        return object;
+        const response = await requestPromise(url, options);
+        logger.debug(`GET request to jira with Url ${url} suceeded`);
+        return JSON.parse(response);
     } catch (err) {
-        throw [`Error in fetchJSON ${url}`, err].join('\n');
+        throw [`Error in request ${url}`, err].join('\n');
     }
 };
 
-const fetchPostJSON = async (url, basicAuth, body) => {
+const requestPost = async (url, basicAuth, body) => {
     const options = {
         method: 'POST',
         body,
         headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
-        timeout: FETCH_TIMEOUT,
+        timeout: TIMEOUT,
     };
     try {
-        const {status} = await fetch(url, options);
-        logger.debug('POST response from jira have status:', status);
-        logger.debug(`Url: ${url}; Options: ${options.headers.Authorization}`);
-
-        return status;
+        await requestPromise(url, options);
+        logger.debug(`POST request to jira with Url ${url} suceeded`);
     } catch (err) {
         throw [`POST Error while getting ${url}: `, err].join('\n');
     }
 };
 
-const fetchPutJSON = async (url, basicAuth, body) => {
+const requestPut = async (url, basicAuth, body) => {
     const options = {
         method: 'PUT',
         body,
         headers: {'Authorization': basicAuth, 'content-type': 'application/json'},
-        timeout: FETCH_TIMEOUT,
+        timeout: TIMEOUT,
     };
     try {
-        const response = await fetch(url, options);
-        logger.debug(`PUT response from jira have status: ${response.status}`,
-            `\nUrl: ${url}; Options: ${options.headers.Authorization}`);
-
-        return response;
+        await requestPromise(url, options);
+        logger.debug(`PUT request to jira with Url ${url} suceeded`);
     } catch (err) {
-        logger.error(`PUT Error while getting ${url}: `, err);
-
-        return null;
+        throw [`PUT Error while getting ${url}: `, err].join('\n');
     }
 };
 
@@ -73,8 +61,8 @@ const paramsToQueryString = params => {
 };
 
 module.exports = {
-    fetchJSON,
-    fetchPostJSON,
-    fetchPutJSON,
+    request,
+    requestPost,
+    requestPut,
     paramsToQueryString,
 };

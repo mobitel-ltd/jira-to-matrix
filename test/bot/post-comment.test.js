@@ -1,7 +1,6 @@
 const nock = require('nock');
 const assert = require('assert');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/comment-create-1.json');
 const {getPostCommentData} = require('../../src/queue/parse-body.js');
 const {postComment} = require('../../src/bot');
@@ -18,7 +17,6 @@ describe('Post comments test', () => {
     const sendHtmlMessage = (roomId, body, htmlBody) => {
         assert.equal(roomId, 'roomIdEX-1');
         assert.equal('jira_test добавил(а) комментарий: \n12345', body);
-        logger.debug('htmlBody', htmlBody);
         const expectedHtmlBody = 'jira_test добавил(а) комментарий: <br>12345';
 
         assert.ok(htmlBody, expectedHtmlBody);
@@ -27,7 +25,6 @@ describe('Post comments test', () => {
     const getRoomId = id => `roomId${id}`;
     const mclient = {sendHtmlMessage, getRoomId};
     const postCommentData = getPostCommentData(JSONbody);
-    logger.debug('postCommentData', postCommentData);
 
     before(() => {
         nock('https://jira.bingo-boom.ru', {
@@ -50,7 +47,6 @@ describe('Post comments test', () => {
 
     it('Get error with empty issueID', async () => {
         const newBody = {...postCommentData, issueID: null};
-        logger.debug('newBody', newBody);
 
         try {
             const result = await postComment({mclient, ...newBody});
@@ -59,8 +55,8 @@ describe('Post comments test', () => {
                 'Error in Post comment',
                 'getIssueFormatted Error',
                 'Error in get issue',
-                'Error in fetchJSON https://jira.bingo-boom.ru/jira/rest/api/2/issue/null?expand=renderedFields',
-                'FetchError: invalid json response body at https://jira.bingo-boom.ru/jira/rest/api/2/issue/null?expand=renderedFields reason: Unexpected end of JSON input',
+                'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/null?expand=renderedFields',
+                'StatusCodeError: 404 - ""',
             ].join('\n');
             assert.deepEqual(err, expected);
         }

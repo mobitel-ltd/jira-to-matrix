@@ -1,4 +1,4 @@
-const {fetchPostJSON, fetchPutJSON} = require('../../../utils');
+const {requestPost, requestPut} = require('../../../utils');
 const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {postfix, domain} = require('../../../config').matrix;
@@ -40,7 +40,7 @@ const addAssigneeInWatchers = async (room, roomName, assignee, matrixClient) => 
         }
 
         // add watcher for issue
-        const status = await fetchPostJSON(
+        const status = await requestPost(
             `${BASE_URL}/${roomName}/watchers`,
             auth(),
             schemaWatcher(assignee)
@@ -64,44 +64,41 @@ module.exports = async ({event, room, roomName, matrixClient}) => {
         let assignee = getAssignee(event);
 
         // appointed assignee for issue
-        const status = await fetchPutJSON(
+        await requestPut(
             `${BASE_URL}/${roomName}/assignee`,
             auth(),
             schemaAssignee(assignee)
         );
+        const users = await searchUser(assignee);
+        let post;
+        switch (users.length) {
+            case 0: {
+                post = translate('errorMatrixAssign', {assignee});
+                await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-        if (status !== 204) {
-            const users = await searchUser(assignee);
-            let post;
-            switch (users.length) {
-                case 0: {
-                    post = translate('errorMatrixAssign', {assignee});
-                    await matrixClient.sendHtmlMessage(room.roomId, post, post);
+                return `User ${assignee} or issue ${roomName} don't exist`;
+            }
+            case 1: {
+                const status = await requestPut(
+                    `${BASE_URL}/${roomName}/assignee`,
+                    auth(),
+                    schemaAssignee(users[0].name)
+                );
 
-                    return `User ${assignee} or issue ${roomName} don't exist`;
+                if (status !== 204) {
+                    throw new Error(`Jira returned status ${status} when try to add assignee`);
                 }
-                case 1: {
-                    const status = await fetchPutJSON(
-                        `${BASE_URL}/${roomName}/assignee`,
-                        auth(),
-                        schemaAssignee(users[0].name)
-                    );
 
-                    if (status !== 204) {
-                        throw new Error(`Jira returned status ${status} when try to add assignee`);
-                    }
+                assignee = users[0].name;
+                break;
+            }
+            default: {
+                post = users.reduce(
+                    (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
+                    'List users:<br>');
 
-                    assignee = users[0].name;
-                    break;
-                }
-                default: {
-                    post = users.reduce(
-                        (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
-                        'List users:<br>');
-
-                    await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
-                    return;
-                }
+                await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
+                return;
             }
         }
 

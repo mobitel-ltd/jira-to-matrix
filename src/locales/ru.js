@@ -21,6 +21,8 @@ const dict = Object.freeze({
     statusEpicChangedMessage: '%{name} изменил%{f} статус связанного эпика [%{key} "%{summary}"](%{issueRef}) на **%{status}**',
     errorMatrixCommands: 'Что-то пошло не так! Ваш запрос не выполнен, пожалуйста, попробуйте еще раз',
     errorMatrixAssign: 'ОШИБКА! Пользователь "%{assignee}" не существует',
+    successMatrixInvite: 'Успешно приглашен',
+    errorMatrixInvite: 'Ошибка при присоединение к комнате',
     successMatrixAssign: 'Пользователь %{assignee} назначен исполнителем задачи',
     errorMatrixComment: 'Что-то пошло не так! Комментарий не опубликован',
     successMatrixComment: 'Комментарий опубликован',
@@ -31,6 +33,7 @@ const dict = Object.freeze({
     successWatcherJira: 'Наблюдатель добавлен',
     notFoundUser: 'Пользователь не найден',
     setPriority: 'Теперь задача имеет приоритет %{name}',
+    rightsError: 'У вас нет прав на это действие',
 });
 /* spell-checker: enable */
 

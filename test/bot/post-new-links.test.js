@@ -2,7 +2,6 @@ const nock = require('nock');
 const {expect} = require('chai');
 const assert = require('assert');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const body = require('../fixtures/comment-create-4.json');
 const {getPostNewLinksData} = require('../../src/queue/parse-body.js');
 const postNewLinks = require('../../src/bot/post-new-links.js');
@@ -48,7 +47,6 @@ describe('post New Links test', () => {
     const sendHtmlMessage = (roomId, body, htmlBody) => {
         assert.ok(['roomId28516', 'roomId30137'].includes(roomId));
         assert.equal('Новый линк', body);
-        logger.debug('htmlBody', htmlBody);
         const expectedHtmlBody = [
             '<p>Новая связь, эта задача <strong>Duplicates</strong> <a href="https://jira.bingo-boom.ru/jira/browse/30137">30137 &quot;test_task_90&quot;</a></p>\n',
             '<p>Новая связь, эта задача <strong>Duplicates</strong> <a href="https://jira.bingo-boom.ru/jira/browse/30137">30137 &quot;test_task_90&quot;</a></p>\n',
@@ -63,7 +61,6 @@ describe('post New Links test', () => {
     const mclient = {sendHtmlMessage, getRoomId};
 
     before(() => {
-        logger.debug('auth', auth());
         nock('https://jira.bingo-boom.ru', {
             reqheaders: {
                 Authorization: auth()
@@ -80,7 +77,6 @@ describe('post New Links test', () => {
 
     it('Get links', async () => {
         const {links} = getPostNewLinksData(body);
-        logger.debug('postNewLinksData', links);
 
         const result = await postNewLinks({mclient, links});
         assert.ok(result);
@@ -114,13 +110,9 @@ describe('post New Links test', () => {
 
     after(async () => {
         const keys = await redis.keysAsync('*');
-        logger.debug('keys', keys);
-        logger.debug('prefix', prefix);
-
 
         if (keys.length > 0) {
             const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
-            logger.debug('parsedKeys', parsedKeys);
             await redis.delAsync(parsedKeys);
         }
     });

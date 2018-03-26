@@ -1,6 +1,5 @@
 const nock = require('nock');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/comment-create-4.json');
 const {getInviteNewMembersData} = require('../../src/queue/parse-body.js');
 
@@ -52,7 +51,6 @@ describe('inviteNewMembers test', () => {
     };
 
     const inviteNewMembersData = getInviteNewMembersData(JSONbody);
-    logger.debug('inviteNewMembersData', inviteNewMembersData);
     const expected = [
         "@fred:matrix.bingo-boom.ru",
         "@alex:matrix.bingo-boom.ru",

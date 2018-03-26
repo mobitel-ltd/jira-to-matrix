@@ -1,4 +1,4 @@
-const {fetchJSON, fetchPutJSON} = require('../../../utils');
+const {request, requestPut} = require('../../../utils');
 const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {checkNamePriority, BASE_URL} = require('./helper.js');
@@ -6,7 +6,7 @@ const {shemaFields} = require('./schemas.js');
 
 module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
-        const {fields} = await fetchJSON(
+        const {fields} = await request(
             `${BASE_URL}/${roomName}/editmeta`,
             auth()
         );
@@ -33,15 +33,11 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
             return;
         }
 
-        const status = await fetchPutJSON(
+        await requestPut(
             `${BASE_URL}/${roomName}`,
             auth(),
             shemaFields(priority.id)
         );
-
-        if (status !== 204) {
-            throw new Error(`Jira returned status ${status} when try to add priority`);
-        }
 
         const post = translate('setPriority', priority);
         await matrixClient.sendHtmlMessage(room.roomId, 'Successful set priority', post);

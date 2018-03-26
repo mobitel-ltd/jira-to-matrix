@@ -2,7 +2,6 @@ const nock = require('nock');
 const assert = require('assert');
 const {expect} = require('chai');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/create.json');
 const {getCreateRoomData} = require('../../src/queue/parse-body.js');
 const {isCreateRoom} = require('../../src/queue/bot-handler.js');
@@ -30,7 +29,6 @@ describe('Create room test', () => {
     const sendHtmlMessage = (roomId, body, htmlBody) => {
         assert.equal(roomId, 'roomIdBBCOM-801');
         assert.equal('Новая задача в эпике', body);
-        logger.debug('htmlBody', htmlBody);
         const expectedHtmlBody = '<p>К эпику добавлена задача <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">BBCOM-956 BBCOM-956</a></p>\n';
 
         assert.equal(htmlBody, expectedHtmlBody);
@@ -38,7 +36,6 @@ describe('Create room test', () => {
     };
     const getRoomId = id => `roomId${id}`;
     const roomCreating = options => {
-        logger.debug('options', options)
         const expected = {
             room_alias_name: 'BBCOM-1398',
             invite: ['@jira_test:matrix.bingo-boom.ru'],
@@ -52,7 +49,6 @@ describe('Create room test', () => {
     const mclient = {sendHtmlMessage, getRoomId, createRoom: roomCreating};
 
     const createRoomData = getCreateRoomData(JSONbody);
-    logger.debug('createRoomData', createRoomData);
 
     before(() => {
         nock('https://jira.bingo-boom.ru', {
@@ -81,8 +77,6 @@ describe('Create room test', () => {
             assert.equal(roomId, 'BBCOM-1398');
             const formattedBody = body.split('\n').filter(Boolean).join('');
             const formattedhtmlBody = htmlBody.split('\n').filter(Boolean).map(el => el.trim()).join('');
-            logger.debug('body', formattedBody);
-            logger.debug('htmlBody', formattedhtmlBody);
             const expectedBody = [
                 'Assignee: jira_test jira_test@bingo-boom.ruReporter: jira_test jira_test@bingo-boom.ruType: TaskEstimate time: 1hDescription: InfoPriority: MediumEpic link: undefined (BBCOM-801) https://jira.bingo-boom.ru/jira/browse/BBCOM-801',
                 'Send tutorial'
@@ -116,7 +110,6 @@ describe('Create room test', () => {
 
     it('Get error with empty issueID', async () => {
         const newBody = {...createRoomData, issueID: null};
-        logger.debug('newBody', newBody);
 
         try {
             const result = await createRoom({mclient, ...newBody});

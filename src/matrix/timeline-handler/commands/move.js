@@ -1,4 +1,4 @@
-const {fetchJSON, fetchPostJSON} = require('../../../utils');
+const {request, requestPost} = require('../../../utils');
 const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {schemaMove} = require('./schemas.js');
@@ -7,7 +7,7 @@ const logger = require('../../../modules/log.js')(module);
 
 const getMoveId = async (bodyText, roomName) => {
     // List of available commands
-    const {transitions} = await fetchJSON(
+    const {transitions} = await request(
         `${BASE_URL}/${roomName}/transitions`,
         auth()
     );
@@ -37,21 +37,15 @@ module.exports = async ({bodyText, body, room, roomName, matrixClient}) => {
         }
 
         // canged status issue
-        const status = await fetchPostJSON(
+        await requestPost(
             `${BASE_URL}/${roomName}/transitions`,
             auth(),
             schemaMove(moveId.id)
         );
-
-        if (status !== 204) {
-            const post = translate('errorMoveJira');
-            await matrixClient.sendHtmlMessage(room.roomId, 'ERROR', post);
-
-            return `Issue ${roomName} not changed status`;
-        }
-
         return `Issue ${roomName} changed status`;
     } catch (err) {
-        throw ['Matrix move command error', err].join('\n');
+        const post = translate('errorMoveJira');
+        await matrixClient.sendHtmlMessage(room.roomId, err, post);
+        return `Issue ${roomName} not changed status`;
     }
 };

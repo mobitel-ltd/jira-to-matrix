@@ -1,5 +1,4 @@
 const assert = require('assert');
-const logger = require('../../src/modules/log.js')(module);
 // const JiraClient = require('jira-connector');
 const {auth} = require('../../src/jira/common');
 const {getRenderedValues, getProjectUrl} = require('../../src/jira').issue;
@@ -22,7 +21,6 @@ describe('Auth Jira', function() {
     const params = querystring.stringify({expand: 'renderedFields'});
 
     before(() => {
-        logger.debug('auth', auth());
         nock('https://jira.bingo-boom.ru', {
             reqheaders: {
                 Authorization: auth()
@@ -33,8 +31,6 @@ describe('Auth Jira', function() {
     });
 
     it('getRenderedValues test', async () => {
-        // logger.debug('fetchJSON', fetchJSON);
-
         const getRenderedValuesData = await getRenderedValues(issue.id, ['description']);
         assert.deepEqual(getRenderedValuesData, { description: '<p>Задача</p>' });
     });
