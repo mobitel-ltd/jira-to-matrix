@@ -1,5 +1,4 @@
 const assert = require('assert');
-const logger = require('../../src/modules/log.js')(module);
 const thirdBody = require('../fixtures/comment-create-3.json');
 const secondBody = require('../fixtures/comment-create-2.json');
 const {getPostEpicUpdatesData} = require('../../src/queue/parse-body');

@@ -4,7 +4,6 @@ const sinonChai = require('sinon-chai');
 const proxyquire = require('proxyquire');
 const chai = require('chai');
 
-const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/create.json');
 const getParsedAndSaveToRedis = require('../../src/queue/get-parsed-and-save-to-redis.js');
 const createRoomStub = stub();

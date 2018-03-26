@@ -1,12 +1,10 @@
 const assert = require('assert');
-const logger = require('../../src/modules/log.js')(module);
 const JiraClient = require('jira-connector');
 const {auth} = require('../../src/jira/common');
-const {fetchJSON} = require('../../src/utils/rest');
+const {request} = require('../../src/utils/rest');
 const nock = require('nock');
-const fetch = require('node-fetch');
 
-describe('fetchJSON tetsing', function() {
+describe('request tetsing', function() {
     this.timeout(15000);
     const options = {
         headers: {Authorization: auth()},
@@ -14,34 +12,49 @@ describe('fetchJSON tetsing', function() {
     };
 
     before(() => {
-        logger.debug('auth', auth());
         nock('https://jira.bingo-boom.ru', {
             reqheaders: {
                 Authorization: auth()
             }
             })
             .get('/jira/rest/api/2/issue/26171')
-            .reply(200, {result: true});
+            .reply(200, {result: true})
+            .get('/jira/rest/api/2/issue/error')
+            .reply(400, 'Bad Request');
     });
 
-    it('test fetch', async () => {
+    it('test request', async () => {
         const testUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/26171';
 
-        const result = await fetchJSON(testUrl, auth());
-        logger.debug('result', result);
+        const result = await request(testUrl, auth());
 
         assert.deepEqual(result, {result: true});
     });
 
-    it('test fetch with error url', async () => {
+    it('test request with error url', async () => {
+        try {
+            const testUrl = 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/error';
+
+            const result = await request(testUrl, auth());
+        } catch (err) {
+            const expected = [
+                'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/error',
+                'StatusCodeError: 400 - "Bad Request"',
+            ].join('\n');
+
+            assert.deepEqual(err, expected);
+        }
+    });
+
+    it('test request with correst url second time (should be error)', async () => {
         try {
             const testUrl = 'https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171';
 
-            const result = await fetchJSON(testUrl, auth());
+            const result = await request(testUrl, auth());
         } catch (err) {
             const expected = [
-                'Error in fetchJSON https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171',
-                'FetchError: request to https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171 failed, reason: getaddrinfo ENOTFOUND notjira.bingo-boom.ru notjira.bingo-boom.ru:443',
+                'Error in request https://notjira.bingo-boom.ru/jira/rest/api/2/issue/26171',
+                'RequestError: Error: getaddrinfo ENOTFOUND notjira.bingo-boom.ru notjira.bingo-boom.ru:443',
             ].join('\n');
 
             assert.deepEqual(err, expected);

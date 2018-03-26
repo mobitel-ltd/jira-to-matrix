@@ -1,4 +1,4 @@
-const {fetchPostJSON} = require('../../../utils');
+const {requestPost} = require('../../../utils');
 const {auth} = require('../../../jira');
 const translate = require('../../../locales');
 const {domain} = require('../../../config').matrix;
@@ -29,7 +29,7 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
         let user = bodyText;
 
-        const status = await fetchPostJSON(
+        const status = await requestPost(
             `${BASE_URL}/${roomName}/watchers`,
             auth(),
             schemaWatcher(user)
@@ -48,7 +48,7 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
                 case 1: {
                     user = users[0].name;
 
-                    const status = await fetchPostJSON(
+                    const status = await requestPost(
                         `${BASE_URL}/${roomName}/watchers`,
                         auth(),
                         schemaWatcher(users[0].name)

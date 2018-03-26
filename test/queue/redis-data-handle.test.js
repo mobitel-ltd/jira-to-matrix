@@ -2,7 +2,6 @@ const nock = require('nock');
 const assert = require('assert');
 const {expect} = require('chai');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/create.json');
 const issueBody = require('../fixtures/response.json');
 const getParsedAndSaveToRedis = require('../../src/queue/get-parsed-and-save-to-redis.js');
@@ -77,8 +76,6 @@ describe('get-bot-data', function() {
         assert.equal(roomId, 'BBCOM-1398');
         const formattedBody = body.split('\n').filter(Boolean).join('');
         const formattedhtmlBody = htmlBody.split('\n').filter(Boolean).map(el => el.trim()).join('');
-        logger.debug('body', formattedBody);
-        logger.debug('htmlBody', formattedhtmlBody);
         const expectedBody = [
             'Assignee: jira_test jira_test@bingo-boom.ruReporter: jira_test jira_test@bingo-boom.ruType: TaskEpic link: undefined (BBCOM-801) https://jira.bingo-boom.ru/jira/browse/BBCOM-801Estimate time: 1hDescription: Info',
             'Send tutorial'
@@ -95,7 +92,6 @@ describe('get-bot-data', function() {
     };
     const getRoomId = id => null;
     const roomCreating = options => {
-        logger.debug('options', options)
         const expected = {
             room_alias_name: 'BBCOM-1398',
             invite: ['@jira_test:matrix.bingo-boom.ru'],

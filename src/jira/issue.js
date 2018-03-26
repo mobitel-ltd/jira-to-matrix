@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const {url: jiraUrl} = require('../config').jira;
 const {auth} = require('./common');
-const {fetchJSON, paramsToQueryString} = require('../utils');
+const {request, paramsToQueryString} = require('../utils');
 
 /**
  * Get url for jira project by key
@@ -35,7 +35,7 @@ const extractID = json => {
  */
 const getCollectParticipants = async ({url, collectParticipantsBody}) => {
     try {
-        const body = await fetchJSON(url, auth());
+        const body = await request(url, auth());
         if (body && Array.isArray(body.watchers)) {
             const watchers = body.watchers.map(item => item.name);
             collectParticipantsBody.push(...watchers);
@@ -55,7 +55,7 @@ const getCollectParticipants = async ({url, collectParticipantsBody}) => {
  * @return {object} jira response with issue
  */
 const getLinkedIssue = async id => {
-    const body = await fetchJSON(
+    const body = await request(
         `${jiraUrl}/rest/api/2/issueLink/${id}`,
         auth()
     );
@@ -73,8 +73,8 @@ const getIssue = async (id, params) => {
     try {
         const queryParams = paramsToQueryString(params);
         const url = `${jiraUrl}/rest/api/2/issue/${id}${queryParams}`;
-        logger.debug('url for jira fetch', url);
-        const issue = await fetchJSON(
+        logger.debug('url for jira request', url);
+        const issue = await request(
             url,
             auth()
         );
@@ -93,7 +93,7 @@ const getIssue = async (id, params) => {
 const getProject = async id => {
     try {
         const url = `${jiraUrl}/rest/api/2/project/${id}}`;
-        const project = await fetchJSON(
+        const project = await request(
             url,
             auth()
         );

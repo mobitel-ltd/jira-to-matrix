@@ -1,7 +1,6 @@
 const nock = require('nock');
 const chai = require('chai');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/comment-create-4.json');
 const {getPostIssueUpdatesData} = require('../../src/queue/parse-body.js');
 const {isPostIssueUpdates} = require('../../src/queue/bot-handler.js');
@@ -54,9 +53,7 @@ describe('Post issue updates test', () => {
             try {
                 throw new Error('M_UNKNOWN: Room alias #BAO-193:matrix.bingo-boom.ru already exists');
             } catch (err) {
-                logger.error(err);
                 if (err.message.includes(`Room alias #BAO-193:matrix.bingo-boom.ru already exists`)) {
-                    logger.warn(err.message);
 
                     return null;
                 }
@@ -69,7 +66,6 @@ describe('Post issue updates test', () => {
             expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
             expect(result).to.be.true;
         } catch (error) {
-            logger.error(error)
             expect(error).to.be.null;
         }
         createAliasStub.reset();
@@ -92,19 +88,8 @@ describe('Post issue updates test', () => {
 
     it('Get error with empty issueID', async () => {
         const newBody = {...postIssueUpdatesData, issueKey: null};
-
-        // try {
-            const result = await postIssueUpdates({mclient, ...newBody});
-            expect(result).to.be.undefined;
-        // } catch (err) {
-        //     const expected = [
-        //         'Error in postIssueUpdates',
-        //         'No room for null in PostIssueUpdates',
-        //     ].join('\n');
-        //     logger.error(err);
-
-        //     expect(err).to.deep.equal(expected);
-        // }
+        const result = await postIssueUpdates({mclient, ...newBody});
+        expect(result).to.be.undefined;
     });
 
     it('Get true with empty fieldkey', async () => {

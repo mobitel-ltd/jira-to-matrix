@@ -1,5 +1,4 @@
 const assert = require('assert');
-const logger = require('../../src/modules/log.js')(module);
 const firstJSON = require('../fixtures/comment-create-1.json');
 const secondJSON = require('../fixtures/comment-create-2.json');
 const parsers = require('../../src/queue/parse-body.js');
