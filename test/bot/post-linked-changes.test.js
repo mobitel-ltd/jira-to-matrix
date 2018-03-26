@@ -1,7 +1,6 @@
 const nock = require('nock');
 const assert = require('assert');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const body = require('../fixtures/comment-create-4.json');
 const {getPostLinkedChangesData} = require('../../src/queue/parse-body.js');
 const postLinkedChanges = require('../../src/bot/post-linked-changes.js');
@@ -43,8 +42,6 @@ describe('post New Links test', () => {
     };
 
     const sendHtmlMessage = (roomId, body, htmlBody) => {
-        logger.debug('htmlBody', htmlBody);
-        logger.debug('body', body);
         assert.equal('BBCOM-1233 "POupok" теперь в статусе "Paused"', body);
         assert.equal(roomId, 'roomIdBBCOM-1150');
         const expectedHtmlBody =
@@ -71,7 +68,6 @@ describe('post New Links test', () => {
 
     it('Get links', async () => {
         const data = getPostLinkedChangesData(body);
-        logger.debug('postNewLinksData', data);
 
         const result = await postLinkedChanges({mclient, ...data});
         assert.ok(result);

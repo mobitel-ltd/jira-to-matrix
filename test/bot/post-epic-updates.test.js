@@ -1,6 +1,5 @@
 const nock = require('nock');
 const {auth} = require('../../src/jira/common');
-const logger = require('../../src/modules/log.js')(module);
 const JSONbody = require('../fixtures/comment-create-2.json');
 const {getPostEpicUpdatesData} = require('../../src/queue/parse-body.js');
 const {isPostEpicUpdates} = require('../../src/queue/bot-handler.js');
@@ -51,7 +50,6 @@ describe('Post epic updates test', () => {
     ];
 
     const postCommentData = getPostEpicUpdatesData(JSONbody);
-    logger.debug('postCommentData', postCommentData);
 
     before(() => {
         const {epicKey} = postCommentData;
@@ -92,8 +90,8 @@ describe('Post epic updates test', () => {
             const expected = [
                 'Error in postEpicUpdates',
                 'Error in get issue',
-                'Error in fetchJSON https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801',
-                'FetchError: request to https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801 failed, reason: Nock: No match for request {'
+                'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801',
+                'requestError: request to https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801 failed, reason: Nock: No match for request {'
             ].join('\n');
             expect(err).to.include(expected);
         }
@@ -146,7 +144,6 @@ describe('Post epic updates test', () => {
 
         if (keys.length > 0) {
             const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
-            logger.debug('parsedKeys', parsedKeys);
             await redis.delAsync(parsedKeys);
         }
     });

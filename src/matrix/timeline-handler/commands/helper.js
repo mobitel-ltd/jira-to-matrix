@@ -2,7 +2,7 @@ const querystring = require('querystring');
 const {auth} = require('../../../jira/common.js');
 
 const logger = require('../../../modules/log.js')(module);
-const {fetchJSON} = require('../../../utils');
+const {request} = require('../../../utils');
 const {jira} = require('../../../config');
 const {url} = jira;
 
@@ -32,7 +32,7 @@ const getUsers = async (num, startAt, acc) => {
 
         const queryPararms = querystring.stringify(params);
 
-        const users = await fetchJSON(
+        const users = await request(
             `${url}/rest/api/2/user/search?${queryPararms}`,
             auth()
         );

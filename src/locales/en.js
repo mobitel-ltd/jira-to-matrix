@@ -17,6 +17,8 @@ const dict = Object.freeze({
     statusEpicChangedMessage: '%{name} changed a linked epic status [%{key} "%{summary}"](%{issueRef}) to **%{status}**',
     errorMatrixCommands: 'Something went wrong! Your request failed, please try again.',
     errorMatrixAssign: 'FATAL ERROR! User "%{assignee}" don\'t exist.',
+    successMatrixInvite: 'Successfully invited',
+    errorMatrixInvite: 'Invite Error',
     successMatrixAssign: 'User %{assignee} appointed assignee',
     errorMatrixComment: 'Something went wrong! Comment not published',
     successMatrixComment: 'Comment published',
@@ -27,6 +29,7 @@ const dict = Object.freeze({
     successWatcherJira: 'Watcher was added',
     notFoundUser: 'User is not found',
     setPriority: 'Now issue has the priority %{name}',
+    rightsError: 'You have no rights',
 });
 
 module.exports.dict = dict;

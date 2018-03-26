@@ -1,5 +1,4 @@
 const {expect} = require('chai');
-const logger = require('../../src/modules/log.js')(module);
 const {saveIncoming} = require('../../src/queue/redis-data-handle.js');
 const {prefix} = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');

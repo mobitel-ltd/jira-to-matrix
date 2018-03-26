@@ -1,24 +1,38 @@
-/* eslint-disable camelcase */
 const {domain, admins} = require('../../../config').matrix;
+const translate = require('../../../locales');
 
 const getRoomId = async (room, matrixClient) => {
-    if (~room.indexOf(domain)) {
-        const {room_id} = await matrixClient.getRoomIdForAlias(room);
-        return room_id;
+    try {
+        if (~room.indexOf(domain)) {
+            const {room_id: roomId} = await matrixClient.getRoomIdForAlias(room);
+            return roomId;
+        }
+
+        const alias = `#${room.toUpperCase()}:${domain}`;
+        const {room_id: roomId} = await matrixClient.getRoomIdForAlias(alias);
+
+        return roomId;
+    } catch (err) {
+        throw ['Error in getRoomId', err].join('\n');
     }
-
-    const alias = `#${room.toUpperCase()}:${domain}`;
-    const {room_id} = await matrixClient.getRoomIdForAlias(alias);
-
-    return room_id;
 };
 
-module.exports = async ({bodyText, sender, matrixClient}) => {
-    if (!admins.includes(sender)) {
-        return;
-    }
+module.exports = async ({bodyText, sender, room, matrixClient}) => {
+    const data = {};
+    try {
+        if (!admins.includes(sender)) {
+            data.body = translate('rightsError');
+            return;
+        }
 
-    const roomId = await getRoomId(bodyText, matrixClient);
-    const userId = `@${sender}:${domain}`;
-    await matrixClient.invite(roomId, userId);
+        const roomId = await getRoomId(bodyText, matrixClient);
+        const userId = `@${sender}:${domain}`;
+        await matrixClient.invite(roomId, userId);
+        data.body = translate('successMatrixInvite');
+    } catch (err) {
+        data.body = translate('errorMatrixInvite');
+        data.err = err;
+    } finally {
+        await matrixClient.sendHtmlMessage(room.roomId, data.body, data.err || data.body);
+    }
 };

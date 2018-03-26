@@ -1,5 +1,4 @@
 const assert = require('assert');
-const logger = require('../src/modules/log.js')(module);
 
 const {parseEventBody} = require('../src/matrix/timeline-handler/commands/helper.js');
 
