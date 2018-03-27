@@ -13,8 +13,8 @@ const request = async (url, basicAuth) => {
         const response = await requestPromise(url, options);
         logger.debug(`GET request to jira with Url ${url} suceeded`);
         return JSON.parse(response);
-    } catch (err) {
-        throw [`Error in request ${url}`, err].join('\n');
+    } catch ({error, statusCode}) {
+        throw [`Error in request ${url}, status is ${statusCode}`, error].join('\n');
     }
 };
 
@@ -28,8 +28,8 @@ const requestPost = async (url, basicAuth, body) => {
     try {
         await requestPromise(url, options);
         logger.debug(`POST request to jira with Url ${url} suceeded`);
-    } catch (err) {
-        throw [`POST Error while getting ${url}: `, err].join('\n');
+    } catch ({error, statusCode}) {
+        throw [`POST Error in request ${url}, status is ${statusCode}`, error].join('\n');
     }
 };
 
@@ -43,8 +43,8 @@ const requestPut = async (url, basicAuth, body) => {
     try {
         await requestPromise(url, options);
         logger.debug(`PUT request to jira with Url ${url} suceeded`);
-    } catch (err) {
-        throw [`PUT Error while getting ${url}: `, err].join('\n');
+    } catch ({error, statusCode}) {
+        throw [`PUT Error in request ${url}, status is ${statusCode}`, error].join('\n');
     }
 };
 

@@ -46,7 +46,7 @@ describe('comment test', () => {
     });
 
     it('comment not published', async () => {
-        const expected = `Comment from null for ${roomName} not published            POST Error while getting https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-123/comment: StatusCodeError: 400 - "Error!!!"`;
+        const expected = `Comment from null for ${roomName} not published            POST Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-123/comment, status is 400Error!!!`;
         const expectedData = [
             room.roomId,
             'Что-то пошло не так! Комментарий не опубликован',

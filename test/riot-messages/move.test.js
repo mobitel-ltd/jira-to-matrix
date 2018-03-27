@@ -62,7 +62,7 @@ describe('move test', () => {
     it('Get error', async () => {
         const expectedData = [
             room.roomId,
-            'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/fake/transitions\nStatusCodeError: 404 - "Error!!!"',
+            'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/fake/transitions, status is 404\nError!!!',
             'ОШИБКА! Статус задачи не изменен<br>Попробуйте еще раз',
         ];
 
