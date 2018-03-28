@@ -51,12 +51,12 @@ describe('Post comments test', () => {
         try {
             const result = await postComment({mclient, ...newBody});
         } catch (err) {
+            console.error(err);
             const expected = [
                 'Error in Post comment',
                 'getIssueFormatted Error',
                 'Error in get issue',
-                'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/null?expand=renderedFields',
-                'StatusCodeError: 404 - ""',
+                'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/null?expand=renderedFields, status is 404\n',
             ].join('\n');
             assert.deepEqual(err, expected);
         }

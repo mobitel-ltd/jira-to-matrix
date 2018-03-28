@@ -2,17 +2,25 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot');
+const {prefix} = require('../config').redis;
 
 // TODO: change until start correct bot work
 const ROOMS_KEY_NAME = 'newrooms';
-const {prefix} = require('../config').redis;
+const ROOMS_OLD_NAME = 'rooms';
+// It helps ignore keys for links epic--issue
+const DELIMITER = '|';
+const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
+
+const isIgnoreKey = key =>
+    !KEYS_TO_IGNORE.reduce((acc, val) => {
+        const result = acc || key.includes(val);
+        return result;
+    }, false);
 
 const getRedisKeys = async () => {
     try {
         const allKeys = await redis.keysAsync(`${prefix}*`);
-        const redisKeys = allKeys.filter(key => !key.includes('|') && !key.includes(ROOMS_KEY_NAME));
-
-        return redisKeys;
+        return allKeys.filter(isIgnoreKey);
     } catch (err) {
         throw ['getRedisKeys error', err].join('\n');
     }
@@ -29,7 +37,7 @@ const getRedisValue = async key => {
 
         return result;
     } catch (err) {
-        logger.error('Error in getting value of key: ', key);
+        logger.error(`Error in getting value of key: ${key}\n`, err);
 
         return false;
     }
@@ -52,7 +60,7 @@ const getDataFromRedis = async () => {
 const handleRedisData = async (client, dataFromRedis) => {
     try {
         if (!dataFromRedis) {
-            logger.debug('No data from redis');
+            logger.warn('No data from redis');
 
             return;
         }
@@ -138,6 +146,7 @@ const saveIncoming = async ({redisKey, ...restData}) => {
         if (redisKey === ROOMS_KEY_NAME) {
             const {createRoomData} = restData;
             if (!createRoomData) {
+                logger.warn('No createRoomData!');
                 return;
             }
 
@@ -165,4 +174,5 @@ module.exports = {
     handleRedisData,
     handleRedisRooms,
     getRedisValue,
+    isIgnoreKey,
 };
