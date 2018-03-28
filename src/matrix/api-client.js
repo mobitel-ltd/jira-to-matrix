@@ -90,11 +90,12 @@ const createAlias = client => async (alias, roomId) => {
 const setRoomName = client => async (roomId, name) => {
     try {
         await client.setRoomName(roomId, name);
+        return true;
     } catch (err) {
         if (err.message.includes(EVENT_EXCEPTION) || err.message.includes(BOT_OUT_OF_ROOM_EXEPTION)) {
             logger.warn(err.message);
 
-            return null;
+            return false;
         }
 
         throw ['Error while setting room name', err].join('\n');

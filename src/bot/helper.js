@@ -137,7 +137,6 @@ const getIssueUpdateInfoMessageBody = async ({changelog, key, user}) => {
     try {
         const author = user.displayName;
         const fields = fieldNames(changelog.items);
-        logger.debug('fields', fields);
         const renderedValues = await getRenderedValues(key, fields);
 
         const changelogItemsTostring = itemsToString(changelog.items);

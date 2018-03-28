@@ -15,6 +15,7 @@ const postUpdateInfo = async (mclient, roomID, data) => {
 
 const move = async (mclient, roomID, {issueKey, fieldKey, summary}) => {
     if (!(fieldKey && summary)) {
+        logger.debug('Deny move issue operation');
         return;
     }
     try {
@@ -32,8 +33,9 @@ const rename = async (mclient, roomID, {summary, roomName, issueKey}) => {
         return;
     }
 
-    await mclient.setRoomName(roomID, roomName);
-    logger.debug(`Successfully renamed room ${issueKey}`);
+    const result = await mclient.setRoomName(roomID, roomName);
+    const status = result ? 'Successfully' : 'Unsuccessfullly';
+    logger.debug(`${status} renamed room ${issueKey}`);
 };
 
 module.exports = async ({mclient, ...body}) => {
