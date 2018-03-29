@@ -1,15 +1,51 @@
 const nock = require('nock');
-const assert = require('assert');
-const {expect} = require('chai');
 const {auth} = require('../../src/jira/common');
 const JSONbody = require('../fixtures/create.json');
 const issueBody = require('../fixtures/response.json');
 const getParsedAndSaveToRedis = require('../../src/queue/get-parsed-and-save-to-redis.js');
-const {getRedisKeys, getDataFromRedis, getRedisRooms, handleRedisData, handleRedisRooms} = require('../../src/queue/redis-data-handle.js');
 const {prefix} = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
+const proxyquire = require('proxyquire');
+const chai = require('chai');
+const {stub, spy} = require('sinon');
+const sinonChai = require('sinon-chai');
+const {expect} = chai;
+chai.use(sinonChai);
 
-describe('get-bot-data', function() {
+const createRoomStub = stub();
+const postEpicUpdatesStub = stub();
+const loggerSpy = {
+    error: spy(),
+    warn: spy(),
+    debug: spy(),
+    info: spy(),
+};
+
+const {
+    saveIncoming,
+    isIgnoreKey,
+    getRedisKeys,
+    getDataFromRedis,
+    getRedisRooms,
+    handleRedisData,
+    handleRedisRooms,
+} = proxyquire('../../src/queue/redis-data-handle.js', {
+    '../bot': {
+        createRoom: createRoomStub,
+        postEpicUpdates: postEpicUpdatesStub,
+    },
+    '../modules/log.js': () => loggerSpy,
+});
+
+describe('saveIncoming', function() {
+    it('test saveIncoming with no createRoomData args', async () => {
+        await saveIncoming({redisKey: 'newrooms'});
+        const result = await getRedisRooms();
+        expect(result).to.be.null;
+    });
+});
+
+describe('redis-data-handle', function() {
     const expectedFuncKeys = [
         "test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225",
     ];
@@ -72,39 +108,10 @@ describe('get-bot-data', function() {
             summary: 'SummaryKey',
         }
     };
-    const sendHtmlMessage = (roomId, body, htmlBody) => {
-        assert.equal(roomId, 'BBCOM-1398');
-        const formattedBody = body.split('\n').filter(Boolean).join('');
-        const formattedhtmlBody = htmlBody.split('\n').filter(Boolean).map(el => el.trim()).join('');
-        const expectedBody = [
-            'Assignee: jira_test jira_test@bingo-boom.ruReporter: jira_test jira_test@bingo-boom.ruType: TaskEpic link: undefined (BBCOM-801) https://jira.bingo-boom.ru/jira/browse/BBCOM-801Estimate time: 1hDescription: Info',
-            'Send tutorial'
-        ];
 
-        expect(expectedBody).to.include(formattedBody);
-        const expectedHtmlBody = [
-            'Assignee:<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test@bingo-boom.ru<br><br>Reporter:<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test@bingo-boom.ru<br><br>Type:<br>&nbsp;&nbsp;&nbsp;&nbsp;Task<br><br>Epic link:<br>&nbsp;&nbsp;&nbsp;&nbsp;undefined (BBCOM-801)<br>&nbsp;&nbsp;&nbsp;&nbsp;	https://jira.bingo-boom.ru/jira/browse/BBCOM-801<br><br>Estimate time:<br>&nbsp;&nbsp;&nbsp;&nbsp;1h<br><br>Description:<br>&nbsp;&nbsp;&nbsp;&nbsp;Info<br>',
-            '<br>Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands',
-        ];
+    const mclient = {};
 
-        expect(expectedHtmlBody).to.include(formattedhtmlBody);
-        return true;
-    };
-    const getRoomId = id => null;
-    const roomCreating = options => {
-        const expected = {
-            room_alias_name: 'BBCOM-1398',
-            invite: ['@jira_test:matrix.bingo-boom.ru'],
-            name: 'BBCOM-1398 Test',
-            topic: 'https://jira.bingo-boom.ru/jira/browse/BBCOM-1398'
-        };
-
-        assert.deepEqual(options, expected);
-        return options.room_alias_name;
-    }
-    const mclient = {sendHtmlMessage, getRoomId, createRoom: roomCreating};
-
-    before(async () => {
+    beforeEach(async () => {
         nock('https://jira.bingo-boom.ru', {reqheaders: {Authorization: auth()}})
             .get('/jira/rest/api/2/issue/BBCOM-1398/watchers')
             .reply(200, {...responce, id: 28516})
@@ -114,13 +121,23 @@ describe('get-bot-data', function() {
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)
             .reply(404);
-
         await getParsedAndSaveToRedis(JSONbody);
-        });
+    });
+
 
     it('test correct redisKeys', async () => {
         const redisKeys = await getRedisKeys();
         expect(redisKeys).to.have.all.members(expectedFuncKeys);
+    });
+
+    it('test isIgnoreKey', async () => {
+        const keys = [
+            'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
+            'test-jira-hooks:rooms',
+            'test-jira-hooks:newrooms',
+        ];
+        const result = keys.filter(isIgnoreKey);
+        expect(result).to.be.deep.equal(expectedFuncKeys);
     });
 
     it('test correct dataFromRedis', async () => {
@@ -128,12 +145,77 @@ describe('get-bot-data', function() {
         expect(dataFromRedis).to.have.deep.members(expectedData);
     });
 
+    it('test correct handleRedisData', async () => {
+        postEpicUpdatesStub.callsFake(() => ({}));
+        loggerSpy.info.reset();
+
+        const dataFromRedisBefore = await getDataFromRedis();
+        await handleRedisData('client', dataFromRedisBefore);
+        const dataFromRedisAfter = await getDataFromRedis();
+        const expected = 'Result of handling redis key';
+
+        expect(dataFromRedisBefore).to.have.deep.members(expectedData);
+        expect(loggerSpy.info).to.have.been.calledWith(expected);
+        expect(dataFromRedisAfter).to.be.null;
+        expect(postEpicUpdatesStub).to.be.called;
+    });
+
+    it('test error in key handleRedisData', async () => {
+        postEpicUpdatesStub.throws('error');
+        loggerSpy.error.reset();
+
+        const dataFromRedisBefore = await getDataFromRedis();
+        await handleRedisData('client', dataFromRedisBefore);
+        const dataFromRedisAfter = await getDataFromRedis();
+        const expected = 'Error in postEpicUpdates_2018-1-11 13:08:04,225\n';
+
+        expect(dataFromRedisBefore).to.have.deep.members(expectedData);
+        expect(loggerSpy.error).to.have.been.calledWith(expected);
+        expect(dataFromRedisAfter).to.have.deep.members(expectedData);
+        expect(postEpicUpdatesStub).to.be.called;
+    });
+
     it('test correct roomsKeys', async () => {
         const roomsKeys = await getRedisRooms();
         expect(roomsKeys).to.have.deep.members(expectedRoom);
     });
 
-    after(async () => {
+    it('test handleRedisRooms with error', async () => {
+        createRoomStub.throws('Error!!!!');
+        const roomsKeys = await getRedisRooms();
+        await handleRedisRooms(mclient, roomsKeys);
+        const roomsKeysAfter = await getRedisRooms();
+        expect(roomsKeysAfter).to.have.deep.members(expectedRoom);
+        createRoomStub.reset();
+    });
+
+    it('test correct handleRedisRooms', async () => {
+        createRoomStub.callsFake(() => ({}));
+
+        const roomsKeysBefore = await getRedisRooms();
+        await handleRedisRooms(mclient, roomsKeysBefore);
+        expect(createRoomStub).to.be.called;
+        const roomsKeysAfter = await getRedisRooms();
+        expect(roomsKeysAfter).to.be.null;
+        createRoomStub.reset();
+    });
+
+    it('test null handleRedisRooms', async () => {
+        createRoomStub.callsFake(() => ({}));
+        await handleRedisRooms(mclient, null);
+        expect(createRoomStub).not.to.be.called;
+        createRoomStub.reset();
+    });
+
+    it('test incorrect handleRedisRooms', async () => {
+        createRoomStub.callsFake(() => ({}));
+        await handleRedisRooms(mclient, 'rooms');
+        expect(createRoomStub).not.to.be.called;
+        const expected = 'handleRedisRooms error';
+        expect(loggerSpy.error).to.have.been.calledWith(expected);
+    });
+
+    afterEach(async () => {
         const keys = await redis.keysAsync('*');
 
         if (keys.length > 0) {
@@ -141,4 +223,66 @@ describe('get-bot-data', function() {
             await redis.delAsync(parsedKeys);
         }
     });
+});
+
+describe('Redis errors in redis-data-handle', function() {
+    const {
+        saveIncoming: save,
+        getRedisValue: getValue,
+        getDataFromRedis: getRedisData,
+        getRedisRooms: getRooms,
+        handleRedisData: handleData
+    } = proxyquire('../../src/queue/redis-data-handle.js', {
+        '../redis-client.js': {
+            getAsync: stub().throws('error'),
+            keysAsync: stub().throws('error'),
+            setAsync: stub().throws('error'),
+        },
+        '../modules/log.js': () => loggerSpy,
+    });
+
+    it('test error getRedisRooms', async () => {
+        const result = await getRooms();
+        const expected = 'getRedisRooms error';
+        expect(result).to.be.null;
+        expect(loggerSpy.error).to.have.been.calledWithExactly(expected);
+    });
+
+    it('test error handleRedisData', async () => {
+        await handleData('client', 'data');
+        const expected = 'handleRedisData error';
+        expect(loggerSpy.error).to.have.been.calledWith(expected);
+    });
+
+    it('test no handleRedisData', async () => {
+        await handleData('client');
+        const expected = 'No data from redis';
+        expect(loggerSpy.warn).to.have.been.calledWithExactly(expected);
+    });
+
+    it('test no handleRedisData', async () => {
+        const result = await getRedisData();
+        const expected = 'getDataFromRedis error';
+        expect(result).to.be.null;
+        expect(loggerSpy.error).to.have.been.calledWith(expected);
+    });
+
+    it('test no getRedisValue', async () => {
+        const result = await getValue({});
+        const expected = 'Error in getting value of key: [object Object]\n';
+
+        expect(result).to.be.false;
+        expect(loggerSpy.error).to.have.been.calledWith(expected);
+    });
+
+    it('test no save to redis error', async () => {
+        const expected = 'Error while saving to redis:\nerror';
+        try {
+            await save({});
+        } catch (err) {
+            expect(err).to.be.equal(expected);
+        }
+
+    });
+
 });
