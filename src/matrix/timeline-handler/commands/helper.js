@@ -1,7 +1,6 @@
 const querystring = require('querystring');
 const {auth} = require('../../../jira/common.js');
 
-const logger = require('../../../modules/log.js')(module);
 const {request} = require('../../../utils');
 const {jira} = require('../../../config');
 const {url} = jira;
@@ -9,25 +8,25 @@ const {url} = jira;
 const BASE_URL = `${url}/rest/api/2/issue`;
 
 // Checking occurrences of current name
-const checkUser = (user, name) =>
-    ~user.name.toLowerCase().indexOf(name.toLowerCase())
-    || ~user.displayName.toLowerCase().indexOf(name.toLowerCase());
+const checkUser = ({name, displayName}, expectedName) =>
+    name.toLowerCase().includes(expectedName.toLowerCase())
+    || displayName.toLowerCase().includes(expectedName.toLowerCase());
 
 const checkCommand = (body, name, index) =>
     body.toLowerCase() === name.toLowerCase()
-    || ~body.indexOf(String(index + 1));
+    || body.includes(String(index + 1));
 
 const checkNamePriority = (priority, index, name) =>
     priority.name.toLowerCase() === name.toLowerCase()
     || String(index + 1) === name;
 
 // recursive function to get users by num and startAt (start position in jira list of users)
-const getUsers = async (num, startAt, acc) => {
+const getUsers = async (maxResults, startAt, acc = []) => {
     try {
         const params = {
             username: '@boom',
             startAt,
-            maxResults: num,
+            maxResults,
         };
 
         const queryPararms = querystring.stringify(params);
@@ -37,8 +36,8 @@ const getUsers = async (num, startAt, acc) => {
             auth()
         );
         let resultAcc = [...acc, ...users];
-        if (users.length >= num) {
-            resultAcc = await getUsers(num, startAt + num, resultAcc);
+        if (users.length >= maxResults) {
+            resultAcc = await getUsers(maxResults, startAt + maxResults, resultAcc);
         }
 
         return resultAcc;
@@ -50,15 +49,13 @@ const getUsers = async (num, startAt, acc) => {
 // Let get all users even if they are more 1000
 const MAX_USERS = 999;
 const START_AT = 0;
-const START_ACC = [];
 
 const getAllUsers = async () => {
     try {
-        const allUsers = await getUsers(MAX_USERS, START_AT, START_ACC);
+        const allUsers = await getUsers(MAX_USERS, START_AT);
         return allUsers;
     } catch (err) {
-        logger.error('Error in users request', err);
-        throw new Error('Error in users request');
+        throw ['Error in users request', err].join('\n');
     }
 };
 
@@ -72,8 +69,7 @@ const searchUser = async name => {
         []);
         return filteredUsers;
     } catch (err) {
-        logger.error('Search users is failed', err);
-        throw new Error('Jira not return list all users!');
+        throw ['Search users is failed', err].join('\n');
     }
 };
 
@@ -103,4 +99,5 @@ module.exports = {
     getAllUsers,
     BASE_URL,
     parseEventBody,
+    getUsers,
 };
