@@ -1,82 +1,36 @@
-const {requestPost} = require('../../../utils');
-const {auth} = require('../../../jira');
 const translate = require('../../../locales');
-const {domain} = require('../../../config').matrix;
-const {searchUser, BASE_URL} = require('./helper.js');
-const {schemaWatcher} = require('./schemas.js');
-
-const addUserInWatchers = async (room, roomName, user, matrixClient) => {
-    const post = translate('successWatcherJira');
-    matrixClient.sendHtmlMessage(room.roomId, post, post);
-
-    let userIdMatrix = `@${user}:${domain}`;
-    const members = room.getJoinedMembers();
-    for (const {userId} of members) {
-        if (userId === userIdMatrix) {
-            userIdMatrix = null;
-            break;
-        }
-    }
-
-    if (userIdMatrix) {
-        await matrixClient.invite(room.roomId, userIdMatrix);
-    }
-
-    return `User ${user} was added in watchers for issue ${roomName}`;
-};
+const {searchUser, addToWatchers} = require('./helper.js');
 
 module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
-        let user = bodyText;
+        const users = await searchUser(bodyText);
+        switch (users.length) {
+            case 0: {
+                const post = translate('errorWatcherJira');
+                matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-        const status = await requestPost(
-            `${BASE_URL}/${roomName}/watchers`,
-            auth(),
-            schemaWatcher(user)
-        );
+                return `Watcher "${bodyText}" isn't added to ${roomName} issue`;
+            }
+            case 1: {
+                const [{name, displayName}] = users;
 
-        if (status !== 204) {
-            const users = await searchUser(user);
-            let post;
-            switch (users.length) {
-                case 0: {
-                    post = translate('errorWatcherJira');
-                    matrixClient.sendHtmlMessage(room.roomId, post, post);
+                await addToWatchers(room, roomName, name, matrixClient);
 
-                    return `Watcher ${user} don't add in ${roomName} issue`;
-                }
-                case 1: {
-                    user = users[0].name;
+                const post = translate('successWatcherJira');
+                matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-                    const status = await requestPost(
-                        `${BASE_URL}/${roomName}/watchers`,
-                        auth(),
-                        schemaWatcher(users[0].name)
-                    );
+                return `User ${displayName} was added in watchers for issue ${roomName}`;
+            }
+            default: {
+                const post = users.reduce(
+                    (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
+                    'List users:<br>');
 
-                    if (status !== 204) {
-                        post = translate('errorWatcherJira');
-                        matrixClient.sendHtmlMessage(room.roomId, post, post);
-                        return `Watcher ${users[0].name} don't add in ${roomName} issue`;
-                    }
+                await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
 
-                    break;
-                }
-                default: {
-                    post = users.reduce(
-                        (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
-                        'List users:<br>');
-
-                    await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
-
-                    return;
-                }
+                return;
             }
         }
-
-        const inviteMessage = await addUserInWatchers(room, roomName, user, matrixClient);
-
-        return inviteMessage;
     } catch (err) {
         throw ['Matrix spec command error', err].join('\n');
     }

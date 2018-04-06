@@ -1,40 +1,8 @@
-const {requestPost, requestPut} = require('../../../utils');
+const {requestPut} = require('../../../utils');
 const {auth} = require('../../../jira');
 const translate = require('../../../locales');
-const {domain} = require('../../../config').matrix;
-const {schemaAssignee, schemaWatcher} = require('./schemas.js');
-const {searchUser, BASE_URL} = require('./helper.js');
-
-const getInviteUser = (assignee, room) => {
-    const user = `@${assignee}:${domain}`;
-    const members = room.getJoinedMembers();
-    const isInRoom = members.find(({userId}) => userId === user);
-
-    return isInRoom ? false : user;
-};
-
-const addAssigneeInWatchers = async (room, roomName, {name, displayName}, matrixClient) => {
-    try {
-        const inviteUser = getInviteUser(name, room);
-        if (inviteUser) {
-            await matrixClient.invite(room.roomId, inviteUser);
-        }
-
-        // add watcher for issue
-        await requestPost(
-            `${BASE_URL}/${roomName}/watchers`,
-            auth(),
-            schemaWatcher(name)
-        );
-
-        const post = translate('successMatrixAssign', {displayName});
-        await matrixClient.sendHtmlMessage(room.roomId, post, post);
-
-        return `The user ${displayName} is assigned to issue ${roomName}`;
-    } catch (err) {
-        throw ['addAssigneeInWatchers error', err].join('\n');
-    }
-};
+const {schemaAssignee} = require('./schemas.js');
+const {searchUser, BASE_URL, addToWatchers} = require('./helper.js');
 
 module.exports = async ({body, sender, room, roomName, matrixClient}) => {
     try {
@@ -49,16 +17,19 @@ module.exports = async ({body, sender, room, roomName, matrixClient}) => {
                 return `User ${userToFind} or issue ${roomName} is not exist`;
             }
             case 1: {
-                const [user] = users;
+                const [{displayName, name}] = users;
                 await requestPut(
                     `${BASE_URL}/${roomName}/assignee`,
                     auth(),
-                    schemaAssignee(user.name)
+                    schemaAssignee(name)
                 );
 
-                const inviteMessage = await addAssigneeInWatchers(room, roomName, user, matrixClient);
+                await addToWatchers(room, roomName, name, matrixClient);
 
-                return inviteMessage;
+                const post = translate('successMatrixAssign', {displayName});
+                await matrixClient.sendHtmlMessage(room.roomId, post, post);
+
+                return `The user ${displayName} is assigned to issue ${roomName}`;
             }
             default: {
                 const post = users.reduce(

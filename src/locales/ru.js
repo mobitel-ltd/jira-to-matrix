@@ -29,7 +29,7 @@ const dict = Object.freeze({
     listJiraCommand: 'Список доступных команд',
     errorMoveJira: 'ОШИБКА! Статус задачи не изменен<br>Попробуйте еще раз',
     successMoveJira: 'Статус задачи изменён на %{name}',
-    errorWatcherJira: 'Наблюдатель не добавлен! Проверьте имени пользователя и попробуйте еще раз',
+    errorWatcherJira: 'Наблюдатель не добавлен! Проверьте имя пользователя и попробуйте еще раз',
     successWatcherJira: 'Наблюдатель добавлен',
     notFoundUser: 'Пользователь не найден',
     setPriority: 'Теперь задача имеет приоритет %{name}',
