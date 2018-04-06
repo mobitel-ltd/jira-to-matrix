@@ -145,6 +145,12 @@ describe('Commands helper tests', function() {
         expect(result).to.be.deep.equal(expected);
     });
 
+    it('searchUser test with no name', async () => {
+        const result = await searchUser('');
+        const expected = [];
+        expect(result).to.be.deep.equal(expected);
+    });
+
     it('getUsers test error', async () => {
         const maxResults = 3;
         const startAt = 5;

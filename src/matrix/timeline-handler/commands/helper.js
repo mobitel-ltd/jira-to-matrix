@@ -1,8 +1,11 @@
 const querystring = require('querystring');
 const {auth} = require('../../../jira/common.js');
 
-const {request} = require('../../../utils');
-const {jira} = require('../../../config');
+const {schemaWatcher} = require('./schemas.js');
+const {requestPost, request} = require('../../../utils');
+
+const {jira, matrix} = require('../../../config');
+const {domain} = matrix;
 const {url} = jira;
 
 const BASE_URL = `${url}/rest/api/2/issue`;
@@ -62,6 +65,9 @@ const getAllUsers = async () => {
 // Search users by part of name
 const searchUser = async name => {
     try {
+        if (!name) {
+            return [];
+        }
         const allUsers = await getAllUsers();
 
         const filteredUsers = allUsers.reduce((prev, cur) =>
@@ -90,8 +96,34 @@ const parseEventBody = body => {
     }
 };
 
+const getInviteUser = (assignee, room) => {
+    const user = `@${assignee}:${domain}`;
+    const members = room.getJoinedMembers();
+    const isInRoom = members.find(({userId}) => userId === user);
+
+    return isInRoom ? false : user;
+};
+
+const addToWatchers = async (room, roomName, name, matrixClient) => {
+    try {
+        const inviteUser = getInviteUser(name, room);
+        if (inviteUser) {
+            await matrixClient.invite(room.roomId, inviteUser);
+        }
+
+        // add watcher for issue
+        await requestPost(
+            `${BASE_URL}/${roomName}/watchers`,
+            auth(),
+            schemaWatcher(name)
+        );
+    } catch (err) {
+        throw ['addAssigneeInWatchers error', err].join('\n');
+    }
+};
 
 module.exports = {
+    addToWatchers,
     checkUser,
     checkCommand,
     checkNamePriority,

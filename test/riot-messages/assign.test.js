@@ -110,7 +110,7 @@ describe('assign test', () => {
     it('should assign list of senders ("!assign Ivan")', async () => {
         searchUserStub.returns(users.slice(0, 2));
         const post = 'List users:<br><strong>ia_a</strong> - Ivan Andreevich A<br><strong>is_b</strong> - Ivan Sergeevich B<br>';
-        const result = await assign({body: '!assign fake', sender, room, roomName, matrixClient});
+        const result = await assign({body: '!assign Ivan', sender, room, roomName, matrixClient});
 
         expect(result).to.be.undefined;
         expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, 'List users', post);
