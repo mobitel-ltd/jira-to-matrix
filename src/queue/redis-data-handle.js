@@ -11,11 +11,13 @@ const ROOMS_OLD_NAME = 'rooms';
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
 
-const isIgnoreKey = key =>
-    !KEYS_TO_IGNORE.reduce((acc, val) => {
+const isIgnoreKey = key => {
+    const result = !KEYS_TO_IGNORE.reduce((acc, val) => {
         const result = acc || key.includes(val);
         return result;
     }, false);
+    return result;
+};
 
 const getRedisKeys = async () => {
     try {
