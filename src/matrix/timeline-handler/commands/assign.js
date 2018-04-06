@@ -1,99 +1,67 @@
 const {requestPost, requestPut} = require('../../../utils');
 const {auth} = require('../../../jira');
 const translate = require('../../../locales');
-const {postfix, domain} = require('../../../config').matrix;
+const {domain} = require('../../../config').matrix;
 const {schemaAssignee, schemaWatcher} = require('./schemas.js');
 const {searchUser, BASE_URL} = require('./helper.js');
 
-const getAssignee = event => {
-    const {body} = event.getContent();
-
-    if (body === '!assign') {
-        const sender = event.getSender();
-        return sender.slice(1, -postfix);
-    }
-
-    // 8 it's length command "!assign"
-    return body.substring(8).trim();
-};
-
 const getInviteUser = (assignee, room) => {
-    let user = `@${assignee}:${domain}`;
-
-    // 'members' is an array of objects
+    const user = `@${assignee}:${domain}`;
     const members = room.getJoinedMembers();
-    for (const {userId} of members) {
-        if (userId === user) {
-            user = null;
-            break;
-        }
-    }
+    const isInRoom = members.find(({userId}) => userId === user);
 
-    return user;
+    return isInRoom ? false : user;
 };
 
-const addAssigneeInWatchers = async (room, roomName, assignee, matrixClient) => {
+const addAssigneeInWatchers = async (room, roomName, {name, displayName}, matrixClient) => {
     try {
-        const inviteUser = getInviteUser(assignee, room);
+        const inviteUser = getInviteUser(name, room);
         if (inviteUser) {
             await matrixClient.invite(room.roomId, inviteUser);
         }
 
         // add watcher for issue
-        const status = await requestPost(
+        await requestPost(
             `${BASE_URL}/${roomName}/watchers`,
             auth(),
-            schemaWatcher(assignee)
+            schemaWatcher(name)
         );
 
-        if (status !== 204) {
-            throw new Error(`Jira returned status ${status} when try to add watcher`);
-        }
-
-        const post = translate('successMatrixAssign', {assignee});
+        const post = translate('successMatrixAssign', {displayName});
         await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-        return `The user ${assignee} now assignee issue ${roomName}`;
+        return `The user ${displayName} is assigned to issue ${roomName}`;
     } catch (err) {
         throw ['addAssigneeInWatchers error', err].join('\n');
     }
 };
 
-module.exports = async ({event, room, roomName, matrixClient}) => {
+module.exports = async ({body, sender, room, roomName, matrixClient}) => {
     try {
-        let assignee = getAssignee(event);
+        const userToFind = body === '!assign' ? sender : body.substring(8).trim();
+        const users = await searchUser(userToFind);
 
-        // appointed assignee for issue
-        await requestPut(
-            `${BASE_URL}/${roomName}/assignee`,
-            auth(),
-            schemaAssignee(assignee)
-        );
-        const users = await searchUser(assignee);
-        let post;
         switch (users.length) {
             case 0: {
-                post = translate('errorMatrixAssign', {assignee});
+                const post = translate('errorMatrixAssign', {userToFind});
                 await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-                return `User ${assignee} or issue ${roomName} don't exist`;
+                return `User ${userToFind} or issue ${roomName} is not exist`;
             }
             case 1: {
-                const status = await requestPut(
+                const [user] = users;
+                await requestPut(
                     `${BASE_URL}/${roomName}/assignee`,
                     auth(),
-                    schemaAssignee(users[0].name)
+                    schemaAssignee(user.name)
                 );
 
-                if (status !== 204) {
-                    throw new Error(`Jira returned status ${status} when try to add assignee`);
-                }
+                const inviteMessage = await addAssigneeInWatchers(room, roomName, user, matrixClient);
 
-                assignee = users[0].name;
-                break;
+                return inviteMessage;
             }
             default: {
-                post = users.reduce(
+                const post = users.reduce(
                     (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
                     'List users:<br>');
 
@@ -101,10 +69,6 @@ module.exports = async ({event, room, roomName, matrixClient}) => {
                 return;
             }
         }
-
-        const inviteMessage = await addAssigneeInWatchers(room, roomName, assignee, matrixClient);
-
-        return inviteMessage;
     } catch (err) {
         throw ['Matrix assign command error', err].join('\n');
     }
