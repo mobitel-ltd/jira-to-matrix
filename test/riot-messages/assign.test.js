@@ -3,6 +3,7 @@ const {auth} = require('../../src/jira/common');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const {schemaAssignee, schemaWatcher} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {domain} = require('../../src/config').matrix;
+const translate = require('../../src/locales');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -20,6 +21,9 @@ const assign = proxyquire('../../src/matrix/timeline-handler/commands/assign.js'
 });
 
 describe('assign test', () => {
+    const senderName = 'my_sender';
+    const senderDisplayName = 'My Sender S';
+
     const users = [
         {
             displayName: 'Ivan Andreevich A',
@@ -29,14 +33,10 @@ describe('assign test', () => {
             displayName: 'Ivan Sergeevich B',
             name: 'is_b',
         },
-        // {
-        //     displayName: 'Anton Matveevich C',
-        //     name: 'am_c',
-        // },
-        // {
-        //     displayName: 'Petr Andreevich D',
-        //     name: 'pa_d',
-        // },
+        {
+            displayName: senderDisplayName,
+            name: senderName,
+        },
     ];
 
     const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
@@ -45,16 +45,13 @@ describe('assign test', () => {
         invite: inviteStub,
         sendHtmlMessage: sendHtmlMessageStub,
     };
+
     const roomName = 'BBCOM-123';
     const body = '!assign';
-    const senderName = 'my_sender'
     const sender = `@${senderName}:${domain}`;
     const room = {
         roomId: 12345,
         members: [
-            {
-                userId: `@ia_a:${domain}`,
-            },
             {
                 userId: `@is_b:${domain}`,
             },
@@ -73,6 +70,8 @@ describe('assign test', () => {
             .put(`/${roomName}/assignee`, schemaAssignee('is_b'))
             .times(2)
             .reply(204)
+            .put(`/${roomName}/assignee`, schemaAssignee('ia_a'))
+            .reply(204)
             .post(`/${roomName}/watchers`, schemaWatcher(senderName))
             .reply(204)
             .post(`/${roomName}/watchers`, schemaWatcher('is_b'))
@@ -84,9 +83,9 @@ describe('assign test', () => {
 
 
     it('should assign sender ("!assign")', async () => {
-        searchUserStub.returns([{name: senderName}]);
-        const post = `Пользователь ${senderName} назначен исполнителем задачи`;
-        const expected = `The user ${senderName} now assignee issue ${roomName}`;
+        searchUserStub.returns(users.slice(2, 3));
+        const post = translate('successMatrixAssign', {displayName: senderDisplayName});
+        const expected = `The user ${senderDisplayName} is assigned to issue ${roomName}`;
         const result = await assign({body, sender, room, roomName, matrixClient});
 
         expect(result).to.be.equal(expected);
@@ -97,9 +96,10 @@ describe('assign test', () => {
 
     it('should not assign sender ("!assign fake")', async () => {
         searchUserStub.returns([]);
-        const post = 'ОШИБКА! Пользователь "fake" не существует';
-        const expected = `User fake or issue ${roomName} is not exist`;
-        const result = await assign({body: '!assign fake', sender, room, roomName, matrixClient});
+        const fakeUser = 'fake';
+        const post = translate('errorMatrixAssign', {userToFind: fakeUser});;
+        const expected =  `User ${fakeUser} or issue ${roomName} is not exist`;
+        const result = await assign({body: `!assign ${fakeUser}`, sender, room, roomName, matrixClient});
 
         expect(result).to.be.equal(expected);
         expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, post, post);
@@ -108,12 +108,11 @@ describe('assign test', () => {
     });
 
     it('should assign list of senders ("!assign Ivan")', async () => {
-        searchUserStub.returns(users);
+        searchUserStub.returns(users.slice(0, 2));
         const post = 'List users:<br><strong>ia_a</strong> - Ivan Andreevich A<br><strong>is_b</strong> - Ivan Sergeevich B<br>';
-        const expected = undefined;
         const result = await assign({body: '!assign fake', sender, room, roomName, matrixClient});
 
-        expect(result).to.be.equal(expected);
+        expect(result).to.be.undefined;
         expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, 'List users', post);
 
         sendHtmlMessageStub.reset();
@@ -121,11 +120,13 @@ describe('assign test', () => {
     });
 
     it('should be in room', async () => {
-        searchUserStub.returns(users.slice(1));
+        const newUsers = users.slice(1, 2);
+        searchUserStub.returns(newUsers);
         inviteStub.throws('Error!!!');
-        const post = `Пользователь is_b назначен исполнителем задачи`;
-        const expected = `The user is_b now assignee issue ${roomName}`;
-        const result = await assign({body: '!assign Ivan', sender, room, roomName, matrixClient});
+        const [{displayName}] = newUsers;
+        const post = translate('successMatrixAssign', {displayName});
+        const expected = `The user ${displayName} is assigned to issue ${roomName}`;
+        const result = await assign({body: '!assign Ivan Sergeevich B', sender, room, roomName, matrixClient});
 
         expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, post, post);
         expect(result).to.be.equal(expected);
@@ -135,10 +136,10 @@ describe('assign test', () => {
     });
 
     it('should be error (invite throw)', async () => {
-        searchUserStub.returns(users.slice(1));
+        searchUserStub.returns(users.slice(0, 1));
         inviteStub.throws('Error!!!');
         try {
-            const result = await assign({body: '!assign Ivan', sender, room, roomName, matrixClient});
+            const result = await assign({body: '!assign Ivan Andreevich A', sender, room, roomName, matrixClient});
             expect(sendHtmlMessageStub).not.to.have.been.called;
             expect(result).not.to.be;
         } catch (err) {

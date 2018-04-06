@@ -23,7 +23,7 @@ const dict = Object.freeze({
     errorMatrixAssign: 'ОШИБКА! Пользователь "%{userToFind}" не существует',
     successMatrixInvite: 'Успешно приглашен',
     errorMatrixInvite: 'Ошибка при присоединение к комнате',
-    successMatrixAssign: 'Пользователь %{user} назначен исполнителем задачи',
+    successMatrixAssign: 'Пользователь "%{displayName}" назначен исполнителем задачи',
     errorMatrixComment: 'Что-то пошло не так! Комментарий не опубликован',
     successMatrixComment: 'Комментарий опубликован',
     listJiraCommand: 'Список доступных команд',

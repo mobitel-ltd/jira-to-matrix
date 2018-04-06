@@ -19,7 +19,7 @@ const dict = Object.freeze({
     errorMatrixAssign: 'FATAL ERROR! User "%{userToFind}" don\'t exist.',
     successMatrixInvite: 'Successfully invited',
     errorMatrixInvite: 'Invite Error',
-    successMatrixAssign: 'User %{user} appointed assignee',
+    successMatrixAssign: 'User "%{displayName}" appointed assignee',
     errorMatrixComment: 'Something went wrong! Comment not published',
     successMatrixComment: 'Comment published',
     listJiraCommand: 'List of available commands',
