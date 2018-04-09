@@ -63,7 +63,6 @@ module.exports = async ({mclient, issue, newRoomID}) => {
     logger.debug('Post issue description start');
     try {
         const post = await getPost(issue.descriptionFields);
-        logger.debug('post', post);
         const renderedValues = await getRenderedValues(issue.id, ['description']);
         const {post: htmlBody} = {post, ...renderedValues};
         const body = htmlToText(htmlBody);

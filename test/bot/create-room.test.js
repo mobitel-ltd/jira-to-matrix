@@ -1,12 +1,29 @@
 const nock = require('nock');
-const assert = require('assert');
-const {expect} = require('chai');
 const {auth} = require('../../src/jira/common');
 const JSONbody = require('../fixtures/create.json');
 const {getCreateRoomData} = require('../../src/queue/parse-body.js');
-const {isCreateRoom} = require('../../src/queue/bot-handler.js');
-const {createRoom} = require('../../src/bot');
 const issueBody = require('../fixtures/response.json');
+const logger = require('../../src/modules/log.js')(module);
+const proxyquire = require('proxyquire');
+const projectData = require('../fixtures/project-example.json');
+
+const chai = require('chai');
+const {stub, spy} = require('sinon');
+const sinonChai = require('sinon-chai');
+const {expect} = chai;
+chai.use(sinonChai);
+
+const loggerSpy = {
+    error: spy(),
+    warn: spy(),
+    debug: spy(),
+    info: spy(),
+};
+const postIssueDescriptionStub = stub().callsFake();
+const createRoom = proxyquire('../../src/bot/create-room.js', {
+    '../modules/log.js': () => loggerSpy,
+    './post-issue-description.js': postIssueDescriptionStub
+});
 
 describe('Create room test', () => {
     const responce = {
@@ -26,29 +43,25 @@ describe('Create room test', () => {
             summary: 'SummaryKey',
         }
     };
-    const sendHtmlMessage = (roomId, body, htmlBody) => {
-        assert.equal(roomId, 'roomIdBBCOM-801');
-        assert.equal('Новая задача в эпике', body);
-        const expectedHtmlBody = '<p>К эпику добавлена задача <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">BBCOM-956 BBCOM-956</a></p>\n';
-
-        assert.equal(htmlBody, expectedHtmlBody);
-        return true;
+    const expectedOptions = {
+        room_alias_name: 'BBCOM-1398',
+        invite: ['@jira_test:matrix.bingo-boom.ru'],
+        name: 'BBCOM-1398 Test',
+        topic: 'https://jira.bingo-boom.ru/jira/browse/BBCOM-1398'
     };
-    const getRoomId = id => `roomId${id}`;
-    const roomCreating = options => {
-        const expected = {
-            room_alias_name: 'BBCOM-1398',
-            invite: ['@jira_test:matrix.bingo-boom.ru'],
-            name: 'BBCOM-1398 Test',
-            topic: 'https://jira.bingo-boom.ru/jira/browse/BBCOM-1398'
-        };
 
-        assert.deepEqual(options, expected);
-        return options.room_alias_name;
-    }
-    const mclient = {sendHtmlMessage, getRoomId, createRoom: roomCreating};
+    const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
+    const getRoomIdStub = stub().returns('id');
+    const createRoomStub = stub().returns('correct room');
+
+    const mclient = {
+        sendHtmlMessage: sendHtmlMessageStub,
+        getRoomId: getRoomIdStub,
+        createRoom: createRoomStub,
+    };
 
     const createRoomData = getCreateRoomData(JSONbody);
+    logger.debug(createRoomData);
 
     before(() => {
         nock('https://jira.bingo-boom.ru', {
@@ -57,10 +70,16 @@ describe('Create room test', () => {
             }
             })
             .get('/jira/rest/api/2/issue/BBCOM-1398/watchers')
+            .times(5)
             .reply(200, {...responce, id: 28516})
             .get(`/jira/rest/api/2/issue/30369?expand=renderedFields`)
+            .times(5)
             .reply(200, issueBody)
+            .get(`/jira/rest/api/2/project/10305`)
+            .times(5)
+            .reply(200, projectData)
             .get(`/jira/rest/api/2/issue/BBCOM-801?expand=renderedFields`)
+            .times(5)
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)
             .reply(404);
@@ -68,53 +87,92 @@ describe('Create room test', () => {
 
     it('Room should not be created', async () => {
         const result = await createRoom({mclient, ...createRoomData});
-        assert.ok(result);
+        expect(createRoomStub).not.to.be.called;
+        expect(loggerSpy.debug).to.have.been.calledWithExactly('Room should not be created');
+        expect(loggerSpy.debug).to.have.been.calledWithExactly('Room for a project not created as projectOpts is undefined');
+        expect(result).to.be.true;
     });
 
     it('Room should be created', async () => {
-        // No room - roomId is null
-        const sendHtmlMessage = (roomId, body, htmlBody) => {
-            assert.equal(roomId, 'BBCOM-1398');
-            const formattedBody = body.split('\n').filter(Boolean).join('');
-            const formattedhtmlBody = htmlBody.split('\n').filter(Boolean).map(el => el.trim()).join('');
-            const expectedBody = [
-                'Assignee: jira_test jira_test@bingo-boom.ruReporter: jira_test jira_test@bingo-boom.ruType: TaskEstimate time: 1hDescription: InfoPriority: MediumEpic link: undefined (BBCOM-801) https://jira.bingo-boom.ru/jira/browse/BBCOM-801',
-                'Send tutorial'
-            ];
-            'Epic link:<br>&nbsp;&nbsp;&nbsp;&nbsp;undefined (BBCOM-801)<br>&nbsp;&nbsp;&nbsp;&nbsp;\thttps://jira.bingo-boom.ru/jira/browse/BBCOM-801<br>'
-            expect(formattedBody).to.be.oneOf(expectedBody);
-            const infoBody = [
-                'Assignee:<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test@bingo-boom.ru<br><br>',
-                'Reporter:<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test<br>&nbsp;&nbsp;&nbsp;&nbsp;jira_test@bingo-boom.ru<br><br>',
-                'Type:<br>&nbsp;&nbsp;&nbsp;&nbsp;Task<br><br>',
-                'Estimate time:<br>&nbsp;&nbsp;&nbsp;&nbsp;1h<br><br>',
-                'Description:<br>&nbsp;&nbsp;&nbsp;&nbsp;Info<br><br>',
-                'Priority:<br>&nbsp;&nbsp;&nbsp;&nbsp;Medium<br><br>',
-                'Epic link:<br>&nbsp;&nbsp;&nbsp;&nbsp;undefined (BBCOM-801)<br>&nbsp;&nbsp;&nbsp;&nbsp;\thttps://jira.bingo-boom.ru/jira/browse/BBCOM-801<br>',
-            ];
-            const expectedHtmlBody = [
-                infoBody.join(''),
-                '<br>Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands',
-            ];
-            // infoBody.forEach(item => expect(formattedhtmlBody).to.include(item));
-            // expectedHtmlBody.forEach(item => expect(formattedhtmlBody).to.equal(item));
-            expect(expectedHtmlBody).to.include(formattedhtmlBody);
-            return true;
-        };
-
-        const getRoomId = id => null;
-        const newMclient = {...mclient, getRoomId, sendHtmlMessage}
-        const result = await createRoom({mclient: newMclient, ...createRoomData});
-        assert.ok(result);
+        getRoomIdStub.returns(null);
+        const result = await createRoom({mclient, ...createRoomData});
+        expect(loggerSpy.debug).to.have.been.calledWithExactly(`Start creating the room for issue ${createRoomData.issue.key}`);
+        expect(createRoomStub).to.be.called.calledWithExactly(expectedOptions);
+        expect(loggerSpy.info).to.have.been.calledWithExactly(`Created room for ${createRoomData.issue.key}: correct room`);
+        expect(postIssueDescriptionStub).to.be.called;
+        expect(loggerSpy.debug).to.have.been.calledWithExactly('Room for a project not created as projectOpts is undefined');
+        expect(result).to.be.true;
     });
 
-    it('Get error with empty issueID', async () => {
-        const newBody = {...createRoomData, issueID: null};
+    it('Issue room and project room should not be created', async () => {
+        const projectOpts = {
+            'id': '10305',
+            'key': 'BBCOM',
+            'name': 'BB Common',
+        }
+        getRoomIdStub.withArgs('BBCOM').returns(true);
+        const result = await createRoom({mclient, ...createRoomData, projectOpts});
+        expect(loggerSpy.debug).to.have.been.calledWithExactly('Room for project BBCOM is already exists');
+        expect(result).to.be.true;
+    });
 
+    it('Project room should be created', async () => {
+        const expectedProjectOptions = {
+            room_alias_name: 'EX',
+            invite: ["@fred:matrix.bingo-boom.ru"],
+            name: 'Example',
+            topic: 'https://jira.bingo-boom.ru/jira/projects/EX',
+        };
+
+        getRoomIdStub.withArgs('BBCOM').returns(false);
+        const projectOpts = {
+            'id': '10305',
+            'key': 'BBCOM',
+            'name': 'BB Common',
+        }
+        const result = await createRoom({mclient, ...createRoomData, projectOpts});
+        expect(loggerSpy.debug).to.have.been.calledWithExactly('Try to create a room for project BBCOM');
+        expect(createRoomStub).to.be.calledWithExactly(expectedProjectOptions);
+        expect(result).to.be.true;
+    });
+
+    it('Get error in room create', async () => {
+        createRoomStub.throws('Error createRoomStub');
         try {
-            const result = await createRoom({mclient, ...newBody});
+            const result = await createRoom({mclient, ...createRoomData});
+            expect(result).not.to.be;
         } catch (err) {
-            assert.deepEqual(err, '');
+            const expectedError = [
+                'Error in room creating',
+                'Error in room create',
+                'Error createRoomStub'
+            ].join('\n');
+            expect(err).to.be.deep.equal(expectedError);
+        }
+    });
+
+    it('Get error in room createRoomProject', async () => {
+        createRoomStub.resetBehavior();
+
+        createRoomStub.throws('Error createRoomProject');
+        try {
+            const projectOpts = {
+                'id': '10305',
+                'key': 'BBCOM',
+                'name': 'BB Common',
+            }
+            getRoomIdStub.callsFake(id => id === 'BBCOM' ? false : true);
+
+            const result = await createRoom({mclient, ...createRoomData, projectOpts});
+                expect(result).not.to.be;
+        } catch (err) {
+            expect(loggerSpy.debug).to.have.been.calledWithExactly('Room should not be created');
+            const expectedError = [
+                'Error in room creating',
+                'createRoomProject Error',
+                'Error createRoomProject'
+            ].join('\n');
+            expect(err).to.be.deep.equal(expectedError);
         }
     });
 });
