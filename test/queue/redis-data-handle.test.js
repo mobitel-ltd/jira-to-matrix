@@ -11,6 +11,7 @@ const {stub, spy} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
+const logger = require('../../src/modules/log.js')(module);
 
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
@@ -175,17 +176,51 @@ describe('redis-data-handle', function() {
         expect(postEpicUpdatesStub).to.be.called;
     });
 
-    it('test correct roomsKeys', async () => {
-        const roomsKeys = await getRedisRooms();
-        expect(roomsKeys).to.have.deep.members(expectedRoom);
+    it('test correct roomsData', async () => {
+        const roomsData = await getRedisRooms();
+        expect(roomsData).to.have.deep.members(expectedRoom);
     });
 
     it('test handleRedisRooms with error', async () => {
-        createRoomStub.throws('Error!!!!');
-        const roomsKeys = await getRedisRooms();
-        await handleRedisRooms(mclient, roomsKeys);
+        const createRoomData = [{
+            issue: {
+                key: 'BBCOM-1111',
+                id: '30369',
+                collectParticipantsBody: ['jira_test', 'jira_test', 'jira_test'],
+                url: 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
+                summary: 'Test',
+                descriptionFields: {
+                    assigneeName: 'jira_test',
+                    assigneeEmail: 'jira_test@bingo-boom.ru',
+                    reporterName: 'jira_test',
+                    reporterEmail: 'jira_test@bingo-boom.ru',
+                    typeName: 'Task',
+                    epicLink: 'BBCOM-801',
+                    estimateTime: '1h',
+                    description: 'Info',
+                    priority: 'Medium',
+                }
+            },
+            webhookEvent: 'jira:issue_created'
+        }];
+
+        await saveIncoming({redisKey: 'newrooms', createRoomData});
+        createRoomStub.callsFake((data) => {
+            logger.debug('data', data);
+            if (data.issue.key === 'BBCOM-1111') {
+                logger.debug('should throw');
+                throw 'createRoomStub';
+            }
+        });
+        const roomsData = await getRedisRooms();
+        expect(roomsData).to.have.deep.equal([...expectedRoom, ...createRoomData]);
+        await handleRedisRooms(mclient, roomsData);
+        expect(loggerSpy.error).to.have.been.calledWith('Error in handle room data\n', 'createRoomStub');
+        expect(loggerSpy.warn).to.have.been.calledWith('Rooms which not created', createRoomData);
+
         const roomsKeysAfter = await getRedisRooms();
-        expect(roomsKeysAfter).to.have.deep.members(expectedRoom);
+        logger.debug(roomsKeysAfter);
+        expect(roomsKeysAfter).to.have.deep.equal(createRoomData);
         createRoomStub.reset();
     });
 
@@ -227,6 +262,7 @@ describe('redis-data-handle', function() {
 
 describe('Redis errors in redis-data-handle', function() {
     const {
+        rewriteRooms: rewrite,
         saveIncoming: save,
         getRedisValue: getValue,
         getDataFromRedis: getRedisData,
@@ -282,7 +318,14 @@ describe('Redis errors in redis-data-handle', function() {
         } catch (err) {
             expect(err).to.be.equal(expected);
         }
-
     });
 
+    it('test rewrite rooms error', async () => {
+        const expected = 'Error while rewrite rooms in redis:\nerror';
+        try {
+            await rewrite('');
+        } catch (err) {
+            expect(err).to.be.equal(expected);
+        }
+    });
 });

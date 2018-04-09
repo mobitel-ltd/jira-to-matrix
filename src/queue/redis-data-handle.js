@@ -101,6 +101,16 @@ const getRedisRooms = async () => {
     }
 };
 
+const rewriteRooms = async createRoomData => {
+    try {
+        const bodyToJSON = JSON.stringify(createRoomData);
+
+        await redis.setAsync(ROOMS_KEY_NAME, bodyToJSON);
+        logger.info('Rooms data rewrited by redis.');
+    } catch (err) {
+        throw ['Error while rewrite rooms in redis:', err].join('\n');
+    }
+};
 
 const handleRedisRooms = async (client, roomsData) => {
     const roomHandle = async data => {
@@ -126,12 +136,7 @@ const handleRedisRooms = async (client, roomsData) => {
         if (filteredRooms.length > 0) {
             logger.warn('Rooms which not created', filteredRooms);
 
-            const dataToSave = {
-                redisKey: ROOMS_KEY_NAME,
-                createRoomData: filteredRooms,
-            };
-            // eslint-disable-next-line
-            await saveIncoming(dataToSave);
+            await rewriteRooms(filteredRooms);
         } else {
             logger.info('All rooms handled');
             await redis.delAsync(ROOMS_KEY_NAME);
@@ -169,6 +174,7 @@ const saveIncoming = async ({redisKey, ...restData}) => {
 };
 
 module.exports = {
+    rewriteRooms,
     saveIncoming,
     getRedisKeys,
     getDataFromRedis,

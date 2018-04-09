@@ -92,7 +92,7 @@ const getIssue = async (id, params) => {
  */
 const getProject = async id => {
     try {
-        const url = `${jiraUrl}/rest/api/2/project/${id}}`;
+        const url = `${jiraUrl}/rest/api/2/project/${id}`;
         const project = await request(
             url,
             auth()
