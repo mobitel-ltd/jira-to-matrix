@@ -4,6 +4,13 @@ const requestPromise = require('request-promise-native');
 
 const TIMEOUT = 60000;
 
+const getRequestErrorLog = (url, status, method = 'GET') =>
+    `Error in ${method} request ${url}, status is ${status}`;
+
+// const mainRequest = async  => {
+
+// }
+
 const request = async (url, basicAuth) => {
     const options = {
         headers: {Authorization: basicAuth},
@@ -13,12 +20,13 @@ const request = async (url, basicAuth) => {
         const response = await requestPromise(url, options);
         logger.debug(`GET request to jira with Url ${url} suceeded`);
         return JSON.parse(response);
-    } catch ({error, statusCode}) {
-        throw [`Error in request ${url}, status is ${statusCode}`, error].join('\n');
+    } catch ({statusCode}) {
+        throw getRequestErrorLog(url, statusCode);
     }
 };
 
 const requestPost = async (url, basicAuth, body) => {
+    const method = 'POST';
     const options = {
         method: 'POST',
         body,
@@ -28,12 +36,13 @@ const requestPost = async (url, basicAuth, body) => {
     try {
         await requestPromise(url, options);
         logger.debug(`POST request to jira with Url ${url} suceeded`);
-    } catch ({error, statusCode}) {
-        throw [`POST Error in request ${url}, status is ${statusCode}`, error].join('\n');
+    } catch ({statusCode}) {
+        throw getRequestErrorLog(url, statusCode, method);
     }
 };
 
 const requestPut = async (url, basicAuth, body) => {
+    const method = 'PUT';
     const options = {
         method: 'PUT',
         body,
@@ -43,8 +52,8 @@ const requestPut = async (url, basicAuth, body) => {
     try {
         await requestPromise(url, options);
         logger.debug(`PUT request to jira with Url ${url} suceeded`);
-    } catch ({error, statusCode}) {
-        throw [`PUT Error in request ${url}, status is ${statusCode}`, error].join('\n');
+    } catch ({statusCode}) {
+        throw getRequestErrorLog(url, statusCode, method);
     }
 };
 
@@ -65,4 +74,5 @@ module.exports = {
     requestPost,
     requestPut,
     paramsToQueryString,
+    getRequestErrorLog,
 };

@@ -1,12 +1,15 @@
 const {expect} = require('chai');
 const {auth} = require('../../src/jira/common');
 const {getRenderedValues, getProjectUrl} = require('../../src/jira').issue;
+const {getRequestErrorLog} = require('../../src/utils/rest');
+const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const nock = require('nock');
 const querystring = require('querystring');
 const secondBody = require('../fixtures/comment-create-2.json');
 const issueBody = require('../fixtures/response.json');
+const {url} = require('../../src/config').jira;
 
-describe('Auth Jira', function() {
+describe('Issue test', function() {
     this.timeout(15000);
     const options = {
         headers: {Authorization: auth()},
@@ -17,19 +20,22 @@ describe('Auth Jira', function() {
         id: 26313,
     };
     const fakeId = 1000;
-
-    const params = querystring.stringify({expand: 'renderedFields'});
+    const params = {expand: 'renderedFields'};
+    const queryParams = querystring.stringify(params);
+    const fakePath = '/1000';
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock(BASE_URL, {
             reqheaders: {
                 Authorization: auth()
             }
             })
-            .get(`/jira/rest/api/2/issue/26313?expand=renderedFields`)
+            .get(`/${issue.id}`)
+            .query(params)
             .reply(200, issueBody)
-            .get('/jira/rest/api/2/issue/1000?expand=renderedFields')
-            .reply(403, 'Error!!!')
+            .get(fakePath)
+            .query({expand: 'renderedFields'})
+            .reply(404, 'Error!!!')
     });
 
     it('getRenderedValues test', async () => {
@@ -38,11 +44,12 @@ describe('Auth Jira', function() {
     });
 
     it('getRenderedValues error test', async () => {
+        const fakeUrl = `${BASE_URL}${fakePath}?${queryParams}`;
         const expectedData = [
             'getRenderedValues error',
             'getIssueFormatted Error',
             'Error in get issue',
-            'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/1000?expand=renderedFields, status is 403\nError!!!'
+            getRequestErrorLog(fakeUrl, 404),
         ];
         try {
             const getRenderedValuesData = await getRenderedValues(fakeId, ['description']);
@@ -54,10 +61,10 @@ describe('Auth Jira', function() {
 
     it('getProjectUrl test', () => {
         const projectResult = getProjectUrl(issue.id, 'projects');
-        expect(projectResult).to.be.deep.equal('https://jira.bingo-boom.ru/jira/projects/26313');
+        expect(projectResult).to.be.deep.equal(`${url}/projects/${issue.id}`);
 
         const issueResult = getProjectUrl(issue.id);
-        expect(issueResult).to.be.deep.equal('https://jira.bingo-boom.ru/jira/browse/26313');
+        expect(issueResult).to.be.deep.equal(`${url}/browse/${issue.id}`);
     });
 
 });
