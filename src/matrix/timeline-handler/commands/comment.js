@@ -17,9 +17,6 @@ module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
         const post = translate('errorMatrixComment');
         await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-        return `
-            Comment from ${sender} for ${roomName} not published
-            \n${err}
-        `;
+        return [`Comment from ${sender} for ${roomName} not published`, err].join('\n');
     }
 };
