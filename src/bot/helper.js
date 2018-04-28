@@ -3,8 +3,8 @@ const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 const marked = require('marked');
 const {usersToIgnore, testMode, matrix} = require('../config');
-const {webHookUser, getCreator, issue, getChangelogField} = require('../jira');
-const {getProjectUrl, getRenderedValues} = issue;
+const {webHookUser, getCreator, getChangelogField} = require('../lib/utils.js');
+const {getProjectUrl, getRenderedValues} = require('../lib/jira-request.js');
 
 const isStartEndUpdateStatus = body => {
     const isStart = getChangelogField('Start date', body);
@@ -38,9 +38,6 @@ const membersInvited = roomMembers =>
 
 const getUserID = shortName => `@${shortName}:${matrix.domain}`;
 
-const composeRoomName = issue =>
-    `${issue.key} ${issue.summary}`;
-
 const getEpicChangedMessageBody = ({summary, key, status, name}) => {
     const issueRef = getProjectUrl(key);
     const values = {name, key, summary, status, issueRef};
@@ -62,13 +59,6 @@ const getNewEpicMessageBody = ({key, summary}) => {
 
     return {body, htmlBody};
 };
-
-const getNewStatus = Ramda.pipe(
-    Ramda.pathOr([], ['issue', 'changelog', 'items']),
-    Ramda.filter(Ramda.propEq('field', 'status')),
-    Ramda.head,
-    Ramda.propOr(null, 'toString')
-);
 
 const postStatusData = data => {
     const {status} = data;
@@ -155,8 +145,6 @@ const getIssueUpdateInfoMessageBody = async ({changelog, key, user}) => {
 module.exports = {
     membersInvited,
     getUserID,
-    composeRoomName,
-    getNewStatus,
     postStatusData,
     postStatusChanged,
     getEpicChangedMessageBody,

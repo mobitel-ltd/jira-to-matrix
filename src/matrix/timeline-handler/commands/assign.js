@@ -1,5 +1,4 @@
-const {requestPut} = require('../../../utils');
-const {auth} = require('../../../jira');
+const {requestPut} = require('../../../lib/request.js');
 const translate = require('../../../locales');
 const {schemaAssignee} = require('./schemas.js');
 const {searchUser, BASE_URL, addToWatchers} = require('./helper.js');
@@ -20,7 +19,6 @@ module.exports = async ({body, sender, room, roomName, matrixClient}) => {
                 const [{displayName, name}] = users;
                 await requestPut(
                     `${BASE_URL}/${roomName}/assignee`,
-                    auth(),
                     schemaAssignee(name)
                 );
 

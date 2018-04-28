@@ -1,9 +1,9 @@
 const nock = require('nock');
 const assert = require('assert');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-4.json');
-const {getPostProjectUpdatesData} = require('../../src/queue/parse-body.js');
-const {isPostProjectUpdates} = require('../../src/queue/bot-handler.js');
+const {getPostProjectUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
+const {isPostProjectUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const redis = require('../../src/redis-client.js');
 const {redis: {prefix}} = require('../fixtures/config.js');
 const {postProjectUpdates} = require('../../src/bot');

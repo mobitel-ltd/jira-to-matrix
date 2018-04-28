@@ -1,6 +1,6 @@
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client');
-const {getIssue} = require('../jira').issue;
+const {getIssue} = require('../lib/jira-request.js');
 const {epicUpdates: epicConf} = require('../config').features;
 const {postStatusChanged, getNewIssueMessageBody} = require('./helper.js');
 

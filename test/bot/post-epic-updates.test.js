@@ -1,8 +1,8 @@
 const nock = require('nock');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-2.json');
-const {getPostEpicUpdatesData} = require('../../src/queue/parse-body.js');
-const {isPostEpicUpdates} = require('../../src/queue/bot-handler.js');
+const {getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
+const {isPostEpicUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const redis = require('../../src/redis-client.js');
 const {redis: {prefix}} = require('../fixtures/config.js');
 

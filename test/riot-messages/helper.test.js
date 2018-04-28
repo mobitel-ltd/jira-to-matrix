@@ -1,6 +1,8 @@
 const nock = require('nock');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const {url} = require('../../src/config').jira;
+const {getRequestErrorLog} = require('../../src/lib/request');
+const querystring = require('querystring');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -38,15 +40,22 @@ describe('Commands helper tests', function() {
             name: 'pa_d',
         },
     ];
+    const username = '@boom';
+    const errorStatus = 400;
+    const errorParams = {
+        username,
+        startAt: 5,
+        maxResults: 3,
+    };
+    const urlPath = `/rest/api/2/user/search`;
 
     before(() => {
-        const username = '@boom';
         nock(url, {
             reqheaders: {
                 Authorization: auth(),
             },
         })
-            .get(`/rest/api/2/user/search`)
+            .get(urlPath)
             .times(3)
             .query({
                 username,
@@ -54,27 +63,23 @@ describe('Commands helper tests', function() {
                 maxResults: 999,
             })
             .reply(200, users)
-            .get(`/rest/api/2/user/search`)
+            .get(urlPath)
             .query({
                 username,
                 startAt: 0,
                 maxResults: 3,
             })
             .reply(200, users.slice(0, 3))
-            .get(`/rest/api/2/user/search`)
+            .get(urlPath)
             .query({
                 username,
                 startAt: 3,
                 maxResults: 3,
             })
             .reply(200, users.slice(3))
-            .get(`/rest/api/2/user/search`)
-            .query({
-                username,
-                startAt: 5,
-                maxResults: 3,
-            })
-            .reply(400, 'ERROR!!!');
+            .get(urlPath)
+            .query(errorParams)
+            .reply(errorStatus, 'ERROR!!!');
     });
 
     it('checkUser test', () => {
@@ -158,10 +163,11 @@ describe('Commands helper tests', function() {
             const allUsers = await getUsers(maxResults, startAt);
             expect(allUsers).not.to.be;
         } catch (err) {
+            const fakeUrl = `${url}${urlPath}?${querystring.stringify(errorParams)}`;
+            const requestErrorLog = getRequestErrorLog(fakeUrl, errorStatus);
             const expected = [
                 'getUsers error',
-                'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/user/search?username=%40boom&startAt=5&maxResults=3, status is 400',
-                'ERROR!!!'
+                requestErrorLog,
             ].join('\n');
             expect(err).to.be.deep.equal(expected)
         }

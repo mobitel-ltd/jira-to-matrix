@@ -1,8 +1,9 @@
 const nock = require('nock');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const {schemaComment} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {comment} = require('../../src/matrix/timeline-handler/commands');
+const {getRequestErrorLog} = require('../../src/lib/request');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -20,6 +21,8 @@ describe('comment test', () => {
     const bodyText = 'text in body';
     const sender = 'Bot';
     const room = {roomId: 12345};
+    const urlPath = `/${roomName}/comment`;
+    const errorStatus = 400;
 
     before(() => {
         nock(BASE_URL, {
@@ -27,10 +30,10 @@ describe('comment test', () => {
                 Authorization: auth(),
             },
         })
-            .post(`/${roomName}/comment`, schemaComment(sender, bodyText))
+            .post(urlPath, schemaComment(sender, bodyText))
             .reply(201)
-            .post(`/${roomName}/comment`)
-            .reply(400, 'Error!!!');
+            .post(urlPath)
+            .reply(errorStatus, 'Error!!!');
     });
 
 
@@ -46,7 +49,9 @@ describe('comment test', () => {
     });
 
     it('comment not published', async () => {
-        const expected = `Comment from null for ${roomName} not published            POST Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-123/comment, status is 400Error!!!`;
+        const requestErrorLog = getRequestErrorLog(`${BASE_URL}${urlPath}`, errorStatus, 'POST');
+
+        const expected = [`Comment from null for ${roomName} not published`, requestErrorLog].join('\n');
         const expectedData = [
             room.roomId,
             'Что-то пошло не так! Комментарий не опубликован',
@@ -54,8 +59,7 @@ describe('comment test', () => {
         ];
 
         const commentAnswer = await comment({bodyText, sender: null, room, roomName, matrixClient});
-        const result = commentAnswer.replace(/(\r\n|\n|\r)/gm, '').trim();
-        expect(result).to.be.equal(expected);
+        expect(commentAnswer).to.be.equal(expected);
 
         expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
         sendHtmlMessageStub.reset();

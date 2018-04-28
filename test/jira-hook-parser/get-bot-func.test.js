@@ -1,4 +1,4 @@
-const {getBotFunc} = require('../../src/queue/bot-handler');
+const {getBotFunc} = require('../../src/jira-hook-parser/bot-handler');
 const assert = require('assert');
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
@@ -22,7 +22,7 @@ const {
     getPostLinkedChangesData,
     getPostIssueUpdatesData,
     getPostProjectUpdatesData,
-} = require('../../src/queue/parse-body.js');
+} = require('../../src/jira-hook-parser/parse-body.js');
 
 describe('bot func', function() {
     this.timeout(15000);

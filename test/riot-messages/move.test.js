@@ -1,9 +1,11 @@
 const nock = require('nock');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const {schemaMove} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {move} = require('../../src/matrix/timeline-handler/commands');
 const responce = require('../fixtures/transitions.json');
+const {getRequestErrorLog} = require('../../src/lib/request');
+const translate = require('../../src/locales');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -20,6 +22,9 @@ describe('move test', () => {
         sendHtmlMessage: sendHtmlMessageStub,
     };
 
+    const errorStatus = 404;
+    const urlPath = `/${roomName}/transitions`;
+
     before(() => {
         nock(BASE_URL, {
             reqheaders: {
@@ -28,13 +33,13 @@ describe('move test', () => {
         })
             .get(`/fake/transitions`)
             .reply(404, 'Error!!!')
-            .get(`/${roomName}/transitions`)
+            .get(urlPath)
             .times(2)
             .reply(200, responce)
-            .post(`/${roomName}/transitions`, schemaMove('2'))
+            .post(urlPath, schemaMove('2'))
             .reply(204)
-            .post(`/${roomName}/transitions`, schemaMove('5'))
-            .reply(400);
+            .post(urlPath, schemaMove('5'))
+            .reply(errorStatus);
     });
 
     it('Get correct !move list commands', async () => {
@@ -60,14 +65,18 @@ describe('move test', () => {
     });
 
     it('Get error', async () => {
+        const fakeRoom = 'fake';
+        const fakeUrl = `${BASE_URL}/${fakeRoom}/transitions`;
+        const requestErrorLog = getRequestErrorLog(fakeUrl, errorStatus);
+        const post = translate('errorMoveJira');
         const expectedData = [
             room.roomId,
-            'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/fake/transitions, status is 404\nError!!!',
-            'ОШИБКА! Статус задачи не изменен<br>Попробуйте еще раз',
+            requestErrorLog,
+            post,
         ];
 
-        const result = await move({bodyText: '1', room, roomName: 'fake', matrixClient});
-        const expected = `Issue fake not changed status`;
+        const result = await move({bodyText: '1', room, roomName: fakeRoom, matrixClient});
+        const expected = `Issue ${fakeRoom} not changed status`;
         expect(result).to.be.equal(expected);
         expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
         sendHtmlMessageStub.reset();

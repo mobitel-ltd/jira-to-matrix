@@ -1,5 +1,4 @@
-const {request, requestPut} = require('../../../utils');
-const {auth} = require('../../../jira');
+const {request, requestPut} = require('../../../lib/request.js');
 const translate = require('../../../locales');
 const {checkNamePriority, BASE_URL} = require('./helper.js');
 const {shemaFields} = require('./schemas.js');
@@ -8,7 +7,6 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
         const {fields} = await request(
             `${BASE_URL}/${roomName}/editmeta`,
-            auth()
         );
 
         if (!fields) {
@@ -35,7 +33,6 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
 
         await requestPut(
             `${BASE_URL}/${roomName}`,
-            auth(),
             shemaFields(priority.id)
         );
 
