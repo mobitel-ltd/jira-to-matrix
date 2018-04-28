@@ -1,8 +1,7 @@
 const assert = require('assert');
 const thirdBody = require('../fixtures/comment-create-3.json');
 const secondBody = require('../fixtures/comment-create-2.json');
-const {getPostEpicUpdatesData} = require('../../src/queue/parse-body');
-const {getPostProjectUpdatesData} = require('../../src/queue/parse-body');
+const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body');
 
 const proxyquire = require('proxyquire');
 const chai = require('chai');
@@ -15,7 +14,6 @@ const {
     isStartEndUpdateStatus,
     membersInvited,
     postStatusData,
-    getNewStatus,
     getEpicChangedMessageBody,
     getNewEpicMessageBody,
     getNewIssueMessageBody,
@@ -55,11 +53,6 @@ describe('Helper tests', () => {
 
         const expected = `<p>К проекту добавлен эпик <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">${data.key} ${data.summary}</a></p>\n`;
         assert.equal(htmlBody, expected);
-    });
-
-    it('getNewStatus', () => {
-        const status = getNewStatus(thirdBody);
-        assert.equal(status, 'Closed');
     });
 
     it('postStatusData', () => {

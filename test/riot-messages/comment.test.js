@@ -1,9 +1,9 @@
 const nock = require('nock');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const {schemaComment} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {comment} = require('../../src/matrix/timeline-handler/commands');
-const {getRequestErrorLog} = require('../../src/utils/rest');
+const {getRequestErrorLog} = require('../../src/lib/request');
 
 const chai = require('chai');
 const {stub} = require('sinon');

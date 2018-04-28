@@ -1,4 +1,4 @@
-const {isCreateRoom} = require('../../src/queue/bot-handler');
+const {isCreateRoom} = require('../../src/jira-hook-parser/bot-handler');
 const assert = require('assert');
 
 describe('create-room', () => {

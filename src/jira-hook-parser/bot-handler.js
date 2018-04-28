@@ -1,22 +1,8 @@
 const logger = require('../modules/log.js')(module);
 const Ramda = require('ramda');
 const parsers = require('./parse-body.js');
-const {getNewStatus} = require('../bot/helper.js');
-
-// const bot = require('../bot');
+const {getNewStatus, isCommentEvent, REDIS_ROOM_KEY} = require('../lib/utils.js');
 const {features} = require('../config');
-const {fp} = require('../utils');
-
-const isCommentEvent = ({webhookEvent, issue_event_type_name: issueEventTypeName}) => {
-    const propNotIn = Ramda.complement(fp.propIn);
-    return Ramda.anyPass([
-        fp.propIn('webhookEvent', ['comment_created', 'comment_updated']),
-        Ramda.allPass([
-            Ramda.propEq('webhookEvent', 'jira:issue_updated'),
-            propNotIn('issueEventTypeName', ['issue_commented', 'issue_comment_edited']),
-        ]),
-    ])({webhookEvent, issueEventTypeName} || {});
-};
 
 const isPostComment = body => Boolean(
     body
@@ -125,10 +111,6 @@ const getBotFunc = body => {
 const getParserName = func =>
     `get${func[0].toUpperCase()}${func.slice(1)}Data`;
 
-// Эту переменную можно в конфиг добавить, она по сути константа
-// TODO: change until start correct bot work
-const redisRoomsKey = 'newrooms';
-
 const getFuncAndBody = body => {
     const botFunc = getBotFunc(body);
     logger.debug('Array of functions we should handle', botFunc);
@@ -137,7 +119,7 @@ const getFuncAndBody = body => {
     if (isCreateRoom(body)) {
         createRoomData = parsers.getCreateRoomData(body);
     }
-    const roomsData = {redisKey: redisRoomsKey, createRoomData};
+    const roomsData = {redisKey: REDIS_ROOM_KEY, createRoomData};
 
     const result = botFunc.reduce((acc, funcName) => {
         const data = {

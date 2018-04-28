@@ -1,9 +1,8 @@
 const Ramda = require('ramda');
 const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
-const jira = require('../jira');
 const {epicUpdates, postChangesToLinks} = require('../config').features;
-const {composeRoomName, getNewStatus} = require('../bot/helper.js');
+const {extractID, getChangelogField, composeRoomName, getNewStatus} = require('../lib/utils.js');
 
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
@@ -21,7 +20,7 @@ const getPostCommentData = body => {
 
     const headerText = getHeaderText(body);
 
-    const issueID = jira.issue.extractID(JSON.stringify(body));
+    const issueID = extractID(JSON.stringify(body));
     const comment = {
         body: body.comment.body,
         id: body.comment.id,
@@ -187,7 +186,7 @@ const getPostProjectUpdatesData = body => {
 
 const getPostIssueUpdatesData = body => {
     const {changelog, user, issue} = body;
-    const fieldKey = jira.getChangelogField('Key', body);
+    const fieldKey = getChangelogField('Key', body);
     const {key} = issue;
     const issueKey = fieldKey ? fieldKey.fromString : key;
     const summary = Ramda.path(['fields', 'summary'], issue);

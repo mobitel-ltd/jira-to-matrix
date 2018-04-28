@@ -1,10 +1,10 @@
 const nock = require('nock');
 const assert = require('assert');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const body = require('../fixtures/comment-create-4.json');
-const {getPostLinkedChangesData} = require('../../src/queue/parse-body.js');
+const {getPostLinkedChangesData} = require('../../src/jira-hook-parser/parse-body.js');
 const postLinkedChanges = require('../../src/bot/post-linked-changes.js');
-const {isPostLinkedChanges} = require('../../src/queue/bot-handler.js');
+const {isPostLinkedChanges} = require('../../src/jira-hook-parser/bot-handler.js');
 
 describe('post New Links test', () => {
     const responce = {
