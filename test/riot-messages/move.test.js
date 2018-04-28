@@ -1,10 +1,10 @@
 const nock = require('nock');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const {schemaMove} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {move} = require('../../src/matrix/timeline-handler/commands');
 const responce = require('../fixtures/transitions.json');
-const {getRequestErrorLog} = require('../../src/utils/rest');
+const {getRequestErrorLog} = require('../../src/lib/request');
 const translate = require('../../src/locales');
 
 const chai = require('chai');

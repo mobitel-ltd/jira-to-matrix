@@ -1,5 +1,5 @@
 const Ramda = require('ramda');
-const {getCollectParticipants} = require('../jira').issue;
+const {getCollectParticipants} = require('../lib/jira-request.js');
 const {getUserID, membersInvited} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
 

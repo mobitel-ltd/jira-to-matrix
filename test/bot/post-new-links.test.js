@@ -1,11 +1,11 @@
 const nock = require('nock');
 const {expect} = require('chai');
 const assert = require('assert');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const body = require('../fixtures/comment-create-4.json');
-const {getPostNewLinksData} = require('../../src/queue/parse-body.js');
+const {getPostNewLinksData} = require('../../src/jira-hook-parser/parse-body.js');
 const postNewLinks = require('../../src/bot/post-new-links.js');
-const {isPostNewLinks} = require('../../src/queue/bot-handler.js');
+const {isPostNewLinks} = require('../../src/jira-hook-parser/bot-handler.js');
 const redis = require('../../src/redis-client.js');
 const {redis: {prefix}} = require('../fixtures/config.js');
 

@@ -1,8 +1,7 @@
 const querystring = require('querystring');
-const {auth} = require('../../../jira/common.js');
 
 const {schemaWatcher} = require('./schemas.js');
-const {requestPost, request} = require('../../../utils');
+const {requestPost, request} = require('../../../lib/request.js');
 
 const {jira, matrix} = require('../../../config');
 const {domain} = matrix;
@@ -36,7 +35,6 @@ const getUsers = async (maxResults, startAt, acc = []) => {
 
         const users = await request(
             `${url}/rest/api/2/user/search?${queryPararms}`,
-            auth()
         );
         let resultAcc = [...acc, ...users];
         if (users.length >= maxResults) {
@@ -112,11 +110,7 @@ const addToWatchers = async (room, roomName, name, matrixClient) => {
         }
 
         // add watcher for issue
-        await requestPost(
-            `${BASE_URL}/${roomName}/watchers`,
-            auth(),
-            schemaWatcher(name)
-        );
+        await requestPost(`${BASE_URL}/${roomName}/watchers`, schemaWatcher(name));
     } catch (err) {
         throw ['addAssigneeInWatchers error', err].join('\n');
     }

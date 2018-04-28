@@ -3,21 +3,7 @@ const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot');
 const {prefix} = require('../config').redis;
-
-// TODO: change until start correct bot work
-const ROOMS_KEY_NAME = 'newrooms';
-const ROOMS_OLD_NAME = 'rooms';
-// It helps ignore keys for links epic--issue
-const DELIMITER = '|';
-const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
-
-const isIgnoreKey = key => {
-    const result = !KEYS_TO_IGNORE.reduce((acc, val) => {
-        const result = acc || key.includes(val);
-        return result;
-    }, false);
-    return result;
-};
+const {REDIS_ROOM_KEY, isIgnoreKey} = require('../lib/utils.js');
 
 const getRedisKeys = async () => {
     try {
@@ -89,7 +75,7 @@ const handleRedisData = async (client, dataFromRedis) => {
 
 const getRedisRooms = async () => {
     try {
-        const roomsKeyValue = await redis.getAsync(ROOMS_KEY_NAME);
+        const roomsKeyValue = await redis.getAsync(REDIS_ROOM_KEY);
         const createRoomData = JSON.parse(roomsKeyValue);
         logger.debug('Redis rooms data:', createRoomData);
 
@@ -105,7 +91,7 @@ const rewriteRooms = async createRoomData => {
     try {
         const bodyToJSON = JSON.stringify(createRoomData);
 
-        await redis.setAsync(ROOMS_KEY_NAME, bodyToJSON);
+        await redis.setAsync(REDIS_ROOM_KEY, bodyToJSON);
         logger.info('Rooms data rewrited by redis.');
     } catch (err) {
         throw ['Error while rewrite rooms in redis:', err].join('\n');
@@ -139,7 +125,7 @@ const handleRedisRooms = async (client, roomsData) => {
             await rewriteRooms(filteredRooms);
         } else {
             logger.info('All rooms handled');
-            await redis.delAsync(ROOMS_KEY_NAME);
+            await redis.delAsync(REDIS_ROOM_KEY);
         }
     } catch (err) {
         logger.error('handleRedisRooms error', err);
@@ -150,7 +136,7 @@ const handleRedisRooms = async (client, roomsData) => {
 const saveIncoming = async ({redisKey, ...restData}) => {
     try {
         let redisValue = restData;
-        if (redisKey === ROOMS_KEY_NAME) {
+        if (redisKey === REDIS_ROOM_KEY) {
             const {createRoomData} = restData;
             if (!createRoomData) {
                 logger.warn('No createRoomData!');
@@ -182,5 +168,4 @@ module.exports = {
     handleRedisData,
     handleRedisRooms,
     getRedisValue,
-    isIgnoreKey,
 };

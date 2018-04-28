@@ -8,8 +8,8 @@ const StateMachineHistory = require('javascript-state-machine/lib/history');
 const conf = require('./config');
 const Matrix = require('./matrix');
 const logger = require('./modules/log.js')(module);
-const getParsedAndSaveToRedis = require('../src/queue/get-parsed-and-save-to-redis.js');
-const newQueueHandler = require('../src/queue');
+const getParsedAndSaveToRedis = require('./jira-hook-parser');
+const queueHandler = require('../src/queue');
 
 const queuePush = new EventEmitter();
 
@@ -100,7 +100,7 @@ queuePush.on('startQueueHandler', async () => {
     logger.info('QueuePush start');
     if (client) {
         logger.debug('queueFsm.state', queueFsm.state);
-        await newQueueHandler(client);
+        await queueHandler(client);
     }
     queueFsm.is('waiting') ? queueFsm.queueHandler() : queueFsm.handled();
     logger.debug('history', queueFsm.history);
