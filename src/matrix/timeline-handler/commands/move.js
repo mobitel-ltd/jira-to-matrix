@@ -45,6 +45,7 @@ module.exports = async ({bodyText, body, room, roomName, matrixClient}) => {
         return `Issue ${roomName} changed status`;
     } catch (err) {
         const post = translate('errorMoveJira');
+        logger.debug(err);
         await matrixClient.sendHtmlMessage(room.roomId, err, post);
         return `Issue ${roomName} not changed status`;
     }
