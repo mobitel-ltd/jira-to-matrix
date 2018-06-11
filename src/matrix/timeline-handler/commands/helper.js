@@ -4,7 +4,7 @@ const {schemaWatcher} = require('./schemas.js');
 const {requestPost, request} = require('../../../lib/request.js');
 
 const {jira, matrix} = require('../../../config');
-const {domain} = matrix;
+const {domain, userId: botId} = matrix;
 const {url} = jira;
 
 const BASE_URL = `${url}/rest/api/2/issue`;
@@ -116,7 +116,45 @@ const addToWatchers = async (room, roomName, name, matrixClient) => {
     }
 };
 
+
+const getMembersExceptBot = joinedMembers =>
+    joinedMembers.reduce((acc, {userId}) =>
+        (userId === botId ? acc : [...acc, userId]), []);
+
+const timer = 15000000000;
+const curTime = Date.now();
+const getLimit = () => Number(curTime) - Number(timer);
+
+const parseRoom = room => {
+    const {roomId, name: roomName} = room;
+    const members = getMembersExceptBot(room.getJoinedMembers());
+    const events = room.getTimelineSets()[0].getLiveTimeline().getEvents();
+    const lastEvent = events[events.length - 1];
+    const timestamp = lastEvent.getTs();
+    const date = lastEvent.getDate();
+
+    return {room: {roomId, roomName}, timestamp, date, members};
+};
+
+const getOutdatedRoomsWithSender = userId => ({timestamp, members}) =>
+    (timestamp > getLimit()) && members.includes(userId);
+
+const getRoomsLastUpdate = (rooms, userId) =>
+    rooms
+        .map(parseRoom)
+        .filter(getOutdatedRoomsWithSender(userId))
+        // next one should be deleted
+        .sort((room1, room2) =>
+            room2.timestamp - room1.timestamp);
+
+
+const kickAllMembers = mclient => ({members, room}) =>
+    Promise.all(members.map(user =>
+        mclient.kick(user, room)));
+
 module.exports = {
+    kickAllMembers,
+    getRoomsLastUpdate,
     addToWatchers,
     checkUser,
     checkCommand,
