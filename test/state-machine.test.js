@@ -1,4 +1,3 @@
-const assert = require('assert');
 const {debug} = require('../src/modules/log.js')(module);
 const StateMachine = require('javascript-state-machine');
 const EventEmitter = require('events');
@@ -24,8 +23,8 @@ const queueFsm = new StateMachine({
         onWait: () => debug('Event not finished. Redis data is waiting for handling'),
     },
     plugins: [
-        new StateMachineHistory()
-    ]
+        new StateMachineHistory(),
+    ],
 });
 
 const promiseFunc = (value, timeout) => new Promise((res, rej) => {
@@ -49,10 +48,12 @@ queuePush.on('startQueueHandler', async () => {
     debug('result', result);
 
     debug('current state is', queueFsm.state);
-    queueFsm.is('waiting') ? queueFsm.queueHandler() : debug('history', queueFsm.history);
+    return queueFsm.is('waiting') ? queueFsm.queueHandler() : debug('history', queueFsm.history);
 });
 
+// eslint-disable-next-line
 describe('state machine test', function() {
+// eslint-disable-next-line
     this.timeout(15000);
 
     const CHECK_QUEUE_DELAY = 2000;
@@ -60,10 +61,10 @@ describe('state machine test', function() {
     const intervalFunc = () => {
         debug('intervalFunc state', queueFsm.state);
         const date = (new Date()).getTime().toString();
-        store = {...store, [date]: date}
-        queueFsm.is('empty') ? queueFsm.queueHandler() : queueFsm.wait();
+        store = {...store, [date]: date};
+        return (queueFsm.is('empty') ? queueFsm.queueHandler() : queueFsm.wait());
     };
-    it('delay', async () => {
+    it('delay', () => {
         const interval = setInterval(intervalFunc, CHECK_QUEUE_DELAY);
         interval.ref();
         setTimeout(() => {

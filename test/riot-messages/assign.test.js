@@ -39,8 +39,8 @@ describe('assign test', () => {
         },
     ];
 
-    const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
-    const inviteStub = stub().callsFake((roomId, user) => {});
+    const sendHtmlMessageStub = stub();
+    const inviteStub = stub();
     const matrixClient = {
         invite: inviteStub,
         sendHtmlMessage: sendHtmlMessageStub,
@@ -97,8 +97,8 @@ describe('assign test', () => {
     it('should not assign sender ("!assign fake")', async () => {
         searchUserStub.returns([]);
         const fakeUser = 'fake';
-        const post = translate('errorMatrixAssign', {userToFind: fakeUser});;
-        const expected =  `User ${fakeUser} or issue ${roomName} is not exist`;
+        const post = translate('errorMatrixAssign', {userToFind: fakeUser});
+        const expected = `User ${fakeUser} or issue ${roomName} is not exist`;
         const result = await assign({body: `!assign ${fakeUser}`, sender, room, roomName, matrixClient});
 
         expect(result).to.be.equal(expected);
@@ -146,10 +146,9 @@ describe('assign test', () => {
             const expected = [
                 'Matrix assign command error',
                 'addAssigneeInWatchers error',
-                'Error!!!'
+                'Error!!!',
             ].join('\n');
             expect(err).to.be.equal(expected);
         }
     });
-
 });

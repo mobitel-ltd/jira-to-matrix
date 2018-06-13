@@ -4,16 +4,15 @@ const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-1.json');
 const {getPostCommentData} = require('../../src/jira-hook-parser/parse-body.js');
 const {postComment} = require('../../src/bot');
-const {isPostNewLinks} = require('../../src/jira-hook-parser/bot-handler.js');
 const {getRequestErrorLog} = require('../../src/lib/request.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const querystring = require('querystring');
 
 describe('Post comments test', () => {
     const responce = {
-        id: "10002",
-        self: "http://www.example.com/jira/rest/api/2/issue/10002",
-        key: "EX-1"
+        id: '10002',
+        self: 'http://www.example.com/jira/rest/api/2/issue/10002',
+        key: 'EX-1',
     };
     const sendHtmlMessage = (roomId, body, htmlBody) => {
         assert.equal(roomId, 'roomIdEX-1');
@@ -32,9 +31,9 @@ describe('Post comments test', () => {
     before(() => {
         nock(BASE_URL, {
             reqheaders: {
-                Authorization: auth()
-            }
-            })
+                Authorization: auth(),
+            },
+        })
             .get('/26313')
             .query(params)
             .reply(200, {...responce, id: 28516})
@@ -52,7 +51,7 @@ describe('Post comments test', () => {
         const newBody = {...postCommentData, issueID: null};
 
         try {
-            const result = await postComment({mclient, ...newBody});
+            await postComment({mclient, ...newBody});
         } catch (err) {
             const fakeUrl = `${BASE_URL}/null?${querystring.stringify(params)}`;
             const requestErrorLog = getRequestErrorLog(fakeUrl, errorStatus);

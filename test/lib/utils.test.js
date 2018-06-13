@@ -1,3 +1,4 @@
+/* eslint-disable no-undefined */
 const {isIgnoreKey, webHookUser, getCreator, auth, getChangelogField, paramsToQueryString, propIn, nonEmptyString, paths, getNewStatus} = require('../../src/lib/utils');
 const assert = require('assert');
 const hook = require('../fixtures/comment-create-2.json');
@@ -7,10 +8,10 @@ const body = require('../fixtures/comment-create-4.json');
 
 describe('Utils testing', () => {
     const expectedFuncKeys = [
-        "test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225",
+        'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
     ];
 
-    it('test isIgnoreKey', async () => {
+    it('test isIgnoreKey', () => {
         const keys = [
             'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
             'test-jira-hooks:rooms',
@@ -130,7 +131,7 @@ describe('Utils testing', () => {
             from: '3',
             fromString: 'In progress',
             to: '10602',
-            toString: 'Paused'
+            toString: 'Paused',
         };
 
         expect(changelogField).to.be.deep.equal(expected);
@@ -141,5 +142,4 @@ describe('Utils testing', () => {
 
         expect(changelogField).to.be.undefined;
     });
-
 });

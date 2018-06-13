@@ -2,31 +2,9 @@ const {getBotFunc} = require('../../src/jira-hook-parser/bot-handler');
 const assert = require('assert');
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
-const {
-    postEpicUpdates,
-    postComment,
-    createRoom,
-    inviteNewMembers,
-    postNewLinks,
-    postLinkedChanges,
-    postIssueUpdates,
-    postProjectUpdates,
-} = require('../../src/bot');
 const bot = require('../../src/bot');
-const {
-    getPostEpicUpdatesData,
-    getPostCommentData,
-    getCreateRoomData,
-    getInviteNewMembersData,
-    getPostNewLinksData,
-    getPostLinkedChangesData,
-    getPostIssueUpdatesData,
-    getPostProjectUpdatesData,
-} = require('../../src/jira-hook-parser/parse-body.js');
 
-describe('bot func', function() {
-    this.timeout(15000);
-
+describe('bot func', () => {
     it('test correct JSON', () => {
         const result = typeof firstBody;
         assert.equal(result, 'object');
@@ -52,5 +30,4 @@ describe('bot func', function() {
         const result = funcsForBot.map(func => bot[func]);
         assert.ok(Array.isArray(result));
     });
-
 });

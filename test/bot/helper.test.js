@@ -5,7 +5,6 @@ const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/j
 
 const proxyquire = require('proxyquire');
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
@@ -17,9 +16,6 @@ const {
     getEpicChangedMessageBody,
     getNewEpicMessageBody,
     getNewIssueMessageBody,
-    fieldNames,
-    itemsToString,
-    composeText,
     getUserID,
     isIgnore,
 } = require('../../src/bot/helper.js');
@@ -119,8 +115,8 @@ describe('Helper tests', () => {
             items: [
                 {
                     field: 'Start date',
-                }
-            ]
+                },
+            ],
         };
 
         const newBody = {...thirdBody, changelog};
@@ -139,7 +135,6 @@ describe('Helper tests', () => {
             expect(creator).to.equal('jira_test');
             expect(startEndUpdateStatus).to.be.true;
             expect(ignoreStatus).to.be.true;
-
         });
         it('not ignore if startEndUpdateStatus is false', () => {
             const newBody = {...thirdBody, changelog: {}};
@@ -149,7 +144,6 @@ describe('Helper tests', () => {
             expect(creator).to.equal('jira_test');
             expect(startEndUpdateStatus).to.be.false;
             expect(ignoreStatus).to.be.false;
-
         });
 
         it('not ignore user, creator, status', () => {
@@ -161,8 +155,8 @@ describe('Helper tests', () => {
                     comment: '',
                     creator: {
                         name: '',
-                    }
-                }
+                    },
+                },
             };
             const changelog = {};
             const newBody = {...thirdBody, issue, user, changelog};
@@ -177,18 +171,16 @@ describe('Helper tests', () => {
             const changelog = {
                 items: [
                     {
-                    field: 'End date',
-                }
-            ]
+                        field: 'End date',
+                    },
+                ],
             };
 
             const newBody = {...thirdBody, changelog};
-            const {username, creator, ignoreStatus} = isIgnore(newBody);
+            const {ignoreStatus} = isIgnore(newBody);
 
             expect(ignoreStatus).to.be.true;
         });
-
-
     });
 
     describe('Test isIgnore in mode production (not test)', () => {
@@ -221,6 +213,5 @@ describe('Helper tests', () => {
             expect(creator).to.equal('jira_test');
             expect(ignoreStatus).to.be.true;
         });
-
     });
 });

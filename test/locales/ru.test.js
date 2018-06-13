@@ -1,3 +1,4 @@
+/* eslint-disable id-length */
 const Ramda = require('ramda');
 const {tValues} = require('../../src/locales/ru');
 const assert = require('assert');

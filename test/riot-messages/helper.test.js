@@ -5,12 +5,15 @@ const {getRequestErrorLog} = require('../../src/lib/request');
 const querystring = require('querystring');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 const {
+    // parseRoom,
+    // getLimit,
+    // kickAllMembers,
+    // getRoomsLastUpdate,
     getUsers,
     checkUser,
     checkCommand,
@@ -21,7 +24,7 @@ const {
     parseEventBody,
 } = require('../../src/matrix/timeline-handler/commands/helper');
 
-describe('Commands helper tests', function() {
+describe('Commands helper tests', () => {
     const users = [
         {
             displayName: 'Ivan Andreevich A',
@@ -108,7 +111,7 @@ describe('Commands helper tests', function() {
 
     it('checkNamePriority test', () => {
         const priority = {
-            name: 'Lowest'
+            name: 'Lowest',
         };
         const result = [
             checkNamePriority(priority, 0, 'Lowest'),
@@ -169,10 +172,9 @@ describe('Commands helper tests', function() {
                 'getUsers error',
                 requestErrorLog,
             ].join('\n');
-            expect(err).to.be.deep.equal(expected)
+            expect(err).to.be.deep.equal(expected);
         }
     });
-
 });
 
 describe('command handler test', () => {
@@ -192,7 +194,7 @@ describe('command handler test', () => {
 
     it('false command name', () => {
         const body = 'help';
-        const {commandName, bodyText} = parseEventBody(body);
+        const {commandName} = parseEventBody(body);
         expect(commandName).not.to.be;
     });
 
@@ -203,3 +205,5 @@ describe('command handler test', () => {
         expect(bodyText).not.to.be;
     });
 });
+
+// describe('Test ')

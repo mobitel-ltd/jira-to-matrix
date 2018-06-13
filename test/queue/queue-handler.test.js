@@ -1,5 +1,5 @@
 /* eslint {no-unused-expressions: 0, max-nested-callbacks: 0, global-require: 0} */
-const {stub, spy} = require('sinon');
+const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const proxyquire = require('proxyquire');
 const chai = require('chai');

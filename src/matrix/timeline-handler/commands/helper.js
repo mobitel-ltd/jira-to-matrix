@@ -121,20 +121,22 @@ const getMembersExceptBot = joinedMembers =>
     joinedMembers.reduce((acc, {userId}) =>
         (userId === botId ? acc : [...acc, userId]), []);
 
-const timer = 15000000000;
+const TIMER = 15000000000;
 const curTime = Date.now();
-const getLimit = () => Number(curTime) - Number(timer);
+const getLimit = () => Number(curTime) - Number(TIMER);
 
 const parseRoom = room => {
     const {roomId, name: roomName} = room;
     const members = getMembersExceptBot(room.getJoinedMembers());
-    const events = room.getTimelineSets()[0].getLiveTimeline().getEvents();
-    const lastEvent = events[events.length - 1];
+    const [lastEvent] = room.timeline.slice(-1);
     const timestamp = lastEvent.getTs();
     const date = lastEvent.getDate();
 
     return {room: {roomId, roomName}, timestamp, date, members};
 };
+
+const sortNewToOld = (room1, room2) =>
+    room2.timestamp - room1.timestamp;
 
 const getOutdatedRoomsWithSender = userId => ({timestamp, members}) =>
     (timestamp > getLimit()) && members.includes(userId);
@@ -144,8 +146,7 @@ const getRoomsLastUpdate = (rooms, userId) =>
         .map(parseRoom)
         .filter(getOutdatedRoomsWithSender(userId))
         // next one should be deleted
-        .sort((room1, room2) =>
-            room2.timestamp - room1.timestamp);
+        .sort(sortNewToOld);
 
 
 const kickAllMembers = mclient => ({members, room}) =>
@@ -153,6 +154,8 @@ const kickAllMembers = mclient => ({members, room}) =>
         mclient.kick(user, room)));
 
 module.exports = {
+    parseRoom,
+    getLimit,
     kickAllMembers,
     getRoomsLastUpdate,
     addToWatchers,

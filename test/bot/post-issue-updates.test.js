@@ -12,9 +12,9 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Post issue updates test', () => {
-    const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
+    const sendHtmlMessageStub = stub();
     const setRoomNameStub = stub();
-    const getRoomIdStub = stub().callsFake(id => id ? `roomId${id}` : null);
+    const getRoomIdStub = stub().callsFake(id => (id ? `roomId${id}` : null));
     const createAliasStub = stub();
     const setRoomTopicStub = stub();
 
@@ -30,16 +30,15 @@ describe('Post issue updates test', () => {
     const expectedData = [
         'roomIdRN-83',
         'Задача изменена',
-        'jira_test изменил(а) задачу<br>status: Paused<br>description: <p>Задача</p><br>Key: BAO-193'
+        'jira_test изменил(а) задачу<br>status: Paused<br>description: <p>Задача</p><br>Key: BAO-193',
     ];
 
     before(() => {
-        const {epicKey} = postIssueUpdatesData;
         nock('https://jira.bingo-boom.ru', {
             reqheaders: {
-                Authorization: auth()
-            }
-            })
+                Authorization: auth(),
+            },
+        })
             .get(`/jira/rest/api/2/issue/BBCOM-1233`)
             .times(6)
             .query({expand: 'renderedFields'})
@@ -54,7 +53,6 @@ describe('Post issue updates test', () => {
                 throw new Error('M_UNKNOWN: Room alias #BAO-193:matrix.bingo-boom.ru already exists');
             } catch (err) {
                 if (err.message.includes(`Room alias #BAO-193:matrix.bingo-boom.ru already exists`)) {
-
                     return null;
                 }
                 throw ['Error while creating alias for a room', err].join('\n');
@@ -72,16 +70,13 @@ describe('Post issue updates test', () => {
     });
 
     it('Is correct postIssueUpdatesData', async () => {
-        createAliasStub.callsFake((fieldKey, roomID) => {});
-
         const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
         expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
 
-
-    it('test isPostIssueUpdates', async () => {
+    it('test isPostIssueUpdates', () => {
         const result = isPostIssueUpdates(JSONbody);
         expect(result).to.be.ok;
     });
@@ -113,7 +108,7 @@ describe('Post issue updates test', () => {
         sendHtmlMessageStub.throws('Error!!!');
 
         try {
-            const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
+            await postIssueUpdates({mclient, ...postIssueUpdatesData});
         } catch (err) {
             const expected = [
                 'Error in postIssueUpdates',
@@ -128,7 +123,7 @@ describe('Post issue updates test', () => {
         createAliasStub.throws('Error!!!');
 
         try {
-            const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
+            await postIssueUpdates({mclient, ...postIssueUpdatesData});
         } catch (err) {
             const expected = [
                 'Error in postIssueUpdates',
@@ -139,5 +134,4 @@ describe('Post issue updates test', () => {
             expect(err).to.deep.equal(expected);
         }
     });
-
 });

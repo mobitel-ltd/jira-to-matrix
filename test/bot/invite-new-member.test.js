@@ -17,30 +17,30 @@ const inviteNewMembers = proxyquire('../../src/bot/invite-new-members.js', {
 
 describe('inviteNewMembers test', () => {
     const responce = {
-        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-1233/watchers",
-        "isWatching": false,
-        "watchCount": 1,
-        "watchers": [
+        'self': 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-1233/watchers',
+        'isWatching': false,
+        'watchCount': 1,
+        'watchers': [
             {
-                "self": "http://www.example.com/jira/rest/api/2/user?username=fred",
-                "name": "fred",
-                "displayName": "Fred F. User",
-                "active": false
+                'self': 'http://www.example.com/jira/rest/api/2/user?username=fred',
+                'name': 'fred',
+                'displayName': 'Fred F. User',
+                'active': false,
             },
             {
-                "self": "http://www.example.com/jira/rest/api/2/user?username=alex",
-                "name": "alex",
-                "displayName": "Alex F. User",
-                "active": false
+                'self': 'http://www.example.com/jira/rest/api/2/user?username=alex',
+                'name': 'alex',
+                'displayName': 'Alex F. User',
+                'active': false,
             },
             {
-                "self": "http://www.example.com/jira/rest/api/2/user?username=vasya",
-                "name": "vasya",
-                "displayName": "Vasya F. User",
-                "active": false
-            }
-        ]
-    }
+                'self': 'http://www.example.com/jira/rest/api/2/user?username=vasya',
+                'name': 'vasya',
+                'displayName': 'Vasya F. User',
+                'active': false,
+            },
+        ],
+    };
 
     const getRoomByAliasStub = stub();
     const inviteStub = stub();
@@ -52,24 +52,22 @@ describe('inviteNewMembers test', () => {
 
     const inviteNewMembersData = getInviteNewMembersData(JSONbody);
     const expected = [
-        "@fred:matrix.bingo-boom.ru",
-        "@alex:matrix.bingo-boom.ru",
-        "@vasya:matrix.bingo-boom.ru",
+        '@fred:matrix.bingo-boom.ru',
+        '@alex:matrix.bingo-boom.ru',
+        '@vasya:matrix.bingo-boom.ru',
     ];
 
     before(() => {
-        const {epicKey} = inviteNewMembersData;
         nock('https://jira.bingo-boom.ru', {
             reqheaders: {
-                Authorization: auth()
-            }
-            })
+                Authorization: auth(),
+            },
+        })
             .get(`/jira/rest/api/2/issue/BBCOM-1233/watchers`)
             .times(4)
             .reply(200, responce)
             .get(url => url.indexOf('null') > 0)
             .reply(404);
-
     });
 
     it('Get undefined with no room for key', async () => {
@@ -83,7 +81,7 @@ describe('inviteNewMembers test', () => {
         getRoomByAliasStub.reset();
         getRoomByAliasStub.returns({
             getJoinedMembers: () => [{userId: '@jira_test:matrix.bingo-boom.ru'}],
-        })
+        });
         const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
 
         expect(result).to.deep.equal(expected);
@@ -106,7 +104,7 @@ describe('inviteNewMembers test', () => {
         inviteStub.throws('Error in inviteStub!!!');
 
         try {
-            const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
+            await inviteNewMembers({mclient, ...inviteNewMembersData});
         } catch (err) {
             const expected = [
                 'Error in inviteNewMembers',
@@ -114,5 +112,5 @@ describe('inviteNewMembers test', () => {
             ].join('\n');
             expect(err).to.deep.equal(expected);
         }
-    })
+    });
 });
