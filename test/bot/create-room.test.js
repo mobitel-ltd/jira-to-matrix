@@ -3,7 +3,6 @@ const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/create.json');
 const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
 const issueBody = require('../fixtures/response.json');
-const logger = require('../../src/modules/log.js')(module);
 const proxyquire = require('proxyquire');
 const projectData = require('../fixtures/project-example.json');
 
@@ -53,7 +52,6 @@ describe('Create room test', () => {
     };
 
     const createRoomData = getCreateRoomData(JSONbody);
-    logger.debug(createRoomData);
 
     before(() => {
         nock('https://jira.bingo-boom.ru', {

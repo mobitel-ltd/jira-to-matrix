@@ -1,19 +1,22 @@
 const nock = require('nock');
 const {auth} = require('../../src/lib/utils.js');
-const {url} = require('../../src/config').jira;
+const {jira: {url}, matrix: {userId: matrixUserId}} = require('../../src/config');
 const {getRequestErrorLog} = require('../../src/lib/request');
 const querystring = require('querystring');
+const sdk = require('matrix-js-sdk');
 
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
+const logger = require('../../src/modules/log.js')(module);
+const {getMatrixUser} = require('../../src/lib/utils');
 
 const {
-    // parseRoom,
-    // getLimit,
-    // kickAllMembers,
-    // getRoomsLastUpdate,
+    getRoomsLastUpdate,
+    parseRoom,
+    getLimit,
+    getOutdatedRoomsWithSender,
     getUsers,
     checkUser,
     checkCommand,
@@ -206,4 +209,73 @@ describe('command handler test', () => {
     });
 });
 
-// describe('Test ')
+const getTimeline = date => ({
+    getTs: () => date.getTime(),
+    getDate: () => date,
+});
+
+const roomMock = (roomId, roomName, members, timeline) =>
+    ({
+        roomId,
+        name: roomName,
+        getJoinedMembers: () => members,
+        timeline,
+    });
+const roomName = 'roomName';
+const roomId = '!roomId';
+const myUser = getMatrixUser('myUser');
+describe('Test room kicking funcs', () => {
+    const lastDate = getTimeline(new Date(2018, 5, 5));
+    const timeline = [
+        getTimeline(new Date(2017, 5, 5)),
+        getTimeline(new Date(2017, 10, 10)),
+        getTimeline(new Date(2018, 2, 3)),
+        lastDate,
+    ];
+    logger.debug(timeline.map(time => time.getDate()));
+
+    const members = [
+        new sdk.User(getMatrixUser('ivan')),
+        new sdk.User(getMatrixUser('john')),
+        new sdk.User(myUser),
+        new sdk.User(matrixUserId),
+    ];
+    const newRoom = roomMock(roomId, roomName, members, timeline);
+
+    describe('Testsing parseRoom', () => {
+        it('Expect parseRoom to be ', () => {
+            const {members, room, timestamp} = parseRoom(newRoom);
+            logger.debug(members);
+
+            expect(members.length).to.be.eq(3);
+            expect(room).to.be.deep.eq({roomId, roomName});
+            expect(timestamp).to.be.eq(lastDate.getTs());
+        });
+    });
+
+    describe('Testsing getLimit', () => {
+        it('Expect getLimit to be timestamp of 01.01.2018', () => {
+            const limit = getLimit();
+            const expected = 1514764800000;
+
+            expect(limit).to.be.equal(expected);
+        });
+    });
+
+    describe('Testsing getRoomsLastUpdate', () => {
+        it('Expect getRoomsLastUpdate to be ', () => {
+            const result = getRoomsLastUpdate([newRoom], myUser);
+
+            expect(result).to.be;
+        });
+    });
+
+    describe('Testsing getOutdatedRoomsWithSender', () => {
+        it('Expect getOutdatedRoomsWithSender to be ', () => {
+            const parsedRoom = parseRoom(newRoom);
+            const result = getOutdatedRoomsWithSender(myUser)(parsedRoom);
+
+            expect(result).to.be.true;
+        });
+    });
+});

@@ -5,7 +5,6 @@ const {getRequestErrorLog} = require('../../src/lib/request');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const nock = require('nock');
 const querystring = require('querystring');
-// const secondBody = require('../fixtures/comment-create-2.json');
 const issueBody = require('../fixtures/response.json');
 const {url} = require('../../src/config').jira;
 

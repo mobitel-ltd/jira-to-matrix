@@ -33,8 +33,6 @@ describe('get-parsed-save to redis', () => {
     it('test correct firstBody parse', async () => {
         const parsedForQueue = await getParsedAndSaveToRedis(firstBody);
 
-        // const expectedData = true;
-
         expect(parsedForQueue).to.be;
 
         const redisValue = await redis.getAsync(redisKey);
@@ -46,7 +44,6 @@ describe('get-parsed-save to redis', () => {
         const newResult = await redis.getAsync(redisKey);
 
         expect(newResult).to.be.null;
-        // const result = JSON.parse(dataFromRedis);
     });
 
     it('test ignored body', async () => {

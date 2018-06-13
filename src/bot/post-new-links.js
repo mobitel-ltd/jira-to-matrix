@@ -45,8 +45,6 @@ const handleLink = async (issueLinkId, mclient) => {
         await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
     } catch (err) {
         throw ['HandleLink error in post link', err].join('\n');
-        // const log = [`HandleLink error in postLink ${issueLinkId}`, err].join('\n');
-        // logger.warn(log);
     }
 };
 

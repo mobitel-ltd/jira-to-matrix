@@ -1,5 +1,5 @@
 const querystring = require('querystring');
-
+// const logger = require('../../../modules/log')(module);
 const {schemaWatcher} = require('./schemas.js');
 const {requestPost, request} = require('../../../lib/request.js');
 
@@ -121,9 +121,9 @@ const getMembersExceptBot = joinedMembers =>
     joinedMembers.reduce((acc, {userId}) =>
         (userId === botId ? acc : [...acc, userId]), []);
 
-const TIMER = 15000000000;
-const curTime = Date.now();
-const getLimit = () => Number(curTime) - Number(TIMER);
+const newYear2018 = new Date(2018, 0, 1, 3);
+
+const getLimit = () => newYear2018.getTime();
 
 const parseRoom = room => {
     const {roomId, name: roomName} = room;
@@ -132,7 +132,12 @@ const parseRoom = room => {
     const timestamp = lastEvent.getTs();
     const date = lastEvent.getDate();
 
-    return {room: {roomId, roomName}, timestamp, date, members};
+    return {
+        room: {roomId, roomName},
+        timestamp,
+        date,
+        members,
+    };
 };
 
 const sortNewToOld = (room1, room2) =>
@@ -151,9 +156,10 @@ const getRoomsLastUpdate = (rooms, userId) =>
 
 const kickAllMembers = mclient => ({members, room}) =>
     Promise.all(members.map(user =>
-        mclient.kick(user, room)));
+        mclient.ban(user, room)));
 
 module.exports = {
+    getOutdatedRoomsWithSender,
     parseRoom,
     getLimit,
     kickAllMembers,

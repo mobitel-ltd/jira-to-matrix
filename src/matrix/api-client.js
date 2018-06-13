@@ -9,8 +9,9 @@ const BOT_OUT_OF_ROOM_EXEPTION = `User ${conf.userId} not in room`;
 
 const getAlias = alias => `#${alias}:${conf.domain}`;
 
-// const getClient = client => () => client;
-const getRooms = client => () => client.getRooms();
+const getRooms = client => () =>
+    client.getRooms();
+
 const kick = client => async (user, {roomId, roomName}) => {
     try {
         await client.kick(roomId, user, 'This room is outdated');
