@@ -4,6 +4,11 @@ module.exports = async ({room, matrixClient}) => {
     const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
 
     const post = `
+    <h5>Use "!kick" command to kick all members from all rooms which last activity are older 01.01.2018<br>
+    example:</h5>
+        ${indent}<font color="green"><strong>!kick</strong></font><br>
+        ${indent}${indent}Пользователь @example:matrix.bingo-boom.ru исключен из комнаты BBCOM-1931<br>
+        ${indent}${indent}Пользователь @example_too:matrix.bingo-boom.ru исключен из комнаты BBCOM-1931<br>
     <h5>Use "!comment" command to comment in jira issue<br>
     example:</h5>
         ${indent}<font color="green"><strong>!comment some text</strong></font><br>
