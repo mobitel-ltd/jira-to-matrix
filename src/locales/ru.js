@@ -34,6 +34,9 @@ const dict = Object.freeze({
     notFoundUser: 'Пользователь не найден',
     setPriority: 'Теперь задача имеет приоритет %{name}',
     rightsError: 'У вас нет прав на это действие',
+    successUserKick: 'Пользователь %{user} исключен из комнаты %{roomName}',
+    errorUserKick: 'Ошибка при попытки исключения пользователя %{user} из комнаты %{roomName}',
+    kickInfo: 'Пользователь %{sender} попытался исключить следующих пользователей из комнат:',
 });
 /* spell-checker: enable */
 

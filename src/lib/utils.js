@@ -142,8 +142,6 @@ const isCommentEvent = ({webhookEvent, issue_event_type_name: issueEventTypeName
     ])({webhookEvent, issueEventTypeName} || {});
 };
 
-const getMatrixUser = name => `@${name}:${conf.matrix.domain}`;
-
 module.exports = {
     auth,
     webHookUser,
@@ -160,5 +158,4 @@ module.exports = {
     isCommentEvent,
     REDIS_ROOM_KEY,
     isIgnoreKey,
-    getMatrixUser,
 };

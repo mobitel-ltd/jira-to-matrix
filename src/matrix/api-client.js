@@ -12,14 +12,6 @@ const getAlias = alias => `#${alias}:${conf.domain}`;
 const getRooms = client => () =>
     client.getRooms();
 
-const kick = client => async (user, {roomId, roomName}) => {
-    try {
-        await client.kick(roomId, user, 'This room is outdated');
-        logger.info('User %s is kicked from room %s', user, roomName);
-    } catch (err) {
-        logger.error([`Error kicking user ${user} from room ${roomName}`, err].join('\n'));
-    }
-};
 const createRoom = client => async options => {
     try {
         const {room_id: roomId} = await client.createRoom({visibility: 'private', ...options});
@@ -128,7 +120,6 @@ const setRoomTopic = client => async (roomId, topic) => {
 };
 
 const api = {
-    kick,
     getRooms,
     createRoom,
     getRoomId,

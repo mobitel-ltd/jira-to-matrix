@@ -10,7 +10,7 @@ const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 const logger = require('../../src/modules/log.js')(module);
-const {getMatrixUser} = require('../../src/lib/utils');
+const {getUserID} = require('../../src/bot/helper');
 
 const {
     getRoomsLastUpdate,
@@ -223,7 +223,7 @@ const roomMock = (roomId, roomName, members, timeline) =>
     });
 const roomName = 'roomName';
 const roomId = '!roomId';
-const myUser = getMatrixUser('myUser');
+const myUser = getUserID('myUser');
 describe('Test room kicking funcs', () => {
     const lastDate = getTimeline(new Date(2018, 5, 5));
     const timeline = [
@@ -232,11 +232,11 @@ describe('Test room kicking funcs', () => {
         getTimeline(new Date(2018, 2, 3)),
         lastDate,
     ];
-    logger.debug(timeline.map(time => time.getDate()));
+    // logger.debug(timeline.map(time => time.getDate()));
 
     const members = [
-        new sdk.User(getMatrixUser('ivan')),
-        new sdk.User(getMatrixUser('john')),
+        new sdk.User(getUserID('ivan')),
+        new sdk.User(getUserID('john')),
         new sdk.User(myUser),
         new sdk.User(matrixUserId),
     ];

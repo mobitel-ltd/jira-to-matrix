@@ -1,11 +1,13 @@
 const querystring = require('querystring');
-// const logger = require('../../../modules/log')(module);
+const logger = require('../../../modules/log')(module);
 const {schemaWatcher} = require('./schemas.js');
 const {requestPost, request} = require('../../../lib/request.js');
+const translate = require('../../../locales');
 
 const {jira, matrix} = require('../../../config');
-const {domain, userId: botId} = matrix;
+const {userId: botId} = matrix;
 const {url} = jira;
+const {getUserID} = require('../../../bot/helper.js');
 
 const BASE_URL = `${url}/rest/api/2/issue`;
 
@@ -95,7 +97,7 @@ const parseEventBody = body => {
 };
 
 const getInviteUser = (assignee, room) => {
-    const user = `@${assignee}:${domain}`;
+    const user = getUserID(assignee);
     const members = room.getJoinedMembers();
     const isInRoom = members.find(({userId}) => userId === user);
 
@@ -125,26 +127,29 @@ const newYear2018 = new Date(2018, 0, 1, 3);
 
 const getLimit = () => newYear2018.getTime();
 
+// should get room info, timestamp and date of event, and all members except jira-bot
 const parseRoom = room => {
     const {roomId, name: roomName} = room;
     const members = getMembersExceptBot(room.getJoinedMembers());
     const [lastEvent] = room.timeline.slice(-1);
     const timestamp = lastEvent.getTs();
     const date = lastEvent.getDate();
-
-    return {
+    const result = {
         room: {roomId, roomName},
         timestamp,
         date,
         members,
     };
+    // logger.debug('Room data after parsing for kicking', result);
+
+    return result;
 };
 
 const sortNewToOld = (room1, room2) =>
     room2.timestamp - room1.timestamp;
 
 const getOutdatedRoomsWithSender = userId => ({timestamp, members}) =>
-    (timestamp > getLimit()) && members.includes(userId);
+    (timestamp > getLimit()) && members.some(member => member.includes(userId));
 
 const getRoomsLastUpdate = (rooms, userId) =>
     rooms
@@ -153,10 +158,22 @@ const getRoomsLastUpdate = (rooms, userId) =>
         // next one should be deleted
         .sort(sortNewToOld);
 
+const kickUser = client => async (user, {roomId, roomName}) => {
+    try {
+        await client.kick(roomId, user, 'This room is outdated');
+
+        return translate('successUserKick', {user, roomName});
+    } catch (err) {
+        const msg = translate('errorUserKick', {user, roomName});
+        logger.warn([msg, err].join('\n'));
+
+        return msg;
+    }
+};
 
 const kickAllMembers = mclient => ({members, room}) =>
     Promise.all(members.map(user =>
-        mclient.ban(user, room)));
+        kickUser(mclient)(user, room)));
 
 module.exports = {
     getOutdatedRoomsWithSender,

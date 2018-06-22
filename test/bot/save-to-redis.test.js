@@ -147,7 +147,6 @@ describe('get-bot-data', () => {
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
 
-
     after(async () => {
         const keys = await redis.keysAsync('*');
 

@@ -18,6 +18,15 @@
     "lint",
     "test"
   ],
+  "nyc": {
+    "exclude": [
+      "src/redis-client.js",
+      "src/modules/log.js",
+      "src/config",
+      "src/matrix/timeline-handler/commands/help.js",
+      "test"
+    ]
+  },
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-sinon": "^2.8.1",
