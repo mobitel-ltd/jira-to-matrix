@@ -256,7 +256,7 @@ describe('Test room kicking funcs', () => {
     describe('Testsing getLimit', () => {
         it('Expect getLimit to be timestamp of 01.01.2018', () => {
             const limit = getLimit();
-            const expected = 1514764800000;
+            const expected = 1514775600000;
 
             expect(limit).to.be.equal(expected);
         });

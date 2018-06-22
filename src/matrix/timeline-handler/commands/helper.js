@@ -123,7 +123,7 @@ const getMembersExceptBot = joinedMembers =>
     joinedMembers.reduce((acc, {userId}) =>
         (userId === botId ? acc : [...acc, userId]), []);
 
-const newYear2018 = new Date(2018, 0, 1, 3);
+const newYear2018 = new Date(Date.UTC(2018, 0, 1, 3));
 
 const getLimit = () => newYear2018.getTime();
 
