@@ -37,7 +37,7 @@ const {
     '../modules/log.js': () => loggerSpy,
 });
 
-describe('saveIncoming', function() {
+describe('saveIncoming', () => {
     it('test saveIncoming with no createRoomData args', async () => {
         await saveIncoming({redisKey: 'newrooms'});
         const result = await getRedisRooms();
@@ -45,9 +45,9 @@ describe('saveIncoming', function() {
     });
 });
 
-describe('redis-data-handle', function() {
+describe('redis-data-handle', () => {
     const expectedFuncKeys = [
-        "test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225",
+        'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
     ];
 
     const expectedData = [
@@ -61,11 +61,11 @@ describe('redis-data-handle', function() {
                     summary: 'Test',
                     id: '30369',
                     name: 'jira_test',
-                    status: null
+                    status: null,
                 },
-            }
+            },
         },
-];
+    ];
 
     const expectedRoom = [
         {
@@ -85,28 +85,29 @@ describe('redis-data-handle', function() {
                     estimateTime: '1h',
                     description: 'Info',
                     priority: 'Medium',
-                }
+                },
             },
-            webhookEvent: 'jira:issue_created'
-        }
+            webhookEvent: 'jira:issue_created',
+        },
     ];
 
     const responce = {
-        id: "10002",
-        self: "http://www.example.com/jira/rest/api/2/issue/10002",
-        key: "EpicKey",
+        id: '10002',
+        self: 'http://www.example.com/jira/rest/api/2/issue/10002',
+        key: 'EpicKey',
         fields: {
             summary: 'SummaryKey',
-        }
+        },
     };
 
+    // eslint-disable-next-line
     const epicResponse = {
-        id: "10002",
-        self: "http://www.example.com/jira/rest/api/2/issue/1000122",
-        key: "EX-1",
+        id: '10002',
+        self: 'http://www.example.com/jira/rest/api/2/issue/1000122',
+        key: 'EX-1',
         fields: {
             summary: 'SummaryKey',
-        }
+        },
     };
 
     const mclient = {};
@@ -136,7 +137,6 @@ describe('redis-data-handle', function() {
     });
 
     it('test correct handleRedisData', async () => {
-        postEpicUpdatesStub.callsFake(() => ({}));
         loggerSpy.info.reset();
 
         const dataFromRedisBefore = await getDataFromRedis();
@@ -188,13 +188,13 @@ describe('redis-data-handle', function() {
                     estimateTime: '1h',
                     description: 'Info',
                     priority: 'Medium',
-                }
+                },
             },
-            webhookEvent: 'jira:issue_created'
+            webhookEvent: 'jira:issue_created',
         }];
 
         await saveIncoming({redisKey: 'newrooms', createRoomData});
-        createRoomStub.callsFake((data) => {
+        createRoomStub.callsFake(data => {
             logger.debug('data', data);
             if (data.issue.key === 'BBCOM-1111') {
                 logger.debug('should throw');
@@ -214,8 +214,6 @@ describe('redis-data-handle', function() {
     });
 
     it('test correct handleRedisRooms', async () => {
-        createRoomStub.callsFake(() => ({}));
-
         const roomsKeysBefore = await getRedisRooms();
         await handleRedisRooms(mclient, roomsKeysBefore);
         expect(createRoomStub).to.be.called;
@@ -225,14 +223,12 @@ describe('redis-data-handle', function() {
     });
 
     it('test null handleRedisRooms', async () => {
-        createRoomStub.callsFake(() => ({}));
         await handleRedisRooms(mclient, null);
         expect(createRoomStub).not.to.be.called;
         createRoomStub.reset();
     });
 
     it('test incorrect handleRedisRooms', async () => {
-        createRoomStub.callsFake(() => ({}));
         await handleRedisRooms(mclient, 'rooms');
         expect(createRoomStub).not.to.be.called;
         const expected = 'handleRedisRooms error';
@@ -240,6 +236,7 @@ describe('redis-data-handle', function() {
     });
 
     afterEach(async () => {
+        createRoomStub.reset();
         const keys = await redis.keysAsync('*');
 
         if (keys.length > 0) {
@@ -249,14 +246,14 @@ describe('redis-data-handle', function() {
     });
 });
 
-describe('Redis errors in redis-data-handle', function() {
+describe('Redis errors in redis-data-handle', () => {
     const {
         rewriteRooms: rewrite,
         saveIncoming: save,
         getRedisValue: getValue,
         getDataFromRedis: getRedisData,
         getRedisRooms: getRooms,
-        handleRedisData: handleData
+        handleRedisData: handleData,
     } = proxyquire('../../src/queue/redis-data-handle.js', {
         '../redis-client.js': {
             getAsync: stub().throws('error'),

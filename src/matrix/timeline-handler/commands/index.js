@@ -6,8 +6,10 @@ const prio = require('./prio.js');
 const op = require('./op.js');
 const invite = require('./invite.js');
 const help = require('./help.js');
+const kick = require('./kick.js');
 
 module.exports = {
+    kick,
     comment,
     assign,
     move,

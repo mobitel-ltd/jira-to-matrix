@@ -8,7 +8,6 @@ const getRequestErrorLog = (url, status, method = 'GET') =>
     `Error in ${method} request ${url}, status is ${status}`;
 
 const request = async (url, newOptions) => {
-    logger.debug(auth());
     const options = {
         method: 'GET',
         headers: {'Authorization': auth(), 'content-type': 'application/json'},

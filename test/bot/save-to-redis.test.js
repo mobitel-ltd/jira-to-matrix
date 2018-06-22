@@ -118,7 +118,7 @@ describe('get-bot-data', () => {
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);
         [...expectedFuncKeys1, ...expectedFuncKeys2, ...expectedFuncKeys3]
-        .forEach(key => expect(funcKeysData).to.deep.include(key));
+            .forEach(key => expect(funcKeysData).to.deep.include(key));
 
         const roomsKeys = await getRedisRooms();
         const expectedRoom = [
@@ -146,7 +146,6 @@ describe('get-bot-data', () => {
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
-
 
     after(async () => {
         const keys = await redis.keysAsync('*');

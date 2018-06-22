@@ -1,7 +1,7 @@
 const nock = require('nock');
 const {auth} = require('../../src/lib/utils.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
-const {schemaAssignee, schemaWatcher} = require('../../src/matrix/timeline-handler/commands/schemas.js');
+const {schemaWatcher} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {domain} = require('../../src/config').matrix;
 const translate = require('../../src/locales');
 
@@ -32,8 +32,8 @@ describe('spec test', () => {
         },
     ];
 
-    const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
-    const inviteStub = stub().callsFake((roomId, user) => {});
+    const sendHtmlMessageStub = stub();
+    const inviteStub = stub();
     const matrixClient = {
         invite: inviteStub,
         sendHtmlMessage: sendHtmlMessageStub,
@@ -84,7 +84,7 @@ describe('spec test', () => {
         searchUserStub.returns([]);
         const fakeUser = 'fake';
         const post = translate('errorWatcherJira');
-        const expected =  `Watcher "${fakeUser}" isn't added to ${roomName} issue`;
+        const expected = `Watcher "${fakeUser}" isn't added to ${roomName} issue`;
         const result = await spec({bodyText: fakeUser, room, roomName, matrixClient});
 
         expect(result).to.be.equal(expected);
@@ -110,7 +110,7 @@ describe('spec test', () => {
         searchUserStub.returns([newUser]);
         inviteStub.throws('Error!!!');
         const post = translate('successWatcherJira');
-        const expected = `User ${newUser.displayName} was added in watchers for issue ${roomName}`
+        const expected = `User ${newUser.displayName} was added in watchers for issue ${roomName}`;
         const result = await spec({bodyText: 'Ivan Sergeevich B', room, roomName, matrixClient});
 
         expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, post, post);
@@ -132,10 +132,9 @@ describe('spec test', () => {
             const expected = [
                 'Matrix spec command error',
                 'addAssigneeInWatchers error',
-                'Error!!!'
+                'Error!!!',
             ].join('\n');
             expect(err).to.be.equal(expected);
         }
     });
-
 });

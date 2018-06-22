@@ -16,7 +16,7 @@ describe('post New Links test', () => {
             name: 'Duplicate',
             inward: 'Duplicated by',
             outward: 'Duplicates',
-            self: 'http://www.example.com/jira/rest/api/2//issueLinkType/1000'
+            self: 'http://www.example.com/jira/rest/api/2//issueLinkType/1000',
         },
         inwardIssue: {
             id: '10004',
@@ -26,9 +26,9 @@ describe('post New Links test', () => {
                 summary: 'BBCOM-956',
                 status: {
                     iconUrl: 'http://www.example.com/jira//images/icons/statuses/open.png',
-                    name: 'Open'
-                }
-            }
+                    name: 'Open',
+                },
+            },
         },
         outwardIssue: {
             id: '10004L',
@@ -38,10 +38,10 @@ describe('post New Links test', () => {
                 summary: 'test_task_90',
                 status: {
                     iconUrl: 'http://www.example.com/jira//images/icons/statuses/open.png',
-                    name: 'Open'
-                }
-            }
-        }
+                    name: 'Open',
+                },
+            },
+        },
     };
 
     const sendHtmlMessage = (roomId, body, htmlBody) => {
@@ -63,9 +63,9 @@ describe('post New Links test', () => {
     before(() => {
         nock('https://jira.bingo-boom.ru', {
             reqheaders: {
-                Authorization: auth()
-            }
-            })
+                Authorization: auth(),
+            },
+        })
             .get(`/jira/rest/api/2/issueLink/28516`)
             .times(2)
             .reply(200, {...responce, id: 28516})
@@ -89,7 +89,7 @@ describe('post New Links test', () => {
             '26500',
         ];
         try {
-            const result = await postNewLinks({mclient, links});
+            await postNewLinks({mclient, links});
         } catch (error) {
             expect(error).to.be.ok;
         }
@@ -97,7 +97,7 @@ describe('post New Links test', () => {
 
     it('Get empty links', async () => {
         body.issue.fields.issueLinks = [];
-        const newBody = {...body, issue: {fields: {issuelinks: []}}}
+        const newBody = {...body, issue: {fields: {issuelinks: []}}};
         const isLink = isPostNewLinks(newBody);
         assert.equal(isLink, false);
 

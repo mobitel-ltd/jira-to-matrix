@@ -12,7 +12,7 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('comment test', () => {
-    const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
+    const sendHtmlMessageStub = stub();
 
     const matrixClient = {
         sendHtmlMessage: sendHtmlMessageStub,

@@ -16,7 +16,7 @@ chai.use(sinonChai);
 describe('move test', () => {
     const roomName = 'BBCOM-123';
     const room = {roomId: 12345};
-    const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
+    const sendHtmlMessageStub = stub();
 
     const matrixClient = {
         sendHtmlMessage: sendHtmlMessageStub,
@@ -80,6 +80,5 @@ describe('move test', () => {
         expect(result).to.be.equal(expected);
         expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
         sendHtmlMessageStub.reset();
-
     });
 });
