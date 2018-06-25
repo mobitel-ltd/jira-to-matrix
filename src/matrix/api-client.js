@@ -9,6 +9,9 @@ const BOT_OUT_OF_ROOM_EXEPTION = `User ${conf.userId} not in room`;
 
 const getAlias = alias => `#${alias}:${conf.domain}`;
 
+const getRooms = client => () =>
+    client.getRooms();
+
 const createRoom = client => async options => {
     try {
         const {room_id: roomId} = await client.createRoom({visibility: 'private', ...options});
@@ -117,6 +120,7 @@ const setRoomTopic = client => async (roomId, topic) => {
 };
 
 const api = {
+    getRooms,
     createRoom,
     getRoomId,
     getRoomByAlias,

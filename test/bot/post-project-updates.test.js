@@ -4,19 +4,17 @@ const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-4.json');
 const {getPostProjectUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostProjectUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
-const redis = require('../../src/redis-client.js');
-const {redis: {prefix}} = require('../fixtures/config.js');
 const {postProjectUpdates} = require('../../src/bot');
 
 
 describe('Post project updates test', () => {
     const responce = {
-        id: "10002",
-        self: "http://www.example.com/jira/rest/api/2/issue/10002",
-        key: "EX-1",
+        id: '10002',
+        self: 'http://www.example.com/jira/rest/api/2/issue/10002',
+        key: 'EX-1',
         fields: {
             summary: 'SummaryKey',
-        }
+        },
     };
 
     const sendHtmlMessage = (roomId, body, htmlBody) => {
@@ -33,12 +31,11 @@ describe('Post project updates test', () => {
     const postProjectUpdatesData = getPostProjectUpdatesData(JSONbody);
 
     before(() => {
-        const {epicKey} = postProjectUpdatesData;
         nock('https://jira.bingo-boom.ru', {
             reqheaders: {
-                Authorization: auth()
-            }
-            })
+                Authorization: auth(),
+            },
+        })
             .get(`/jira/rest/api/2/issue/BBCOM-801`)
             .reply(200, {...responce, id: 28516});
     });

@@ -1,3 +1,4 @@
+/* eslint-disable no-undefined */
 const {isCreateRoom} = require('../../src/jira-hook-parser/bot-handler');
 const assert = require('assert');
 

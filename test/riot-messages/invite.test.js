@@ -8,9 +8,9 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('invite test', () => {
-    const inviteStub = stub().callsFake((roomId, userId) => {});
-    const getRoomIdForAliasStub = stub().callsFake(room => ({room_id: room}));
-    const sendHtmlMessageStub = stub().callsFake((roomId, body, htmlBody) => {});
+    const inviteStub = stub();
+    const getRoomIdForAliasStub = stub().callsFake(room => ({'room_id': room}));
+    const sendHtmlMessageStub = stub();
 
     const matrixClient = {
         invite: inviteStub,
@@ -45,7 +45,7 @@ describe('invite test', () => {
     });
 
     it('should invite to room with domain', async () => {
-        getRoomIdForAliasStub.callsFake(room => ({room_id: room}));
+        getRoomIdForAliasStub.callsFake(room => ({'room_id': room}));
         const expectedData = [
             room.roomId,
             'Успешно приглашен',

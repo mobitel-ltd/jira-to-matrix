@@ -1,5 +1,5 @@
 /* eslint {no-unused-expressions: 0, max-nested-callbacks: 0, global-require: 0} */
-const {stub, spy} = require('sinon');
+const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const proxyquire = require('proxyquire');
 const chai = require('chai');
@@ -7,7 +7,6 @@ const chai = require('chai');
 const JSONbody = require('../fixtures/create.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const createRoomStub = stub();
-// const newSaveSpy = spy();
 
 const {getRedisRooms, handleRedisRooms} = proxyquire('../../src/queue/redis-data-handle.js', {
     '../bot': {
@@ -26,17 +25,6 @@ describe('Queue handler test', () => {
     before(() => {
         mclientStub = stub();
     });
-
-    // it('Room should be created', async () => {
-    //     await getParsedAndSaveToRedis(JSONbody);
-    //     const roomsKeys = await getRedisRooms();
-
-    //     await handleRedisRooms(mclientStub, roomsKeys);
-
-    //     const newRoomsKeys = await getRedisRooms();
-    //     expect(createRoomStub).to.be.called;
-    //     expect(newRoomsKeys).to.be.null;
-    // });
 
     it('Room should not be created, room should be in redis', async () => {
         await getParsedAndSaveToRedis(JSONbody);

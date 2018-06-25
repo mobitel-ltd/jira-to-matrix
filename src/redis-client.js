@@ -7,14 +7,12 @@ bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
 const createClient = config => {
-    let result;
     try {
-        result = redis.createClient(config);
+        return redis.createClient(config);
     } catch (err) {
         logger.error(`Error while creating redis client`, err);
         process.exit(1);
     }
-    return result;
 };
 
 const client = createClient(conf.redis);

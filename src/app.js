@@ -1,3 +1,4 @@
+/* eslint-disable chai-friendly/no-unused-expressions */
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');

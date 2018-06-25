@@ -29,27 +29,12 @@ const postIssueDescription = proxyquire('../../src/bot/post-issue-description.js
 describe('Create room test', () => {
     const newRoomID = 'roomId';
     const responce = {
-        id: "10002",
-        self: "http://www.example.com/jira/rest/api/2/issue/10002",
-        key: "EpicKey",
+        id: '10002',
+        self: 'http://www.example.com/jira/rest/api/2/issue/10002',
+        key: 'EpicKey',
         fields: {
             summary: 'SummaryKey',
-        }
-    };
-
-    const epicResponse = {
-        id: "10002",
-        self: "http://www.example.com/jira/rest/api/2/issue/1000122",
-        key: "EX-1",
-        fields: {
-            summary: 'SummaryKey',
-        }
-    };
-    const expectedOptions = {
-        room_alias_name: 'BBCOM-1398',
-        invite: ['@jira_test:matrix.bingo-boom.ru'],
-        name: 'BBCOM-1398 Test',
-        topic: 'https://jira.bingo-boom.ru/jira/browse/BBCOM-1398'
+        },
     };
 
     const sendHtmlMessageStub = spy();
@@ -69,7 +54,6 @@ describe('Create room test', () => {
         reporterName,
         reporterEmail,
         typeName,
-        epicLink,
         estimateTime,
         description,
         priority,
@@ -105,9 +89,9 @@ describe('Create room test', () => {
     before(() => {
         nock('https://jira.bingo-boom.ru', {
             reqheaders: {
-                Authorization: auth()
-            }
-            })
+                Authorization: auth(),
+            },
+        })
             .get('/jira/rest/api/2/issue/BBCOM-1398/watchers')
             .times(5)
             .reply(200, {...responce, id: 28516})
@@ -141,8 +125,7 @@ describe('Create room test', () => {
                 'Error in getPost',
                 'ERROR!!!',
             ].join('\n');
-            expect(error).to.be.equal(expectedError)
+            expect(error).to.be.equal(expectedError);
         }
-
     });
 });

@@ -1,16 +1,22 @@
 const nock = require('nock');
 const {auth} = require('../../src/lib/utils.js');
-const {url} = require('../../src/config').jira;
+const {jira: {url}, matrix: {userId: matrixUserId}} = require('../../src/config');
 const {getRequestErrorLog} = require('../../src/lib/request');
 const querystring = require('querystring');
+const sdk = require('matrix-js-sdk');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
+const logger = require('../../src/modules/log.js')(module);
+const {getUserID} = require('../../src/bot/helper');
 
 const {
+    getRoomsLastUpdate,
+    parseRoom,
+    getLimit,
+    getOutdatedRoomsWithSender,
     getUsers,
     checkUser,
     checkCommand,
@@ -21,7 +27,7 @@ const {
     parseEventBody,
 } = require('../../src/matrix/timeline-handler/commands/helper');
 
-describe('Commands helper tests', function() {
+describe('Commands helper tests', () => {
     const users = [
         {
             displayName: 'Ivan Andreevich A',
@@ -108,7 +114,7 @@ describe('Commands helper tests', function() {
 
     it('checkNamePriority test', () => {
         const priority = {
-            name: 'Lowest'
+            name: 'Lowest',
         };
         const result = [
             checkNamePriority(priority, 0, 'Lowest'),
@@ -169,10 +175,9 @@ describe('Commands helper tests', function() {
                 'getUsers error',
                 requestErrorLog,
             ].join('\n');
-            expect(err).to.be.deep.equal(expected)
+            expect(err).to.be.deep.equal(expected);
         }
     });
-
 });
 
 describe('command handler test', () => {
@@ -192,7 +197,7 @@ describe('command handler test', () => {
 
     it('false command name', () => {
         const body = 'help';
-        const {commandName, bodyText} = parseEventBody(body);
+        const {commandName} = parseEventBody(body);
         expect(commandName).not.to.be;
     });
 
@@ -201,5 +206,76 @@ describe('command handler test', () => {
         const {commandName, bodyText} = parseEventBody(body);
         expect(commandName).not.to.be;
         expect(bodyText).not.to.be;
+    });
+});
+
+const getTimeline = date => ({
+    getTs: () => date.getTime(),
+    getDate: () => date,
+});
+
+const roomMock = (roomId, roomName, members, timeline) =>
+    ({
+        roomId,
+        name: roomName,
+        getJoinedMembers: () => members,
+        timeline,
+    });
+const roomName = 'roomName';
+const roomId = '!roomId';
+const myUser = getUserID('myUser');
+describe('Test room kicking funcs', () => {
+    const lastDate = getTimeline(new Date(2018, 5, 5));
+    const timeline = [
+        getTimeline(new Date(2017, 5, 5)),
+        getTimeline(new Date(2017, 10, 10)),
+        getTimeline(new Date(2018, 2, 3)),
+        lastDate,
+    ];
+    // logger.debug(timeline.map(time => time.getDate()));
+
+    const members = [
+        new sdk.User(getUserID('ivan')),
+        new sdk.User(getUserID('john')),
+        new sdk.User(myUser),
+        new sdk.User(matrixUserId),
+    ];
+    const newRoom = roomMock(roomId, roomName, members, timeline);
+
+    describe('Testsing parseRoom', () => {
+        it('Expect parseRoom to be ', () => {
+            const {members, room, timestamp} = parseRoom(newRoom);
+            logger.debug(members);
+
+            expect(members.length).to.be.eq(3);
+            expect(room).to.be.deep.eq({roomId, roomName});
+            expect(timestamp).to.be.eq(lastDate.getTs());
+        });
+    });
+
+    describe('Testsing getLimit', () => {
+        it('Expect getLimit to be timestamp of 01.01.2018', () => {
+            const limit = getLimit();
+            const expected = 1514775600000;
+
+            expect(limit).to.be.equal(expected);
+        });
+    });
+
+    describe('Testsing getRoomsLastUpdate', () => {
+        it('Expect getRoomsLastUpdate to be ', () => {
+            const result = getRoomsLastUpdate([newRoom], myUser);
+
+            expect(result).to.be;
+        });
+    });
+
+    describe('Testsing getOutdatedRoomsWithSender', () => {
+        it('Expect getOutdatedRoomsWithSender to be ', () => {
+            const parsedRoom = parseRoom(newRoom);
+            const result = getOutdatedRoomsWithSender(myUser)(parsedRoom);
+
+            expect(result).to.be.true;
+        });
     });
 });

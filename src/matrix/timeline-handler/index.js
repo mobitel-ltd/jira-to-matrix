@@ -4,7 +4,6 @@ const {postfix} = require('../../config').matrix;
 const commands = require('./commands');
 const {parseEventBody} = require('./commands/helper.js');
 
-
 const eventFromMatrix = async (event, room, sender, matrixClient) => {
     try {
         const {body} = event.getContent();
