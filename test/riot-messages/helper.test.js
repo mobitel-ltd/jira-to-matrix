@@ -226,9 +226,12 @@ const roomId = '!roomId';
 const myUser = getUserID('myUser');
 describe('Test room kicking funcs', () => {
     const lastDate = getTimeline(new Date(2018, 5, 5));
-    const timeline = [
+    const outDatedTimeline = [
         getTimeline(new Date(2017, 5, 5)),
         getTimeline(new Date(2017, 10, 10)),
+    ];
+    const timeline = [
+        ...outDatedTimeline,
         getTimeline(new Date(2018, 2, 3)),
         lastDate,
     ];
@@ -266,16 +269,25 @@ describe('Test room kicking funcs', () => {
         it('Expect getRoomsLastUpdate to be ', () => {
             const result = getRoomsLastUpdate([newRoom], myUser);
 
-            expect(result).to.be;
+            expect(result.length).not.to.be;
+        });
+
+        it('Expect getRoomsLastUpdate not to be for room which has last event from last year', () => {
+            const testRoom = roomMock(roomId, roomName, members, outDatedTimeline);
+            const result = getRoomsLastUpdate([testRoom], myUser);
+
+            expect(result.length).to.be;
         });
     });
 
     describe('Testsing getOutdatedRoomsWithSender', () => {
         it('Expect getOutdatedRoomsWithSender to be ', () => {
+            logger.debug('newRoom', newRoom);
             const parsedRoom = parseRoom(newRoom);
+            logger.debug('parsedRoom', parsedRoom);
             const result = getOutdatedRoomsWithSender(myUser)(parsedRoom);
 
-            expect(result).to.be.true;
+            expect(result).to.be.false;
         });
     });
 });

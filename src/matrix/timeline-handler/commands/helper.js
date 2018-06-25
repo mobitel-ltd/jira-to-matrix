@@ -145,18 +145,18 @@ const parseRoom = room => {
     return result;
 };
 
-const sortNewToOld = (room1, room2) =>
-    room2.timestamp - room1.timestamp;
+// const sortNewToOld = (room1, room2) =>
+//     room2.timestamp - room1.timestamp;
 
 const getOutdatedRoomsWithSender = userId => ({timestamp, members}) =>
-    (timestamp > getLimit()) && members.some(member => member.includes(userId));
+    (timestamp < getLimit()) && members.some(member => member.includes(userId));
 
 const getRoomsLastUpdate = (rooms, userId) =>
     rooms
         .map(parseRoom)
-        .filter(getOutdatedRoomsWithSender(userId))
-        // next one should be deleted
-        .sort(sortNewToOld);
+        .filter(getOutdatedRoomsWithSender(userId));
+// next one should be deleted
+// .sort(sortNewToOld);
 
 const kickUser = client => async (user, {roomId, roomName}) => {
     try {
