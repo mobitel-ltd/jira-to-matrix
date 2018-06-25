@@ -5,7 +5,7 @@ const proxyquire = require('proxyquire');
 const chai = require('chai');
 
 const JSONbody = require('../fixtures/create.json');
-const getParsedAndSaveToRedis = require('../../src/queue/get-parsed-and-save-to-redis.js');
+const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const createRoomStub = stub();
 // const newSaveSpy = spy();
 

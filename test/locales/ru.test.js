@@ -1,5 +1,5 @@
 const Ramda = require('ramda');
-const {tValues} = require('../src/locales/ru');
+const {tValues} = require('../../src/locales/ru');
 const assert = require('assert');
 
 it('Gender ending for a Russian full name', () => {

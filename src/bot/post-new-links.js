@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const redis = require('../redis-client.js');
-const {getProjectUrl, getLinkedIssue} = require('../jira').issue;
+const {getProjectUrl, getLinkedIssue} = require('../lib/jira-request.js');
 const translate = require('../locales');
 
 const getPostLinkMessageBody = ({relation, related}) => {

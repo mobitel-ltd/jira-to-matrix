@@ -4,7 +4,7 @@ const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
 const jsonBody = require('../fixtures/comment-create-3.json');
 const {postStatusData} = require('../../src/bot/helper');
-const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/queue/parse-body');
+const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body');
 const {getNewIssueMessageBody, getEpicChangedMessageBody, getNewEpicMessageBody} = require('../../src/bot/helper.js');
 
 describe('bot func', function() {

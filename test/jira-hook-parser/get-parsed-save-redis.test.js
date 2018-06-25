@@ -1,10 +1,10 @@
 const assert = require('assert');
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
-const parsers = require('../../src/queue/parse-body.js');
+const parsers = require('../../src/jira-hook-parser/parse-body.js');
 const bot = require('../../src/bot');
-const {getBotFunc, getParserName, getFuncAndBody, isCommentEvent} = require('../../src/queue/bot-handler.js');
-const getParsedAndSaveToRedis = require('../../src/queue/get-parsed-and-save-to-redis.js');
+const {getBotFunc, getParserName, getFuncAndBody, isCommentEvent} = require('../../src/jira-hook-parser/bot-handler.js');
+const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const conf = require('../fixtures/config.js');
 const redis = require('../../src/redis-client.js');
 

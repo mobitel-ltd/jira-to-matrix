@@ -1,7 +1,7 @@
 const nock = require('nock');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const {url} = require('../../src/config').jira;
-const {getRequestErrorLog} = require('../../src/utils/rest');
+const {getRequestErrorLog} = require('../../src/lib/request');
 const querystring = require('querystring');
 
 const chai = require('chai');

@@ -1,9 +1,9 @@
 const assert = require('assert');
 const firstJSON = require('../fixtures/comment-create-1.json');
 const secondJSON = require('../fixtures/comment-create-2.json');
-const parsers = require('../../src/queue/parse-body.js');
+const parsers = require('../../src/jira-hook-parser/parse-body.js');
 const bot = require('../../src/bot');
-const {getBotFunc, getParserName, getFuncAndBody} = require('../../src/queue/bot-handler.js');
+const {getBotFunc, getParserName, getFuncAndBody} = require('../../src/jira-hook-parser/bot-handler.js');
 
 describe('get-bot-data', function() {
     const firstBodyArr = getBotFunc(firstJSON);

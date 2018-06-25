@@ -1,5 +1,6 @@
-const {getCollectParticipants, getProject, getProjectUrl} = require('../jira').issue;
-const {composeRoomName, getUserID} = require('./helper.js');
+const {getCollectParticipants, getProject, getProjectUrl} = require('../lib/jira-request.js');
+const {getUserID} = require('./helper.js');
+const {composeRoomName} = require('../lib/utils.js');
 const logger = require('../modules/log.js')(module);
 const postIssueDescription = require('./post-issue-description.js');
 

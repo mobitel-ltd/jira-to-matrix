@@ -1,11 +1,11 @@
 const nock = require('nock');
 const assert = require('assert');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-1.json');
-const {getPostCommentData} = require('../../src/queue/parse-body.js');
+const {getPostCommentData} = require('../../src/jira-hook-parser/parse-body.js');
 const {postComment} = require('../../src/bot');
-const {isPostNewLinks} = require('../../src/queue/bot-handler.js');
-const {getRequestErrorLog} = require('../../src/utils/rest');
+const {isPostNewLinks} = require('../../src/jira-hook-parser/bot-handler.js');
+const {getRequestErrorLog} = require('../../src/lib/request.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const querystring = require('querystring');
 

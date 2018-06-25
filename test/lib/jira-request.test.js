@@ -1,7 +1,7 @@
 const {expect} = require('chai');
-const {auth} = require('../../src/jira/common');
-const {getRenderedValues, getProjectUrl} = require('../../src/jira').issue;
-const {getRequestErrorLog} = require('../../src/utils/rest');
+const {auth} = require('../../src/lib/utils.js');
+const {getRenderedValues, getProjectUrl} = require('../../src/lib/jira-request');
+const {getRequestErrorLog} = require('../../src/lib/request');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const nock = require('nock');
 const querystring = require('querystring');

@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const htmlToString = require('html-to-text').fromString;
 const logger = require('../modules/log.js')(module);
 
-const {getIssueFormatted} = require('../jira').issue;
+const {getIssueFormatted} = require('../lib/jira-request.js');
 
 const pickRendered = (issue, comment) => {
     const comments = Ramda.path(['renderedFields', 'comment', 'comments'], issue);

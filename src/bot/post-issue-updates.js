@@ -1,4 +1,4 @@
-const {getProjectUrl} = require('../jira').issue;
+const {getProjectUrl} = require('../lib/jira-request.js');
 const logger = require('../modules/log.js')(module);
 const {getIssueUpdateInfoMessageBody} = require('./helper.js');
 

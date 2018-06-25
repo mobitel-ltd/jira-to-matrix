@@ -1,8 +1,8 @@
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const {url: jiraUrl} = require('../config').jira;
-const {auth} = require('./common');
-const {request, paramsToQueryString} = require('../utils');
+const {request} = require('./request.js');
+const {paramsToQueryString} = require('./utils.js');
 
 /**
  * Get url for jira project by key
@@ -13,19 +13,6 @@ const {request, paramsToQueryString} = require('../utils');
 const getProjectUrl = (key, type = 'browse') =>
     [jiraUrl, type, key].join('/');
 
-/**
- * Get issue ID from jira webhook
- * @param {object} json jira webhook
- * @return {string} issue ID
- */
-const extractID = json => {
-    const matches = /\/issue\/(\d+)\//.exec(json);
-    if (!matches) {
-        logger.warn('matches from jira.issue.extractID is not defained');
-        return;
-    }
-    return matches[1];
-};
 
 /**
  * Make jira request to get watchers of issue from url and add to collectParticipantsBody
@@ -35,7 +22,7 @@ const extractID = json => {
  */
 const getCollectParticipants = async ({url, collectParticipantsBody}) => {
     try {
-        const body = await request(url, auth());
+        const body = await request(url);
         if (body && Array.isArray(body.watchers)) {
             const watchers = body.watchers.map(item => item.name);
             collectParticipantsBody.push(...watchers);
@@ -57,7 +44,6 @@ const getCollectParticipants = async ({url, collectParticipantsBody}) => {
 const getLinkedIssue = async id => {
     const body = await request(
         `${jiraUrl}/rest/api/2/issueLink/${id}`,
-        auth()
     );
 
     return body;
@@ -76,7 +62,6 @@ const getIssue = async (id, params) => {
         logger.debug('url for jira request', url);
         const issue = await request(
             url,
-            auth()
         );
 
         return issue;
@@ -95,7 +80,6 @@ const getProject = async id => {
         const url = `${jiraUrl}/rest/api/2/project/${id}`;
         const project = await request(
             url,
-            auth()
         );
 
         return project;
@@ -143,7 +127,6 @@ const getRenderedValues = async (issueID, fields) => {
 
 module.exports = {
     getProjectUrl,
-    extractID,
     getCollectParticipants,
     getIssue,
     getProject,

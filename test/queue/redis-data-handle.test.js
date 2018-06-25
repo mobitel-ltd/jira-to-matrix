@@ -1,8 +1,8 @@
 const nock = require('nock');
-const {auth} = require('../../src/jira/common');
+const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/create.json');
 const issueBody = require('../fixtures/response.json');
-const getParsedAndSaveToRedis = require('../../src/queue/get-parsed-and-save-to-redis.js');
+const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const {prefix} = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
 const proxyquire = require('proxyquire');
@@ -24,7 +24,6 @@ const loggerSpy = {
 
 const {
     saveIncoming,
-    isIgnoreKey,
     getRedisKeys,
     getDataFromRedis,
     getRedisRooms,
@@ -129,16 +128,6 @@ describe('redis-data-handle', function() {
     it('test correct redisKeys', async () => {
         const redisKeys = await getRedisKeys();
         expect(redisKeys).to.have.all.members(expectedFuncKeys);
-    });
-
-    it('test isIgnoreKey', async () => {
-        const keys = [
-            'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
-            'test-jira-hooks:rooms',
-            'test-jira-hooks:newrooms',
-        ];
-        const result = keys.filter(isIgnoreKey);
-        expect(result).to.be.deep.equal(expectedFuncKeys);
     });
 
     it('test correct dataFromRedis', async () => {
