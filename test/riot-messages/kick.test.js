@@ -76,7 +76,6 @@ describe('Test kicking from room', () => {
             translate('successUserKick', {user: myUser, roomName}),
         ];
         const kickMsg = [msgItem, msgItem];
-        // logger.debug();
         expect(infoStub).to.be.calledWithExactly(kickInfo, kickMsg);
     });
 
