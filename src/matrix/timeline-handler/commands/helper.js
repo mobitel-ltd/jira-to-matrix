@@ -128,10 +128,15 @@ const newYear2018 = new Date(Date.UTC(2018, 0, 1, 3));
 const getLimit = () => newYear2018.getTime();
 
 // should get room info, timestamp and date of event, and all members except jira-bot
-const parseRoom = room => {
+const parseRoom = (acc, room) => {
     const {roomId, name: roomName} = room;
     const members = getMembersExceptBot(room.getJoinedMembers());
     const [lastEvent] = room.timeline.slice(-1);
+
+    if (!lastEvent) {
+        return acc;
+    }
+
     const timestamp = lastEvent.getTs();
     const date = lastEvent.getDate();
     const result = {
@@ -142,7 +147,7 @@ const parseRoom = room => {
     };
     // logger.debug('Room data after parsing for kicking', result);
 
-    return result;
+    return [...acc, result];
 };
 
 // const sortNewToOld = (room1, room2) =>
@@ -153,7 +158,7 @@ const getOutdatedRoomsWithSender = userId => ({timestamp, members}) =>
 
 const getRoomsLastUpdate = (rooms, userId) =>
     rooms
-        .map(parseRoom)
+        .reduce(parseRoom, [])
         .filter(getOutdatedRoomsWithSender(userId));
 // next one should be deleted
 // .sort(sortNewToOld);
