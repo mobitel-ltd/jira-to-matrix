@@ -55,7 +55,7 @@
     "jira-connector": "^2.7.0",
     "joi": "^13.1.2",
     "marked": "^0.3.17",
-    "matrix-js-sdk": "^0.9.2",
+    "matrix-js-sdk": "^0.10.7",
     "moment": "^2.21.0",
     "node-polyglot": "^2.2.2",
     "ramda": "^0.25.0",
