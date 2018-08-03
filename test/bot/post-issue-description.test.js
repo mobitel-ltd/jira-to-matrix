@@ -1,5 +1,6 @@
 const nock = require('nock');
 const {auth} = require('../../src/lib/utils.js');
+const {renderedFields} = require('../../test/fixtures/response.json');
 const JSONbody = require('../fixtures/create.json');
 const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
 const issueBody = require('../fixtures/response.json');
@@ -37,7 +38,7 @@ describe('Create room test', () => {
         },
     };
 
-    const sendHtmlMessageStub = spy();
+    const sendHtmlMessageStub = stub();
     const getRoomIdStub = stub().returns('id');
     const createRoomStub = stub().returns('correct room');
 
@@ -55,10 +56,9 @@ describe('Create room test', () => {
         reporterEmail,
         typeName,
         estimateTime,
-        description,
         priority,
     } = createRoomData.issue.descriptionFields;
-
+    const {description} = renderedFields;
     const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
     const expectedHTMLBody = `
             Assignee:
@@ -110,6 +110,7 @@ describe('Create room test', () => {
 
     it('Description with epic should be created', async () => {
         await postIssueDescription({mclient, ...createRoomData, newRoomID});
+
         logger.debug(sendHtmlMessageStub.secondCall.args);
         expect(sendHtmlMessageStub.firstCall.args).to.be.deep.equal([newRoomID, expectedBody, expectedHTMLBody]);
         expect(sendHtmlMessageStub.secondCall).to.have.been.calledWith(newRoomID, 'Send tutorial', expetcedTutorial);
