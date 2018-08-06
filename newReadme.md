@@ -89,6 +89,7 @@
         // short name, before colomn, without @
         user: 'bot',
         password: 'key',
+        pollTimeout: 30000 // The number of milliseconds to wait on /sync
     },
     // log params based on winston https://github.com/winstonjs/winston
     log: {

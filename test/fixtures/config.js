@@ -34,7 +34,6 @@ module.exports = Object.freeze({
         host: '127.0.0.1',
         port: 6379,
         prefix: 'test-jira-hooks:',
-        ttl: 60 * 60 * 24 * 30, // seconds (30 days here)
     },
     ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
     matrix: {
@@ -42,8 +41,7 @@ module.exports = Object.freeze({
         domain: 'matrix.bingo-boom.ru',
         user: 'jira_test_bot', // short name, before colon, without @
         password: 'fakepasswprd',
-        tokenTTL: 1, // new token request interval (10 minutes here)
-        syncTimeoutSec: 20, // seconds
+        pollTimeout: 30000,
     },
     log: {
         type: 'console',
