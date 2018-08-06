@@ -44,7 +44,6 @@ const schema = obj({
         host: string,
         port: int,
         prefix: string,
-        ttl: int,
     }),
     ttm_minutes: int,
     matrix: obj({
@@ -52,8 +51,7 @@ const schema = obj({
         domain: string,
         user: string,
         password: string,
-        tokenTTL: int,
-        syncTimeoutSec: int,
+        pollTimeout: int,
     }),
     log: {
         type: string,
