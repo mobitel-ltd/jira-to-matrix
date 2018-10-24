@@ -25,14 +25,15 @@ It will say if something is wrong.
 * Give ownership of directory installed jira-to-matrix to dedicated user (for security issues)
 * Modify file `jira-to-matrix.service` with your configuration
 * Copy file `jira-to-matrix.service` to `/etc/systemd/system/` and enable it
+* Enable tcp-connection with firewalld from Jira webhook. Enable tcp listener with SELinux
 
 ```bash
 # Add user jira-matrix-bot without homedirectory and deny system login
-$ useradd -M useradd -M jira-matrix-bot
-$ usermod -L jira-matrix-bot
+$ sudo useradd -M useradd -M jira-matrix-bot
+$ sudo usermod -L jira-matrix-bot
     
 # Change directory owner to new created user
-$ chown -R jira-matrix-bot: /path/to/jira-to-matrix
+$ sudo chown -R jira-matrix-bot: /path/to/jira-to-matrix
 
 # Modify service config
 $ vi /path/to/jira-to-matrix/jira-to-matrix.service
@@ -41,11 +42,17 @@ $ vi /path/to/jira-to-matrix/jira-to-matrix.service
 # Copy service definition to systemd directory
 $ sudo cp /path/to/jira-to-matrix/jira-to-matrix.servce /etc/systemd/system
 
+# Enable connections to bot with Jira webhook (tcp port 4100, see your config.js)
+$ sudo firewall-cmd --zone=public --add-port=4100/tcp --permanent
+
+# Add permissions for SELinux (tcp port 4100, see your config.js)
+$ sudo semanage port -a -t http_port_t -p tcp 4100
+
 # Enable service to run at startup
-$ systemctl enable jira-to-matrix
+$ sudo systemctl enable jira-to-matrix
 
 # Start service
-$ systemctl start jira-to-matrix
+$ sudo systemctl start jira-to-matrix
 ```
 
 ### Status
