@@ -1,10 +1,7 @@
 const redis = require('redis');
-const bluebird = require('bluebird');
 const conf = require('./config');
 const logger = require('./modules/log.js')(module);
-
-bluebird.promisifyAll(redis.RedisClient.prototype);
-bluebird.promisifyAll(redis.Multi.prototype);
+const {promisify} = require('util');
 
 const createClient = config => {
     try {
@@ -24,4 +21,12 @@ client.on('error', err => {
     }
 });
 
-module.exports = client;
+module.exports = {
+    getAsync: promisify(client.get).bind(client),
+    setAsync: promisify(client.set).bind(client),
+    sismemberAsync: promisify(client.sismember).bind(client),
+    saddAsync: promisify(client.sadd).bind(client),
+    setnxAsync: promisify(client.setnx).bind(client),
+    delAsync: promisify(client.del).bind(client),
+    keysAsync: promisify(client.keys).bind(client),
+};

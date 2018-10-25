@@ -137,8 +137,6 @@ describe('redis-data-handle', () => {
     });
 
     it('test correct handleRedisData', async () => {
-        loggerSpy.info.reset();
-
         const dataFromRedisBefore = await getDataFromRedis();
         await handleRedisData('client', dataFromRedisBefore);
         const dataFromRedisAfter = await getDataFromRedis();
@@ -152,7 +150,6 @@ describe('redis-data-handle', () => {
 
     it('test error in key handleRedisData', async () => {
         postEpicUpdatesStub.throws('error');
-        loggerSpy.error.reset();
 
         const dataFromRedisBefore = await getDataFromRedis();
         await handleRedisData('client', dataFromRedisBefore);

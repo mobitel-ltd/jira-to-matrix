@@ -1,5 +1,4 @@
 const Ramda = require('ramda');
-const shortid = require('shortid');
 const conf = require('../config');
 const logger = require('../modules/log.js')(module);
 
@@ -27,15 +26,6 @@ const nonEmptyString = Ramda.both(
     Ramda.is(String),
     Ramda.complement(Ramda.isEmpty)
 );
-
-const replacePathWith = Ramda.curry((path, replacer, obj) => {
-    const NA = shortid.generate();
-    const value = Ramda.pathOr(NA, path, obj);
-    if (value === NA) {
-        return obj;
-    }
-    return Ramda.set(Ramda.lensPath(path), replacer(value), obj);
-});
 
 // eslint-disable-next-line no-shadow
 const paths = Ramda.curry((paths, object) => Ramda.pipe(
@@ -150,7 +140,6 @@ module.exports = {
     paramsToQueryString,
     propIn,
     nonEmptyString,
-    replacePathWith,
     paths,
     getNewStatus,
     composeRoomName,
