@@ -14,9 +14,9 @@ const shemaFields = id => JSON.stringify({
     'update': {
         'priority': [{
             'set': {
-                id
+                id,
             },
-        }, ],
+        }],
     },
 });
 
