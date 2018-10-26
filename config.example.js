@@ -35,14 +35,12 @@ module.exports = Object.freeze({
         host: '127.0.0.1',
         port: 6379,
         prefix: 'jira-hooks:',
-        ttl: 60 * 60 * 24 * 30, // seconds (30 days here)
     },
     ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
     matrix: {
         domain: 'matrix.example.org',
         user: 'bot', // short name, before colon, without @
         password: 'key',
-        tokenTTL: 10 * 60, // new token request interval (10 minutes here)
-        syncTimeoutSec: 20, // seconds
+        pollTimeout: 30000 // The number of milliseconds to wait on /sync
     },
 })

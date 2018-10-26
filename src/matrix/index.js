@@ -74,7 +74,8 @@ class Matrix {
     async _getClient() {
         try {
             await this._createClient(this.config);
-            this.client.startClient();
+            const {pollTimeout} = this.config;
+            this.client.startClient({pollTimeout});
             return new Promise(this._executor.bind(this));
         } catch (err) {
             throw ['Error in Matrix connection', err].join('\n');

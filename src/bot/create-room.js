@@ -14,8 +14,7 @@ const create = async (client, issue) => {
         const topic = getProjectUrl(key);
 
         const options = {
-            // eslint-disable-next-line camelcase
-            room_alias_name: key,
+            'room_alias_name': key,
             invite,
             name,
             topic,
@@ -36,8 +35,7 @@ const createRoomProject = async (client, {key, lead, name}) => {
         const topic = getProjectUrl(key, 'projects');
 
         const options = {
-            // eslint-disable-next-line camelcase
-            room_alias_name: key,
+            'room_alias_name': key,
             invite,
             name,
             topic,

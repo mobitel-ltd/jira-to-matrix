@@ -46,12 +46,9 @@ const myUser = getUserID(sender);
 const room = {roomId};
 
 describe('Test kicking from room', () => {
-    const lastDate = getTimeline(new Date(2018, 5, 5));
     const timeline = [
         getTimeline(new Date(2017, 5, 5)),
         getTimeline(new Date(2017, 10, 10)),
-        getTimeline(new Date(2018, 2, 3)),
-        lastDate,
     ];
     // logger.debug(timeline.map(time => time.getDate()));
 
@@ -79,7 +76,6 @@ describe('Test kicking from room', () => {
             translate('successUserKick', {user: myUser, roomName}),
         ];
         const kickMsg = [msgItem, msgItem];
-        // logger.debug();
         expect(infoStub).to.be.calledWithExactly(kickInfo, kickMsg);
     });
 

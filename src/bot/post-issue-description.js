@@ -62,9 +62,9 @@ const getTutorial = `
 module.exports = async ({mclient, issue, newRoomID}) => {
     logger.debug('Post issue description start');
     try {
-        const post = await getPost(issue.descriptionFields);
-        const renderedValues = await getRenderedValues(issue.id, ['description']);
-        const {post: htmlBody} = {post, ...renderedValues};
+        const {description} = await getRenderedValues(issue.id, ['description']);
+        const htmlBody = await getPost({...issue.descriptionFields, description});
+
         const body = htmlToText(htmlBody);
 
         // description
