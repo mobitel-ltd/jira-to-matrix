@@ -73,13 +73,13 @@ describe('redis-data-handle', () => {
                 key: 'BBCOM-1398',
                 id: '30369',
                 collectParticipantsBody: ['jira_test', 'jira_test', 'jira_test'],
-                url: 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
+                url: 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
                 summary: 'Test',
                 descriptionFields: {
                     assigneeName: 'jira_test',
-                    assigneeEmail: 'jira_test@bingo-boom.ru',
+                    assigneeEmail: 'jira_test@test-example.ru',
                     reporterName: 'jira_test',
-                    reporterEmail: 'jira_test@bingo-boom.ru',
+                    reporterEmail: 'jira_test@test-example.ru',
                     typeName: 'Task',
                     epicLink: 'BBCOM-801',
                     estimateTime: '1h',
@@ -113,7 +113,7 @@ describe('redis-data-handle', () => {
     const mclient = {};
 
     beforeEach(async () => {
-        nock('https://jira.bingo-boom.ru', {reqheaders: {Authorization: auth()}})
+        nock('https://jira.test-example.ru', {reqheaders: {Authorization: auth()}})
             .get('/jira/rest/api/2/issue/BBCOM-1398/watchers')
             .reply(200, {...responce, id: 28516})
             .get(`/jira/rest/api/2/issue/30369?expand=renderedFields`)
@@ -173,13 +173,13 @@ describe('redis-data-handle', () => {
                 key: 'BBCOM-1111',
                 id: '30369',
                 collectParticipantsBody: ['jira_test', 'jira_test', 'jira_test'],
-                url: 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
+                url: 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
                 summary: 'Test',
                 descriptionFields: {
                     assigneeName: 'jira_test',
-                    assigneeEmail: 'jira_test@bingo-boom.ru',
+                    assigneeEmail: 'jira_test@test-example.ru',
                     reporterName: 'jira_test',
-                    reporterEmail: 'jira_test@bingo-boom.ru',
+                    reporterEmail: 'jira_test@test-example.ru',
                     typeName: 'Task',
                     epicLink: 'BBCOM-801',
                     estimateTime: '1h',

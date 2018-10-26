@@ -8,6 +8,7 @@ const ROOMS_OLD_NAME = 'rooms';
 // It helps ignore keys for links epic--issue
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
+const [COMMON_NAME] = conf.matrix.domain.split('.').slice(1, 2);
 
 const isIgnoreKey = key => {
     const result = !KEYS_TO_IGNORE.reduce((acc, val) => {
@@ -147,4 +148,5 @@ module.exports = {
     isCommentEvent,
     REDIS_ROOM_KEY,
     isIgnoreKey,
+    COMMON_NAME,
 };

@@ -77,7 +77,7 @@ describe('Create room test', () => {
                 <br>${indent}${priority}<br>
             <br>Epic link:
                 <br>${indent}undefined (BBCOM-801)
-                <br>${indent}\thttps://jira.bingo-boom.ru/jira/browse/BBCOM-801<br>`;
+                <br>${indent}\thttps://jira.test-example.ru/jira/browse/BBCOM-801<br>`;
 
     const expectedBody = htmlToText(expectedHTMLBody);
 
@@ -87,7 +87,7 @@ describe('Create room test', () => {
     `;
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test-example.ru', {
             reqheaders: {
                 Authorization: auth(),
             },

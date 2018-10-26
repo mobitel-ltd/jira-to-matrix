@@ -2,7 +2,7 @@ module.exports = Object.freeze({
     port: 4100, // where to listen JIRA webhooks
     lang: 'ru', // a language bot talks to users in
     jira: {
-        url: 'https://jira.bingo-boom.ru/jira',
+        url: 'https://jira.test-example.ru/jira',
         user: 'jira_test_bot',
         password: 'fakepasswprd',
     },
@@ -38,7 +38,7 @@ module.exports = Object.freeze({
     ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
     matrix: {
         admins: ['jira_test'],
-        domain: 'matrix.bingo-boom.ru',
+        domain: 'matrix.test-example.ru',
         user: 'jira_test_bot', // short name, before colon, without @
         password: 'fakepasswprd',
         pollTimeout: 30000,

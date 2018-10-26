@@ -2,16 +2,11 @@ const Ramda = require('ramda');
 const path = require('path');
 const validate = require('./validate-config.js');
 
-const env = process.env.NODE_ENV || 'development';
+const configPath = process.env.NODE_ENV === 'test' ? './test/fixtures/' : './';
 
-const configPath = {
-    development: './',
-    test: './test/fixtures/',
-};
+const configFilepath = path.resolve(configPath, 'config.js');
 
-const confgigFilepath = path.resolve(configPath[env], 'config.js');
-
-const configData = require(confgigFilepath);
+const configData = require(configFilepath);
 
 const composeConfig = config => {
     if (!validate(config)) {

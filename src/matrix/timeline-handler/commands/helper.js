@@ -8,7 +8,7 @@ const {jira, matrix} = require('../../../config');
 const {userId: botId} = matrix;
 const {url} = jira;
 const {getUserID} = require('../../../bot/helper.js');
-
+const {COMMON_NAME} = require('../../../lib/utils.js');
 const BASE_URL = `${url}/rest/api/2/issue`;
 
 // Checking occurrences of current name
@@ -24,11 +24,21 @@ const checkNamePriority = (priority, index, name) =>
     priority.name.toLowerCase() === name.toLowerCase()
     || String(index + 1) === name;
 
+
+const getUserByParam = username => {
+    try {
+        const queryPararms = querystring.stringify({username});
+
+        return request(`${url}/rest/api/2/user/search?${queryPararms}`);
+    } catch (err) {
+        throw ['getUserByParam error', err].join('\n');
+    }
+};
 // recursive function to get users by num and startAt (start position in jira list of users)
 const getUsers = async (maxResults, startAt, acc = []) => {
     try {
         const params = {
-            username: '@boom',
+            username: COMMON_NAME,
             startAt,
             maxResults,
         };
@@ -68,12 +78,11 @@ const searchUser = async name => {
         if (!name) {
             return [];
         }
-        const allUsers = await getAllUsers();
+        const allUsers = await getUserByParam(name);
 
-        const filteredUsers = allUsers.reduce((prev, cur) =>
+        return allUsers.reduce((prev, cur) =>
             (checkUser(cur, name) ? [...prev, cur] : prev),
         []);
-        return filteredUsers;
     } catch (err) {
         throw ['Search users is failed', err].join('\n');
     }

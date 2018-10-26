@@ -45,13 +45,13 @@ describe('Post epic updates test', () => {
     const expectedData = [
         'roomIdBBCOM-801',
         'Новая задача в эпике',
-        '<p>К эпику добавлена задача <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">BBCOM-956 BBCOM-956</a></p>\n',
+        '<p>К эпику добавлена задача <a href="https://jira.test-example.ru/jira/browse/BBCOM-956">BBCOM-956 BBCOM-956</a></p>\n',
     ];
 
     const postCommentData = getPostEpicUpdatesData(JSONbody);
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test-example.ru', {
             reqheaders: {
                 Authorization: auth(),
             },
@@ -93,8 +93,8 @@ describe('Post epic updates test', () => {
             const expected = [
                 'Error in postEpicUpdates',
                 'Error in get issue',
-                'Error in request https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801',
-                'requestError: request to https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-801 failed, reason: Nock: No match for request {',
+                'Error in request https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-801',
+                'requestError: request to https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-801 failed, reason: Nock: No match for request {',
             ].join('\n');
             expect(err).to.include(expected);
         }

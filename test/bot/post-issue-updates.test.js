@@ -34,7 +34,7 @@ describe('Post issue updates test', () => {
     ];
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test-example.ru', {
             reqheaders: {
                 Authorization: auth(),
             },
@@ -50,9 +50,9 @@ describe('Post issue updates test', () => {
     it('Expect createAlias to be with error but postIssueUpdates should work', async () => {
         createAliasStub.callsFake((alias, roomId) => {
             try {
-                throw new Error('M_UNKNOWN: Room alias #BAO-193:matrix.bingo-boom.ru already exists');
+                throw new Error('M_UNKNOWN: Room alias #BAO-193:matrix.test-example.ru already exists');
             } catch (err) {
-                if (err.message.includes(`Room alias #BAO-193:matrix.bingo-boom.ru already exists`)) {
+                if (err.message.includes(`Room alias #BAO-193:matrix.test-example.ru already exists`)) {
                     return null;
                 }
                 throw ['Error while creating alias for a room', err].join('\n');

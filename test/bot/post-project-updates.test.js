@@ -20,7 +20,7 @@ describe('Post project updates test', () => {
     const sendHtmlMessage = (roomId, body, htmlBody) => {
         assert.equal(roomId, 'roomIdBBCOM');
         assert.equal('Эпик изменён', body);
-        const expectedHtmlBody = '<p>jira_test изменил(а) статус связанного эпика <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-1233">BBCOM-1233 &quot;POupok&quot;</a> на <strong>Paused</strong></p>\n';
+        const expectedHtmlBody = '<p>jira_test изменил(а) статус связанного эпика <a href="https://jira.test-example.ru/jira/browse/BBCOM-1233">BBCOM-1233 &quot;POupok&quot;</a> на <strong>Paused</strong></p>\n';
 
         assert.equal(htmlBody, expectedHtmlBody);
         return true;
@@ -31,7 +31,7 @@ describe('Post project updates test', () => {
     const postProjectUpdatesData = getPostProjectUpdatesData(JSONbody);
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test-example.ru', {
             reqheaders: {
                 Authorization: auth(),
             },

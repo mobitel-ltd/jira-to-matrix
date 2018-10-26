@@ -3,10 +3,10 @@
     "webhookEvent": "jira:issue_created",
     "issue_event_type_name": "issue_created",
     "user": {
-        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+        "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
         "name": "jira_test",
         "key": "jira_test",
-        "emailAddress": "jira_test@bingo-boom.ru",
+        "emailAddress": "jira_test@test-example.ru",
         "avatarUrls": {
             "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
             "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -19,29 +19,29 @@
     },
     "issue": {
         "id": "30369",
-        "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/30369",
+        "self": "https://jira.test-example.ru/jira/rest/api/2/issue/30369",
         "key": "BBCOM-1398",
         "fields": {
             "issuetype": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issuetype/3",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/issuetype/3",
                 "id": "3",
                 "description": "A task that needs to be done.",
-                "iconUrl": "https://jira.bingo-boom.ru/jira/secure/viewavatar?size=xsmall&avatarId=10318&avatarType=issuetype",
+                "iconUrl": "https://jira.test-example.ru/jira/secure/viewavatar?size=xsmall&avatarId=10318&avatarType=issuetype",
                 "name": "Task",
                 "subtask": false,
                 "avatarId": 10318
             },
             "timespent": null,
             "project": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/project/10305",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/project/10305",
                 "id": "10305",
                 "key": "BBCOM",
                 "name": "BB Common",
                 "avatarUrls": {
-                    "48x48": "https://jira.bingo-boom.ru/jira/secure/projectavatar?pid=10305&avatarId=10011",
-                    "24x24": "https://jira.bingo-boom.ru/jira/secure/projectavatar?size=small&pid=10305&avatarId=10011",
-                    "16x16": "https://jira.bingo-boom.ru/jira/secure/projectavatar?size=xsmall&pid=10305&avatarId=10011",
-                    "32x32": "https://jira.bingo-boom.ru/jira/secure/projectavatar?size=medium&pid=10305&avatarId=10011"
+                    "48x48": "https://jira.test-example.ru/jira/secure/projectavatar?pid=10305&avatarId=10011",
+                    "24x24": "https://jira.test-example.ru/jira/secure/projectavatar?size=small&pid=10305&avatarId=10011",
+                    "16x16": "https://jira.test-example.ru/jira/secure/projectavatar?size=xsmall&pid=10305&avatarId=10011",
+                    "32x32": "https://jira.test-example.ru/jira/secure/projectavatar?size=medium&pid=10305&avatarId=10011"
                 }
             },
             "customfield_10110": null,
@@ -54,14 +54,14 @@
             "workratio": -1,
             "lastViewed": null,
             "watches": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-1398/watchers",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers",
                 "watchCount": 0,
                 "isWatching": false
             },
             "created": "2018-01-11T13:08:03.317+0300",
             "priority": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/priority/3",
-                "iconUrl": "https://jira.bingo-boom.ru/jira/images/icons/priorities/medium.svg",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/jira/images/icons/priorities/medium.svg",
                 "name": "Medium",
                 "id": "3"
             },
@@ -75,10 +75,10 @@
             "customfield_10814": null,
             "issuelinks": [],
             "assignee": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
                 "name": "jira_test",
                 "key": "jira_test",
-                "emailAddress": "jira_test@bingo-boom.ru",
+                "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -91,13 +91,13 @@
             },
             "updated": "2018-01-11T13:08:03.317+0300",
             "status": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/status/1",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/status/1",
                 "description": "The issue is open and ready for the assignee to start work on it.",
-                "iconUrl": "https://jira.bingo-boom.ru/jira/images/icons/statuses/open.png",
+                "iconUrl": "https://jira.test-example.ru/jira/images/icons/statuses/open.png",
                 "name": "Open",
                 "id": "1",
                 "statusCategory": {
-                    "self": "https://jira.bingo-boom.ru/jira/rest/api/2/statuscategory/2",
+                    "self": "https://jira.test-example.ru/jira/rest/api/2/statuscategory/2",
                     "id": 2,
                     "key": "new",
                     "colorName": "blue-gray",
@@ -117,10 +117,10 @@
             "customfield_10600": null,
             "customfield_10602": [
                 {
-                    "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                    "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
                     "name": "jira_test",
                     "key": "jira_test",
-                    "emailAddress": "jira_test@bingo-boom.ru",
+                    "emailAddress": "jira_test@test-example.ru",
                     "avatarUrls": {
                         "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                         "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -147,10 +147,10 @@
             "customfield_10809": null,
             "summary": "Test",
             "creator": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
                 "name": "jira_test",
                 "key": "jira_test",
-                "emailAddress": "jira_test@bingo-boom.ru",
+                "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -163,10 +163,10 @@
             },
             "subtasks": [],
             "reporter": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/user?username=jira_test",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
                 "name": "jira_test",
                 "key": "jira_test",
-                "emailAddress": "jira_test@bingo-boom.ru",
+                "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -195,7 +195,7 @@
                 "startAt": 0
             },
             "votes": {
-                "self": "https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-1398/votes",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/votes",
                 "votes": 0,
                 "hasVoted": false
             },
