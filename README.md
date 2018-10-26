@@ -21,6 +21,40 @@ Make some config copying _config.example.js_. Run
 `$ node . -c "path_to_config"`
 It will say if something is wrong.
 
+### Install Linux CentOS service with systemd 
+* Give ownership of directory installed jira-to-matrix to dedicated user (for security issues)
+* Modify file `jira-to-matrix.service` with your configuration
+* Copy file `jira-to-matrix.service` to `/etc/systemd/system/` and enable it
+* Enable tcp-connection with firewalld from Jira webhook. Enable tcp listener with SELinux
+
+```bash
+# Add user jira-matrix-bot without homedirectory and deny system login
+$ sudo useradd -M useradd -M jira-matrix-bot
+$ sudo usermod -L jira-matrix-bot
+    
+# Change directory owner to new created user
+$ sudo chown -R jira-matrix-bot: /path/to/jira-to-matrix
+
+# Modify service config
+$ vi /path/to/jira-to-matrix/jira-to-matrix.service
+# change User, WorkingDirectory, ExecStart
+
+# Copy service definition to systemd directory
+$ sudo cp /path/to/jira-to-matrix/jira-to-matrix.servce /etc/systemd/system
+
+# Enable connections to bot with Jira webhook (tcp port 4100, see your config.js)
+$ sudo firewall-cmd --zone=public --add-port=4100/tcp --permanent
+
+# Add permissions for SELinux (tcp port 4100, see your config.js)
+$ sudo semanage port -a -t http_port_t -p tcp 4100
+
+# Enable service to run at startup
+$ sudo systemctl enable jira-to-matrix
+
+# Start service
+$ sudo systemctl start jira-to-matrix
+```
+
 ### Status
 ~~The project is in a rough shape and under active development.~~ Fixed
 It is successfully deployed in a medium-size company.
