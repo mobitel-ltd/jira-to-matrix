@@ -36,7 +36,7 @@ describe('Helper tests', () => {
 
         assert.equal(body, 'Эпик изменён');
 
-        const expected = `<p>${data.name} изменил(а) статус связанного эпика <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">${data.key} &quot;${data.summary}&quot;</a> на <strong>${data.status}</strong></p>\n`;
+        const expected = `<p>${data.name} изменил(а) статус связанного эпика <a href="https://jira.test-example.ru/jira/browse/BBCOM-956">${data.key} &quot;${data.summary}&quot;</a> на <strong>${data.status}</strong></p>\n`;
         assert.equal(htmlBody, expected);
     });
 
@@ -47,7 +47,7 @@ describe('Helper tests', () => {
 
         assert.equal(body, 'Новый эпик в проекте');
 
-        const expected = `<p>К проекту добавлен эпик <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">${data.key} ${data.summary}</a></p>\n`;
+        const expected = `<p>К проекту добавлен эпик <a href="https://jira.test-example.ru/jira/browse/BBCOM-956">${data.key} ${data.summary}</a></p>\n`;
         assert.equal(htmlBody, expected);
     });
 
@@ -57,7 +57,7 @@ describe('Helper tests', () => {
 
         assert.equal(body, 'BBCOM-956 "BBCOM-956" теперь в статусе "Closed"');
 
-        const expected = `<p>jira_test изменил(а) статус связанной задачи <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">BBCOM-956 &quot;BBCOM-956&quot;</a> на <strong>Closed</strong></p>\n`;
+        const expected = `<p>jira_test изменил(а) статус связанной задачи <a href="https://jira.test-example.ru/jira/browse/BBCOM-956">BBCOM-956 &quot;BBCOM-956&quot;</a> на <strong>Closed</strong></p>\n`;
         assert.equal(htmlBody, expected);
     });
 
@@ -86,7 +86,7 @@ describe('Helper tests', () => {
 
         const {body, htmlBody} = getNewIssueMessageBody(data);
         assert.equal(body, 'Новая задача в эпике');
-        assert.equal(htmlBody, '<p>К эпику добавлена задача <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-956">BBCOM-956 lalalla</a></p>\n');
+        assert.equal(htmlBody, '<p>К эпику добавлена задача <a href="https://jira.test-example.ru/jira/browse/BBCOM-956">BBCOM-956 lalalla</a></p>\n');
     });
 
     it('membersInvited test', () => {
@@ -104,7 +104,7 @@ describe('Helper tests', () => {
         const name = 'BBCOM';
         const result = getUserID(name);
 
-        expect(result).to.equal('@BBCOM:matrix.bingo-boom.ru');
+        expect(result).to.equal('@BBCOM:matrix.test-example.ru');
     });
 
     it('isStartEndUpdateStatus test', () => {

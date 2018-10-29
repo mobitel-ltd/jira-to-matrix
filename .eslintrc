@@ -1,10 +1,6 @@
 {
   "parserOptions": {
-    "ecmaVersion": 8,
-    "ecmaFeatures": {
-      "impliedStrict": true,
-      "experimentalObjectRestSpread": true
-    }
+    "ecmaVersion": 2018
   },
   "extends": [
     "eslint:recommended",
@@ -19,11 +15,9 @@
     "mocha": true
   },
   "plugins": [
-    "chai-friendly",
-    "mocha"
+    "chai-friendly"
   ],
   "rules": {
-    "mocha/no-exclusive-tests": "error",
     "array-callback-return": [
       "error"
     ],

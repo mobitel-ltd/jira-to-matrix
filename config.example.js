@@ -38,7 +38,7 @@ module.exports = Object.freeze({
     },
     ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
     matrix: {
-        domain: 'matrix.example.org',
+        domain: 'matrix.example-example.org',
         user: 'bot', // short name, before colon, without @
         password: 'key',
         pollTimeout: 30000 // The number of milliseconds to wait on /sync

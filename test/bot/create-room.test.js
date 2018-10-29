@@ -36,9 +36,9 @@ describe('Create room test', () => {
 
     const expectedOptions = {
         'room_alias_name': 'BBCOM-1398',
-        'invite': ['@jira_test:matrix.bingo-boom.ru'],
+        'invite': ['@jira_test:matrix.test-example.ru'],
         'name': 'BBCOM-1398 Test',
-        'topic': 'https://jira.bingo-boom.ru/jira/browse/BBCOM-1398',
+        'topic': 'https://jira.test-example.ru/jira/browse/BBCOM-1398',
     };
 
     const sendHtmlMessageStub = stub();
@@ -54,7 +54,7 @@ describe('Create room test', () => {
     const createRoomData = getCreateRoomData(JSONbody);
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test-example.ru', {
             reqheaders: {
                 Authorization: auth(),
             },
@@ -111,9 +111,9 @@ describe('Create room test', () => {
     it('Project room should be created', async () => {
         const expectedProjectOptions = {
             'room_alias_name': 'EX',
-            'invite': ['@fred:matrix.bingo-boom.ru'],
+            'invite': ['@fred:matrix.test-example.ru'],
             'name': 'Example',
-            'topic': 'https://jira.bingo-boom.ru/jira/projects/EX',
+            'topic': 'https://jira.test-example.ru/jira/projects/EX',
         };
 
         getRoomIdStub.withArgs('BBCOM').returns(false);

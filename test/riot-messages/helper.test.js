@@ -11,6 +11,7 @@ const {expect} = chai;
 chai.use(sinonChai);
 const logger = require('../../src/modules/log.js')(module);
 const {getUserID} = require('../../src/bot/helper');
+const {COMMON_NAME} = require('../../src/lib/utils.js');
 
 const {
     getRoomsLastUpdate,
@@ -28,6 +29,7 @@ const {
 } = require('../../src/matrix/timeline-handler/commands/helper');
 
 describe('Commands helper tests', () => {
+    const userName = 'Ivan';
     const users = [
         {
             displayName: 'Ivan Andreevich A',
@@ -46,10 +48,9 @@ describe('Commands helper tests', () => {
             name: 'pa_d',
         },
     ];
-    const username = '@boom';
     const errorStatus = 400;
     const errorParams = {
-        username,
+        username: COMMON_NAME,
         startAt: 5,
         maxResults: 3,
     };
@@ -64,21 +65,27 @@ describe('Commands helper tests', () => {
             .get(urlPath)
             .times(3)
             .query({
-                username,
+                username: userName,
+            })
+            .reply(200, users)
+            .get(urlPath)
+            .times(3)
+            .query({
+                username: COMMON_NAME,
                 startAt: 0,
                 maxResults: 999,
             })
             .reply(200, users)
             .get(urlPath)
             .query({
-                username,
+                username: COMMON_NAME,
                 startAt: 0,
                 maxResults: 3,
             })
             .reply(200, users.slice(0, 3))
             .get(urlPath)
             .query({
-                username,
+                username: COMMON_NAME,
                 startAt: 3,
                 maxResults: 3,
             })

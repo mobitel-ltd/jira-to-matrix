@@ -1,5 +1,4 @@
 const Ramda = require('ramda');
-const shortid = require('shortid');
 const conf = require('../config');
 const logger = require('../modules/log.js')(module);
 
@@ -9,6 +8,7 @@ const ROOMS_OLD_NAME = 'rooms';
 // It helps ignore keys for links epic--issue
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
+const [COMMON_NAME] = conf.matrix.domain.split('.').slice(1, 2);
 
 const isIgnoreKey = key => {
     const result = !KEYS_TO_IGNORE.reduce((acc, val) => {
@@ -27,15 +27,6 @@ const nonEmptyString = Ramda.both(
     Ramda.is(String),
     Ramda.complement(Ramda.isEmpty)
 );
-
-const replacePathWith = Ramda.curry((path, replacer, obj) => {
-    const NA = shortid.generate();
-    const value = Ramda.pathOr(NA, path, obj);
-    if (value === NA) {
-        return obj;
-    }
-    return Ramda.set(Ramda.lensPath(path), replacer(value), obj);
-});
 
 // eslint-disable-next-line no-shadow
 const paths = Ramda.curry((paths, object) => Ramda.pipe(
@@ -150,7 +141,6 @@ module.exports = {
     paramsToQueryString,
     propIn,
     nonEmptyString,
-    replacePathWith,
     paths,
     getNewStatus,
     composeRoomName,
@@ -158,4 +148,5 @@ module.exports = {
     isCommentEvent,
     REDIS_ROOM_KEY,
     isIgnoreKey,
+    COMMON_NAME,
 };

@@ -48,10 +48,10 @@ describe('post New Links test', () => {
         assert.ok(['roomId28516', 'roomId30137'].includes(roomId));
         assert.equal('Новый линк', body);
         const expectedHtmlBody = [
-            '<p>Новая связь, эта задача <strong>Duplicates</strong> <a href="https://jira.bingo-boom.ru/jira/browse/30137">30137 &quot;test_task_90&quot;</a></p>\n',
-            '<p>Новая связь, эта задача <strong>Duplicates</strong> <a href="https://jira.bingo-boom.ru/jira/browse/30137">30137 &quot;test_task_90&quot;</a></p>\n',
-            '<p>Новая связь, эта задача <strong>Duplicated by</strong> <a href="https://jira.bingo-boom.ru/jira/browse/28516">28516 &quot;BBCOM-956&quot;</a></p>\n',
-            '<p>Новая связь, эта задача <strong>Duplicated by</strong> <a href="https://jira.bingo-boom.ru/jira/browse/28516">28516 &quot;BBCOM-956&quot;</a></p>\n',
+            '<p>Новая связь, эта задача <strong>Duplicates</strong> <a href="https://jira.test-example.ru/jira/browse/30137">30137 &quot;test_task_90&quot;</a></p>\n',
+            '<p>Новая связь, эта задача <strong>Duplicates</strong> <a href="https://jira.test-example.ru/jira/browse/30137">30137 &quot;test_task_90&quot;</a></p>\n',
+            '<p>Новая связь, эта задача <strong>Duplicated by</strong> <a href="https://jira.test-example.ru/jira/browse/28516">28516 &quot;BBCOM-956&quot;</a></p>\n',
+            '<p>Новая связь, эта задача <strong>Duplicated by</strong> <a href="https://jira.test-example.ru/jira/browse/28516">28516 &quot;BBCOM-956&quot;</a></p>\n',
         ];
 
         assert.ok(expectedHtmlBody.includes(htmlBody));
@@ -61,7 +61,7 @@ describe('post New Links test', () => {
     const mclient = {sendHtmlMessage, getRoomId};
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test-example.ru', {
             reqheaders: {
                 Authorization: auth(),
             },

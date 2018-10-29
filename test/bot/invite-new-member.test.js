@@ -17,7 +17,7 @@ const inviteNewMembers = proxyquire('../../src/bot/invite-new-members.js', {
 
 describe('inviteNewMembers test', () => {
     const responce = {
-        'self': 'https://jira.bingo-boom.ru/jira/rest/api/2/issue/BBCOM-1233/watchers',
+        'self': 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1233/watchers',
         'isWatching': false,
         'watchCount': 1,
         'watchers': [
@@ -52,13 +52,13 @@ describe('inviteNewMembers test', () => {
 
     const inviteNewMembersData = getInviteNewMembersData(JSONbody);
     const expected = [
-        '@fred:matrix.bingo-boom.ru',
-        '@alex:matrix.bingo-boom.ru',
-        '@vasya:matrix.bingo-boom.ru',
+        '@fred:matrix.test-example.ru',
+        '@alex:matrix.test-example.ru',
+        '@vasya:matrix.test-example.ru',
     ];
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test-example.ru', {
             reqheaders: {
                 Authorization: auth(),
             },
@@ -80,7 +80,7 @@ describe('inviteNewMembers test', () => {
     it('Get true after running inviteNewMembers', async () => {
         getRoomByAliasStub.reset();
         getRoomByAliasStub.returns({
-            getJoinedMembers: () => [{userId: '@jira_test:matrix.bingo-boom.ru'}],
+            getJoinedMembers: () => [{userId: '@jira_test:matrix.test-example.ru'}],
         });
         const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
 
@@ -99,7 +99,7 @@ describe('inviteNewMembers test', () => {
 
     it('Get error after throw in invite', async () => {
         getRoomByAliasStub.returns({
-            getJoinedMembers: () => [{userId: '@jira_test:matrix.bingo-boom.ru'}],
+            getJoinedMembers: () => [{userId: '@jira_test:matrix.test-example.ru'}],
         });
         inviteStub.throws('Error in inviteStub!!!');
 

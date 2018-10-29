@@ -45,7 +45,7 @@ describe('post New Links test', () => {
         assert.equal('BBCOM-1233 "POupok" теперь в статусе "Paused"', body);
         assert.equal(roomId, 'roomIdBBCOM-1150');
         const expectedHtmlBody =
-            '<p>jira_test изменил(а) статус связанной задачи <a href="https://jira.bingo-boom.ru/jira/browse/BBCOM-1233">BBCOM-1233 &quot;POupok&quot;</a> на <strong>Paused</strong></p>\n';
+            '<p>jira_test изменил(а) статус связанной задачи <a href="https://jira.test-example.ru/jira/browse/BBCOM-1233">BBCOM-1233 &quot;POupok&quot;</a> на <strong>Paused</strong></p>\n';
 
         assert.ok(expectedHtmlBody.includes(htmlBody));
         return true;
@@ -54,7 +54,7 @@ describe('post New Links test', () => {
     const mclient = {sendHtmlMessage, getRoomId};
 
     before(() => {
-        nock('https://jira.bingo-boom.ru', {
+        nock('https://jira.test-example.ru', {
             reqheaders: {
                 Authorization: auth(),
             },
