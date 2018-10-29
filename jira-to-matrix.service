@@ -1,0 +1,14 @@
+[Unit]
+Description=Jira-To-Matrix bot
+After=network.target
+
+[Service]
+Environment=NODE_PORT=4001
+Type=simple
+User=%(jira-to-matrix user)
+WorkingDirectory=/path/to/jira-to-matrix/
+ExecStart=/usr/bin/node /path/to/jira-to-matrix/src/app.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

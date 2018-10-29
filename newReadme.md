@@ -106,6 +106,41 @@
 ```
 `src/config/validate-config.js` содержит файл с перечислением валидных типов данных для каждого параметра.
 
+## Установка сервиса systemd в CentOS
+
+* Создать отдельного пользователя в системе без права входа в систему и без домашней папки (из соображений безопасности)
+* Изменить файл `jira-to-matrix.service` в соответствии с тем, куда вы установили jira-to-matrix и созданного пользователя
+* Разрешить в firewalld подключения к порту, на котором бот слушает вебхуки Jira. Разрешить прослушивать порт в SELinux
+* Скопировать файл `jira-to-matrix.service` в директорию `/etc/systemd/system/`, разрешить запускать сервис при старте системы
+
+```bash
+# Add user jira-to-matrix-bot without homedirectory and deny system login
+$ sudo useradd -M jira-matrix-bot
+$ sudo usermod -L jira-matrix-bot
+    
+# Change directory owner to new created user
+$ chown -R jira-matrix-bot: /path/to/jira-to-matrix
+
+# Modify service config
+$ vi /path/to/jira-to-matrix/jira-to-matrix.service
+# change User, WorkingDirectory, ExecStart
+
+# Copy service definition to systemd directory
+$ sudo cp /path/to/jira-to-matrix/jira-to-matrix.service /etc/systemd/system
+
+# Enable connections to bot with Jira webhook (tcp port 4100, see your config.js)
+$ sudo firewall-cmd --zone=public --add-port=4100/tcp --permanent
+
+# Add permissions for SELinux (tcp port 4100, see your config.js)
+$ sudo semanage port -a -t http_port_t -p tcp 4100
+
+# Enable service to run at startup
+$ sudo systemctl enable jira-to-matrix
+
+# Start service
+$ sudo systemctl start jira-to-matrix
+```
+
 ## Описание работы
 
 После запуска на сервере бот отслеживает получаемые от Jira [вебхуки](https://developer.atlassian.com/jiradev/jira-apis/webhooks).

@@ -11,8 +11,12 @@ const schemaMove = id => JSON.stringify({
 });
 
 const shemaFields = id => JSON.stringify({
-    'fields': {
-        'priority': id,
+    'update': {
+        'priority': [{
+            'set': {
+                id,
+            },
+        }],
     },
 });
 
