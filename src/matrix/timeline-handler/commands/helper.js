@@ -121,7 +121,7 @@ const addToWatchers = async (room, roomName, name, matrixClient) => {
         }
 
         // add watcher for issue
-        await requestPost(`${BASE_URL}/${roomName}/watchers`, schemaWatcher(name));
+        return requestPost(`${BASE_URL}/${roomName}/watchers`, schemaWatcher(name));
     } catch (err) {
         throw ['addAssigneeInWatchers error', err].join('\n');
     }
