@@ -7,7 +7,7 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
         switch (users.length) {
             case 0: {
                 const post = translate('errorWatcherJira');
-                matrixClient.sendHtmlMessage(room.roomId, post, post);
+                await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
                 return `Watcher "${bodyText}" isn't added to ${roomName} issue`;
             }
@@ -17,7 +17,7 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
                 await addToWatchers(room, roomName, name, matrixClient);
 
                 const post = translate('successWatcherJira');
-                matrixClient.sendHtmlMessage(room.roomId, post, post);
+                await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
                 return `User ${displayName} was added in watchers for issue ${roomName}`;
             }

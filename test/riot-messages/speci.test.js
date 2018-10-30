@@ -59,11 +59,14 @@ describe('spec test', () => {
         })
             .post(`/${roomName}/watchers`, schemaWatcher('is_b'))
             .times(2)
+            .delayBody(2000)
             .reply(204)
             .post(`/${roomName}/watchers`, schemaWatcher('ia_a'))
             .times(2)
+            .delayBody(2000)
             .reply(204)
             .post(`/${roomName}/assignee`)
+            .delayBody(2000)
             .reply(404, 'Error!!!');
     });
 
