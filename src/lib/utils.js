@@ -51,7 +51,7 @@ const paramsToQueryString = params => {
 
 const auth = () => {
     const {user, password} = conf.jira;
-    const encoded = new Buffer(`${user}:${password}`).toString('base64');
+    const encoded = Buffer.from(`${user}:${password}`).toString('base64');
     return `Basic ${encoded}`;
 };
 

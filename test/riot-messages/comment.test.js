@@ -1,15 +1,16 @@
 const nock = require('nock');
-const {auth} = require('../../src/lib/utils.js');
-const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
-const {schemaComment} = require('../../src/matrix/timeline-handler/commands/schemas.js');
-const {comment} = require('../../src/matrix/timeline-handler/commands');
-const {getRequestErrorLog} = require('../../src/lib/request');
-
 const chai = require('chai');
 const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
+
+const {auth} = require('../../src/lib/utils.js');
+const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
+const {schemaComment} = require('../../src/matrix/timeline-handler/commands/schemas.js');
+const {comment} = require('../../src/matrix/timeline-handler/commands');
+const {getRequestErrorLog} = require('../../src/lib/request');
+const {dict: {errorMatrixComment}} = require('../../src/locales/ru.js');
 
 describe('comment test', () => {
     const sendHtmlMessageStub = stub();
@@ -49,16 +50,18 @@ describe('comment test', () => {
     });
 
     it('comment not published', async () => {
-        const requestErrorLog = getRequestErrorLog(`${BASE_URL}${urlPath}`, errorStatus, 'POST');
+        const sender = null;
+        const body = schemaComment(sender, bodyText);
+        const requestErrorLog = getRequestErrorLog(`${BASE_URL}${urlPath}`, errorStatus, {method: 'POST', body});
 
         const expected = [`Comment from null for ${roomName} not published`, requestErrorLog].join('\n');
         const expectedData = [
             room.roomId,
-            'Что-то пошло не так! Комментарий не опубликован',
-            'Что-то пошло не так! Комментарий не опубликован',
+            errorMatrixComment,
+            errorMatrixComment,
         ];
 
-        const commentAnswer = await comment({bodyText, sender: null, room, roomName, matrixClient});
+        const commentAnswer = await comment({bodyText, sender, room, roomName, matrixClient});
         expect(commentAnswer).to.be.equal(expected);
 
         expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);

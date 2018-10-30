@@ -4,8 +4,8 @@ const {auth} = require('./utils.js');
 
 const TIMEOUT = 60000;
 
-const getRequestErrorLog = (url, status, method = 'GET') =>
-    `Error in ${method} request ${url}, status is ${status}`;
+const getRequestErrorLog = (url, status, {method, body} = {method: 'GET'}) =>
+    `Error in ${method} request ${url}, status is ${status}, body is ${body}`;
 
 const request = async (url, newOptions) => {
     const options = {
@@ -21,24 +21,26 @@ const request = async (url, newOptions) => {
             return JSON.parse(response);
         }
     } catch ({statusCode}) {
-        throw getRequestErrorLog(url, statusCode, options.method);
+        throw getRequestErrorLog(url, statusCode, options);
     }
 };
 
-const requestPost = async (url, body) => {
+const requestPost = (url, body) => {
     const options = {
         method: 'POST',
         body,
     };
-    await request(url, options);
+
+    return request(url, options);
 };
 
-const requestPut = async (url, body) => {
+const requestPut = (url, body) => {
     const options = {
         method: 'PUT',
         body,
     };
-    await request(url, options);
+
+    return request(url, options);
 };
 
 module.exports = {

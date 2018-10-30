@@ -46,7 +46,6 @@
       "error",
       "all"
     ],
-    "chai-friendly/no-unused-expressions": 2,
     "dot-location": [
       "error",
       "property"
@@ -381,5 +380,14 @@
         "functionPrototypeMethods": true
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.test.js"],
+      "rules": {
+        "no-unused-expressions": 0,
+        "chai-friendly/no-unused-expressions": 2
+      }
+    }
+  ]
 }
