@@ -1,9 +1,11 @@
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const {url: jiraUrl} = require('../config').jira;
+const {jira, inviteIgnoreUsers} = require('../config');
 const {request} = require('./request.js');
 const {paramsToQueryString} = require('./utils.js');
 
+const {url: jiraUrl} = jira;
+const isExpectedToInvite = name => !inviteIgnoreUsers.includes(name);
 /**
  * Get url for jira project by key
  * @param {string} key key of jira project
@@ -20,17 +22,14 @@ const getProjectUrl = (key, type = 'browse') =>
  * @param {array} collectParticipantsBody array of users linked to current issue
  * @return {array} jira response with issue
  */
-const getCollectParticipants = async ({url, collectParticipantsBody}) => {
+const getCollectParticipants = async ({watchersUrl, collectParticipantsBody}) => {
     try {
-        const body = await request(url);
-        if (body && Array.isArray(body.watchers)) {
-            const watchers = body.watchers.map(item => item.name);
-            collectParticipantsBody.push(...watchers);
-        }
+        const body = await request(watchersUrl);
+        const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];
 
-        const result = new Set(collectParticipantsBody.filter(Boolean));
+        const allWatchersSet = new Set([...collectParticipantsBody, ...watchers]);
 
-        return [...result];
+        return [...allWatchersSet].filter(isExpectedToInvite);
     } catch (err) {
         throw ['getCollectParticipants error', err].join('\n');
     }

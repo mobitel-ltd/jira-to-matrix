@@ -1,0 +1,52 @@
+{
+    "self": "https://jira.example.org/jira/rest/api/2/issue/test-issue/watchers",
+    "isWatching": false,
+    "watchCount": 3,
+    "watchers": [
+        {
+            "self": "https://jira.example.org/jira/rest/api/2/user?username=ii_ivanov",
+            "name": "ii_ivanov",
+            "key": "ii_ivanov",
+            "emailAddress": "",
+            "avatarUrls": {
+                "48x48": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=48",
+                "24x24": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=24",
+                "16x16": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=16",
+                "32x32": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=32"
+            },
+            "displayName": "Иванов Иван Иванович",
+            "active": false,
+            "timeZone": "Europe/Moscow"
+        },
+        {
+            "self": "https://jira.example.org/jira/rest/api/2/user?username=pp_petrov",
+            "name": "pp_petrov",
+            "key": "pp_petrov",
+            "emailAddress": "pp_petrov@exmaple.com",
+            "avatarUrls": {
+                "48x48": "https://jira.example.org/jira/secure/useravatar?ownerId=pp_petrov&avatarId=11002",
+                "24x24": "https://jira.example.org/jira/secure/useravatar?size=small&ownerId=pp_petrov&avatarId=11002",
+                "16x16": "https://jira.example.org/jira/secure/useravatar?size=xsmall&ownerId=pp_petrov&avatarId=11002",
+                "32x32": "https://jira.example.org/jira/secure/useravatar?size=medium&ownerId=pp_petrov&avatarId=11002"
+            },
+            "displayName": "Петров Петр Петрович",
+            "active": true,
+            "timeZone": "Europe/Moscow"
+        },
+        {
+            "self": "https://jira.example.org/jira/rest/api/2/user?username=bb_borisov",
+            "name": "bb_borisov",
+            "key": "bb_borisov",
+            "emailAddress": "bb_borisov@exmaple.com",
+            "avatarUrls": {
+                "48x48": "https://jira.example.org/jira/secure/useravatar?ownerId=bb_borisov&avatarId=10701",
+                "24x24": "https://jira.example.org/jira/secure/useravatar?size=small&ownerId=bb_borisov&avatarId=10701",
+                "16x16": "https://jira.example.org/jira/secure/useravatar?size=xsmall&ownerId=bb_borisov&avatarId=10701",
+                "32x32": "https://jira.example.org/jira/secure/useravatar?size=medium&ownerId=bb_borisov&avatarId=10701"
+            },
+            "displayName": "Борисов Борис Борисович",
+            "active": true,
+            "timeZone": "Europe/Moscow"
+        }
+    ]
+}

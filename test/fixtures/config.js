@@ -36,6 +36,7 @@ module.exports = Object.freeze({
         prefix: 'test-jira-hooks:',
     },
     ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
+    inviteIgnoreUsers: [],
     matrix: {
         admins: ['jira_test'],
         domain: 'matrix.test-example.ru',

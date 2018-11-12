@@ -1,13 +1,16 @@
+const proxyquire = require('proxyquire');
 const {expect} = require('chai');
 const {auth} = require('../../src/lib/utils.js');
-const {getRenderedValues, getProjectUrl} = require('../../src/lib/jira-request');
+const {getRenderedValues, getProjectUrl, getCollectParticipants} = require('../../src/lib/jira-request');
 const {getRequestErrorLog} = require('../../src/lib/request');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const nock = require('nock');
 const querystring = require('querystring');
 const issueBody = require('../fixtures/response.json');
 const {url} = require('../../src/config').jira;
+const watchersJSON = require('../fixtures/watchers.json');
 
+const watchersUsers = watchersJSON.watchers.map(({name}) => name);
 describe('Issue test', () => {
     const issue = {
         id: 26313,
@@ -16,6 +19,7 @@ describe('Issue test', () => {
     const params = {expand: 'renderedFields'};
     const queryParams = querystring.stringify(params);
     const fakePath = '/1000';
+    const collectParticipantsBody = ['testName1', 'testName2'];
 
     before(() => {
         nock(BASE_URL, {
@@ -28,7 +32,10 @@ describe('Issue test', () => {
             .reply(200, issueBody)
             .get(fakePath)
             .query({expand: 'renderedFields'})
-            .reply(404, 'Error!!!');
+            .reply(404, 'Error!!!')
+            .get(`/${issue.id}/watchers`)
+            .times(3)
+            .reply(200, watchersJSON);
     });
 
     it('getRenderedValues test', async () => {
@@ -57,5 +64,33 @@ describe('Issue test', () => {
 
         const issueResult = getProjectUrl(issue.id);
         expect(issueResult).to.be.deep.equal(`${url}/browse/${issue.id}`);
+    });
+
+    it('expect getCollectParticipants works correct', async () => {
+        const watchersUrl = [BASE_URL, issue.id, 'watchers'].join('/');
+        const result = await getCollectParticipants({watchersUrl, collectParticipantsBody});
+        expect(result).to.be.deep.eq([...collectParticipantsBody, ...watchersUsers]);
+    });
+
+    it('expect getCollectParticipants avoid users from ignore invite list', async () => {
+        const {getCollectParticipants: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
+            '../config': {
+                inviteIgnoreUsers: collectParticipantsBody,
+            },
+        });
+        const watchersUrl = [BASE_URL, issue.id, 'watchers'].join('/');
+        const result = await getCollectParticipantsProxy({watchersUrl, collectParticipantsBody});
+        expect(result).to.be.deep.eq(watchersUsers);
+    });
+
+    it('expect getCollectParticipants avoid users from ignore invite list', async () => {
+        const {getCollectParticipants: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
+            '../config': {
+                inviteIgnoreUsers: watchersUsers,
+            },
+        });
+        const watchersUrl = [BASE_URL, issue.id, 'watchers'].join('/');
+        const result = await getCollectParticipantsProxy({watchersUrl, collectParticipantsBody});
+        expect(result).to.be.deep.eq(collectParticipantsBody);
     });
 });
