@@ -72,6 +72,8 @@
     },
     // useful for testing, add a test user into production config
     usersToIgnore: ['jira_test'],
+    // list of users which will be avoided in inviting to room in matrix
+    inviteIgnoreUsers: [],
     testMode: {
         on: true,
         users: ['ivan', 'masha'],
@@ -117,7 +119,7 @@
 # Add user jira-to-matrix-bot without homedirectory and deny system login
 $ sudo useradd -M jira-matrix-bot
 $ sudo usermod -L jira-matrix-bot
-    
+
 # Change directory owner to new created user
 $ chown -R jira-matrix-bot: /path/to/jira-to-matrix
 
