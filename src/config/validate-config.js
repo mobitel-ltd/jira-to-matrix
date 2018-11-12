@@ -36,6 +36,7 @@ const schema = obj({
         }),
     }),
     usersToIgnore: array(Joi.string()),
+    inviteIgnoreUsers: array(Joi.string()),
     testMode: obj({
         on: boolean,
         users: array(Joi.string()),

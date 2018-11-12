@@ -27,6 +27,7 @@ module.exports = Object.freeze({
     },
     // useful for testing, add a test user into production config
     usersToIgnore: ['jira_test'],
+    inviteIgnoreUsers: [],
     testMode: {
         on: true,
         users: ['ivan', 'masha'],
