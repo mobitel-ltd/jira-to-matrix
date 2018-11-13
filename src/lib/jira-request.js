@@ -1,6 +1,6 @@
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const {jira, inviteIgnoreUsers} = require('../config');
+const {jira, inviteIgnoreUsers = []} = require('../config');
 const {request} = require('./request.js');
 const {paramsToQueryString} = require('./utils.js');
 

@@ -21,7 +21,7 @@ Make some config copying _config.example.js_. Run
 `$ node . -c "path_to_config"`
 It will say if something is wrong.
 
-### Install Linux CentOS service with systemd 
+### Install Linux CentOS service with systemd
 * Give ownership of directory installed jira-to-matrix to dedicated user (for security issues)
 * Modify file `jira-to-matrix.service` with your configuration
 * Copy file `jira-to-matrix.service` to `/etc/systemd/system/` and enable it
@@ -31,7 +31,7 @@ It will say if something is wrong.
 # Add user jira-matrix-bot without homedirectory and deny system login
 $ sudo useradd -M useradd -M jira-matrix-bot
 $ sudo usermod -L jira-matrix-bot
-    
+
 # Change directory owner to new created user
 $ sudo chown -R jira-matrix-bot: /path/to/jira-to-matrix
 
@@ -62,4 +62,4 @@ It is successfully deployed in a medium-size company.
 ___
 Developed with Node 8.1. Probably will work on any version having async/await.
 
-[Russian README](https://github.com/grigori-gru/jira-to-matrix/blob/master/newReadme.md)
+[Russian README](https://github.com/mobitel-ltd/jira-to-matrix/blob/master/newReadme.md)
