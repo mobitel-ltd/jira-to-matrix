@@ -1,6 +1,6 @@
 {
   "name": "jira-matrix-bot",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "src/app.js",
   "license": "WTFPL",
   "engines": {

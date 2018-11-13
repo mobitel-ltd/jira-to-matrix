@@ -27,6 +27,7 @@ module.exports = Object.freeze({
     },
     // useful for testing, add a test user into production config
     usersToIgnore: ['jira_test'],
+    // list of users which will be avoided in inviting to room in matrix
     inviteIgnoreUsers: [],
     testMode: {
         on: true,
