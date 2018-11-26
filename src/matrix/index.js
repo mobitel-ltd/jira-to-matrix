@@ -3,7 +3,6 @@ const sdk = require('matrix-js-sdk');
 const {matrix} = require('../config');
 const apiClient = require('./api-client');
 
-
 /** Matrix connection handle */
 class Matrix {
     /**
@@ -22,7 +21,7 @@ class Matrix {
      * @param {string} password from config.
      * @returns {void} MatrixClient class
      */
-    async _createClient({baseUrl = null, userId, password}) {
+    async _createClient({baseUrl, userId, password}) {
         try {
             if (!baseUrl) {
                 throw new Error('No baseUrl');

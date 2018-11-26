@@ -7,7 +7,7 @@ const {prefix} = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
 const proxyquire = require('proxyquire');
 const chai = require('chai');
-const {stub, spy} = require('sinon');
+const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
@@ -16,10 +16,10 @@ const logger = require('../../src/modules/log.js')(module);
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
 const loggerSpy = {
-    error: spy(),
-    warn: spy(),
-    debug: spy(),
-    info: spy(),
+    error: stub(),
+    warn: stub(),
+    debug: stub(),
+    info: stub(),
 };
 
 const {
@@ -46,6 +46,28 @@ describe('saveIncoming', () => {
 });
 
 describe('redis-data-handle', () => {
+    const createRoomData = [{
+        issue: {
+            key: 'BBCOM-1111',
+            id: '30369',
+            collectParticipantsBody: ['jira_test', 'jira_test', 'jira_test'],
+            watchersUrl: 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
+            summary: 'Test',
+            descriptionFields: {
+                assigneeName: 'jira_test',
+                assigneeEmail: 'jira_test@test-example.ru',
+                reporterName: 'jira_test',
+                reporterEmail: 'jira_test@test-example.ru',
+                typeName: 'Task',
+                epicLink: 'BBCOM-801',
+                estimateTime: '1h',
+                description: 'Info',
+                priority: 'Medium',
+            },
+        },
+        webhookEvent: 'jira:issue_created',
+    }];
+
     const expectedFuncKeys = [
         'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
     ];
@@ -168,28 +190,6 @@ describe('redis-data-handle', () => {
     });
 
     it('test handleRedisRooms with error', async () => {
-        const createRoomData = [{
-            issue: {
-                key: 'BBCOM-1111',
-                id: '30369',
-                collectParticipantsBody: ['jira_test', 'jira_test', 'jira_test'],
-                watchersUrl: 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
-                summary: 'Test',
-                descriptionFields: {
-                    assigneeName: 'jira_test',
-                    assigneeEmail: 'jira_test@test-example.ru',
-                    reporterName: 'jira_test',
-                    reporterEmail: 'jira_test@test-example.ru',
-                    typeName: 'Task',
-                    epicLink: 'BBCOM-801',
-                    estimateTime: '1h',
-                    description: 'Info',
-                    priority: 'Medium',
-                },
-            },
-            webhookEvent: 'jira:issue_created',
-        }];
-
         await saveIncoming({redisKey: 'newrooms', createRoomData});
         createRoomStub.callsFake(data => {
             logger.debug('data', data);
@@ -207,7 +207,20 @@ describe('redis-data-handle', () => {
         const roomsKeysAfter = await getRedisRooms();
         logger.debug(roomsKeysAfter);
         expect(roomsKeysAfter).to.have.deep.equal(createRoomData);
-        createRoomStub.reset();
+    });
+
+    it('Expect handleRedisRooms don\'t save if 404 was thrown by createRoom', async () => {
+        createRoomStub.callsFake(() => {
+            throw 'status is 404';
+        });
+        await saveIncoming({redisKey: 'newrooms', createRoomData});
+        const roomsData = await getRedisRooms();
+        logger.debug(roomsData);
+
+        await handleRedisRooms(mclient, roomsData);
+        const roomsKeysAfter = await getRedisRooms();
+        logger.debug(roomsKeysAfter);
+        expect(roomsKeysAfter).to.be.null;
     });
 
     it('test correct handleRedisRooms', async () => {
@@ -216,13 +229,11 @@ describe('redis-data-handle', () => {
         expect(createRoomStub).to.be.called;
         const roomsKeysAfter = await getRedisRooms();
         expect(roomsKeysAfter).to.be.null;
-        createRoomStub.reset();
     });
 
     it('test null handleRedisRooms', async () => {
         await handleRedisRooms(mclient, null);
         expect(createRoomStub).not.to.be.called;
-        createRoomStub.reset();
     });
 
     it('test incorrect handleRedisRooms', async () => {
@@ -233,6 +244,7 @@ describe('redis-data-handle', () => {
     });
 
     afterEach(async () => {
+        Object.keys(loggerSpy).map(el => loggerSpy[el].reset());
         createRoomStub.reset();
         const keys = await redis.keysAsync('*');
 
