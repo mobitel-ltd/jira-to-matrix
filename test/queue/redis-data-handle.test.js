@@ -194,7 +194,6 @@ describe('redis-data-handle', () => {
         createRoomStub.callsFake(data => {
             logger.debug('data', data);
             if (data.issue.key === 'BBCOM-1111') {
-                logger.debug('should throw');
                 throw 'createRoomStub';
             }
         });
@@ -205,7 +204,6 @@ describe('redis-data-handle', () => {
         expect(loggerSpy.warn).to.have.been.calledWith('Rooms which not created', createRoomData);
 
         const roomsKeysAfter = await getRedisRooms();
-        logger.debug(roomsKeysAfter);
         expect(roomsKeysAfter).to.have.deep.equal(createRoomData);
     });
 
@@ -215,11 +213,9 @@ describe('redis-data-handle', () => {
         });
         await saveIncoming({redisKey: 'newrooms', createRoomData});
         const roomsData = await getRedisRooms();
-        logger.debug(roomsData);
 
         await handleRedisRooms(mclient, roomsData);
         const roomsKeysAfter = await getRedisRooms();
-        logger.debug(roomsKeysAfter);
         expect(roomsKeysAfter).to.be.null;
     });
 
