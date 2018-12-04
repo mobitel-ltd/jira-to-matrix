@@ -57,7 +57,7 @@ describe('Post epic updates test', () => {
             },
         })
             .get(`/jira/rest/api/2/issue/BBCOM-801`)
-            .times(6)
+            .times(7)
             .reply(200, {...responce, id: 28516})
             .get(url => url.indexOf('null') > 0)
             .reply(404);
@@ -69,6 +69,16 @@ describe('Post epic updates test', () => {
         sismemberAsyncStub.reset();
         saddAsyncStub.reset();
     });
+
+    it('Expect postEpicUpdates throw error "No roomId for" if room is not exists', async () => {
+        getRoomIdStub.resolves(null);
+        try {
+            await postEpicUpdates({mclient, ...postCommentData});
+        } catch (err) {
+            expect(err.includes('No roomId for')).to.be.true;
+        }
+    });
+
 
     it('Get undefined with no room for epicKey', async () => {
         const result = await postEpicUpdates({mclient, ...postCommentData});
