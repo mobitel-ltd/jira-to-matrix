@@ -27,7 +27,6 @@ module.exports = async ({mclient, issueID, headerText, comment, author}) => {
         if (!roomId) {
             throw `No roomId for ${issue.key}`;
         }
-        logger.debug(`Room for comment ${issue.key}: ${!!roomId} \n`);
 
         const commentBody = pickRendered(issue, comment);
         const htmlBody = `${headerText}: <br>${commentBody}`;
