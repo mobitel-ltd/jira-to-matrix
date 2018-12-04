@@ -51,7 +51,7 @@ describe('redis-data-handle', () => {
             key: 'BBCOM-1111',
             id: '30369',
             collectParticipantsBody: ['jira_test', 'jira_test', 'jira_test'],
-            watchersUrl: 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
+            url: 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
             summary: 'Test',
             descriptionFields: {
                 assigneeName: 'jira_test',
@@ -95,7 +95,7 @@ describe('redis-data-handle', () => {
                 key: 'BBCOM-1398',
                 id: '30369',
                 collectParticipantsBody: ['jira_test', 'jira_test', 'jira_test'],
-                watchersUrl: 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
+                url: 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1398/watchers',
                 summary: 'Test',
                 descriptionFields: {
                     assigneeName: 'jira_test',

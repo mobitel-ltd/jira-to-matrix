@@ -67,8 +67,8 @@ describe('Issue test', () => {
     });
 
     it('expect getCollectParticipants works correct', async () => {
-        const watchersUrl = [BASE_URL, issue.id, 'watchers'].join('/');
-        const result = await getCollectParticipants({watchersUrl, collectParticipantsBody});
+        const url = [BASE_URL, issue.id, 'watchers'].join('/');
+        const result = await getCollectParticipants({url, collectParticipantsBody});
         expect(result).to.be.deep.eq([...collectParticipantsBody, ...watchersUsers]);
     });
 
@@ -78,8 +78,8 @@ describe('Issue test', () => {
                 inviteIgnoreUsers: collectParticipantsBody,
             },
         });
-        const watchersUrl = [BASE_URL, issue.id, 'watchers'].join('/');
-        const result = await getCollectParticipantsProxy({watchersUrl, collectParticipantsBody});
+        const url = [BASE_URL, issue.id, 'watchers'].join('/');
+        const result = await getCollectParticipantsProxy({url, collectParticipantsBody});
         expect(result).to.be.deep.eq(watchersUsers);
     });
 
@@ -89,8 +89,8 @@ describe('Issue test', () => {
                 inviteIgnoreUsers: watchersUsers,
             },
         });
-        const watchersUrl = [BASE_URL, issue.id, 'watchers'].join('/');
-        const result = await getCollectParticipantsProxy({watchersUrl, collectParticipantsBody});
+        const url = [BASE_URL, issue.id, 'watchers'].join('/');
+        const result = await getCollectParticipantsProxy({url, collectParticipantsBody});
         expect(result).to.be.deep.eq(collectParticipantsBody);
     });
 });
