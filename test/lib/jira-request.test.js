@@ -99,4 +99,9 @@ describe('Issue test', () => {
         const result = await getCollectParticipantsProxy({url, collectParticipantsBody});
         expect(result).to.be.deep.eq(collectParticipantsBody);
     });
+
+    it('Expect getCollectParticipants not fall if no url', async () => {
+        const result = await getCollectParticipants({collectParticipantsBody});
+        expect(result).to.be.deep.eq(collectParticipantsBody);
+    });
 });

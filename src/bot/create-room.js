@@ -54,10 +54,8 @@ module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
     logger.debug('Room creating');
     try {
         const roomID = await mclient.getRoomId(issue.key);
-        logger.debug('roomID', roomID);
-
         if (roomID) {
-            logger.debug('Room should not be created');
+            logger.debug('Room should not be created, roomId is ', roomID);
         } else {
             logger.debug(`Start creating the room for issue ${issue.key}`);
 
