@@ -22,9 +22,9 @@ const getProjectUrl = (key, type = 'browse') =>
  * @param {array} collectParticipantsBody array of users linked to current issue
  * @return {array} jira response with issue
  */
-const getCollectParticipants = async ({url, collectParticipantsBody}) => {
+const getCollectParticipants = async ({url, collectParticipantsBody, watchersUrl}) => {
     try {
-        const body = await request(url);
+        const body = await request(url || watchersUrl);
         const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];
 
         const allWatchersSet = new Set([...collectParticipantsBody, ...watchers]);
