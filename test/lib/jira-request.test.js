@@ -34,7 +34,7 @@ describe('Issue test', () => {
             .query({expand: 'renderedFields'})
             .reply(404, 'Error!!!')
             .get(`/${issue.id}/watchers`)
-            .times(3)
+            .times(4)
             .reply(200, watchersJSON);
     });
 
@@ -72,6 +72,12 @@ describe('Issue test', () => {
         expect(result).to.be.deep.eq([...collectParticipantsBody, ...watchersUsers]);
     });
 
+    it('expect getCollectParticipants works correct if watchersUrl exists', async () => {
+        const url = [BASE_URL, issue.id, 'watchers'].join('/');
+        const result = await getCollectParticipants({collectParticipantsBody, watchersUrl: url});
+        expect(result).to.be.deep.eq([...collectParticipantsBody, ...watchersUsers]);
+    });
+
     it('expect getCollectParticipants avoid users from ignore invite list', async () => {
         const {getCollectParticipants: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
             '../config': {
@@ -83,7 +89,7 @@ describe('Issue test', () => {
         expect(result).to.be.deep.eq(watchersUsers);
     });
 
-    it('expect getCollectParticipants avoid users from ignore invite list', async () => {
+    it('expect getCollectParticipants avoid users from ignore invite list2', async () => {
         const {getCollectParticipants: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
             '../config': {
                 inviteIgnoreUsers: watchersUsers,
