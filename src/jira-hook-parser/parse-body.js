@@ -2,11 +2,10 @@ const Ramda = require('ramda');
 const translate = require('../locales');
 const logger = require('../modules/log.js')(module);
 const {epicUpdates, postChangesToLinks} = require('../config').features;
-const {extractID, getChangelogField, composeRoomName, getNewStatus} = require('../lib/utils.js');
+const {getIssueMembers, getWatchersUrl, extractID, getChangelogField, composeRoomName, getNewStatus} = require('../lib/utils.js');
 
 // Post comment
 const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
-
 const getHeaderText = ({comment, webhookEvent}) => {
     const fullName = Ramda.path(['author', 'displayName'], comment);
     const event = isCommentHook(webhookEvent) ?
@@ -69,11 +68,7 @@ const getCreateRoomData = body => {
             projectOpts = body.project;
         }
     }
-    const collectParticipantsBody = [
-        Ramda.path(['fields', 'creator', 'name'], issue),
-        Ramda.path(['fields', 'reporter', 'name'], issue),
-        Ramda.path(['fields', 'assignee', 'name'], issue),
-    ];
+    const roomMembers = getIssueMembers(issue);
     const descriptionFields = {
         assigneeName: getTextIssue(issue, 'assignee.displayName'),
         assigneeEmail: getTextIssue(issue, 'assignee.emailAddress'),
@@ -86,10 +81,10 @@ const getCreateRoomData = body => {
         priority: getTextIssue(issue, 'priority.name'),
     };
 
-    const url = Ramda.path(['fields', 'watches', 'self'], issue);
+    const url = getWatchersUrl(issue);
     const summary = Ramda.path(['fields', 'summary'], issue);
     const {key, id} = issue;
-    const newIssue = {key, id, collectParticipantsBody, url, summary, descriptionFields};
+    const newIssue = {key, id, roomMembers, url, summary, descriptionFields};
 
     return {issue: newIssue, webhookEvent, projectOpts};
 };
@@ -99,14 +94,10 @@ const getCreateRoomData = body => {
 const getInviteNewMembersData = body => {
     const {issue} = body;
 
-    const collectParticipantsBody = [
-        Ramda.path(['fields', 'creator', 'name'], issue),
-        Ramda.path(['fields', 'reporter', 'name'], issue),
-        Ramda.path(['fields', 'assignee', 'name'], issue),
-    ];
-    const url = Ramda.path(['fields', 'watches', 'self'], issue);
+    const roomMembers = getIssueMembers(issue);
+    const url = getWatchersUrl(issue);
 
-    const newIssue = {key: issue.key, collectParticipantsBody, url};
+    const newIssue = {key: issue.key, roomMembers, url};
 
     return {issue: newIssue};
 };

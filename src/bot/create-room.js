@@ -1,4 +1,4 @@
-const {getCollectParticipants, getProject, getProjectUrl} = require('../lib/jira-request.js');
+const {getRoomMembers, getProject, getProjectUrl} = require('../lib/jira-request.js');
 const {getUserID} = require('./helper.js');
 const {composeRoomName} = require('../lib/utils.js');
 const logger = require('../modules/log.js')(module);
@@ -6,8 +6,8 @@ const postIssueDescription = require('./post-issue-description.js');
 
 const create = async (client, issue) => {
     try {
-        const collectParticipants = await getCollectParticipants(issue);
-        const invite = collectParticipants.map(getUserID);
+        const roomMembers = await getRoomMembers(issue);
+        const invite = roomMembers.map(getUserID);
 
         const {key} = issue;
         const name = composeRoomName(issue);

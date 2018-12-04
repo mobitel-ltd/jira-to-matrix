@@ -5,7 +5,7 @@ const {request} = require('./request.js');
 const {paramsToQueryString} = require('./utils.js');
 
 const {url: jiraUrl} = jira;
-const isExpectedToInvite = name => !inviteIgnoreUsers.includes(name);
+const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
 /**
  * Get url for jira project by key
  * @param {string} key key of jira project
@@ -17,22 +17,22 @@ const getProjectUrl = (key, type = 'browse') =>
 
 
 /**
- * Make jira request to get watchers of issue from url and add to collectParticipantsBody
+ * Make jira request to get watchers of issue from url and add to roomMembers
  * @param {string} url url for request
- * @param {array} collectParticipantsBody array of users linked to current issue
+ * @param {array} roomMembers array of users linked to current issue
  * @return {array} jira response with issue
  */
-const getCollectParticipants = async ({url, collectParticipantsBody, watchersUrl}) => {
+const getRoomMembers = async ({url, roomMembers, watchersUrl}) => {
     const correctUrl = url || watchersUrl;
     try {
         const body = correctUrl && await request(correctUrl);
         const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];
 
-        const allWatchersSet = new Set([...collectParticipantsBody, ...watchers]);
+        const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
         return [...allWatchersSet].filter(isExpectedToInvite);
     } catch (err) {
-        throw ['getCollectParticipants error', err].join('\n');
+        throw ['getRoomMembers error', err].join('\n');
     }
 };
 
@@ -127,7 +127,7 @@ const getRenderedValues = async (issueID, fields) => {
 
 module.exports = {
     getProjectUrl,
-    getCollectParticipants,
+    getRoomMembers,
     getIssue,
     getProject,
     getIssueFormatted,

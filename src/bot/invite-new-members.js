@@ -1,13 +1,13 @@
 const Ramda = require('ramda');
-const {getCollectParticipants} = require('../lib/jira-request.js');
+const {getRoomMembers} = require('../lib/jira-request.js');
 const {getUserID, membersInvited} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
 
 module.exports = async ({mclient, issue}) => {
     logger.debug('inviteNewMembers start');
     try {
-        const collectParticipants = await getCollectParticipants(issue);
-        const participants = collectParticipants.map(getUserID);
+        const roomMembers = await getRoomMembers(issue);
+        const participants = roomMembers.map(getUserID);
 
         const room = await mclient.getRoomByAlias(issue.key);
         if (!room) {

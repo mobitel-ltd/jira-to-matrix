@@ -56,7 +56,7 @@ describe('get-bot-data', () => {
                 redisKey: 'newrooms',
                 createRoomData: {
                     'issue': {
-                        'collectParticipantsBody': [
+                        'roomMembers': [
                             'jira_test',
                             'jira_test',
                             'jira_test',
@@ -87,7 +87,7 @@ describe('get-bot-data', () => {
                 funcName: 'inviteNewMembers',
                 data: {
                     'issue': {
-                        'collectParticipantsBody': [
+                        'roomMembers': [
                             'jira_test',
                             'jira_test',
                             'jira_test',
