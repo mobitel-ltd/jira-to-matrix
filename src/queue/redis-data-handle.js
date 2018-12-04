@@ -65,6 +65,7 @@ const handleRedisData = async (client, dataFromRedis) => {
             } catch (err) {
                 logger.error(`Error in ${redisKey}\n`, err);
                 if (err.includes(errorStatus)) {
+                    await redis.delAsync(redisKey);
                     return `${redisKey} --- true`;
                 }
 

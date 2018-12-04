@@ -86,10 +86,10 @@ const getCreateRoomData = body => {
         priority: getTextIssue(issue, 'priority.name'),
     };
 
-    const watchersUrl = Ramda.path(['fields', 'watches', 'self'], issue);
+    const url = Ramda.path(['fields', 'watches', 'self'], issue);
     const summary = Ramda.path(['fields', 'summary'], issue);
     const {key, id} = issue;
-    const newIssue = {key, id, collectParticipantsBody, watchersUrl, summary, descriptionFields};
+    const newIssue = {key, id, collectParticipantsBody, url, summary, descriptionFields};
 
     return {issue: newIssue, webhookEvent, projectOpts};
 };
@@ -104,9 +104,9 @@ const getInviteNewMembersData = body => {
         Ramda.path(['fields', 'reporter', 'name'], issue),
         Ramda.path(['fields', 'assignee', 'name'], issue),
     ];
-    const watchersUrl = Ramda.path(['fields', 'watches', 'self'], issue);
+    const url = Ramda.path(['fields', 'watches', 'self'], issue);
 
-    const newIssue = {key: issue.key, collectParticipantsBody, watchersUrl};
+    const newIssue = {key: issue.key, collectParticipantsBody, url};
 
     return {issue: newIssue};
 };
