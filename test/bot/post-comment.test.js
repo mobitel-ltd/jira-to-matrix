@@ -36,6 +36,7 @@ describe('Post comments test', () => {
         })
             .get('/26313')
             .query(params)
+            .times(2)
             .reply(200, {...responce, id: 28516})
             .get(url => url.indexOf('null') > 0)
             .reply(errorStatus);
@@ -62,6 +63,17 @@ describe('Post comments test', () => {
                 requestErrorLog,
             ].join('\n');
             assert.deepEqual(err, expected);
+        }
+    });
+
+    it('Expect postComment throw error "No roomId for" if room is not exists', async () => {
+        const mclient = {
+            getRoomId: () => null,
+        };
+        try {
+            await postComment({mclient, ...postCommentData});
+        } catch (err) {
+            assert(err.includes('No roomId for'), true);
         }
     });
 });
