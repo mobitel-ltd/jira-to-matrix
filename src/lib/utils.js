@@ -10,6 +10,14 @@ const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
 const [COMMON_NAME] = conf.matrix.domain.split('.').slice(1, 2);
 
+const getIssueMembers = issue => [
+    Ramda.path(['fields', 'creator', 'name'], issue),
+    Ramda.path(['fields', 'reporter', 'name'], issue),
+    Ramda.path(['fields', 'assignee', 'name'], issue),
+].filter(Boolean);
+
+const getWatchersUrl = issue => Ramda.pathOr(`${issue.self}/watchers`, ['fields', 'watches', 'self'], issue);
+
 const isIgnoreKey = key => {
     const result = !KEYS_TO_IGNORE.reduce((acc, val) => {
         const result = acc || key.includes(val);
@@ -149,4 +157,6 @@ module.exports = {
     REDIS_ROOM_KEY,
     isIgnoreKey,
     COMMON_NAME,
+    getIssueMembers,
+    getWatchersUrl,
 };

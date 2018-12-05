@@ -1,5 +1,5 @@
 /* eslint-disable no-undefined */
-const {isIgnoreKey, webHookUser, getCreator, auth, getChangelogField, paramsToQueryString, propIn, nonEmptyString, paths, getNewStatus} = require('../../src/lib/utils');
+const {getWatchersUrl, isIgnoreKey, webHookUser, getCreator, auth, getChangelogField, paramsToQueryString, propIn, nonEmptyString, paths, getNewStatus} = require('../../src/lib/utils');
 const assert = require('assert');
 const hook = require('../fixtures/comment-create-2.json');
 const thirdBody = require('../fixtures/comment-create-3.json');
@@ -141,5 +141,12 @@ describe('Utils testing', () => {
         const changelogField = getChangelogField('fake', body);
 
         expect(changelogField).to.be.undefined;
+    });
+
+    it('expect getWatchersUrl works well', () => {
+        const self = 'url';
+        const issue = {self};
+        const result = getWatchersUrl(issue);
+        expect(result).to.be.eq(`${self}/watchers`);
     });
 });
