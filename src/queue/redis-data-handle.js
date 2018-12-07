@@ -5,8 +5,6 @@ const bot = require('../bot');
 const {prefix} = require('../config').redis;
 const {REDIS_ROOM_KEY, isIgnoreKey} = require('../lib/utils.js');
 
-const errorStatus = 'status is 404';
-
 const getRedisKeys = async () => {
     try {
         const allKeys = await redis.keysAsync(`${prefix}*`);
@@ -64,10 +62,6 @@ const handleRedisData = async (client, dataFromRedis) => {
                 return `${redisKey} --- true`;
             } catch (err) {
                 logger.error(`Error in ${redisKey}\n`, err);
-                if (err.includes(errorStatus)) {
-                    await redis.delAsync(redisKey);
-                    return `${redisKey} --- true`;
-                }
 
                 return `${redisKey} --- false`;
             }
@@ -112,11 +106,7 @@ const handleRedisRooms = async (client, roomsData) => {
 
             return null;
         } catch (err) {
-            // console.log(err);
             logger.error('Error in handle room data\n', err);
-            if (err.includes(errorStatus)) {
-                return;
-            }
 
             return data;
         }

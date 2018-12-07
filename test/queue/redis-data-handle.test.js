@@ -207,18 +207,6 @@ describe('redis-data-handle', () => {
         expect(roomsKeysAfter).to.have.deep.equal(createRoomData);
     });
 
-    it('Expect handleRedisRooms don\'t save if 404 was thrown by createRoom', async () => {
-        createRoomStub.callsFake(() => {
-            throw 'status is 404';
-        });
-        await saveIncoming({redisKey: 'newrooms', createRoomData});
-        const roomsData = await getRedisRooms();
-
-        await handleRedisRooms(mclient, roomsData);
-        const roomsKeysAfter = await getRedisRooms();
-        expect(roomsKeysAfter).to.be.null;
-    });
-
     it('test correct handleRedisRooms', async () => {
         const roomsKeysBefore = await getRedisRooms();
         await handleRedisRooms(mclient, roomsKeysBefore);
