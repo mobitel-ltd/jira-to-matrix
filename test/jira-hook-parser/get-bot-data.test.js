@@ -34,7 +34,7 @@ describe('get-bot-data', () => {
         const firstBodyArrExpected = [
             {
                 redisKey: 'newrooms',
-                createRoomData: null,
+                createRoomData: undefined,
             },
             {
                 redisKey: 'postComment_1512034084304',

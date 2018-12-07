@@ -145,8 +145,8 @@ describe('Utils testing', () => {
 
     it('expect getWatchersUrl works well', () => {
         const self = 'url';
-        const issue = {self};
-        const result = getWatchersUrl(issue);
+        const body = {issue: {self}};
+        const result = getWatchersUrl(body);
         expect(result).to.be.eq(`${self}/watchers`);
     });
 });

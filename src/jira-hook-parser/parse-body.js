@@ -1,199 +1,95 @@
-const Ramda = require('ramda');
-const translate = require('../locales');
-const logger = require('../modules/log.js')(module);
-const {epicUpdates, postChangesToLinks} = require('../config').features;
-const {getIssueMembers, getWatchersUrl, extractID, getChangelogField, composeRoomName, getNewStatus} = require('../lib/utils.js');
-
-// Post comment
-const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
-const getHeaderText = ({comment, webhookEvent}) => {
-    const fullName = Ramda.path(['author', 'displayName'], comment);
-    const event = isCommentHook(webhookEvent) ?
-        webhookEvent :
-        'comment_created';
-    return `${fullName} ${translate(event, null, fullName)}`;
-};
-
-const getPostCommentData = body => {
-    logger.debug(`Enter in function create comment for hook {${body.webhookEvent}}`);
-
-    const headerText = getHeaderText(body);
-
-    const issueID = extractID(JSON.stringify(body));
-    const comment = {
-        body: body.comment.body,
-        id: body.comment.id,
-    };
-
-    const author = Ramda.path(['comment', 'author', 'name'], body);
-
-    return {issueID, headerText, comment, author};
-};
-
-// Create room
-const getTextIssue = (issue, address) => {
-    const params = address.split('.');
-    const text = String(
-        Ramda.path(['fields', ...params], issue) || translate('miss')
-    ).trim();
-
-    return text;
-};
-
-const isEpic = body => Boolean(
-    typeof body === 'object'
-    && typeof body.issue === 'object'
-    && typeof body.issue.fields === 'object'
-    && body.issue.fields.issuetype.name === 'Epic'
-);
-
-const isProjectEvent = body => Boolean(
-    typeof body === 'object'
-    && (
-        body.webhookEvent === 'project_created'
-        || body.webhookEvent === 'project_updated'
-    )
-);
-
-const getCreateRoomData = body => {
-    const {issue, webhookEvent} = body;
-
-    let projectOpts;
-    if (isEpic(body) || isProjectEvent(body)) {
-        if (Object.keys(issue).includes('fields')) {
-            projectOpts = issue.fields.project;
-        }
-
-        if (Object.keys(body).includes('project')) {
-            projectOpts = body.project;
-        }
-    }
-    const roomMembers = getIssueMembers(issue);
-    const descriptionFields = {
-        assigneeName: getTextIssue(issue, 'assignee.displayName'),
-        assigneeEmail: getTextIssue(issue, 'assignee.emailAddress'),
-        reporterName: getTextIssue(issue, 'reporter.displayName'),
-        reporterEmail: getTextIssue(issue, 'reporter.emailAddress'),
-        typeName: getTextIssue(issue, 'issuetype.name'),
-        epicLink: getTextIssue(issue, 'customfield_10006'),
-        estimateTime: getTextIssue(issue, 'timetracking.originalEstimate'),
-        description: getTextIssue(issue, 'description'),
-        priority: getTextIssue(issue, 'priority.name'),
-    };
-
-    const url = getWatchersUrl(issue);
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const {key, id} = issue;
-    const newIssue = {key, id, roomMembers, url, summary, descriptionFields};
-
-    return {issue: newIssue, webhookEvent, projectOpts};
-};
-
-// InviteNewMembersData
-
-const getInviteNewMembersData = body => {
-    const {issue} = body;
-
-    const roomMembers = getIssueMembers(issue);
-    const url = getWatchersUrl(issue);
-
-    const newIssue = {key: issue.key, roomMembers, url};
-
-    return {issue: newIssue};
-};
-
-// PostNewLinksData
-
-const getPostNewLinksData = body => {
-    const allLinks = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
-    const links = allLinks.map(link => (link ? link.id : link));
-    return {links};
-};
-
-// PostEpicUpdatesData
-
-const getPostEpicUpdatesData = body => {
-    const {issue} = body;
-    const {key, id, changelog} = issue;
-    const {field} = epicUpdates;
-    const epicKey = Ramda.path(['fields', field], issue);
-
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const name = Ramda.path(['user', 'name'], body);
-    const status = getNewStatus(body);
-
-    const data = {key, summary, id, changelog, name, status};
-
-    return {epicKey, data};
-};
-
-// Post link data
-const getPostLinkedChangesData = body => {
-    const {issue} = body;
-    const {key, changelog, id} = issue;
-
-    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
-    const linksKeys = links.reduce((acc, link) => {
-        const destIssue = Ramda.either(
-            Ramda.prop('outwardIssue'),
-            Ramda.prop('inwardIssue')
-        )(link);
-        if (!destIssue) {
-            logger.debug('no destIssue in handleLink');
-            return acc;
-        }
-        const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
-        if (postChangesToLinks.ignoreDestStatusCat.includes(destStatusCat)) {
-            logger.debug('no includes destStatusCat');
-            return acc;
-        }
-        return [...acc, destIssue.key];
-    }, []);
-
-    const status = getNewStatus(body);
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const name = Ramda.path(['user', 'name'], body);
-
-    const data = {status, key, summary, id, changelog, name};
-
-    return {linksKeys, data};
-};
-
-// PostProjectUpdates
-const getPostProjectUpdatesData = body => {
-    const typeEvent = body.issue_event_type_name;
-    const {issue} = body;
-    const projectOpts = issue.fields.project;
-    const name = Ramda.path(['user', 'name'], body);
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const status = Ramda.path(['fields', 'status', 'name'], issue);
-    const {key} = issue;
-    const data = {key, summary, name, status};
-
-    return {typeEvent, projectOpts, data};
-};
-
-// PostIssueUpdates
-
-const getPostIssueUpdatesData = body => {
-    const {changelog, user, issue} = body;
-    const fieldKey = getChangelogField('Key', body);
-    const {key} = issue;
-    const issueKey = fieldKey ? fieldKey.fromString : key;
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const roomName = summary ? composeRoomName({...issue, summary}) : null;
-
-    return {issueKey, fieldKey, summary, roomName, changelog, user, key};
-};
-
+const utils = require('../lib/utils.js');
 
 module.exports = {
-    getPostEpicUpdatesData,
-    getPostCommentData,
-    getCreateRoomData,
-    getInviteNewMembersData,
-    getPostNewLinksData,
-    getPostLinkedChangesData,
-    getPostProjectUpdatesData,
-    getPostIssueUpdatesData,
+    getPostCommentData: body => {
+        const headerText = utils.getHeaderText(body);
+        const author = utils.getCommentAuthor(body);
+        const issueID = utils.extractID(body);
+        const comment = utils.getCommentBody(body);
+
+        return {issueID, headerText, comment, author};
+    },
+
+    getCreateRoomData: body => {
+        const projectOpts = utils.getCreateProjectOpts(body);
+        const roomMembers = utils.getIssueMembers(body);
+        const url = utils.getWatchersUrl(body);
+        const summary = utils.getSummary(body);
+        const key = utils.getKey(body);
+        const id = utils.getId(body);
+        const webhookEvent = utils.getBodyWebhookEvent(body);
+        const descriptionFields = utils.getDescriptionFields(body);
+
+        const parsedIssue = {key, id, roomMembers, url, summary, descriptionFields};
+
+        return {issue: parsedIssue, webhookEvent, projectOpts};
+    },
+
+    getInviteNewMembersData: body => {
+        const roomMembers = utils.getIssueMembers(body);
+        const url = utils.getWatchersUrl(body);
+        const key = utils.getKey(body);
+
+        return {issue: {key, roomMembers, url}};
+    },
+
+    getPostNewLinksData: body => {
+        const allLinks = utils.getLinks(body);
+        const links = allLinks.map(link => (link ? link.id : link));
+
+        return {links};
+    },
+
+    getPostEpicUpdatesData: body => {
+        const epicKey = utils.getEpicKey(body);
+        const changelog = utils.getIssueChangelog(body);
+        const id = utils.getId(body);
+        const key = utils.getKey(body);
+        const summary = utils.getSummary(body);
+        const name = utils.getUserName(body);
+        const status = utils.getNewStatus(body);
+
+        const data = {key, summary, id, changelog, name, status};
+
+        return {epicKey, data};
+    },
+
+    getPostLinkedChangesData: body => {
+        const changelog = utils.getChangelog(body);
+        const id = utils.getId(body);
+        const key = utils.getKey(body);
+        const status = utils.getNewStatus(body);
+        const summary = utils.getSummary(body);
+        const name = utils.getUserName(body);
+        const linksKeys = utils.getLinkKeys(body);
+
+        const data = {status, key, summary, id, changelog, name};
+
+        return {linksKeys, data};
+    },
+
+    getPostProjectUpdatesData: body => {
+        const typeEvent = utils.getTypeEvent(body);
+        const projectOpts = utils.getIssueProjectOpts(body);
+        const name = utils.getUserName(body);
+        const summary = utils.getSummary(body);
+        const status = utils.getStatus(body);
+        const key = utils.getKey(body);
+
+        const data = {key, summary, name, status};
+
+        return {typeEvent, projectOpts, data};
+    },
+
+    getPostIssueUpdatesData: body => {
+        const {user, issue} = body;
+        const changelog = utils.getChangelog(body);
+        const fieldKey = utils.getChangelogField('Key', body);
+        const key = utils.getKey(body);
+        const issueKey = fieldKey ? fieldKey.fromString : key;
+        const summary = utils.getSummary(body);
+        const roomName = summary && utils.composeRoomName({...issue, summary});
+
+        return {issueKey, fieldKey, summary, roomName, changelog, user, key};
+    },
 };

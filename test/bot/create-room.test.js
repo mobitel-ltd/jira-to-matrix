@@ -71,6 +71,10 @@ describe('Create room test', () => {
             .reply(404);
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
+
     it('Room should not be created', async () => {
         const result = await createRoom({mclient, ...createRoomData});
         expect(createRoomStub).not.to.be.called;

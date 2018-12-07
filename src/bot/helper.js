@@ -3,31 +3,69 @@ const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 const marked = require('marked');
 const {usersToIgnore, testMode, matrix} = require('../config');
-const {webHookUser, getCreator, getChangelogField} = require('../lib/utils.js');
-const {getProjectUrl, getRenderedValues} = require('../lib/jira-request.js');
+const utils = require('../lib/utils.js');
+const jiraRequests = require('../lib/jira-request.js');
 
 const isStartEndUpdateStatus = body => {
-    const isStart = getChangelogField('Start date', body);
-    const isEnd = getChangelogField('End date', body);
+    const isStart = utils.getChangelogField('Start date', body);
+    const isEnd = utils.getChangelogField('End date', body);
     return !!isStart || !!isEnd;
 };
 
-const isIgnore = body => {
-    const username = webHookUser(body);
-    const creator = getCreator(body);
+const isPrivateIssue = async body => {
+    const issueId = utils.extractID(body);
+    try {
+        const issue = await jiraRequests.getIssue(issueId);
 
-    // eslint-disable-next-line
-    const isInUsersToIgnore = arr => {
-        // eslint-disable-next-line
-        return [username, creator].reduce((acc, item) => {
-            return acc || arr.includes(item);
-        }, false);
-    };
+        return !issue;
+    } catch (err) {
+        return true;
+    }
+};
+
+const getProjectPrivateStatus = async body => {
+    const projectId = utils.getBodyProjectId(body);
+
+    if (projectId) {
+        const projectBody = await jiraRequests.getProject(projectId);
+        logger.debug('projectBody', projectBody);
+
+        return Ramda.path(['isPrivate'], projectBody);
+    }
+    await jiraRequests.testJiraRequest();
+
+    return isPrivateIssue(body);
+};
+
+
+const getIgnoreBodyData = body => {
+    const username = utils.webHookUser(body);
+    const creator = utils.getCreator(body);
+
+    const isInUsersToIgnore = arr =>
+        [username, creator].some(user => arr.includes(user));
 
     const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
     const startEndUpdateStatus = isStartEndUpdateStatus(body);
     const ignoreStatus = userIgnoreStatus || startEndUpdateStatus;
+
     return {username, creator, startEndUpdateStatus, ignoreStatus};
+};
+
+const getIgnoreProject = async body => {
+    const ignoreStatus = await getProjectPrivateStatus(body);
+    const webhookEvent = utils.getBodyWebhookEvent(body);
+    const timestamp = utils.getBodyTimestamp(body);
+    const issueName = utils.getBodyIssueName(body);
+
+    return {timestamp, webhookEvent, ignoreStatus, issueName};
+};
+
+const getIgnoreInfo = async body => {
+    const userStatus = getIgnoreBodyData(body);
+    const projectStatus = await getIgnoreProject(body);
+
+    return {userStatus, projectStatus};
 };
 
 const membersInvited = roomMembers =>
@@ -39,7 +77,7 @@ const membersInvited = roomMembers =>
 const getUserID = shortName => `@${shortName}:${matrix.domain}`;
 
 const getEpicChangedMessageBody = ({summary, key, status, name}) => {
-    const issueRef = getProjectUrl(key);
+    const issueRef = jiraRequests.getProjectUrl(key);
     const values = {name, key, summary, status, issueRef};
 
     const body = translate('statusEpicChanged');
@@ -50,7 +88,7 @@ const getEpicChangedMessageBody = ({summary, key, status, name}) => {
 };
 
 const getNewEpicMessageBody = ({key, summary}) => {
-    const issueRef = getProjectUrl(key);
+    const issueRef = jiraRequests.getProjectUrl(key);
     const values = {key, summary, issueRef};
 
     const body = translate('newEpicInProject');
@@ -69,7 +107,7 @@ const postStatusData = data => {
         return {};
     }
 
-    const issueRef = getProjectUrl(data.key);
+    const issueRef = jiraRequests.getProjectUrl(data.key);
     const baseValues = {status, issueRef};
     const values = ['name', 'key', 'summary']
         .reduce((acc, key) => ({...acc, [key]: data[key]}), baseValues);
@@ -96,7 +134,7 @@ const postStatusChanged = async ({mclient, roomID, data}) => {
 };
 
 const getNewIssueMessageBody = ({summary, key}) => {
-    const issueRef = getProjectUrl(key);
+    const issueRef = jiraRequests.getProjectUrl(key);
     const values = {key, issueRef, summary};
 
     const body = translate('newIssueInEpic');
@@ -127,7 +165,7 @@ const getIssueUpdateInfoMessageBody = async ({changelog, key, user}) => {
     try {
         const author = user.displayName;
         const fields = fieldNames(changelog.items);
-        const renderedValues = await getRenderedValues(key, fields);
+        const renderedValues = await jiraRequests.getRenderedValues(key, fields);
 
         const changelogItemsTostring = itemsToString(changelog.items);
         const formattedValues = {...changelogItemsTostring, ...renderedValues};
@@ -141,7 +179,6 @@ const getIssueUpdateInfoMessageBody = async ({changelog, key, user}) => {
     }
 };
 
-
 module.exports = {
     membersInvited,
     getUserID,
@@ -154,6 +191,8 @@ module.exports = {
     itemsToString,
     composeText,
     fieldNames,
-    isIgnore,
+    getIgnoreBodyData,
     isStartEndUpdateStatus,
+    getIgnoreInfo,
+    getIgnoreProject,
 };
