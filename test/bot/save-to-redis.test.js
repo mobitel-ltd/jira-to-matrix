@@ -4,7 +4,7 @@ const {prefix} = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
 const {getRedisValue, getRedisKeys, getDataFromRedis, getRedisRooms} = require('../../src/queue/redis-data-handle.js');
 
-describe('get-bot-data', () => {
+describe('Test save data to redis', () => {
     const expectedFuncKeys1 = [
         {
             redisKey: 'inviteNewMembers_1',

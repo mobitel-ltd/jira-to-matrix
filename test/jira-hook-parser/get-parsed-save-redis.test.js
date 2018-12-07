@@ -2,7 +2,6 @@ const nock = require('nock');
 const {expect} = require('chai');
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
-const {isCommentEvent} = require('../../src/jira-hook-parser/bot-handler.js');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const conf = require('../fixtures/config.js');
 const redis = require('../../src/redis-client.js');
@@ -40,9 +39,9 @@ describe('get-parsed-save to redis', () => {
     });
 
     it('isCommentEvent', () => {
-        const result1 = isCommentEvent(firstBody);
+        const result1 = utils.isCommentEvent(firstBody);
         expect(result1).to.be.true;
-        const result2 = isCommentEvent(secondBody);
+        const result2 = utils.isCommentEvent(secondBody);
         expect(result2).to.be.equal(false);
     });
 

@@ -6,10 +6,10 @@ describe('create-room', () => {
     it('Should create room on webhook or not', () => {
         const samples = [
             [{webhookEvent: 'jira:issue_created', issue: {key: 'smth'}}, true],
-            [{webhookEvent: 'jira:issue_updated', issue: {}}, false],
-            [{webhookEvent: 'jira:issue_created'}, false],
-            [{}, false],
-            [undefined, false],
+            [{webhookEvent: 'jira:issue_updated', issue: {}}, undefined],
+            [{webhookEvent: 'jira:issue_created'}, undefined],
+            [{}, undefined],
+            [undefined, undefined],
         ];
         samples.forEach((sample, index) => {
             const result = isCreateRoom(sample[0]);

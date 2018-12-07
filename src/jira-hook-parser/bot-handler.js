@@ -1,137 +1,83 @@
-const logger = require('../modules/log.js')(module);
-const Ramda = require('ramda');
 const parsers = require('./parse-body.js');
-const {getNewStatus, isCommentEvent, REDIS_ROOM_KEY} = require('../lib/utils.js');
+const utils = require('../lib/utils.js');
 const {features} = require('../config');
 
-const isPostComment = body => Boolean(
-    body
-    && typeof body === 'object'
-    && isCommentEvent(body)
-    && typeof body.comment === 'object'
-    && features.postComments
-);
+const isPostComment = body =>
+    features.postComments
+    && utils.isCommentEvent(body)
+    && utils.getCommentBody(body);
 
-const isPostIssueUpdates = body => Boolean(
-    body
-    && typeof body === 'object'
-    && body.webhookEvent === 'jira:issue_updated'
-    && typeof body.changelog === 'object'
-    && typeof body.issue === 'object'
-    && !(Ramda.isEmpty(Ramda.pathOr([], ['changelog', 'items'], body)))
-    && features.postIssueUpdates
-);
+const isPostIssueUpdates = body =>
+    features.postIssueUpdates
+    && utils.isCorrectWebhook(body, 'jira:issue_updated')
+    && utils.isEmptyChangelog(body);
 
-const isCreateRoom = body => Boolean(
-    body
-    && typeof body.issue === 'object'
-    && body.issue.key
-    && body.issue_event_type_name !== 'issue_moved'
-    && features.createRoom
-);
+const isCreateRoom = body =>
+    features.createRoom
+    && utils.getKey(body)
+    && utils.getTypeEvent(body) !== 'issue_moved';
 
-const isMemberInvite = body => Boolean(
-    body
-    && typeof body === 'object'
-    && body.webhookEvent === 'jira:issue_updated'
-    && typeof body.issue === 'object'
-    && features.inviteNewMembers
-);
+const isMemberInvite = body =>
+    features.inviteNewMembers
+    && utils.isCorrectWebhook(body, 'jira:issue_updated');
 
-const {field: epicUpdatesField} = features.epicUpdates;
+const isPostEpicUpdates = body =>
+    features.epicUpdates.on()
+    && (utils.isCorrectWebhook(body, 'jira:issue_updated')
+        || (utils.isCorrectWebhook(body, 'jira:issue_created') && utils.getChangelog(body)))
+    && utils.getEpicKey(body);
 
-const isPostEpicUpdates = body => Boolean(
-    body
-    && typeof body === 'object'
-    && (
-        body.webhookEvent === 'jira:issue_updated'
-        || (body.webhookEvent === 'jira:issue_created' && typeof body.changelog === 'object')
-    )
-    && typeof body.issue === 'object'
-    && Ramda.path(['issue', 'fields', epicUpdatesField], body)
-    && features.epicUpdates.on()
-);
+const isPostProjectUpdates = body =>
+    features.epicUpdates.on()
+    && (utils.isCorrectWebhook(body, 'jira:issue_updated')
+        || (utils.isCorrectWebhook(body, 'jira:issue_created')))
+    && utils.isEpic(body)
+    && (utils.getTypeEvent(body) === 'issue_generic'
+        || utils.getTypeEvent(body) === 'issue_created');
 
-const isPostProjectUpdates = body => Boolean(
-    body
-    && typeof body === 'object'
-    && (
-        body.webhookEvent === 'jira:issue_updated'
-        || (body.webhookEvent === 'jira:issue_created')
-    )
-    && typeof body.issue === 'object'
-    && typeof body.issue.fields === 'object'
-    && Ramda.pathEq(['issue', 'fields', 'issuetype', 'name'], 'Epic')(body)
-    && (
-        body.issue_event_type_name === 'issue_generic'
-        || body.issue_event_type_name === 'issue_created'
-    )
-    && features.epicUpdates.on()
-);
+const isPostNewLinks = body =>
+    features.newLinks
+    && (utils.isCorrectWebhook(body, 'jira:issue_updated')
+        || utils.isCorrectWebhook(body, 'jira:issue_created'))
+    && utils.getLinks(body).length > 0;
 
-const isPostNewLinks = body => Boolean(
-    body
-    && typeof body === 'object'
-    && (
-        body.webhookEvent === 'jira:issue_updated'
-        || body.webhookEvent === 'jira:issue_created'
-    )
-    && typeof body.issue === 'object'
-    && Ramda.pathOr([], ['issue', 'fields', 'issuelinks'])(body).length > 0
-    && features.newLinks
-);
+const isPostLinkedChanges = body =>
+    features.postChangesToLinks.on
+    && utils.isCorrectWebhook(body, 'jira:issue_updated')
+    && utils.getChangelog(body)
+    && utils.getLinks(body).length > 0
+    && typeof utils.getNewStatus(body) === 'string';
 
-const isPostLinkedChanges = body => Boolean(
-    body
-    && features.postChangesToLinks.on
-    && typeof body === 'object'
-    && body.webhookEvent === 'jira:issue_updated'
-    && typeof body.changelog === 'object'
-    && typeof body.issue === 'object'
-    && Ramda.pathOr([], ['issue', 'fields', 'issuelinks'])(body).length > 0
-    && typeof getNewStatus(body) === 'string'
-);
-
-const getBotFunc = body => {
-    const actionFuncs = {
-        postIssueUpdates: isPostIssueUpdates(body),
-        inviteNewMembers: isMemberInvite(body),
-        postComment: isPostComment(body),
-        postEpicUpdates: isPostEpicUpdates(body),
-        postProjectUpdates: isPostProjectUpdates(body),
-        postNewLinks: isPostNewLinks(body),
-        postLinkedChanges: isPostLinkedChanges(body),
-    };
-
-    const funcArr = Object.keys(actionFuncs).filter(key => actionFuncs[key]);
-    return funcArr;
+const actionFuncs = {
+    postIssueUpdates: isPostIssueUpdates,
+    inviteNewMembers: isMemberInvite,
+    postComment: isPostComment,
+    postEpicUpdates: isPostEpicUpdates,
+    postProjectUpdates: isPostProjectUpdates,
+    postNewLinks: isPostNewLinks,
+    postLinkedChanges: isPostLinkedChanges,
 };
+
+const getBotFunc = body =>
+    Object.keys(actionFuncs).filter(key => actionFuncs[key](body));
 
 const getParserName = func =>
     `get${func[0].toUpperCase()}${func.slice(1)}Data`;
 
+const getFuncRedisData = body => funcName => {
+    const parserName = getParserName(funcName);
+    const data = parsers[parserName](body);
+    const redisKey = utils.getRedisKey(funcName, body);
+
+    return {redisKey, funcName, data};
+};
 const getFuncAndBody = body => {
     const botFunc = getBotFunc(body);
-    logger.debug('Array of functions we should handle', botFunc);
+    const createRoomData = isCreateRoom(body) && parsers.getCreateRoomData(body);
+    const roomsData = {redisKey: utils.REDIS_ROOM_KEY, createRoomData};
+    const funcsData = botFunc.map(getFuncRedisData(body));
 
-    let createRoomData = null;
-    if (isCreateRoom(body)) {
-        createRoomData = parsers.getCreateRoomData(body);
-    }
-    const roomsData = {redisKey: REDIS_ROOM_KEY, createRoomData};
-
-    const result = botFunc.reduce((acc, funcName) => {
-        const data = {
-            ...parsers[getParserName(funcName)](body),
-        };
-
-        const redisKey = `${funcName}_${body.timestamp}`;
-        logger.debug('redisKey', redisKey);
-
-        return [...acc, {redisKey, funcName, data}];
-    }, [roomsData]);
-
-    return result;
+    return [roomsData, ...funcsData];
 };
 
 module.exports = {
@@ -146,5 +92,4 @@ module.exports = {
     isPostProjectUpdates,
     isPostNewLinks,
     isPostLinkedChanges,
-    isCommentEvent,
 };

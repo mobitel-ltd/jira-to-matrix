@@ -1,5 +1,5 @@
 const logger = require('../modules/log.js')(module);
-const {getIgnoreInfo} = require('./helper.js');
+const {getIgnoreInfo} = require('../bot/helper.js');
 
 const getUserStatusMsg = ({username, creator, startEndUpdateStatus, ignoreStatus}) =>
     `User "${username}", creator "${creator}", startendmode "${startEndUpdateStatus}" ignore status: ${ignoreStatus}`;
