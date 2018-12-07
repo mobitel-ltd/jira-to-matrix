@@ -1,31 +1,26 @@
 const Ramda = require('ramda');
 const translate = require('../locales');
-const logger = require('../modules/log.js')(module);
 const {epicUpdates, postChangesToLinks} = require('../config').features;
-const {getIssueMembers, getWatchersUrl, extractID, getChangelogField, composeRoomName, getNewStatus} = require('../lib/utils.js');
+const utils = require('../lib/utils.js');
 
 // Post comment
-const isCommentHook = Ramda.contains(Ramda.__, ['comment_created', 'comment_updated']);
-const getHeaderText = ({comment, webhookEvent}) => {
-    const fullName = Ramda.path(['author', 'displayName'], comment);
-    const event = isCommentHook(webhookEvent) ?
-        webhookEvent :
-        'comment_created';
+const getHeaderText = body => {
+    const fullName = utils.getFullName(body);
+    const event = utils.getCommentEvent(body);
+
     return `${fullName} ${translate(event, null, fullName)}`;
 };
 
 const getPostCommentData = body => {
-    logger.debug(`Enter in function create comment for hook {${body.webhookEvent}}`);
-
     const headerText = getHeaderText(body);
 
-    const issueID = extractID(JSON.stringify(body));
+    const issueID = utils.extractID(body);
     const comment = {
         body: body.comment.body,
         id: body.comment.id,
     };
 
-    const author = Ramda.path(['comment', 'author', 'name'], body);
+    const author = utils.getAuthor(body);
 
     return {issueID, headerText, comment, author};
 };
@@ -68,7 +63,7 @@ const getCreateRoomData = body => {
             projectOpts = body.project;
         }
     }
-    const roomMembers = getIssueMembers(issue);
+    const roomMembers = utils.getIssueMembers(body);
     const descriptionFields = {
         assigneeName: getTextIssue(issue, 'assignee.displayName'),
         assigneeEmail: getTextIssue(issue, 'assignee.emailAddress'),
@@ -81,9 +76,10 @@ const getCreateRoomData = body => {
         priority: getTextIssue(issue, 'priority.name'),
     };
 
-    const url = getWatchersUrl(issue);
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const {key, id} = issue;
+    const url = utils.getWatchersUrl(body);
+    const summary = utils.getSummary(body);
+    const key = utils.getKey(body);
+    const id = utils.getId(body);
     const newIssue = {key, id, roomMembers, url, summary, descriptionFields};
 
     return {issue: newIssue, webhookEvent, projectOpts};
@@ -92,21 +88,19 @@ const getCreateRoomData = body => {
 // InviteNewMembersData
 
 const getInviteNewMembersData = body => {
-    const {issue} = body;
+    const roomMembers = utils.getIssueMembers(body);
+    const url = utils.getWatchersUrl(body);
+    const key = utils.getKey(body);
 
-    const roomMembers = getIssueMembers(issue);
-    const url = getWatchersUrl(issue);
-
-    const newIssue = {key: issue.key, roomMembers, url};
-
-    return {issue: newIssue};
+    return {issue: {key, roomMembers, url}};
 };
 
 // PostNewLinksData
 
 const getPostNewLinksData = body => {
-    const allLinks = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
+    const allLinks = utils.getLinks(body);
     const links = allLinks.map(link => (link ? link.id : link));
+
     return {links};
 };
 
@@ -118,9 +112,9 @@ const getPostEpicUpdatesData = body => {
     const {field} = epicUpdates;
     const epicKey = Ramda.path(['fields', field], issue);
 
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const name = Ramda.path(['user', 'name'], body);
-    const status = getNewStatus(body);
+    const summary = utils.getSummary(body);
+    const name = utils.getUserName(body);
+    const status = utils.getNewStatus(body);
 
     const data = {key, summary, id, changelog, name, status};
 
@@ -132,27 +126,25 @@ const getPostLinkedChangesData = body => {
     const {issue} = body;
     const {key, changelog, id} = issue;
 
-    const links = Ramda.path(['issue', 'fields', 'issuelinks'])(body);
+    const links = utils.getLinks(body);
     const linksKeys = links.reduce((acc, link) => {
         const destIssue = Ramda.either(
             Ramda.prop('outwardIssue'),
             Ramda.prop('inwardIssue')
         )(link);
         if (!destIssue) {
-            logger.debug('no destIssue in handleLink');
             return acc;
         }
         const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
         if (postChangesToLinks.ignoreDestStatusCat.includes(destStatusCat)) {
-            logger.debug('no includes destStatusCat');
             return acc;
         }
         return [...acc, destIssue.key];
     }, []);
 
-    const status = getNewStatus(body);
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const name = Ramda.path(['user', 'name'], body);
+    const status = utils.getNewStatus(body);
+    const summary = utils.getSummary(body);
+    const name = utils.getUserName(body);
 
     const data = {status, key, summary, id, changelog, name};
 
@@ -162,12 +154,11 @@ const getPostLinkedChangesData = body => {
 // PostProjectUpdates
 const getPostProjectUpdatesData = body => {
     const typeEvent = body.issue_event_type_name;
-    const {issue} = body;
-    const projectOpts = issue.fields.project;
-    const name = Ramda.path(['user', 'name'], body);
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const status = Ramda.path(['fields', 'status', 'name'], issue);
-    const {key} = issue;
+    const projectOpts = utils.getProjectOpts(body);
+    const name = utils.getUserName(body);
+    const summary = utils.getSummary(body);
+    const status = utils.getStatus(body);
+    const key = utils.getKey(body);
     const data = {key, summary, name, status};
 
     return {typeEvent, projectOpts, data};
@@ -177,11 +168,11 @@ const getPostProjectUpdatesData = body => {
 
 const getPostIssueUpdatesData = body => {
     const {changelog, user, issue} = body;
-    const fieldKey = getChangelogField('Key', body);
-    const {key} = issue;
+    const fieldKey = utils.getChangelogField('Key', body);
+    const key = utils.getKey(body);
     const issueKey = fieldKey ? fieldKey.fromString : key;
-    const summary = Ramda.path(['fields', 'summary'], issue);
-    const roomName = summary ? composeRoomName({...issue, summary}) : null;
+    const summary = utils.getSummary(body);
+    const roomName = summary ? utils.composeRoomName({...issue, summary}) : null;
 
     return {issueKey, fieldKey, summary, roomName, changelog, user, key};
 };

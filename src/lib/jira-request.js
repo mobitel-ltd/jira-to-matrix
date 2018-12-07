@@ -2,10 +2,28 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const {jira, inviteIgnoreUsers = []} = require('../config');
 const {request} = require('./request.js');
-const {paramsToQueryString} = require('./utils.js');
+const {paramsToQueryString, JIRA_REST} = require('./utils.js');
+const messages = require('./messages');
 
 const {url: jiraUrl} = jira;
+
 const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
+
+
+const getUrl = (...args) => [jiraUrl, JIRA_REST, ...args].join('/');
+
+const testJiraRequest = async () => {
+    try {
+        const res = await request(jiraUrl);
+
+        return res;
+    } catch (err) {
+        logger.error(messages.noJiraConnection, err);
+
+        throw messages.noJiraConnection;
+    }
+};
+
 /**
  * Get url for jira project by key
  * @param {string} key key of jira project
@@ -14,7 +32,6 @@ const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
  */
 const getProjectUrl = (key, type = 'browse') =>
     [jiraUrl, type, key].join('/');
-
 
 /**
  * Make jira request to get watchers of issue from url and add to roomMembers
@@ -42,11 +59,13 @@ const getRoomMembers = async ({url, roomMembers, watchersUrl}) => {
  * @return {object} jira response with issue
  */
 const getLinkedIssue = async id => {
-    const body = await request(
-        `${jiraUrl}/rest/api/2/issueLink/${id}`,
-    );
+    try {
+        const body = await request(getUrl('issueLink', id));
 
-    return body;
+        return body;
+    } catch (err) {
+        throw ['Error in getLinkedIssue', err].join('\n');
+    }
 };
 
 /**
@@ -60,9 +79,7 @@ const getIssue = async (id, params) => {
         const queryParams = paramsToQueryString(params);
         const url = `${jiraUrl}/rest/api/2/issue/${id}${queryParams}`;
         logger.debug('url for jira request', url);
-        const issue = await request(
-            url,
-        );
+        const issue = await request(url);
 
         return issue;
     } catch (err) {
@@ -77,10 +94,7 @@ const getIssue = async (id, params) => {
  */
 const getProject = async id => {
     try {
-        const url = `${jiraUrl}/rest/api/2/project/${id}`;
-        const project = await request(
-            url,
-        );
+        const project = await request(getUrl('project', id));
 
         return project;
     } catch (err) {
@@ -126,6 +140,7 @@ const getRenderedValues = async (issueID, fields) => {
 };
 
 module.exports = {
+    testJiraRequest,
     getProjectUrl,
     getRoomMembers,
     getIssue,

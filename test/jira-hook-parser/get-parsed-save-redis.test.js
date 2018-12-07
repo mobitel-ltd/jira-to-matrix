@@ -1,3 +1,4 @@
+const nock = require('nock');
 const {expect} = require('chai');
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
@@ -5,6 +6,8 @@ const {isCommentEvent} = require('../../src/jira-hook-parser/bot-handler.js');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const conf = require('../fixtures/config.js');
 const redis = require('../../src/redis-client.js');
+const utils = require('../../src/lib/utils');
+const {jira: {url: jiraUrl}} = require('../../src/config');
 
 describe('get-parsed-save to redis', () => {
     const redisKey = 'postComment_1512034084304';
@@ -23,9 +26,22 @@ describe('get-parsed-save to redis', () => {
 
     const {prefix} = conf.redis;
 
+    before(() => {
+        nock(jiraUrl)
+            .get('')
+            .times(2)
+            .reply(200, {status: 'OK'})
+            .get(`/${utils.JIRA_REST}/project/${secondBody.issue.fields.project.id}`)
+            .times(5)
+            .reply(200, {isPrivate: false})
+            .get(`/${utils.JIRA_REST}/issue/${utils.extractID(firstBody)}`)
+            .times(2)
+            .reply(200, {isPrivate: false});
+    });
+
     it('isCommentEvent', () => {
         const result1 = isCommentEvent(firstBody);
-        expect(result1).to.be;
+        expect(result1).to.be.true;
         const result2 = isCommentEvent(secondBody);
         expect(result2).to.be.equal(false);
     });

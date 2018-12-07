@@ -1,12 +1,20 @@
 const logger = require('../modules/log.js')(module);
-const {isIgnore} = require('./helper.js');
+const {getIgnoreInfo} = require('./helper.js');
 
-module.exports = body => {
-    const {ignoreStatus, username, startEndUpdateStatus, creator} = isIgnore(body);
-    // eslint-disable-next-line max-len
-    logger.info(`User "${username}", creator "${creator}", start/end mode "${startEndUpdateStatus}" ignored status: ${ignoreStatus}`);
+const getUserStatusMsg = ({username, creator, startEndUpdateStatus, ignoreStatus}) =>
+    `User "${username}", creator "${creator}", startendmode "${startEndUpdateStatus}" ignore status: ${ignoreStatus}`;
 
-    if (ignoreStatus) {
+const getProjectStatusMsg = ({webhook, ignoreStatus, timestamp}) =>
+    `Webhook ${webhook}, timestamp ${timestamp}, ignored status: ${ignoreStatus}`;
+
+module.exports = async body => {
+    const {projectStatus, userStatus} = await getIgnoreInfo(body);
+    const userStatusMsg = getUserStatusMsg(userStatus);
+    const projectStatusMsg = getProjectStatusMsg(projectStatus);
+
+    logger.info(userStatusMsg, projectStatusMsg);
+
+    if (userStatus.ignoreStatus || projectStatus.ignoreStatus) {
         throw 'User ignored';
     }
 };

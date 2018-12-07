@@ -1,7 +1,13 @@
+const {jira: {url: jiraUrl}} = require('../../src/config');
 const assert = require('assert');
+const firstBody = require('../fixtures/comment-create-1.json');
 const thirdBody = require('../fixtures/comment-create-3.json');
 const secondBody = require('../fixtures/comment-create-2.json');
+const utils = require('../../src/lib/utils');
+const messages = require('../../src/lib/messages');
 const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body');
+// const {getBodyProjectId} = require('../../src/lib/utils');
+const nock = require('nock');
 
 const proxyquire = require('proxyquire');
 const chai = require('chai');
@@ -17,10 +23,12 @@ const {
     getNewEpicMessageBody,
     getNewIssueMessageBody,
     getUserID,
-    isIgnore,
+    getIgnoreBodyData,
+    getIgnoreInfo,
+    getIgnoreProject,
 } = require('../../src/bot/helper.js');
 
-const {isIgnore: isIgnoreStub} = proxyquire('../../src/bot/helper.js', {
+const {getIgnoreBodyData: isIgnoreStub} = proxyquire('../../src/bot/helper.js', {
     '../config': {
         testMode: {
             on: false,
@@ -127,18 +135,19 @@ describe('Helper tests', () => {
         expect(falseResult).to.be.false;
     });
 
-    describe('Test isIgnore', () => {
+    describe('Test getIgnoreBodyData', () => {
         it('ignore if startEndUpdateStatus is true  but users are common', () => {
-            const {username, creator, startEndUpdateStatus, ignoreStatus} = isIgnore(thirdBody);
+            const {username, creator, startEndUpdateStatus, ignoreStatus} = getIgnoreBodyData(thirdBody);
 
             expect(username).to.equal('jira_test');
             expect(creator).to.equal('jira_test');
             expect(startEndUpdateStatus).to.be.true;
             expect(ignoreStatus).to.be.true;
         });
+
         it('not ignore if startEndUpdateStatus is false', () => {
             const newBody = {...thirdBody, changelog: {}};
-            const {startEndUpdateStatus, username, creator, ignoreStatus} = isIgnore(newBody);
+            const {startEndUpdateStatus, username, creator, ignoreStatus} = getIgnoreBodyData(newBody);
 
             expect(username).to.equal('jira_test');
             expect(creator).to.equal('jira_test');
@@ -160,7 +169,7 @@ describe('Helper tests', () => {
             };
             const changelog = {};
             const newBody = {...thirdBody, issue, user, changelog};
-            const {username, creator, ignoreStatus} = isIgnore(newBody);
+            const {username, creator, ignoreStatus} = getIgnoreBodyData(newBody);
 
             expect(username).to.equal('bot');
             expect(creator).to.equal('');
@@ -177,13 +186,13 @@ describe('Helper tests', () => {
             };
 
             const newBody = {...thirdBody, changelog};
-            const {ignoreStatus} = isIgnore(newBody);
+            const {ignoreStatus} = getIgnoreBodyData(newBody);
 
             expect(ignoreStatus).to.be.true;
         });
     });
 
-    describe('Test isIgnore in mode production (not test)', () => {
+    describe('Test getIgnoreBodyData in mode production (not test)', () => {
         it('test mode true  with ignore start/end', () => {
             const {username, creator, ignoreStatus} = isIgnoreStub(thirdBody);
 
@@ -212,6 +221,91 @@ describe('Helper tests', () => {
             expect(username).to.equal('ivan_prod');
             expect(creator).to.equal('jira_test');
             expect(ignoreStatus).to.be.true;
+        });
+    });
+
+    describe('Test getIgnoreInfo', () => {
+        const privateId = 12345;
+        const self = `https://jira.test-example.ru/jira/rest/api/2/issue/${privateId}/comment/31039`;
+        const privateCommentHook = {...firstBody, comment: {...firstBody.comment, self}};
+        const privateHook = {...thirdBody, issue: {...thirdBody.issue, fields: {project: {id: privateId}}}};
+
+        before(() => {
+            nock(jiraUrl)
+                .get('')
+                .times(2)
+                .reply(200, {status: 'OK'})
+                .get(`/${utils.JIRA_REST}/project/${thirdBody.issue.fields.project.id}`)
+                .times(5)
+                .reply(200, {isPrivate: false})
+                .get(`/${utils.JIRA_REST}/project/${privateId}`)
+                .times(1)
+                .reply(200, {isPrivate: true})
+                .get(`/${utils.JIRA_REST}/issue/${utils.extractID(firstBody)}`)
+                .times(2)
+                .reply(200, {isPrivate: false})
+                .get(`/${utils.JIRA_REST}/issue/${privateId}`)
+                .times(1)
+                .reply(404);
+        });
+
+        after(() => {
+            nock.cleanAll();
+        });
+
+        it('Expect getIgnoreInfo return correct body', async () => {
+            const result = await getIgnoreInfo(thirdBody);
+
+            const userStatus = getIgnoreBodyData(thirdBody);
+            const projectStatus = await getIgnoreProject(thirdBody);
+
+            expect(result).to.be.deep.eq({userStatus, projectStatus});
+        });
+
+        it('Expect getIgnoreProject handle hook correct', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(thirdBody);
+
+            expect(timestamp).to.be.eq(thirdBody.timestamp);
+            expect(webhookEvent).to.be.eq(thirdBody.webhookEvent);
+            expect(issueName).to.be.eq(thirdBody.issue.key);
+            expect(ignoreStatus).to.be.false;
+        });
+
+        it('Expect hook to be handled and to be ignored if project is private', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(privateHook);
+
+            expect(timestamp).to.be.eq(privateHook.timestamp);
+            expect(webhookEvent).to.be.eq(privateHook.webhookEvent);
+            expect(issueName).to.be.eq(privateHook.issue.key);
+            expect(ignoreStatus).to.be.true;
+        });
+
+        it('Expect createRoom hook to be handled', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(firstBody);
+
+            expect(timestamp).to.be.eq(firstBody.timestamp);
+            expect(webhookEvent).to.be.eq(firstBody.webhookEvent);
+            expect(issueName).to.be.eq(utils.extractID(firstBody));
+            expect(ignoreStatus).to.be.false;
+        });
+
+        it('Expect createRoom hook to be handled and should be ignored if private issue', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(privateCommentHook);
+
+            expect(timestamp).to.be.eq(firstBody.timestamp);
+            expect(webhookEvent).to.be.eq(firstBody.webhookEvent);
+            expect(issueName).to.be.eq(String(privateId));
+            expect(ignoreStatus).to.be.true;
+        });
+
+        it('Expect getIgnoreProject to be thrown if jira is not connected', async () => {
+            let result;
+            try {
+                result = await getIgnoreProject(firstBody);
+            } catch (err) {
+                result = err;
+            }
+            expect(result).to.be.eq(messages.noJiraConnection);
         });
     });
 });

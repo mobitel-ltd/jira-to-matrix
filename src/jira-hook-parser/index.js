@@ -5,7 +5,7 @@ const logger = require('../modules/log.js')(module);
 
 module.exports = async body => {
     try {
-        isIgnore(body);
+        await isIgnore(body);
         const parsedBody = getFuncAndBody(body);
         await Promise.all(parsedBody.map(saveIncoming));
 
