@@ -2,13 +2,13 @@
 const assert = require('assert');
 const firstJSON = require('../fixtures/comment-create-1.json');
 const secondJSON = require('../fixtures/comment-create-2.json');
-const {getBotFunc, getParserName, getFuncAndBody} = require('../../src/jira-hook-parser/bot-handler.js');
+const {getBotActions, getParserName, getFuncAndBody} = require('../../src/jira-hook-parser/bot-handler.js');
 
 describe('get-bot-data', () => {
-    const firstBodyArr = getBotFunc(firstJSON);
-    const secondBodyArr = getBotFunc(secondJSON);
+    const firstBodyArr = getBotActions(firstJSON);
+    const secondBodyArr = getBotActions(secondJSON);
 
-    it('test correct getBotFunc', () => {
+    it('test correct getBotActions', () => {
         const firstBodyArrExpected = ['postComment'];
         const secondBodyArrExpected = ['inviteNewMembers', 'postEpicUpdates'];
 
