@@ -31,7 +31,7 @@ const postLink = async (issue, relation, related, mclient) => {
 const handleLink = async (issueLinkId, mclient) => {
     try {
         const link = await getLinkedIssue(issueLinkId);
-        logger.silly('link', link);
+
         if (!link) {
             return;
         }
@@ -49,7 +49,6 @@ const handleLink = async (issueLinkId, mclient) => {
 };
 
 module.exports = async ({mclient, links}) => {
-    logger.debug('start postNewLinks');
     try {
         await Promise.all(links.map(async issueLink => {
             await handleLink(issueLink, mclient);

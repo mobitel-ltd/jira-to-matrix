@@ -20,10 +20,9 @@ const pickRendered = (issue, comment) => {
 };
 
 module.exports = async ({mclient, issueID, headerText, comment, author}) => {
-    logger.debug('Post comment start');
     try {
         if (!issueID) {
-            logger.warn('No IssueId for posting comment');
+            logger.warn('No IssueId for posting comment. No way to define params for posting comment');
             return;
         }
         const issue = await getIssueFormatted(issueID);

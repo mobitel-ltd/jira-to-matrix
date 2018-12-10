@@ -4,7 +4,6 @@ const {getUserID, membersInvited} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
 
 module.exports = async ({mclient, issue}) => {
-    logger.debug('inviteNewMembers start');
     try {
         const roomMembers = await getRoomMembers(issue);
         const participants = roomMembers.map(getUserID);

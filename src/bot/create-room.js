@@ -51,14 +51,11 @@ const createRoomProject = async (client, {key, lead, name}) => {
 };
 
 module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
-    logger.debug('Room creating');
     try {
         const roomID = await mclient.getRoomId(issue.key);
         if (roomID) {
             logger.debug(`Room should not be created, roomId is ${roomID} for room ${issue.key}`);
         } else {
-            logger.debug(`Start creating the room for issue ${issue.key}`);
-
             const newRoomID = await create(mclient, issue);
             await postIssueDescription({mclient, issue, newRoomID});
         }
@@ -71,7 +68,6 @@ module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
         if (roomProject) {
             logger.debug(`Room for project ${projectOpts.key} is already exists`);
         } else {
-            logger.debug(`Try to create a room for project ${projectOpts.key}`);
             const project = await getProject(projectOpts.id);
             await createRoomProject(mclient, project);
         }

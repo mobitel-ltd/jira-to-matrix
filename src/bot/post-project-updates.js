@@ -1,8 +1,6 @@
 const {getNewEpicMessageBody, getEpicChangedMessageBody} = require('./helper.js');
-const logger = require('../modules/log.js')(module);
 
 module.exports = async ({mclient, typeEvent, projectOpts, data}) => {
-    logger.debug('Post project updates start');
     try {
         const roomId = await mclient.getRoomId(projectOpts.key);
         if (!roomId) {

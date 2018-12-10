@@ -1,7 +1,6 @@
 const Ramda = require('ramda');
 const htmlToText = require('html-to-text').fromString;
 const {getIssueFormatted, getRenderedValues} = require('../lib/jira-request.js');
-const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 const {jira: {url}} = require('../config');
 
@@ -61,7 +60,6 @@ const getTutorial = `
     `;
 
 module.exports = async ({mclient, issue, newRoomID}) => {
-    logger.debug('Post issue description start');
     try {
         const {description} = await getRenderedValues(issue.id, ['description']);
         const htmlBody = await getPost({...issue.descriptionFields, description});

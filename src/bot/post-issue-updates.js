@@ -15,7 +15,6 @@ const postUpdateInfo = async (mclient, roomID, data) => {
 
 const move = async (mclient, roomID, {issueKey, fieldKey, summary}) => {
     if (!(fieldKey && summary)) {
-        logger.debug('Deny move issue operation');
         return;
     }
     try {
@@ -40,14 +39,10 @@ const rename = async (mclient, roomID, {summary, roomName, issueKey}) => {
 
 module.exports = async ({mclient, ...body}) => {
     try {
-        logger.debug('Start postIssueUpdates');
-
         const roomID = await mclient.getRoomId(body.issueKey);
         if (!roomID) {
             throw `No room for ${body.issueKey} in PostIssueUpdates`;
         }
-
-        logger.debug('RoomId in Post issue updates is ', roomID);
 
         await move(mclient, roomID, body);
         await rename(mclient, roomID, body);
