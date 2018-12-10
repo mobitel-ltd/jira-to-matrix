@@ -58,7 +58,7 @@ const actionFuncs = {
     postLinkedChanges: isPostLinkedChanges,
 };
 
-const getBotFunc = body =>
+const getBotActions = body =>
     Object.keys(actionFuncs).filter(key => actionFuncs[key](body));
 
 const getParserName = func =>
@@ -72,7 +72,7 @@ const getFuncRedisData = body => funcName => {
     return {redisKey, funcName, data};
 };
 const getFuncAndBody = body => {
-    const botFunc = getBotFunc(body);
+    const botFunc = getBotActions(body);
     const createRoomData = isCreateRoom(body) && parsers.getCreateRoomData(body);
     const roomsData = {redisKey: utils.REDIS_ROOM_KEY, createRoomData};
     const funcsData = botFunc.map(getFuncRedisData(body));
@@ -83,7 +83,7 @@ const getFuncAndBody = body => {
 module.exports = {
     getFuncAndBody,
     getParserName,
-    getBotFunc,
+    getBotActions,
     isPostComment,
     isPostIssueUpdates,
     isCreateRoom,

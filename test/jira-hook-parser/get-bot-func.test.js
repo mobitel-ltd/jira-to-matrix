@@ -1,4 +1,4 @@
-const {getBotFunc} = require('../../src/jira-hook-parser/bot-handler');
+const {getBotActions} = require('../../src/jira-hook-parser/bot-handler');
 const assert = require('assert');
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
@@ -11,13 +11,13 @@ describe('bot func', () => {
     });
 
     it('test correct funcs ', () => {
-        const result = getBotFunc(firstBody);
+        const result = getBotActions(firstBody);
         const expected = ['postComment'];
         assert.deepEqual(result, expected);
     });
 
     it('test correct funcs seconBody', () => {
-        const result = getBotFunc(secondBody);
+        const result = getBotActions(secondBody);
         const expected = [
             'inviteNewMembers',
             'postEpicUpdates',
@@ -26,7 +26,7 @@ describe('bot func', () => {
     });
 
     it('async arr expect', () => {
-        const funcsForBot = getBotFunc(firstBody);
+        const funcsForBot = getBotActions(firstBody);
         const result = funcsForBot.map(func => bot[func]);
         assert.ok(Array.isArray(result));
     });

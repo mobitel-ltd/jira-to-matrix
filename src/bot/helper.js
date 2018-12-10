@@ -28,7 +28,6 @@ const getProjectPrivateStatus = async body => {
 
     if (projectId) {
         const projectBody = await jiraRequests.getProject(projectId);
-        logger.debug('projectBody', projectBody);
 
         return Ramda.path(['isPrivate'], projectBody);
     }
