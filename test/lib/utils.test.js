@@ -1,11 +1,11 @@
 /* eslint-disable no-undefined */
-const {getWatchersUrl, isIgnoreKey, webHookUser, getCreator, auth, getChangelogField, paramsToQueryString, propIn, nonEmptyString, paths, getNewStatus} = require('../../src/lib/utils');
+const utils = require('../../src/lib/utils');
 const assert = require('assert');
 const hook = require('../fixtures/comment-create-2.json');
 const thirdBody = require('../fixtures/comment-create-3.json');
 const {expect} = require('chai');
 const body = require('../fixtures/comment-create-4.json');
-
+const issueData = require('../fixtures/issue-updated.json');
 describe('Utils testing', () => {
     const expectedFuncKeys = [
         'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
@@ -17,7 +17,7 @@ describe('Utils testing', () => {
             'test-jira-hooks:rooms',
             'test-jira-hooks:newrooms',
         ];
-        const result = keys.filter(isIgnoreKey);
+        const result = keys.filter(utils.isIgnoreKey);
         expect(result).to.be.deep.equal(expectedFuncKeys);
     });
 
@@ -33,7 +33,7 @@ describe('Utils testing', () => {
             ['prop', [1, 2], {prop: null}, false],
         ];
         samples.forEach(sample => {
-            const fn1 = propIn(sample[0]);
+            const fn1 = utils.propIn(sample[0]);
             const fn = fn1(sample[1]);
             const result = fn(sample[2]);
             assert.deepEqual(result, sample[3]);
@@ -50,7 +50,7 @@ describe('Utils testing', () => {
             {input: {}, result: ''},
         ];
         samples.forEach(sample => {
-            const result = paramsToQueryString(sample.input);
+            const result = utils.paramsToQueryString(sample.input);
             assert.deepEqual(result, sample.result);
         });
     });
@@ -65,13 +65,13 @@ describe('Utils testing', () => {
             [[], false],
         ];
         samples.forEach(sample => {
-            const result = nonEmptyString(sample[0]);
+            const result = utils.nonEmptyString(sample[0]);
             assert.deepEqual(result, sample[1]);
         });
     });
 
     it('Paths', () => {
-        const result = paths([
+        const result = utils.paths([
             'user.name',
             'issue.key',
             'issue.fields.summary',
@@ -86,7 +86,7 @@ describe('Utils testing', () => {
     });
 
     it('getNewStatus', () => {
-        const status = getNewStatus(thirdBody);
+        const status = utils.getNewStatus(thirdBody);
         assert.equal(status, 'Closed');
     });
     it('Extract username from JIRA webhook', () => {
@@ -106,25 +106,25 @@ describe('Utils testing', () => {
             [{}, undefined],
         ];
         samples.forEach(sample => {
-            const result = webHookUser(sample[0]);
+            const result = utils.webHookUser(sample[0]);
             expect(result).to.be.equal(sample[1]);
         });
     });
 
     it('Extract creator name from JIRA webhook', () => {
-        const creator = getCreator(body);
+        const creator = utils.getCreator(body);
 
         expect(creator).to.be.equal('jira_test');
     });
 
     it('Test correct auth', () => {
-        const currentAuth = auth();
+        const currentAuth = utils.auth();
 
         expect(currentAuth).to.be.equal('Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ=');
     });
 
     it('Test correct getChangelogField', () => {
-        const changelogField = getChangelogField('status', body);
+        const changelogField = utils.getChangelogField('status', body);
         const expected = {
             field: 'status',
             fieldtype: 'jira',
@@ -138,7 +138,7 @@ describe('Utils testing', () => {
     });
 
     it('Test unexpected getChangelogField', () => {
-        const changelogField = getChangelogField('fake', body);
+        const changelogField = utils.getChangelogField('fake', body);
 
         expect(changelogField).to.be.undefined;
     });
@@ -146,7 +146,24 @@ describe('Utils testing', () => {
     it('expect getWatchersUrl works well', () => {
         const self = 'url';
         const body = {issue: {self}};
-        const result = getWatchersUrl(body);
+        const result = utils.getWatchersUrl(body);
         expect(result).to.be.eq(`${self}/watchers`);
+    });
+
+    describe('extractID', () => {
+        it('Comment hook', () => {
+            const id = utils.extractID(hook);
+            expect(id).to.be.eq('26313');
+        });
+
+        it('Expect issueData works', () => {
+            const id = utils.extractID(issueData);
+            expect(id).to.be.eq('11630');
+        });
+    });
+
+    it('Expect getComment return undefined', () => {
+        const body = utils.getComment(issueData);
+        expect(body).to.be.undefined;
     });
 });

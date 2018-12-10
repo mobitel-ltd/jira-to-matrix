@@ -5,7 +5,7 @@ const {features} = require('../config');
 const isPostComment = body =>
     features.postComments
     && utils.isCommentEvent(body)
-    && utils.getCommentBody(body);
+    && utils.getComment(body);
 
 const isPostIssueUpdates = body =>
     features.postIssueUpdates

@@ -16,7 +16,7 @@ module.exports = {
         const url = utils.getWatchersUrl(body);
         const summary = utils.getSummary(body);
         const key = utils.getKey(body);
-        const id = utils.getId(body);
+        const id = utils.getIssueId(body);
         const webhookEvent = utils.getBodyWebhookEvent(body);
         const descriptionFields = utils.getDescriptionFields(body);
 
@@ -43,7 +43,7 @@ module.exports = {
     getPostEpicUpdatesData: body => {
         const epicKey = utils.getEpicKey(body);
         const changelog = utils.getIssueChangelog(body);
-        const id = utils.getId(body);
+        const id = utils.getIssueId(body);
         const key = utils.getKey(body);
         const summary = utils.getSummary(body);
         const name = utils.getUserName(body);
@@ -56,7 +56,7 @@ module.exports = {
 
     getPostLinkedChangesData: body => {
         const changelog = utils.getChangelog(body);
-        const id = utils.getId(body);
+        const id = utils.getIssueId(body);
         const key = utils.getKey(body);
         const status = utils.getNewStatus(body);
         const summary = utils.getSummary(body);
