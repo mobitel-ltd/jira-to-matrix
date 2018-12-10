@@ -11,13 +11,11 @@ module.exports = async ({mclient, issue}) => {
 
         const room = await mclient.getRoomByAlias(issue.key);
         if (!room) {
-            logger.warn(`Matrix not return room for key ${issue.key} in inviteNewMembers`);
-            return;
+            throw `Matrix not return room for key ${issue.key} in inviteNewMembers`;
         }
 
         const members = membersInvited(room.getJoinedMembers());
         const newMembers = Ramda.difference(participants, members);
-        logger.debug('Number of members to invite: ', newMembers.length);
 
         await Promise.all(newMembers.map(async userID => {
             await mclient.invite(room.roomId, userID);

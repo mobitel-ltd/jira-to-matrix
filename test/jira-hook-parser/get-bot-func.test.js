@@ -2,6 +2,7 @@ const {getBotActions} = require('../../src/jira-hook-parser/bot-handler');
 const assert = require('assert');
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
+const issueData = require('../fixtures/issue-updated.json');
 const bot = require('../../src/bot');
 
 describe('bot func', () => {
@@ -29,5 +30,13 @@ describe('bot func', () => {
         const funcsForBot = getBotActions(firstBody);
         const result = funcsForBot.map(func => bot[func]);
         assert.ok(Array.isArray(result));
+    });
+
+    it('test issue-updated', () => {
+        const funcsForBot = getBotActions(issueData);
+        assert.deepEqual(funcsForBot, [
+            'postIssueUpdates',
+            'inviteNewMembers',
+        ]);
     });
 });

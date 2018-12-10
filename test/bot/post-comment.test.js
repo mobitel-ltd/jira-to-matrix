@@ -4,9 +4,7 @@ const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-1.json');
 const {getPostCommentData} = require('../../src/jira-hook-parser/parse-body.js');
 const {postComment} = require('../../src/bot');
-const {getRequestErrorLog} = require('../../src/lib/request.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
-const querystring = require('querystring');
 
 describe('Post comments test', () => {
     const responce = {
@@ -48,22 +46,11 @@ describe('Post comments test', () => {
         assert.ok(result);
     });
 
-    it('Get error with empty issueID', async () => {
+    it('Expect return with empty issueID. No way to handle issue', async () => {
         const newBody = {...postCommentData, issueID: null};
-
-        try {
-            await postComment({mclient, ...newBody});
-        } catch (err) {
-            const fakeUrl = `${BASE_URL}/null?${querystring.stringify(params)}`;
-            const requestErrorLog = getRequestErrorLog(fakeUrl, errorStatus);
-            const expected = [
-                'Error in Post comment',
-                'getIssueFormatted Error',
-                'Error in get issue',
-                requestErrorLog,
-            ].join('\n');
-            assert.deepEqual(err, expected);
-        }
+        const res = await postComment({mclient, ...newBody});
+        // eslint-disable-next-line
+        assert.equal(res, undefined);
     });
 
     it('Expect postComment throw error "No roomId for" if room is not exists', async () => {

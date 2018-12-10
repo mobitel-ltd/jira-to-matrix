@@ -72,7 +72,12 @@ describe('inviteNewMembers test', () => {
 
     it('Get undefined with no room for key', async () => {
         getRoomByAliasStub.returns(null);
-        const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
+        let result;
+        try {
+            result = await inviteNewMembers({mclient, ...inviteNewMembersData});
+        } catch (error) {
+            expect(error).to.be.not.null;
+        }
 
         expect(result).to.be.undefined;
     });
@@ -85,16 +90,6 @@ describe('inviteNewMembers test', () => {
         const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
 
         expect(result).to.deep.equal(expected);
-    });
-
-    it('Get undefined with no room for key', async () => {
-        getRoomByAliasStub.reset();
-        getRoomByAliasStub.returns(null);
-        inviteStub.reset();
-
-        const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
-        expect(inviteStub).not.to.be.called;
-        expect(result).to.be.undefined;
     });
 
     it('Get error after throw in invite', async () => {

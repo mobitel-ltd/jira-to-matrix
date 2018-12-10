@@ -55,7 +55,7 @@ module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
     try {
         const roomID = await mclient.getRoomId(issue.key);
         if (roomID) {
-            logger.debug('Room should not be created, roomId is ', roomID);
+            logger.debug(`Room should not be created, roomId is ${roomID} for room ${issue.key}`);
         } else {
             logger.debug(`Start creating the room for issue ${issue.key}`);
 
@@ -63,7 +63,6 @@ module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
             await postIssueDescription({mclient, issue, newRoomID});
         }
         if (!projectOpts) {
-            logger.debug(`Room for a project not created as projectOpts is ${projectOpts}`);
             return true;
         }
 

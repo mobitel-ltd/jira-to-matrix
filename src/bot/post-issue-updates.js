@@ -44,8 +44,7 @@ module.exports = async ({mclient, ...body}) => {
 
         const roomID = await mclient.getRoomId(body.issueKey);
         if (!roomID) {
-            logger.warn(`No room for ${body.issueKey} in PostIssueUpdates`);
-            return;
+            throw `No room for ${body.issueKey} in PostIssueUpdates`;
         }
 
         logger.debug('RoomId in Post issue updates is ', roomID);

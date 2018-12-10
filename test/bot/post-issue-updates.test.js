@@ -83,7 +83,12 @@ describe('Post issue updates test', () => {
 
     it('Get error with empty issueID', async () => {
         const newBody = {...postIssueUpdatesData, issueKey: null};
-        const result = await postIssueUpdates({mclient, ...newBody});
+        let result;
+        try {
+            result = await postIssueUpdates({mclient, ...newBody});
+        } catch (error) {
+            expect(error).to.be.not.null;
+        }
         expect(result).to.be.undefined;
     });
 

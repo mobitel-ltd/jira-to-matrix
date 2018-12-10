@@ -58,6 +58,8 @@ const utils = {
 
     getChangelog: body => Ramda.path(['changelog'], body),
 
+    getComment: body => Ramda.path(['comment'], body),
+
     getCommentBody: body => ({
         body: Ramda.path(['comment', 'body'], body),
         id: Ramda.path(['comment', 'id'], body),
@@ -73,7 +75,7 @@ const utils = {
 
     getEpicKey: body => Ramda.path(['issue', 'fields', epicField], body),
 
-    getId: body => Ramda.path(['issue', 'id'], body),
+    getIssueId: body => Ramda.path(['issue', 'id'], body),
 
     getKey: body => Ramda.path(['issue', 'key'], body),
 
@@ -243,6 +245,10 @@ const utils = {
      * @return {string} issue ID
      */
     extractID: body => {
+        const id = utils.getIssueId(body);
+        if (id) {
+            return id;
+        }
         const json = JSON.stringify(body);
         const matches = /\/issue\/(\d+)\//.exec(json);
         if (!matches) {
