@@ -26,9 +26,7 @@ const getRoomId = client => async alias => {
         const {room_id: roomId} = await client.getRoomIdForAlias(getAlias(alias));
         return roomId;
     } catch (err) {
-        logger.warn(`No room id for ${alias} from Matrix\n`, err);
-
-        return null;
+        throw (`No roomId for ${alias} from Matrix\n`, err);
     }
 };
 

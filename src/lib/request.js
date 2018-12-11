@@ -1,11 +1,8 @@
 const logger = require('../modules/log.js')(module);
 const requestPromise = require('request-promise-native');
 const {auth} = require('./utils.js');
-
+const {getRequestErrorLog} = require('./messages');
 const TIMEOUT = 60000;
-
-const getRequestErrorLog = (url, status, {method, body} = {method: 'GET'}) =>
-    `Error in ${method} request ${url}, status is ${status}, body is ${body}`;
 
 const request = async (url, newOptions) => {
     const options = {
@@ -47,5 +44,4 @@ module.exports = {
     request,
     requestPost,
     requestPut,
-    getRequestErrorLog,
 };

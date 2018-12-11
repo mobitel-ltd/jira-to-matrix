@@ -1,11 +1,9 @@
 const proxyquire = require('proxyquire');
 const {expect} = require('chai');
-const {auth} = require('../../src/lib/utils.js');
-const {getRenderedValues, getProjectUrl, getRoomMembers} = require('../../src/lib/jira-request');
-const {getRequestErrorLog} = require('../../src/lib/request');
-const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
+const {auth, getViewUrl, getRestUrl, issueFormatedParams} = require('../../src/lib/utils.js');
+const {getRenderedValues, getRoomMembers} = require('../../src/lib/jira-request');
+const {getRequestErrorLog} = require('../../src/lib/messages');
 const nock = require('nock');
-const querystring = require('querystring');
 const issueBody = require('../fixtures/response.json');
 const {url} = require('../../src/config').jira;
 const watchersJSON = require('../fixtures/watchers.json');
@@ -16,22 +14,20 @@ describe('Issue test', () => {
         id: 26313,
     };
     const fakeId = 1000;
-    const params = {expand: 'renderedFields'};
-    const queryParams = querystring.stringify(params);
-    const fakePath = '/1000';
+    const fakeEndPoint = '1000';
     const roomMembers = ['testName1', 'testName2'];
 
     before(() => {
-        nock(BASE_URL, {
+        nock(getRestUrl('issue'), {
             reqheaders: {
                 Authorization: auth(),
             },
         })
             .get(`/${issue.id}`)
-            .query(params)
+            .query(issueFormatedParams)
             .reply(200, issueBody)
-            .get(fakePath)
-            .query({expand: 'renderedFields'})
+            .get(`/${fakeEndPoint}`)
+            .query(issueFormatedParams)
             .reply(404, 'Error!!!')
             .get(`/${issue.id}/watchers`)
             .times(4)
@@ -44,7 +40,7 @@ describe('Issue test', () => {
     });
 
     it('getRenderedValues error test', async () => {
-        const fakeUrl = `${BASE_URL}${fakePath}?${queryParams}`;
+        const fakeUrl = getRestUrl('issue', fakeEndPoint);
         const expectedData = [
             'getRenderedValues error',
             'getIssueFormatted Error',
@@ -58,22 +54,22 @@ describe('Issue test', () => {
         }
     });
 
-    it('getProjectUrl test', () => {
-        const projectResult = getProjectUrl(issue.id, 'projects');
+    it('getViewUrl test', () => {
+        const projectResult = getViewUrl(issue.id, 'projects');
         expect(projectResult).to.be.deep.equal(`${url}/projects/${issue.id}`);
 
-        const issueResult = getProjectUrl(issue.id);
+        const issueResult = getViewUrl(issue.id);
         expect(issueResult).to.be.deep.equal(`${url}/browse/${issue.id}`);
     });
 
     it('expect getRoomMembers works correct', async () => {
-        const url = [BASE_URL, issue.id, 'watchers'].join('/');
+        const url = getRestUrl('issue', issue.id, 'watchers');
         const result = await getRoomMembers({url, roomMembers});
         expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
     });
 
     it('expect getRoomMembers works correct if watchersUrl exists', async () => {
-        const url = [BASE_URL, issue.id, 'watchers'].join('/');
+        const url = getRestUrl('issue', issue.id, 'watchers');
         const result = await getRoomMembers({roomMembers, watchersUrl: url});
         expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
     });
@@ -84,7 +80,7 @@ describe('Issue test', () => {
                 inviteIgnoreUsers: roomMembers,
             },
         });
-        const url = [BASE_URL, issue.id, 'watchers'].join('/');
+        const url = getRestUrl('issue', issue.id, 'watchers');
         const result = await getCollectParticipantsProxy({url, roomMembers});
         expect(result).to.be.deep.eq(watchersUsers);
     });
@@ -95,7 +91,7 @@ describe('Issue test', () => {
                 inviteIgnoreUsers: watchersUsers,
             },
         });
-        const url = [BASE_URL, issue.id, 'watchers'].join('/');
+        const url = getRestUrl('issue', issue.id, 'watchers');
         const result = await getCollectParticipantsProxy({url, roomMembers});
         expect(result).to.be.deep.eq(roomMembers);
     });

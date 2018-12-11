@@ -1,17 +1,28 @@
-const {getRoomMembers, getProject, getProjectUrl} = require('../lib/jira-request.js');
+const {getRoomMembers, getProject} = require('../lib/jira-request.js');
 const {getUserID} = require('./helper.js');
-const {composeRoomName} = require('../lib/utils.js');
+const {composeRoomName, getViewUrl, errorTracing} = require('../lib/utils.js');
 const logger = require('../modules/log.js')(module);
 const postIssueDescription = require('./post-issue-description.js');
 
-const create = async (client, issue) => {
+const getRoomId = async (mclient, key) => {
+    try {
+        const id = await mclient.getRoomId(key);
+        logger.debug(`Room should not be created, roomId is ${id} for room ${key}`);
+
+        return id;
+    } catch (err) {
+        return null;
+    }
+};
+
+const createIssueRoom = async (client, issue) => {
     try {
         const roomMembers = await getRoomMembers(issue);
         const invite = roomMembers.map(getUserID);
 
         const {key} = issue;
         const name = composeRoomName(issue);
-        const topic = getProjectUrl(key);
+        const topic = getViewUrl(key);
 
         const options = {
             'room_alias_name': key,
@@ -23,16 +34,19 @@ const create = async (client, issue) => {
         const roomId = await client.createRoom(options);
 
         logger.info(`Created room for ${key}: ${roomId}`);
+        await postIssueDescription({client, issue, newRoomID: roomId});
+
         return roomId;
     } catch (err) {
-        throw ['Error in room create', err].join('\n');
+        throw errorTracing('createIssueRoom', err);
     }
 };
 
-const createRoomProject = async (client, {key, lead, name}) => {
+const createRoomProject = async (client, id) => {
     try {
+        const {key, lead, name} = await getProject(id);
         const invite = [getUserID(lead.key)];
-        const topic = getProjectUrl(key, 'projects');
+        const topic = getViewUrl(key, 'projects');
 
         const options = {
             'room_alias_name': key,
@@ -46,33 +60,19 @@ const createRoomProject = async (client, {key, lead, name}) => {
         logger.info(`Created room for project ${key}: ${roomId}`);
         return roomId;
     } catch (err) {
-        throw ['createRoomProject Error', err].join('\n');
+        throw errorTracing('createRoomProject', err);
     }
 };
 
 module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
     try {
-        const roomID = await mclient.getRoomId(issue.key);
-        if (roomID) {
-            logger.debug(`Room should not be created, roomId is ${roomID} for room ${issue.key}`);
-        } else {
-            const newRoomID = await create(mclient, issue);
-            await postIssueDescription({mclient, issue, newRoomID});
-        }
-        if (!projectOpts) {
-            return true;
+        await getRoomId(mclient, issue.key) || await createIssueRoom(mclient, issue);
+        if (projectOpts) {
+            await getRoomId(mclient, projectOpts.key) || await createRoomProject(mclient, projectOpts.id);
         }
 
-        const roomProject = await mclient.getRoomId(projectOpts.key);
-
-        if (roomProject) {
-            logger.debug(`Room for project ${projectOpts.key} is already exists`);
-        } else {
-            const project = await getProject(projectOpts.id);
-            await createRoomProject(mclient, project);
-        }
         return true;
     } catch (err) {
-        throw ['Error in room creating', err].join('\n');
+        throw errorTracing('create room', err);
     }
 };

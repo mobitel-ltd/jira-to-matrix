@@ -48,10 +48,7 @@ module.exports = async ({mclient, data, epicKey}) => {
     try {
         const epic = await getIssue(epicKey);
         const roomID = await mclient.getRoomId(epicKey);
-        if (!roomID) {
-            logger.warn(`No room for ${epicKey} in PostEpicUpdates`);
-            return;
-        }
+
         if (epicConf.newIssuesInEpic === 'on') {
             await postNewIssue(roomID, {epic, issue: data}, mclient);
         }

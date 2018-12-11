@@ -1,20 +1,22 @@
 const Ramda = require('ramda');
+const {errorTracing} = require('../lib/utils.js');
 const {getRoomMembers} = require('../lib/jira-request.js');
 const {getUserID, membersInvited} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
+const {getNoRoomByAliasLog} = require('../../src/lib/messages');
 
 module.exports = async ({mclient, issue}) => {
     try {
         const roomMembers = await getRoomMembers(issue);
-        const participants = roomMembers.map(getUserID);
+        const roomMemebersUerId = roomMembers.map(getUserID);
 
         const room = await mclient.getRoomByAlias(issue.key);
         if (!room) {
-            throw `Matrix not return room for key ${issue.key} in inviteNewMembers`;
+            throw getNoRoomByAliasLog(issue.key);
         }
 
         const members = membersInvited(room.getJoinedMembers());
-        const newMembers = Ramda.difference(participants, members);
+        const newMembers = Ramda.difference(roomMemebersUerId, members);
 
         await Promise.all(newMembers.map(async userID => {
             await mclient.invite(room.roomId, userID);
@@ -23,6 +25,6 @@ module.exports = async ({mclient, issue}) => {
 
         return newMembers;
     } catch (err) {
-        throw ['Error in inviteNewMembers', err].join('\n');
+        throw errorTracing('inviteNewMembers', err);
     }
 };

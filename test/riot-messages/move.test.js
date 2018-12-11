@@ -4,7 +4,7 @@ const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js
 const {schemaMove} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {move} = require('../../src/matrix/timeline-handler/commands');
 const responce = require('../fixtures/transitions.json');
-const {getRequestErrorLog} = require('../../src/lib/request');
+const {getRequestErrorLog} = require('../../src/lib/messages');
 const translate = require('../../src/locales');
 
 const chai = require('chai');

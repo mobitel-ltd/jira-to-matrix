@@ -3,9 +3,6 @@ const {postStatusChanged} = require('./helper.js');
 const handleLink = (data, mclient) => async key => {
     try {
         const roomID = await mclient.getRoomId(key);
-        if (!roomID) {
-            return;
-        }
 
         await postStatusChanged({mclient, roomID, data});
     } catch (err) {

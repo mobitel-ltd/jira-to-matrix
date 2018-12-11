@@ -1,6 +1,6 @@
 const nock = require('nock');
 const chai = require('chai');
-const {auth} = require('../../src/lib/utils.js');
+const {auth, issueFormatedParams} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-4.json');
 const {getPostIssueUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostIssueUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
@@ -14,7 +14,7 @@ chai.use(sinonChai);
 describe('Post issue updates test', () => {
     const sendHtmlMessageStub = stub();
     const setRoomNameStub = stub();
-    const getRoomIdStub = stub().callsFake(id => (id ? `roomId${id}` : null));
+    const getRoomIdStub = stub();
     const createAliasStub = stub();
     const setRoomTopicStub = stub();
 
@@ -41,12 +41,24 @@ describe('Post issue updates test', () => {
         })
             .get(`/jira/rest/api/2/issue/BBCOM-1233`)
             .times(6)
-            .query({expand: 'renderedFields'})
+            .query(issueFormatedParams)
             .reply(200, {...response, id: 28516})
             .get(url => url.indexOf('null') > 0)
             .reply(404);
     });
 
+    beforeEach(() => {
+        getRoomIdStub.callsFake(id => {
+            if (id) {
+                return `roomId${id}`;
+            }
+            throw 'Error';
+        });
+    });
+
+    afterEach(() => {
+        getRoomIdStub.reset();
+    });
     it('Expect createAlias to be with error but postIssueUpdates should work', async () => {
         createAliasStub.callsFake((alias, roomId) => {
             try {

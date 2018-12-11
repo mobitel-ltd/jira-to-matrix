@@ -1,4 +1,4 @@
-const {getProjectUrl} = require('../lib/jira-request.js');
+const {getViewUrl} = require('../lib/utils');
 const logger = require('../modules/log.js')(module);
 const {getIssueUpdateInfoMessageBody} = require('./helper.js');
 
@@ -21,7 +21,7 @@ const move = async (mclient, roomID, {issueKey, fieldKey, summary}) => {
         await mclient.createAlias(fieldKey.toString, roomID);
         logger.debug(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
 
-        await mclient.setRoomTopic(roomID, getProjectUrl(issueKey));
+        await mclient.setRoomTopic(roomID, getViewUrl(issueKey));
     } catch (err) {
         throw ['Error in move issue', err].join('\n');
     }
@@ -40,9 +40,6 @@ const rename = async (mclient, roomID, {summary, roomName, issueKey}) => {
 module.exports = async ({mclient, ...body}) => {
     try {
         const roomID = await mclient.getRoomId(body.issueKey);
-        if (!roomID) {
-            throw `No room for ${body.issueKey} in PostIssueUpdates`;
-        }
 
         await move(mclient, roomID, body);
         await rename(mclient, roomID, body);

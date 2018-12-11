@@ -71,19 +71,12 @@ describe('Post epic updates test', () => {
     });
 
     it('Expect postEpicUpdates throw error "No roomId for" if room is not exists', async () => {
-        getRoomIdStub.resolves(null);
+        getRoomIdStub.rejects('No roomId for');
         try {
             await postEpicUpdates({mclient, ...postCommentData});
         } catch (err) {
             expect(err.includes('No roomId for')).to.be.true;
         }
-    });
-
-
-    it('Get undefined with no room for epicKey', async () => {
-        const result = await postEpicUpdates({mclient, ...postCommentData});
-
-        expect(result).to.be.undefined;
     });
 
     it('Get true after running postEpicUpdates', async () => {
