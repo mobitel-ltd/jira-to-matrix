@@ -1,6 +1,7 @@
 const assert = require('assert');
 const {auth} = require('../../src/lib/utils.js');
-const {request, getRequestErrorLog} = require('../../src/lib/request');
+const {request} = require('../../src/lib/request');
+const {getRequestErrorLog} = require('../../src/lib/messages');
 const nock = require('nock');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 

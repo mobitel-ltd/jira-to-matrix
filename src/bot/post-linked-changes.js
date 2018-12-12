@@ -1,13 +1,9 @@
 const {postStatusChanged} = require('./helper.js');
-const logger = require('../modules/log.js')(module);
 
-const handleLink = async (data, key, mclient) => {
+const handleLink = (data, mclient) => async key => {
     try {
         const roomID = await mclient.getRoomId(key);
-        if (!roomID) {
-            return;
-        }
-        logger.debug('roomID', roomID);
+
         await postStatusChanged({mclient, roomID, data});
     } catch (err) {
         throw ['Error in handleLink in postLinkedChanges', err].join('\n');
@@ -16,9 +12,7 @@ const handleLink = async (data, key, mclient) => {
 
 module.exports = async ({mclient, linksKeys, data}) => {
     try {
-        await Promise.all(linksKeys.map(async key => {
-            await handleLink(data, key, mclient);
-        }));
+        await Promise.all(linksKeys.map(handleLink(data, mclient)));
 
         return true;
     } catch (err) {

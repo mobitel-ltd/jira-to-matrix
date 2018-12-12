@@ -1,39 +1,19 @@
-const Ramda = require('ramda');
 const htmlToString = require('html-to-text').fromString;
 const logger = require('../modules/log.js')(module);
-
+const {getCommentHTMLBody, getCommentBody} = require('../bot/helper');
 const {getIssueFormatted} = require('../lib/jira-request.js');
 
-const pickRendered = (issue, comment) => {
-    const comments = Ramda.path(['renderedFields', 'comment', 'comments'], issue);
-    if (!(comments instanceof Array)) {
-        return comment.body;
-    }
-
-    const result = Ramda.propOr(
-        comment.body,
-        'body',
-        Ramda.find(Ramda.propEq('id', comment.id), comments)
-    );
-
-    return result;
-};
-
 module.exports = async ({mclient, issueID, headerText, comment, author}) => {
-    logger.debug('Post comment start');
     try {
         if (!issueID) {
-            logger.warn('No IssueId for posting comment');
+            logger.warn('No IssueId for posting comment. No way to define params for posting comment');
             return;
         }
         const issue = await getIssueFormatted(issueID);
         const roomId = await mclient.getRoomId(issue.key);
-        if (!roomId) {
-            throw `No roomId for ${issue.key}`;
-        }
 
-        const commentBody = pickRendered(issue, comment);
-        const htmlBody = `${headerText}: <br>${commentBody}`;
+        const commentBody = getCommentBody(issue, comment);
+        const htmlBody = getCommentHTMLBody(headerText, commentBody);
         const body = htmlToString(htmlBody);
         await mclient.sendHtmlMessage(roomId, body, htmlBody);
         logger.debug(`Posted comment ${commentBody} to ${issue.key} from ${author}\n`);

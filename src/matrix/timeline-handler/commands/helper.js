@@ -8,8 +8,8 @@ const {jira, matrix} = require('../../../config');
 const {userId: botId} = matrix;
 const {url} = jira;
 const {getUserID} = require('../../../bot/helper.js');
-const {COMMON_NAME} = require('../../../lib/utils.js');
-const BASE_URL = `${url}/rest/api/2/issue`;
+const {COMMON_NAME, getRestUrl} = require('../../../lib/utils.js');
+const BASE_URL = getRestUrl('issue');
 
 // Checking occurrences of current name
 const checkUser = ({name, displayName}, expectedName) =>
@@ -121,7 +121,8 @@ const addToWatchers = async (room, roomName, name, matrixClient) => {
         }
 
         // add watcher for issue
-        return requestPost(`${BASE_URL}/${roomName}/watchers`, schemaWatcher(name));
+        const watchersUrl = getRestUrl('issue', roomName, 'watchers');
+        return requestPost(watchersUrl, schemaWatcher(name));
     } catch (err) {
         throw ['addAssigneeInWatchers error', err].join('\n');
     }

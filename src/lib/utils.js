@@ -2,9 +2,12 @@ const translate = require('../locales');
 const Ramda = require('ramda');
 const conf = require('../config');
 const logger = require('../modules/log.js')(module);
-const {epicUpdates, postChangesToLinks} = require('../config').features;
+const {jira, features} = require('../config');
+const {epicUpdates, postChangesToLinks} = features;
+const messages = require('./messages');
 
 const {field: epicField} = epicUpdates;
+const {url: jiraUrl} = jira;
 
 const REDIS_ROOM_KEY = 'newrooms';
 // TODO: change until start correct bot work
@@ -144,6 +147,8 @@ const utils = {
     },
 
     // * --------------------------------- Other utils ------------------------------- *
+    issueFormatedParams: {expand: 'renderedFields'},
+
     getRedisKey: (funcName, body) => [funcName, utils.getBodyTimestamp(body)].join('_'),
 
     isIgnoreKey: key => !KEYS_TO_IGNORE.some(val => key.includes(val)),
@@ -269,6 +274,20 @@ const utils = {
                 propNotIn('issueEventTypeName', ['issue_commented', 'issue_comment_edited']),
             ]),
         ])({webhookEvent, issueEventTypeName} || {});
+    },
+
+
+    getRestUrl: (...args) => [jiraUrl, JIRA_REST, ...args].join('/'),
+
+    getViewUrl: (key, type = 'browse') =>
+        [jiraUrl, type, key].join('/'),
+
+    getDefaultErrorLog: funcName => `Error in ${funcName}`,
+
+    errorTracing: (name, err) => {
+        const log = messages[name] || utils.getDefaultErrorLog(name);
+
+        return [log, err].join('\n');
     },
 };
 

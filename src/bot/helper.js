@@ -76,7 +76,7 @@ const membersInvited = roomMembers =>
 const getUserID = shortName => `@${shortName}:${matrix.domain}`;
 
 const getEpicChangedMessageBody = ({summary, key, status, name}) => {
-    const issueRef = jiraRequests.getProjectUrl(key);
+    const issueRef = utils.getViewUrl(key);
     const values = {name, key, summary, status, issueRef};
 
     const body = translate('statusEpicChanged');
@@ -87,7 +87,7 @@ const getEpicChangedMessageBody = ({summary, key, status, name}) => {
 };
 
 const getNewEpicMessageBody = ({key, summary}) => {
-    const issueRef = jiraRequests.getProjectUrl(key);
+    const issueRef = utils.getViewUrl(key);
     const values = {key, summary, issueRef};
 
     const body = translate('newEpicInProject');
@@ -106,7 +106,7 @@ const postStatusData = data => {
         return {};
     }
 
-    const issueRef = jiraRequests.getProjectUrl(data.key);
+    const issueRef = utils.getViewUrl(data.key);
     const baseValues = {status, issueRef};
     const values = ['name', 'key', 'summary']
         .reduce((acc, key) => ({...acc, [key]: data[key]}), baseValues);
@@ -133,7 +133,7 @@ const postStatusChanged = async ({mclient, roomID, data}) => {
 };
 
 const getNewIssueMessageBody = ({summary, key}) => {
-    const issueRef = jiraRequests.getProjectUrl(key);
+    const issueRef = utils.getViewUrl(key);
     const values = {key, issueRef, summary};
 
     const body = translate('newIssueInEpic');
@@ -178,7 +178,26 @@ const getIssueUpdateInfoMessageBody = async ({changelog, key, user}) => {
     }
 };
 
+const getCommentHTMLBody = (headerText, commentBody) => `${headerText}: <br>${commentBody}`;
+
+const getCommentBody = (issue, comment) => {
+    const comments = Ramda.path(['renderedFields', 'comment', 'comments'], issue);
+    if (!(comments instanceof Array)) {
+        return comment.body;
+    }
+
+    const result = Ramda.propOr(
+        comment.body,
+        'body',
+        Ramda.find(Ramda.propEq('id', comment.id), comments)
+    );
+
+    return result;
+};
+
 module.exports = {
+    getCommentBody,
+    getCommentHTMLBody,
     membersInvited,
     getUserID,
     postStatusData,

@@ -1,7 +1,7 @@
 const nock = require('nock');
 const {auth} = require('../../src/lib/utils.js');
 const {jira: {url}, matrix: {userId: matrixUserId}} = require('../../src/config');
-const {getRequestErrorLog} = require('../../src/lib/request');
+const {getRequestErrorLog} = require('../../src/lib/messages');
 const querystring = require('querystring');
 const sdk = require('matrix-js-sdk');
 

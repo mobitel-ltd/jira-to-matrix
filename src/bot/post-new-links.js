@@ -2,12 +2,13 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const marked = require('marked');
 const redis = require('../redis-client.js');
-const {getProjectUrl, getLinkedIssue} = require('../lib/jira-request.js');
+const {getLinkedIssue} = require('../lib/jira-request.js');
+const {getViewUrl} = require('../../src/lib/utils');
 const translate = require('../locales');
 
 const getPostLinkMessageBody = ({relation, related}) => {
     const {key} = related;
-    const issueRef = getProjectUrl(key);
+    const issueRef = getViewUrl(key);
     const summary = Ramda.path(['fields', 'summary'], related);
     const values = {key, relation, summary, issueRef};
 
@@ -20,9 +21,6 @@ const getPostLinkMessageBody = ({relation, related}) => {
 
 const postLink = async (issue, relation, related, mclient) => {
     const roomID = await mclient.getRoomId(issue.key);
-    if (!roomID) {
-        return;
-    }
 
     const {body, htmlBody} = getPostLinkMessageBody({relation, related});
     await mclient.sendHtmlMessage(roomID, body, htmlBody);
@@ -31,7 +29,7 @@ const postLink = async (issue, relation, related, mclient) => {
 const handleLink = async (issueLinkId, mclient) => {
     try {
         const link = await getLinkedIssue(issueLinkId);
-        logger.silly('link', link);
+
         if (!link) {
             return;
         }
@@ -49,7 +47,6 @@ const handleLink = async (issueLinkId, mclient) => {
 };
 
 module.exports = async ({mclient, links}) => {
-    logger.debug('start postNewLinks');
     try {
         await Promise.all(links.map(async issueLink => {
             await handleLink(issueLink, mclient);

@@ -9,7 +9,7 @@ const {auth} = require('../../src/lib/utils.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const {schemaComment} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {comment} = require('../../src/matrix/timeline-handler/commands');
-const {getRequestErrorLog} = require('../../src/lib/request');
+const {getRequestErrorLog} = require('../../src/lib/messages');
 const {dict: {errorMatrixComment}} = require('../../src/locales/ru.js');
 
 describe('comment test', () => {
