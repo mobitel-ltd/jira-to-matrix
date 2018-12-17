@@ -3,6 +3,7 @@ const requestPromise = require('request-promise-native');
 const {auth} = require('./utils.js');
 const {getRequestErrorLog} = require('./messages');
 const TIMEOUT = 60000;
+const {jira: {url: jiraUrl}} = require('../../src/config');
 
 const request = async (url, newOptions) => {
     const options = {
@@ -14,7 +15,8 @@ const request = async (url, newOptions) => {
     try {
         const response = await requestPromise(url, options);
         logger.debug(`${options.method} request to jira with Url ${url} suceeded`);
-        if (options.method === 'GET') {
+        if (options.method === 'GET' && url !== jiraUrl) {
+            logger.debug(url, jiraUrl);
             return JSON.parse(response);
         }
     } catch ({statusCode}) {

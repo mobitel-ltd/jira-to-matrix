@@ -234,7 +234,7 @@ describe('Helper tests', () => {
             nock(jiraUrl)
                 .get('')
                 .times(2)
-                .reply(200, {status: 'OK'})
+                .reply(200, '<HTML>')
                 .get(`/${utils.JIRA_REST}/project/${thirdBody.issue.fields.project.id}`)
                 .times(5)
                 .reply(200, {isPrivate: false})
