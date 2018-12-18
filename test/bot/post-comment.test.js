@@ -44,7 +44,7 @@ describe('Post comments test', () => {
         Object.values(mclient).map(val => val.reset());
     });
 
-    it('Get links', async () => {
+    it('Expect postComment works correct', async () => {
         const htmlBody = getCommentHTMLBody(postCommentData.headerText, getCommentBody(issue, postCommentData.comment));
 
         const result = await postComment({mclient, ...postCommentData});

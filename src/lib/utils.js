@@ -21,6 +21,11 @@ const JIRA_REST = 'rest/api/2';
 
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
+    getRelations: issueLinkBody => ({
+        inward: {relation: Ramda.path(['type', 'inward'], issueLinkBody), related: issueLinkBody.inwardIssue},
+        outward: {relation: Ramda.path(['type', 'outward'], issueLinkBody), related: issueLinkBody.outwardIssue},
+    }),
+
     getDescriptionFields: body => ({
         assigneeName: utils.getTextIssue(body, 'assignee.displayName'),
         assigneeEmail: utils.getTextIssue(body, 'assignee.emailAddress'),
@@ -88,7 +93,13 @@ const utils = {
 
     getProjectOpts: body => Ramda.path(['project'], body),
 
-    getLinks: body => Ramda.path(['issue', 'fields', 'issuelinks'], body),
+    getLinks: body => Ramda.pathOr(utils.getIssueCreatedLinks(body), ['issue', 'fields', 'issuelinks'], body),
+
+    getIssueCreatedLinks: body => {
+        const issueLink = Ramda.path(['issueLink'], body);
+
+        return issueLink && [issueLink];
+    },
 
     getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body),
 
@@ -257,7 +268,7 @@ const utils = {
         const json = JSON.stringify(body);
         const matches = /\/issue\/(\d+)\//.exec(json);
         if (!matches) {
-            logger.warn('matches from jira.issue.extractID is not defained');
+            logger.warn('matches from jira.issue.extractID is not defined');
             return;
         }
         return matches[1];

@@ -1,0 +1,21 @@
+{
+    "timestamp": "2018-12-18 11:57:24,746",
+    "webhookEvent": "issuelink_created",
+    "issueLink": {
+        "id": 10656,
+        "sourceIssueId": 11442,
+        "destinationIssueId": 11961,
+        "issueLinkType": {
+            "id": 10000,
+            "name": "Blocks",
+            "outwardName": "blocks",
+            "inwardName": "is blocked by",
+            "isSubTaskLinkType": false,
+            "isSystemLinkType": false
+        },
+        "systemLink": false
+    },
+    "level": "silly",
+    "message": "Jira body",
+    "label": "/src/app.js"
+}

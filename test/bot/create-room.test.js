@@ -1,5 +1,5 @@
 const nock = require('nock');
-const {composeRoomName, auth, getDefaultErrorLog, issueFormatedParams, getRestUrl, getIssueProjectOpts, getViewUrl} = require('../../src/lib/utils.js');
+const utils = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/create.json');
 const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
 const issueBody = require('../fixtures/response.json');
@@ -21,7 +21,7 @@ describe('Create room test', () => {
 
     const createRoomData = getCreateRoomData(JSONbody);
 
-    const projectOpts = getIssueProjectOpts(JSONbody);
+    const projectOpts = utils.getIssueProjectOpts(JSONbody);
 
     const responce = {
         id: '10002',
@@ -35,8 +35,8 @@ describe('Create room test', () => {
     const expectedOptions = {
         'room_alias_name': createRoomData.issue.key,
         'invite': ['@jira_test:matrix.test-example.ru'],
-        'name': composeRoomName(createRoomData.issue),
-        'topic': getViewUrl(createRoomData.issue.key),
+        'name': utils.composeRoomName(createRoomData.issue),
+        'topic': utils.getViewUrl(createRoomData.issue.key),
     };
 
     const mclient = {
@@ -47,23 +47,23 @@ describe('Create room test', () => {
 
 
     before(() => {
-        nock(getRestUrl(), {
+        nock(utils.getRestUrl(), {
             reqheaders: {
-                Authorization: auth(),
+                Authorization: utils.auth(),
             },
         })
             .get(`/issue/${createRoomData.issue.key}/watchers`)
             .times(5)
             .reply(200, {...responce, id: 28516})
             .get(`/issue/${createRoomData.issue.id}`)
-            .query(issueFormatedParams)
+            .query(utils.issueFormatedParams)
             .times(5)
             .reply(200, issueBody)
             .get(`/project/${projectOpts.id}`)
             .times(5)
             .reply(200, projectData)
             .get(`/issue/BBCOM-801`)
-            .query(issueFormatedParams)
+            .query(utils.issueFormatedParams)
             .times(5)
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)
@@ -100,10 +100,10 @@ describe('Create room test', () => {
 
     it('Project room should be created', async () => {
         const expectedProjectOptions = {
-            'room_alias_name': 'EX',
+            'room_alias_name': projectData.key,
             'invite': ['@fred:matrix.test-example.ru'],
             'name': 'Example',
-            'topic': 'https://jira.test-example.ru/jira/projects/EX',
+            'topic': utils.getViewUrl(projectData.key),
         };
 
         mclient.getRoomId.withArgs(projectOpts.key).resolves(false);
@@ -119,8 +119,8 @@ describe('Create room test', () => {
             expect(result).not.to.be;
         } catch (err) {
             const expectedError = [
-                getDefaultErrorLog('create room'),
-                getDefaultErrorLog('createIssueRoom'),
+                utils.getDefaultErrorLog('create room'),
+                utils.getDefaultErrorLog('createIssueRoom'),
                 errorMsg,
             ].join('\n');
             expect(err).to.be.deep.equal(expectedError);
@@ -138,8 +138,8 @@ describe('Create room test', () => {
             expect(result).not.to.be;
         } catch (err) {
             const expectedError = [
-                getDefaultErrorLog('create room'),
-                getDefaultErrorLog('createRoomProject'),
+                utils.getDefaultErrorLog('create room'),
+                utils.getDefaultErrorLog('createRoomProject'),
                 errorMsg,
             ].join('\n');
             expect(err).to.be.deep.equal(expectedError);

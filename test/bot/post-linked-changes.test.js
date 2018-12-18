@@ -65,8 +65,11 @@ describe('post New Links test', () => {
             .reply(200, {...responce, id: 30137});
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
 
-    it('Get links', async () => {
+    it('Get links changes', async () => {
         const data = getPostLinkedChangesData(body);
 
         const result = await postLinkedChanges({mclient, ...data});

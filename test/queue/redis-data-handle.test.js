@@ -1,10 +1,9 @@
 const nock = require('nock');
-const {auth} = require('../../src/lib/utils.js');
+const {auth, getRestUrl, issueFormatedParams} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/create.json');
+const projectBody = require('../fixtures/create.json');
 const issueBody = require('../fixtures/response.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
-const {prefix} = require('../fixtures/config.js').redis;
-const redis = require('../../src/redis-client.js');
 const proxyquire = require('proxyquire');
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -12,6 +11,7 @@ const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 const logger = require('../../src/modules/log.js')(module);
+const {cleanRedis} = require('../fixtures/testing-utils');
 
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
@@ -135,12 +135,20 @@ describe('redis-data-handle', () => {
     const mclient = {};
 
     beforeEach(async () => {
-        nock('https://jira.test-example.ru', {reqheaders: {Authorization: auth()}})
-            .get('/jira/rest/api/2/issue/BBCOM-1398/watchers')
+        nock(getRestUrl(), {
+            reqheaders: {
+                Authorization: auth(),
+            },
+        })
+            .get('/project/10305')
+            .reply(200, projectBody)
+            .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, {...responce, id: 28516})
-            .get(`/jira/rest/api/2/issue/30369?expand=renderedFields`)
+            .get(`/issue/30369`)
+            .query(issueFormatedParams)
             .reply(200, issueBody)
-            .get(`/jira/rest/api/2/issue/BBCOM-801?expand=renderedFields`)
+            .get(`/issue/BBCOM-801`)
+            .query(issueFormatedParams)
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)
             .reply(404);
@@ -228,14 +236,10 @@ describe('redis-data-handle', () => {
     });
 
     afterEach(async () => {
+        nock.cleanAll();
         Object.keys(loggerSpy).map(el => loggerSpy[el].reset());
         createRoomStub.reset();
-        const keys = await redis.keysAsync('*');
-
-        if (keys.length > 0) {
-            const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
-            await redis.delAsync(parsedKeys);
-        }
+        await cleanRedis();
     });
 });
 

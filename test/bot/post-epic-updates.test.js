@@ -2,8 +2,7 @@ const nock = require('nock');
 const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-2.json');
 const {getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
-const redis = require('../../src/redis-client.js');
-const {redis: {prefix}} = require('../fixtures/config.js');
+const {cleanRedis} = require('../fixtures/testing-utils');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -144,12 +143,7 @@ describe('Post epic updates test', () => {
         }
     });
 
-    after(async () => {
-        const keys = await redis.keysAsync('*');
-
-        if (keys.length > 0) {
-            const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
-            await redis.delAsync(parsedKeys);
-        }
+    afterEach(async () => {
+        await cleanRedis();
     });
 });
