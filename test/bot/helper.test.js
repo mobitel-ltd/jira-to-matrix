@@ -1,12 +1,15 @@
+const issueLinkBody = require('../fixtures/get-issuelink.json');
+const postNewLinksbody = require('../fixtures/issuelink-created.json');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const assert = require('assert');
 const firstBody = require('../fixtures/comment-create-1.json');
 const thirdBody = require('../fixtures/comment-create-3.json');
 const secondBody = require('../fixtures/comment-create-2.json');
+const issueBody = require('../fixtures/issue-body.json');
 const utils = require('../../src/lib/utils');
 const messages = require('../../src/lib/messages');
 const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body');
-// const {getBodyProjectId} = require('../../src/lib/utils');
+
 const nock = require('nock');
 
 const proxyquire = require('proxyquire');
@@ -230,26 +233,30 @@ describe('Helper tests', () => {
         const privateCommentHook = {...firstBody, comment: {...firstBody.comment, self}};
         const privateHook = {...thirdBody, issue: {...thirdBody.issue, fields: {project: {id: privateId}}}};
 
-        before(() => {
+        beforeEach(() => {
             nock(jiraUrl)
                 .get('')
+                .reply(200, '<HTML>');
+
+            nock(utils.getRestUrl(), {
+                reqheaders: {Authorization: utils.auth()},
+            })
+                .get(`/project/${thirdBody.issue.fields.project.id}`)
                 .times(2)
-                .reply(200, '<HTML>')
-                .get(`/${utils.JIRA_REST}/project/${thirdBody.issue.fields.project.id}`)
-                .times(5)
                 .reply(200, {isPrivate: false})
-                .get(`/${utils.JIRA_REST}/project/${privateId}`)
-                .times(1)
+                .get(`/project/${privateId}`)
                 .reply(200, {isPrivate: true})
-                .get(`/${utils.JIRA_REST}/issue/${utils.extractID(firstBody)}`)
-                .times(2)
-                .reply(200, {isPrivate: false})
-                .get(`/${utils.JIRA_REST}/issue/${privateId}`)
-                .times(1)
+                .get(`/issue/${utils.extractID(firstBody)}`)
+                .reply(200, issueBody)
+                .get(`/issueLink/${postNewLinksbody.issueLink.id}`)
+                .reply(200, issueLinkBody)
+                .get(`/issue/${issueLinkBody.inwardIssue.key}`)
+                .reply(200, issueBody)
+                .get(`/issue/${privateId}`)
                 .reply(404);
         });
 
-        after(() => {
+        afterEach(() => {
             nock.cleanAll();
         });
 
@@ -299,6 +306,11 @@ describe('Helper tests', () => {
         });
 
         it('Expect getIgnoreProject to be thrown if jira is not connected', async () => {
+            nock.cleanAll();
+            nock(jiraUrl)
+                .get('')
+                .reply(404);
+
             let result;
             try {
                 result = await getIgnoreProject(firstBody);
@@ -306,6 +318,15 @@ describe('Helper tests', () => {
                 result = err;
             }
             expect(result).to.be.eq(messages.noJiraConnection);
+        });
+
+        it('Expect getIgnoreProject to have "true" status with issuelink created', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(postNewLinksbody);
+
+            expect(timestamp).to.be.eq(postNewLinksbody.timestamp);
+            expect(webhookEvent).to.be.eq(postNewLinksbody.webhookEvent);
+            expect(issueName).to.be.eq(utils.extractID(postNewLinksbody));
+            expect(ignoreStatus).to.be.false;
         });
     });
 });
