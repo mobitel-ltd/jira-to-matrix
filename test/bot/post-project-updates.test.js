@@ -1,52 +1,34 @@
-const nock = require('nock');
-const assert = require('assert');
-const {auth} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/comment-create-4.json');
 const {getPostProjectUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostProjectUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const {postProjectUpdates} = require('../../src/bot');
-
+const {getEpicChangedMessageBody} = require('../../src/bot/helper');
+const chai = require('chai');
+const {stub} = require('sinon');
+const sinonChai = require('sinon-chai');
+const {expect} = chai;
+chai.use(sinonChai);
 
 describe('Post project updates test', () => {
-    const responce = {
-        id: '10002',
-        self: 'http://www.example.com/jira/rest/api/2/issue/10002',
-        key: 'EX-1',
-        fields: {
-            summary: 'SummaryKey',
-        },
-    };
+    const roomId = 'roomId';
 
-    const sendHtmlMessage = (roomId, body, htmlBody) => {
-        assert.equal(roomId, 'roomIdBBCOM');
-        assert.equal('Эпик изменён', body);
-        const expectedHtmlBody = '<p>jira_test изменил(а) статус связанного эпика <a href="https://jira.test-example.ru/jira/browse/BBCOM-1233">BBCOM-1233 &quot;POupok&quot;</a> на <strong>Paused</strong></p>\n';
-
-        assert.equal(htmlBody, expectedHtmlBody);
-        return true;
+    const mclient = {
+        sendHtmlMessage: stub(),
+        getRoomId: stub().resolves(roomId),
     };
-    const getRoomId = id => `roomId${id}`;
-    const mclient = {sendHtmlMessage, getRoomId};
 
     const postProjectUpdatesData = getPostProjectUpdatesData(JSONbody);
 
-    before(() => {
-        nock('https://jira.test-example.ru', {
-            reqheaders: {
-                Authorization: auth(),
-            },
-        })
-            .get(`/jira/rest/api/2/issue/BBCOM-801`)
-            .reply(200, {...responce, id: 28516});
-    });
-
     it('getPostProjectUpdatesData', () => {
         const result = isPostProjectUpdates(JSONbody);
-        assert.ok(result);
+        expect(result).to.be.true;
     });
 
     it('postProjectUpdates', async () => {
-        const result = await postProjectUpdates({mclient, ...postProjectUpdatesData});
-        assert.ok(result);
+        //     "issue_event_type_name": "issue_generic" in JSONbody
+        const {body, htmlBody} = getEpicChangedMessageBody(postProjectUpdatesData.data);
+
+        await postProjectUpdates({mclient, ...postProjectUpdatesData});
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, body, htmlBody);
     });
 });

@@ -12,7 +12,7 @@ const {url: jiraUrl} = jira;
 const REDIS_ROOM_KEY = 'newrooms';
 // TODO: change until start correct bot work
 const ROOMS_OLD_NAME = 'rooms';
-
+const REDIS_LINK_PREFIX = 'link';
 // It helps ignore keys for links epic--issue
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
@@ -300,6 +300,8 @@ const utils = {
 
         return [log, err].join('\n');
     },
+
+    getRedisLinkKey: id => [REDIS_LINK_PREFIX, DELIMITER, id].join(''),
 };
 
 module.exports = {

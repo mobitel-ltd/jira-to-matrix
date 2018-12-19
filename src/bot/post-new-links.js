@@ -13,9 +13,7 @@ const postLink = async (key, relations, mclient) => {
 
 const handleLink = mclient => async issueLinkId => {
     try {
-        const isNew = await redis.setnxAsync(`link|${issueLinkId}`, '1');
-
-        if (!isNew) {
+        if (!(await redis.isNewLink(issueLinkId))) {
             logger.debug(`link ${issueLinkId} is already been posted to room`);
             return;
         }

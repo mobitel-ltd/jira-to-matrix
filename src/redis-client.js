@@ -2,6 +2,7 @@ const redis = require('redis');
 const conf = require('./config');
 const logger = require('./modules/log.js')(module);
 const {promisify} = require('util');
+const {getRedisLinkKey} = require('./lib/utils');
 
 const createClient = config => {
     try {
@@ -21,12 +22,15 @@ client.on('error', err => {
     }
 });
 
+const setnxAsync = promisify(client.setnx).bind(client);
+const isNewLink = id => setnxAsync(getRedisLinkKey(id), '1');
+
 module.exports = {
     getAsync: promisify(client.get).bind(client),
     setAsync: promisify(client.set).bind(client),
     sismemberAsync: promisify(client.sismember).bind(client),
     saddAsync: promisify(client.sadd).bind(client),
-    setnxAsync: promisify(client.setnx).bind(client),
+    isNewLink,
     delAsync: promisify(client.del).bind(client),
     keysAsync: promisify(client.keys).bind(client),
 };
