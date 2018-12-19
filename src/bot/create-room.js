@@ -46,7 +46,7 @@ const createRoomProject = async (client, id) => {
     try {
         const {key, lead, name} = await getProject(id);
         const invite = [getUserID(lead.key)];
-        const topic = getViewUrl(key, 'projects');
+        const topic = getViewUrl(key);
 
         const options = {
             'room_alias_name': key,

@@ -1,46 +1,29 @@
-const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const marked = require('marked');
 const redis = require('../redis-client.js');
 const {getLinkedIssue} = require('../lib/jira-request.js');
-const {getViewUrl} = require('../../src/lib/utils');
-const translate = require('../locales');
+const {getPostLinkMessageBody} = require('./helper');
+const {getRelations, getKey} = require('../lib/utils');
 
-const getPostLinkMessageBody = ({relation, related}) => {
-    const {key} = related;
-    const issueRef = getViewUrl(key);
-    const summary = Ramda.path(['fields', 'summary'], related);
-    const values = {key, relation, summary, issueRef};
+const postLink = async (key, relations, mclient) => {
+    const roomID = await mclient.getRoomId(key);
 
-    const body = translate('newLink');
-    const message = translate('newLinkMessage', values);
-    const htmlBody = marked(message);
-
-    return {body, htmlBody};
-};
-
-const postLink = async (issue, relation, related, mclient) => {
-    const roomID = await mclient.getRoomId(issue.key);
-
-    const {body, htmlBody} = getPostLinkMessageBody({relation, related});
+    const {body, htmlBody} = getPostLinkMessageBody(relations);
     await mclient.sendHtmlMessage(roomID, body, htmlBody);
 };
 
-const handleLink = async (issueLinkId, mclient) => {
+const handleLink = mclient => async issueLinkId => {
     try {
+        if (!(await redis.isNewLink(issueLinkId))) {
+            logger.debug(`link ${issueLinkId} is already been posted to room`);
+            return;
+        }
+
         const link = await getLinkedIssue(issueLinkId);
+        const {inward, outward} = getRelations(link);
 
-        if (!link) {
-            return;
-        }
-        const isNew = await redis.setnxAsync(`link|${link.id}`, '1');
-
-        if (!isNew) {
-            logger.debug(`link ${link.id} is already been posted to room`);
-            return;
-        }
-        await postLink(link.inwardIssue, link.type.outward, link.outwardIssue, mclient);
-        await postLink(link.outwardIssue, link.type.inward, link.inwardIssue, mclient);
+        await postLink(getKey(link.inwardIssue), inward, mclient);
+        await postLink(getKey(link.outwardIssue), outward, mclient);
+        logger.debug(`Issue link ${issueLinkId} is successfully posted!`);
     } catch (err) {
         throw ['HandleLink error in post link', err].join('\n');
     }
@@ -48,10 +31,7 @@ const handleLink = async (issueLinkId, mclient) => {
 
 module.exports = async ({mclient, links}) => {
     try {
-        await Promise.all(links.map(async issueLink => {
-            await handleLink(issueLink, mclient);
-        }));
-
+        await Promise.all(links.map(handleLink(mclient)));
         return true;
     } catch (err) {
         throw ['Error in postNewLinks', err].join('\n');

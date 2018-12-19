@@ -12,7 +12,7 @@ const {url: jiraUrl} = jira;
 const REDIS_ROOM_KEY = 'newrooms';
 // TODO: change until start correct bot work
 const ROOMS_OLD_NAME = 'rooms';
-
+const REDIS_LINK_PREFIX = 'link';
 // It helps ignore keys for links epic--issue
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
@@ -21,6 +21,11 @@ const JIRA_REST = 'rest/api/2';
 
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
+    getRelations: issueLinkBody => ({
+        inward: {relation: Ramda.path(['type', 'inward'], issueLinkBody), related: issueLinkBody.inwardIssue},
+        outward: {relation: Ramda.path(['type', 'outward'], issueLinkBody), related: issueLinkBody.outwardIssue},
+    }),
+
     getDescriptionFields: body => ({
         assigneeName: utils.getTextIssue(body, 'assignee.displayName'),
         assigneeEmail: utils.getTextIssue(body, 'assignee.emailAddress'),
@@ -88,7 +93,13 @@ const utils = {
 
     getProjectOpts: body => Ramda.path(['project'], body),
 
-    getLinks: body => Ramda.path(['issue', 'fields', 'issuelinks'], body),
+    getLinks: body => Ramda.pathOr(utils.getIssueCreatedLinks(body), ['issue', 'fields', 'issuelinks'], body),
+
+    getIssueCreatedLinks: body => {
+        const issueLink = Ramda.path(['issueLink'], body);
+
+        return issueLink && [issueLink];
+    },
 
     getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body),
 
@@ -257,7 +268,7 @@ const utils = {
         const json = JSON.stringify(body);
         const matches = /\/issue\/(\d+)\//.exec(json);
         if (!matches) {
-            logger.warn('matches from jira.issue.extractID is not defained');
+            logger.warn('matches from jira.issue.extractID is not defined');
             return;
         }
         return matches[1];
@@ -289,6 +300,8 @@ const utils = {
 
         return [log, err].join('\n');
     },
+
+    getRedisLinkKey: id => [REDIS_LINK_PREFIX, DELIMITER, id].join(''),
 };
 
 module.exports = {

@@ -1,7 +1,6 @@
 const {expect} = require('chai');
 const {saveIncoming} = require('../../src/queue/redis-data-handle.js');
-const {prefix} = require('../fixtures/config.js').redis;
-const redis = require('../../src/redis-client.js');
+const {cleanRedis} = require('../fixtures/testing-utils');
 const {getRedisValue, getRedisKeys, getDataFromRedis, getRedisRooms} = require('../../src/queue/redis-data-handle.js');
 
 describe('Test save data to redis', () => {
@@ -148,11 +147,6 @@ describe('Test save data to redis', () => {
     });
 
     after(async () => {
-        const keys = await redis.keysAsync('*');
-
-        if (keys.length > 0) {
-            const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
-            await redis.delAsync(parsedKeys);
-        }
+        await cleanRedis();
     });
 });

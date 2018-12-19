@@ -3,10 +3,10 @@ const {expect} = require('chai');
 const firstBody = require('../fixtures/comment-create-1.json');
 const secondBody = require('../fixtures/comment-create-2.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
-const conf = require('../fixtures/config.js');
 const redis = require('../../src/redis-client.js');
 const utils = require('../../src/lib/utils');
 const {jira: {url: jiraUrl}} = require('../../src/config');
+const {cleanRedis} = require('../fixtures/testing-utils');
 
 describe('get-parsed-save to redis', () => {
     const redisKey = 'postComment_1512034084304';
@@ -23,20 +23,28 @@ describe('get-parsed-save to redis', () => {
         },
     };
 
-    const {prefix} = conf.redis;
 
     before(() => {
-        nock(jiraUrl)
-            .get('')
-            .times(2)
-            .reply(200, {status: 'OK'})
-            .get(`/${utils.JIRA_REST}/project/${secondBody.issue.fields.project.id}`)
+        nock(utils.getRestUrl())
+            .get(`/project/${secondBody.issue.fields.project.id}`)
             .times(5)
             .reply(200, {isPrivate: false})
-            .get(`/${utils.JIRA_REST}/issue/${utils.extractID(firstBody)}`)
+            .get(`/issue/${utils.extractID(firstBody)}`)
             .times(2)
             .reply(200, {isPrivate: false});
+        nock(jiraUrl).get('')
+            .times(2)
+            .reply(200, '<HTML>');
     });
+
+    afterEach(async () => {
+        await cleanRedis();
+    });
+
+    after(() => {
+        nock.cleanAll();
+    });
+
 
     it('isCommentEvent', () => {
         const result1 = utils.isCommentEvent(firstBody);
@@ -73,15 +81,5 @@ describe('get-parsed-save to redis', () => {
         const parsedForQueue = await getParsedAndSaveToRedis(ignoredBody);
 
         expect(parsedForQueue).to.be.equal(false);
-    });
-
-    after(async () => {
-        const keys = await redis.keysAsync('*');
-
-
-        if (keys.length > 0) {
-            const parsedKeys = keys.map(key => key.replace(`${prefix}`, ''));
-            await redis.delAsync(parsedKeys);
-        }
     });
 });

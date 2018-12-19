@@ -7,7 +7,7 @@ const queuePush = new EventEmitter();
 
 
 // eslint-disable-next-line
-describe('state machine test', function() {
+describe.skip('state machine test', function() {
     // eslint-disable-next-line
     this.timeout(15000);
 
