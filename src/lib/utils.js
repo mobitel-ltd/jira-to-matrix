@@ -21,6 +21,8 @@ const JIRA_REST = 'rest/api/2';
 
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
+    isLinkHook: hook => hook === 'issuelink_created',
+
     getRelations: issueLinkBody => ({
         inward: {relation: Ramda.path(['type', 'inward'], issueLinkBody), related: issueLinkBody.inwardIssue},
         outward: {relation: Ramda.path(['type', 'outward'], issueLinkBody), related: issueLinkBody.outwardIssue},
@@ -97,13 +99,11 @@ const utils = {
 
     getProjectOpts: body => Ramda.path(['project'], body),
 
-    getLinks: body => Ramda.pathOr(utils.getIssueCreatedLinks(body), ['issue', 'fields', 'issuelinks'], body),
+    getLinks: body => Ramda.pathOr([utils.getIssueCreatedLinks(body)], ['issue', 'fields', 'issuelinks'], body),
 
-    getIssueCreatedLinks: body => {
-        const issueLink = Ramda.path(['issueLink'], body);
+    getIssueCreatedLinks: body => Ramda.path(['issueLink'], body),
 
-        return issueLink && [issueLink];
-    },
+    getIssueLinkId: body => Ramda.path(['issueLink', 'id'], body),
 
     getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body),
 
@@ -160,6 +160,8 @@ const utils = {
             return [...acc, destIssue.key];
         }, []);
     },
+
+    getCreator: body => Ramda.path(['issue', 'fields', 'creator', 'name'], body),
 
     // * --------------------------------- Other utils ------------------------------- *
     issueFormatedParams: {expand: 'renderedFields'},
@@ -221,15 +223,6 @@ const utils = {
         )(paths);
     },
 
-    /**
-     * Get creator of issue in webhook from jira
-     * @param {object} hook webhook body
-     * @return {string} creator
-     */
-    getCreator: hook => {
-        const path = ['issue', 'fields', 'creator', 'name'];
-        return Ramda.pathOr('', path, hook);
-    },
 
     /**
      * Get changelog field body from webhook from jira

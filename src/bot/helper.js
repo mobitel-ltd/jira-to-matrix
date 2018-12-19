@@ -10,14 +10,25 @@ const helper = {
     isStartEndUpdateStatus: body => {
         const isStart = utils.getChangelogField('Start date', body);
         const isEnd = utils.getChangelogField('End date', body);
+
         return !!isStart || !!isEnd;
     },
 
-    isPrivateIssue: async body => {
-        const issueId = utils.extractID(body);
-        try {
-            const issue = await jiraRequests.getIssue(issueId);
+    getLink: async id => {
+        logger.debug(id);
+        const link = await jiraRequests.getLinkedIssue(id);
 
+        return utils.getInwardLinkKey(link);
+    },
+
+    isPrivateIssue: async body => {
+        try {
+            const issueId = utils.isLinkHook(utils.getBodyWebhookEvent(body))
+                ? await helper.getLink(utils.getIssueLinkId(body))
+                : utils.extractID(body);
+            logger.debug(issueId);
+
+            const issue = await jiraRequests.getIssue(issueId);
             return !issue;
         } catch (err) {
             return true;
@@ -46,6 +57,7 @@ const helper = {
             [username, creator].some(user => arr.includes(user));
 
         const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
+        logger.debug('userIgnoreStatus', userIgnoreStatus);
         const startEndUpdateStatus = helper.isStartEndUpdateStatus(body);
         const ignoreStatus = userIgnoreStatus || startEndUpdateStatus;
 
