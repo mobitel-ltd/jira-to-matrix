@@ -1,5 +1,5 @@
 const nock = require('nock');
-const {auth, getRestUrl} = require('../../src/lib/utils.js');
+const {auth, getRestUrl, getInwardLinkKey, getOutwardLinkKey} = require('../../src/lib/utils.js');
 const postNewLinksbody = require('../fixtures/issuelink-created.json');
 const issueLinkBody = require('../fixtures/get-issuelink.json');
 const {getPostNewLinksData} = require('../../src/jira-hook-parser/parse-body.js');
@@ -18,9 +18,15 @@ chai.use(sinonChai);
 
 describe('Test postNewLinks', () => {
     const issueLinkId = postNewLinksbody.issueLink.id;
+    const roomIDIn = 'inId';
+    const roomIDOut = 'outId';
+    const mclient = {
+        sendHtmlMessage: stub(),
+        getRoomId: stub(),
+    };
 
-    const roomID = 'id';
-    let mclient;
+    mclient.getRoomId.withArgs(getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
+    mclient.getRoomId.withArgs(getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
 
     before(() => {
         nock(getRestUrl(), {
@@ -36,15 +42,8 @@ describe('Test postNewLinks', () => {
             .reply(200, issueLinkBody);
     });
 
-    beforeEach(() => {
-        mclient = {
-            sendHtmlMessage: stub(),
-            getRoomId: stub().resolves(roomID),
-        };
-    });
-
     afterEach(async () => {
-        Object.values(mclient).map(val => val.reset());
+        Object.values(mclient).map(val => val.resetHistory());
         await cleanRedis();
     });
 
@@ -77,8 +76,8 @@ describe('Test postNewLinks', () => {
         const res = await postNewLinks({...data, mclient});
 
         expect(res).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomID, bodyIn.body, bodyIn.htmlBody);
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomID, bodyOut.body, bodyOut.htmlBody);
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
     });
 
     it('Expect link not to be posted if it is already saved', async () => {
@@ -104,7 +103,7 @@ describe('Test postNewLinks', () => {
         const data = getPostNewLinksData(body);
         const res = await postNewLinks({...data, mclient});
         expect(res).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomID, bodyIn.body, bodyIn.htmlBody);
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomID, bodyOut.body, bodyOut.htmlBody);
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
     });
 });

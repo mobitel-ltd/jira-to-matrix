@@ -87,6 +87,10 @@ const utils = {
 
     getKey: body => Ramda.path(['issue', 'key'], body),
 
+    getInwardLinkKey: body => Ramda.path(['inwardIssue', 'key'], body),
+
+    getOutwardLinkKey: body => Ramda.path(['outwardIssue', 'key'], body),
+
     getWatchersPath: baseUrl => [baseUrl, 'watchers'].join('/'),
 
     getBodyIssueLink: body => Ramda.path(['issue', 'self'], body),
