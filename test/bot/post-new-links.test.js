@@ -1,14 +1,14 @@
 const nock = require('nock');
 const {auth, getRestUrl, getInwardLinkKey, getOutwardLinkKey} = require('../../src/lib/utils.js');
-const postNewLinksbody = require('../fixtures/issuelink-created.json');
-const issueLinkBody = require('../fixtures/get-issuelink.json');
+const postNewLinksbody = require('../fixtures/webhooks/issuelink/created.json');
+const issueLinkBody = require('../fixtures/jira-api-requests/issuelink.json');
 const {getPostNewLinksData} = require('../../src/jira-hook-parser/parse-body.js');
 const postNewLinks = require('../../src/bot/post-new-links.js');
 const {isPostNewLinks} = require('../../src/jira-hook-parser/bot-handler.js');
 const {getPostLinkMessageBody} = require('../../src/bot/helper');
 const redis = require('../../src/redis-client.js');
-const {cleanRedis} = require('../fixtures/testing-utils');
-const body = require('../fixtures/comment-create-4.json');
+const {cleanRedis} = require('../test-utils');
+const body = require('../fixtures/webhooks/issue/updated/generic.json');
 
 const chai = require('chai');
 const {stub} = require('sinon');

@@ -1,11 +1,11 @@
 const nock = require('nock');
 const chai = require('chai');
-const {auth, issueFormatedParams} = require('../../src/lib/utils.js');
-const JSONbody = require('../fixtures/comment-create-4.json');
+const {auth, expandParams} = require('../../src/lib/utils.js');
+const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
 const {getPostIssueUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostIssueUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const {postIssueUpdates} = require('../../src/bot');
-const response = require('../fixtures/response.json');
+const response = require('../fixtures/jira-api-requests/issue-renderfields.json');
 const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
@@ -41,7 +41,7 @@ describe('Post issue updates test', () => {
         })
             .get(`/jira/rest/api/2/issue/BBCOM-1233`)
             .times(6)
-            .query(issueFormatedParams)
+            .query(expandParams)
             .reply(200, {...response, id: 28516})
             .get(url => url.indexOf('null') > 0)
             .reply(404);

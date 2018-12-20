@@ -1,4 +1,4 @@
-const JSONbody = require('../fixtures/comment-create-4.json');
+const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
 const {getPostProjectUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostProjectUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const {postProjectUpdates} = require('../../src/bot');

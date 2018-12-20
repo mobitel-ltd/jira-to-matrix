@@ -1,12 +1,12 @@
 const proxyquire = require('proxyquire');
 const {expect} = require('chai');
-const {auth, getViewUrl, getRestUrl, issueFormatedParams} = require('../../src/lib/utils.js');
+const {auth, getViewUrl, getRestUrl, expandParams} = require('../../src/lib/utils.js');
 const {getRenderedValues, getRoomMembers} = require('../../src/lib/jira-request');
 const {getRequestErrorLog} = require('../../src/lib/messages');
 const nock = require('nock');
-const issueBody = require('../fixtures/response.json');
+const issueBody = require('../fixtures/jira-api-requests/issue-renderfields.json');
 const {url} = require('../../src/config').jira;
-const watchersJSON = require('../fixtures/watchers.json');
+const watchersJSON = require('../fixtures/jira-api-requests/watchers.json');
 
 const watchersUsers = watchersJSON.watchers.map(({name}) => name);
 describe('Issue test', () => {
@@ -24,10 +24,10 @@ describe('Issue test', () => {
             },
         })
             .get(`/${issue.id}`)
-            .query(issueFormatedParams)
+            .query(expandParams)
             .reply(200, issueBody)
             .get(`/${fakeEndPoint}`)
-            .query(issueFormatedParams)
+            .query(expandParams)
             .reply(404, 'Error!!!')
             .get(`/${issue.id}/watchers`)
             .times(4)

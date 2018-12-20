@@ -1,11 +1,11 @@
-const issueLinkBody = require('../fixtures/get-issuelink.json');
-const postNewLinksbody = require('../fixtures/issuelink-created.json');
+const issueLinkBody = require('../fixtures/jira-api-requests/issuelink.json');
+const postNewLinksbody = require('../fixtures/webhooks/issuelink/created.json');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const assert = require('assert');
-const firstBody = require('../fixtures/comment-create-1.json');
-const thirdBody = require('../fixtures/comment-create-3.json');
-const secondBody = require('../fixtures/comment-create-2.json');
-const issueBody = require('../fixtures/issue-body.json');
+const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
+const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
+const issueCommentedHook = require('../fixtures/webhooks/issue/updated/commented.json');
+const issueBody = require('../fixtures/jira-api-requests/issue.json');
 const utils = require('../../src/lib/utils');
 const messages = require('../../src/lib/messages');
 const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body');
@@ -41,7 +41,7 @@ const {getIgnoreBodyData: isIgnoreStub} = proxyquire('../../src/bot/helper.js', 
 
 describe('Helper tests', () => {
     it('getEpicChangedMessageBody', () => {
-        const {data} = getPostProjectUpdatesData(secondBody);
+        const {data} = getPostProjectUpdatesData(issueCommentedHook);
 
         const {body, htmlBody} = getEpicChangedMessageBody(data);
 
@@ -52,7 +52,7 @@ describe('Helper tests', () => {
     });
 
     it('getNewEpicMessageBody', () => {
-        const {data} = getPostProjectUpdatesData(secondBody);
+        const {data} = getPostProjectUpdatesData(issueCommentedHook);
 
         const {body, htmlBody} = getNewEpicMessageBody(data);
 
@@ -63,7 +63,7 @@ describe('Helper tests', () => {
     });
 
     it('postStatusData', () => {
-        const {data} = getPostEpicUpdatesData(thirdBody);
+        const {data} = getPostEpicUpdatesData(issueChangedHook);
         const {body, htmlBody} = postStatusData(data);
 
         assert.equal(body, 'BBCOM-956 "BBCOM-956" теперь в статусе "Closed"');
@@ -119,7 +119,7 @@ describe('Helper tests', () => {
     });
 
     it('isStartEndUpdateStatus test', () => {
-        const trueResult = isStartEndUpdateStatus(thirdBody);
+        const trueResult = isStartEndUpdateStatus(issueChangedHook);
         expect(trueResult).to.be.true;
 
         const changelog = {
@@ -130,17 +130,17 @@ describe('Helper tests', () => {
             ],
         };
 
-        const newBody = {...thirdBody, changelog};
+        const newBody = {...issueChangedHook, changelog};
         const endResult = isStartEndUpdateStatus(newBody);
         expect(endResult).to.be.true;
 
-        const falseResult = isStartEndUpdateStatus(secondBody);
+        const falseResult = isStartEndUpdateStatus(issueCommentedHook);
         expect(falseResult).to.be.false;
     });
 
     describe('Test getIgnoreBodyData', () => {
         it('ignore if startEndUpdateStatus is true  but users are common', () => {
-            const {username, creator, startEndUpdateStatus, ignoreStatus} = getIgnoreBodyData(thirdBody);
+            const {username, creator, startEndUpdateStatus, ignoreStatus} = getIgnoreBodyData(issueChangedHook);
 
             expect(username).to.equal('jira_test');
             expect(creator).to.equal('jira_test');
@@ -149,7 +149,7 @@ describe('Helper tests', () => {
         });
 
         it('not ignore if startEndUpdateStatus is false', () => {
-            const newBody = {...thirdBody, changelog: {}};
+            const newBody = {...issueChangedHook, changelog: {}};
             const {startEndUpdateStatus, username, creator, ignoreStatus} = getIgnoreBodyData(newBody);
 
             expect(username).to.equal('jira_test');
@@ -171,7 +171,7 @@ describe('Helper tests', () => {
                 },
             };
             const changelog = {};
-            const newBody = {...thirdBody, issue, user, changelog};
+            const newBody = {...issueChangedHook, issue, user, changelog};
             const {username, creator, ignoreStatus} = getIgnoreBodyData(newBody);
 
             expect(username).to.equal('bot');
@@ -188,7 +188,7 @@ describe('Helper tests', () => {
                 ],
             };
 
-            const newBody = {...thirdBody, changelog};
+            const newBody = {...issueChangedHook, changelog};
             const {ignoreStatus} = getIgnoreBodyData(newBody);
 
             expect(ignoreStatus).to.be.true;
@@ -197,7 +197,7 @@ describe('Helper tests', () => {
 
     describe('Test getIgnoreBodyData in mode production (not test)', () => {
         it('test mode true  with ignore start/end', () => {
-            const {username, creator, ignoreStatus} = isIgnoreStub(thirdBody);
+            const {username, creator, ignoreStatus} = isIgnoreStub(issueChangedHook);
 
             expect(username).to.equal('jira_test');
             expect(creator).to.equal('jira_test');
@@ -206,7 +206,7 @@ describe('Helper tests', () => {
 
 
         it('test mode false with no changelog', () => {
-            const newBody = {...thirdBody, changelog: {}};
+            const newBody = {...issueChangedHook, changelog: {}};
             const {username, creator, ignoreStatus} = isIgnoreStub(newBody);
 
             expect(username).to.equal('jira_test');
@@ -218,7 +218,7 @@ describe('Helper tests', () => {
             const user = {
                 name: 'ivan_prod',
             };
-            const newBody = {...thirdBody, changelog: {}, user};
+            const newBody = {...issueChangedHook, changelog: {}, user};
             const {username, creator, ignoreStatus} = isIgnoreStub(newBody);
 
             expect(username).to.equal('ivan_prod');
@@ -229,9 +229,12 @@ describe('Helper tests', () => {
 
     describe('Test getIgnoreInfo', () => {
         const privateId = 12345;
-        const self = `https://jira.test-example.ru/jira/rest/api/2/issue/${privateId}/comment/31039`;
-        const privateCommentHook = {...firstBody, comment: {...firstBody.comment, self}};
-        const privateHook = {...thirdBody, issue: {...thirdBody.issue, fields: {project: {id: privateId}}}};
+        const commentUrl = utils.getRestUrl('issue', privateId, 'comment', commentCreatedHook.comment.id);
+        const privateCommentHook = {...commentCreatedHook, comment: {...commentCreatedHook.comment, self: commentUrl}};
+        const privateHook = {
+            ...issueChangedHook,
+            issue: {...issueChangedHook.issue, fields: {project: {id: privateId}}},
+        };
 
         beforeEach(() => {
             nock(jiraUrl)
@@ -241,12 +244,12 @@ describe('Helper tests', () => {
             nock(utils.getRestUrl(), {
                 reqheaders: {Authorization: utils.auth()},
             })
-                .get(`/project/${thirdBody.issue.fields.project.id}`)
+                .get(`/project/${issueChangedHook.issue.fields.project.id}`)
                 .times(2)
                 .reply(200, {isPrivate: false})
                 .get(`/project/${privateId}`)
                 .reply(200, {isPrivate: true})
-                .get(`/issue/${utils.extractID(firstBody)}`)
+                .get(`/issue/${utils.extractID(commentCreatedHook)}`)
                 .reply(200, issueBody)
                 .get(`/issueLink/${postNewLinksbody.issueLink.id}`)
                 .reply(200, issueLinkBody)
@@ -261,20 +264,20 @@ describe('Helper tests', () => {
         });
 
         it('Expect getIgnoreInfo return correct body', async () => {
-            const result = await getIgnoreInfo(thirdBody);
+            const result = await getIgnoreInfo(issueChangedHook);
 
-            const userStatus = getIgnoreBodyData(thirdBody);
-            const projectStatus = await getIgnoreProject(thirdBody);
+            const userStatus = getIgnoreBodyData(issueChangedHook);
+            const projectStatus = await getIgnoreProject(issueChangedHook);
 
             expect(result).to.be.deep.eq({userStatus, projectStatus});
         });
 
         it('Expect getIgnoreProject handle hook correct', async () => {
-            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(thirdBody);
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(issueChangedHook);
 
-            expect(timestamp).to.be.eq(thirdBody.timestamp);
-            expect(webhookEvent).to.be.eq(thirdBody.webhookEvent);
-            expect(issueName).to.be.eq(thirdBody.issue.key);
+            expect(timestamp).to.be.eq(issueChangedHook.timestamp);
+            expect(webhookEvent).to.be.eq(issueChangedHook.webhookEvent);
+            expect(issueName).to.be.eq(issueChangedHook.issue.key);
             expect(ignoreStatus).to.be.false;
         });
 
@@ -288,19 +291,19 @@ describe('Helper tests', () => {
         });
 
         it('Expect createRoom hook to be handled', async () => {
-            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(firstBody);
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(commentCreatedHook);
 
-            expect(timestamp).to.be.eq(firstBody.timestamp);
-            expect(webhookEvent).to.be.eq(firstBody.webhookEvent);
-            expect(issueName).to.be.eq(utils.extractID(firstBody));
+            expect(timestamp).to.be.eq(commentCreatedHook.timestamp);
+            expect(webhookEvent).to.be.eq(commentCreatedHook.webhookEvent);
+            expect(issueName).to.be.eq(utils.extractID(commentCreatedHook));
             expect(ignoreStatus).to.be.false;
         });
 
         it('Expect createRoom hook to be handled and should be ignored if private issue', async () => {
             const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(privateCommentHook);
 
-            expect(timestamp).to.be.eq(firstBody.timestamp);
-            expect(webhookEvent).to.be.eq(firstBody.webhookEvent);
+            expect(timestamp).to.be.eq(commentCreatedHook.timestamp);
+            expect(webhookEvent).to.be.eq(commentCreatedHook.webhookEvent);
             expect(issueName).to.be.eq(String(privateId));
             expect(ignoreStatus).to.be.true;
         });
@@ -313,7 +316,7 @@ describe('Helper tests', () => {
 
             let result;
             try {
-                result = await getIgnoreProject(firstBody);
+                result = await getIgnoreProject(commentCreatedHook);
             } catch (err) {
                 result = err;
             }

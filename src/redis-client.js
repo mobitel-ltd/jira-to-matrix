@@ -23,14 +23,15 @@ client.on('error', err => {
 });
 
 const setnxAsync = promisify(client.setnx).bind(client);
-const isNewLink = id => setnxAsync(getRedisLinkKey(id), '1');
+const sismemberAsync = promisify(client.sismember).bind(client);
+const saddAsync = promisify(client.sadd).bind(client);
 
 module.exports = {
     getAsync: promisify(client.get).bind(client),
     setAsync: promisify(client.set).bind(client),
-    sismemberAsync: promisify(client.sismember).bind(client),
-    saddAsync: promisify(client.sadd).bind(client),
-    isNewLink,
     delAsync: promisify(client.del).bind(client),
     keysAsync: promisify(client.keys).bind(client),
+    isInEpic: (redisEpicKey, issueID) => sismemberAsync(redisEpicKey, issueID),
+    saveToEpic: (redisEpicKey, issueID) => saddAsync(redisEpicKey, issueID),
+    isNewLink: id => setnxAsync(getRedisLinkKey(id), '1'),
 };

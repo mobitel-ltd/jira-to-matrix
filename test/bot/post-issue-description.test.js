@@ -1,12 +1,12 @@
 const nock = require('nock');
 const {auth} = require('../../src/lib/utils.js');
-const {renderedFields} = require('../../test/fixtures/response.json');
-const JSONbody = require('../fixtures/create.json');
+const {renderedFields} = require('../../test/fixtures/jira-api-requests/issue-renderfields.json');
+const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
-const issueBody = require('../fixtures/response.json');
+const issueBody = require('../fixtures/jira-api-requests/issue-renderfields.json');
 const logger = require('../../src/modules/log.js')(module);
 const proxyquire = require('proxyquire');
-const projectData = require('../fixtures/project-example.json');
+const projectData = require('../fixtures/jira-api-requests/project.json');
 const htmlToText = require('html-to-text').fromString;
 
 const chai = require('chai');

@@ -1,6 +1,6 @@
 const nock = require('nock');
 const {auth} = require('../../src/lib/utils.js');
-const JSONbody = require('../fixtures/comment-create-4.json');
+const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
 const {getInviteNewMembersData} = require('../../src/jira-hook-parser/parse-body.js');
 
 const chai = require('chai');

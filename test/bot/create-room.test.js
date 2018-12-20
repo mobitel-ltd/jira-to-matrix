@@ -1,10 +1,10 @@
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
-const JSONbody = require('../fixtures/create.json');
+const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
-const issueBody = require('../fixtures/response.json');
+const issueBody = require('../fixtures/jira-api-requests/issue-renderfields.json');
 const proxyquire = require('proxyquire');
-const projectData = require('../fixtures/project-example.json');
+const projectData = require('../fixtures/jira-api-requests/project.json');
 const chai = require('chai');
 const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
@@ -56,14 +56,14 @@ describe('Create room test', () => {
             .times(5)
             .reply(200, {...responce, id: 28516})
             .get(`/issue/${createRoomData.issue.id}`)
-            .query(utils.issueFormatedParams)
+            .query(utils.expandParams)
             .times(5)
             .reply(200, issueBody)
             .get(`/project/${projectOpts.id}`)
             .times(5)
             .reply(200, projectData)
             .get(`/issue/BBCOM-801`)
-            .query(utils.issueFormatedParams)
+            .query(utils.expandParams)
             .times(5)
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)

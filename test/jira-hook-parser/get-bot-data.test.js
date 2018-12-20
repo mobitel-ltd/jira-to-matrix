@@ -1,7 +1,7 @@
 /* eslint-disable no-undefined */
 const assert = require('assert');
-const firstJSON = require('../fixtures/comment-create-1.json');
-const secondJSON = require('../fixtures/comment-create-2.json');
+const firstJSON = require('../fixtures/webhooks/comment/created.json');
+const secondJSON = require('../fixtures/webhooks/issue/updated/commented.json');
 const {getBotActions, getParserName, getFuncAndBody} = require('../../src/jira-hook-parser/bot-handler.js');
 
 describe('get-bot-data', () => {

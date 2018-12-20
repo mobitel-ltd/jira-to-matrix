@@ -1,8 +1,8 @@
 const nock = require('nock');
-const {auth, getRestUrl, issueFormatedParams} = require('../../src/lib/utils.js');
-const JSONbody = require('../fixtures/create.json');
-const projectBody = require('../fixtures/create.json');
-const issueBody = require('../fixtures/response.json');
+const {auth, getRestUrl, expandParams} = require('../../src/lib/utils.js');
+const JSONbody = require('../fixtures/webhooks/issue/created.json');
+const projectBody = require('../fixtures/jira-api-requests/project.json');
+const issueBody = require('../fixtures/jira-api-requests/issue-renderfields.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const proxyquire = require('proxyquire');
 const chai = require('chai');
@@ -11,7 +11,7 @@ const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 const logger = require('../../src/modules/log.js')(module);
-const {cleanRedis} = require('../fixtures/testing-utils');
+const {cleanRedis} = require('../test-utils');
 
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
@@ -145,10 +145,10 @@ describe('redis-data-handle', () => {
             .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, {...responce, id: 28516})
             .get(`/issue/30369`)
-            .query(issueFormatedParams)
+            .query(expandParams)
             .reply(200, issueBody)
             .get(`/issue/BBCOM-801`)
-            .query(issueFormatedParams)
+            .query(expandParams)
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)
             .reply(404);

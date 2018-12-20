@@ -10,7 +10,7 @@ const isPostComment = body =>
 const isPostIssueUpdates = body =>
     features.postIssueUpdates
     && utils.isCorrectWebhook(body, 'jira:issue_updated')
-    && utils.isEmptyChangelog(body);
+    && utils.isChangelogExists(body);
 
 const isCreateRoom = body =>
     features.createRoom

@@ -1,6 +1,6 @@
 const {expect} = require('chai');
 const {saveIncoming} = require('../../src/queue/redis-data-handle.js');
-const {cleanRedis} = require('../fixtures/testing-utils');
+const {cleanRedis} = require('../test-utils');
 const {getRedisValue, getRedisKeys, getDataFromRedis, getRedisRooms} = require('../../src/queue/redis-data-handle.js');
 
 describe('Test save data to redis', () => {

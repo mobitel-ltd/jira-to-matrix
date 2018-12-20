@@ -13,6 +13,8 @@ const REDIS_ROOM_KEY = 'newrooms';
 // TODO: change until start correct bot work
 const ROOMS_OLD_NAME = 'rooms';
 const REDIS_LINK_PREFIX = 'link';
+const REDIS_EPIC_PREFIX = 'epic';
+
 // It helps ignore keys for links epic--issue
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
@@ -21,7 +23,7 @@ const JIRA_REST = 'rest/api/2';
 
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
-    isLinkHook: hook => hook === 'issuelink_created',
+    isLinkHook: hook => hook.includes('issuelink'),
 
     getRelations: issueLinkBody => ({
         inward: {relation: Ramda.path(['type', 'inward'], issueLinkBody), related: issueLinkBody.inwardIssue},
@@ -47,7 +49,7 @@ const utils = {
 
     isCorrectWebhook: (body, hookName) => utils.getBodyWebhookEvent(body) === hookName,
 
-    isEmptyChangelog: body => !(Ramda.isEmpty(Ramda.pathOr([], ['changelog', 'items'], body))),
+    isChangelogExists: body => !(Ramda.isEmpty(Ramda.pathOr([], ['changelog', 'items'], body))),
 
     isEpic: body =>
         utils.getIssueTypeName(body) === 'Epic',
@@ -163,8 +165,16 @@ const utils = {
 
     getCreator: body => Ramda.path(['issue', 'fields', 'creator', 'name'], body),
 
+    // * --------------------------------- Redis utils ------------------------------- *
+
+
+    getRedisLinkKey: id => [REDIS_LINK_PREFIX, DELIMITER, id].join(''),
+
+    getRedisEpicKey: id => [REDIS_EPIC_PREFIX, DELIMITER, id].join(''),
+
+
     // * --------------------------------- Other utils ------------------------------- *
-    issueFormatedParams: {expand: 'renderedFields'},
+    expandParams: {expand: 'renderedFields'},
 
     getRedisKey: (funcName, body) => [funcName, utils.getBodyTimestamp(body)].join('_'),
 
@@ -297,8 +307,6 @@ const utils = {
 
         return [log, err].join('\n');
     },
-
-    getRedisLinkKey: id => [REDIS_LINK_PREFIX, DELIMITER, id].join(''),
 };
 
 module.exports = {
