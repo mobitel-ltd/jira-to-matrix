@@ -8,7 +8,7 @@ const issueCommentedChangedHook = require('../fixtures/webhooks/issue/updated/co
 const issueUpdatedGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueCreatedHook = require('../fixtures/webhooks/issue/created.json');
 const issueLinkCreatedHook = require('../fixtures/webhooks/issuelink/created.json');
-const issueLinkDeletedHook = require('../fixtures/webhooks/issuelink/created.json');
+const issueLinkDeletedHook = require('../fixtures/webhooks/issuelink/deleted.json');
 
 describe('bot func', () => {
     it('Expect commentCreatedHook have only postComment func', () => {

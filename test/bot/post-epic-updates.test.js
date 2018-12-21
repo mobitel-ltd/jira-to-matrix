@@ -52,8 +52,13 @@ describe('Post epic updates test', () => {
             .rejects();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await cleanRedis();
         Object.values(mclient).map(val => val.resetHistory());
+    });
+
+    after(() => {
+        nock.cleanAll();
     });
 
     it('Expect postEpicUpdates throw error "No roomId for" if room is not exists', async () => {
@@ -94,9 +99,5 @@ describe('Post epic updates test', () => {
         const result = await postEpicUpdates({mclient, ...postEpicUpdatesData});
         expect(mclient.sendHtmlMessage).not.to.be.called;
         expect(result).to.be.true;
-    });
-
-    afterEach(async () => {
-        await cleanRedis();
     });
 });

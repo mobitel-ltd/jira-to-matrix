@@ -25,7 +25,6 @@ const {
     getEpicChangedMessageBody,
     getNewEpicMessageBody,
     getNewIssueMessageBody,
-    getUserID,
     getIgnoreBodyData,
     getIgnoreInfo,
     getIgnoreProject,
@@ -109,13 +108,6 @@ describe('Helper tests', () => {
 
         const result = membersInvited(data);
         expect(result).to.deep.equal(['one', 'two', 'three']);
-    });
-
-    it('getUserID test', () => {
-        const name = 'BBCOM';
-        const result = getUserID(name);
-
-        expect(result).to.equal('@BBCOM:matrix.test-example.ru');
     });
 
     it('isStartEndUpdateStatus test', () => {

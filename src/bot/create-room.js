@@ -1,6 +1,5 @@
 const {getRoomMembers, getProject} = require('../lib/jira-request.js');
-const {getUserID} = require('./helper.js');
-const {composeRoomName, getViewUrl, errorTracing} = require('../lib/utils.js');
+const {composeRoomName, getViewUrl, errorTracing, getMatrixUserID} = require('../lib/utils.js');
 const logger = require('../modules/log.js')(module);
 const postIssueDescription = require('./post-issue-description.js');
 
@@ -18,7 +17,7 @@ const getRoomId = async (mclient, key) => {
 const createIssueRoom = async (client, issue) => {
     try {
         const roomMembers = await getRoomMembers(issue);
-        const invite = roomMembers.map(getUserID);
+        const invite = roomMembers.map(getMatrixUserID);
 
         const {key} = issue;
         const name = composeRoomName(issue);
@@ -45,7 +44,7 @@ const createIssueRoom = async (client, issue) => {
 const createRoomProject = async (client, id) => {
     try {
         const {key, lead, name} = await getProject(id);
-        const invite = [getUserID(lead.key)];
+        const invite = [getMatrixUserID(lead.key)];
         const topic = getViewUrl(key);
 
         const options = {

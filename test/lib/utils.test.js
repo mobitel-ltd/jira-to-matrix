@@ -40,21 +40,6 @@ describe('Utils testing', () => {
         });
     });
 
-    it('Key/value pairs to URL query string', () => {
-        const samples = [
-            {input: [{par1: 10}, {par2: 20}], result: '?par1=10&par2=20'},
-            {input: '', result: ''},
-            {input: undefined, result: ''},
-            {input: null, result: ''},
-            {input: [], result: ''},
-            {input: {}, result: ''},
-        ];
-        samples.forEach(sample => {
-            const result = utils.paramsToQueryString(sample.input);
-            assert.deepEqual(result, sample.result);
-        });
-    });
-
     it('None-empty string', () => {
         const samples = [
             ['aaa', true],
@@ -68,21 +53,6 @@ describe('Utils testing', () => {
             const result = utils.nonEmptyString(sample[0]);
             assert.deepEqual(result, sample[1]);
         });
-    });
-
-    it('Paths', () => {
-        const result = utils.paths([
-            'user.name',
-            'issue.key',
-            'issue.fields.summary',
-        ], issueCommentedHook);
-        const expected = {
-            'user.name': 'jira_test',
-            'issue.key': 'BBCOM-956',
-            'issue.fields.summary': 'BBCOM-956',
-        };
-
-        assert.deepEqual(result, expected);
     });
 
     it('getNewStatus', () => {
@@ -107,7 +77,7 @@ describe('Utils testing', () => {
             [{}, undefined],
         ];
         samples.forEach(sample => {
-            const result = utils.webHookUser(sample[0]);
+            const result = utils.getHookUserName(sample[0]);
             expect(result).to.be.equal(sample[1]);
         });
     });
@@ -166,5 +136,12 @@ describe('Utils testing', () => {
     it('Expect getComment return undefined', () => {
         const body = utils.getComment(issueUpdatedGenericHook);
         expect(body).to.be.undefined;
+    });
+
+    it('getMatrixUserID test', () => {
+        const name = 'BBCOM';
+        const result = utils.getMatrixUserID(name);
+
+        expect(result).to.equal('@BBCOM:matrix.test-example.ru');
     });
 });

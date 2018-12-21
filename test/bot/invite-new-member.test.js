@@ -70,6 +70,10 @@ describe('inviteNewMembers test', () => {
             .reply(404);
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
+
     it('Get undefined with no room for key', async () => {
         getRoomByAliasStub.returns(null);
         let result;

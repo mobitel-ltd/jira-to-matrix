@@ -42,6 +42,10 @@ describe('move test', () => {
             .reply(errorStatus);
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
+
     it('Get correct !move list commands', async () => {
         const expectedData = [
             room.roomId,

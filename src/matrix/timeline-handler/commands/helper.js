@@ -7,8 +7,7 @@ const translate = require('../../../locales');
 const {jira, matrix} = require('../../../config');
 const {userId: botId} = matrix;
 const {url} = jira;
-const {getUserID} = require('../../../bot/helper.js');
-const {COMMON_NAME, getRestUrl} = require('../../../lib/utils.js');
+const {getMatrixUserID, COMMON_NAME, getRestUrl} = require('../../../lib/utils.js');
 const BASE_URL = getRestUrl('issue');
 
 // Checking occurrences of current name
@@ -106,7 +105,7 @@ const parseEventBody = body => {
 };
 
 const getInviteUser = (assignee, room) => {
-    const user = getUserID(assignee);
+    const user = getMatrixUserID(assignee);
     const members = room.getJoinedMembers();
     const isInRoom = members.find(({userId}) => userId === user);
 

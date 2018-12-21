@@ -34,6 +34,10 @@ describe('Issue test', () => {
             .reply(200, watchersJSON);
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
+
     it('getRenderedValues test', async () => {
         const getRenderedValuesData = await getRenderedValues(issue.id, ['description']);
         expect(getRenderedValuesData).to.be.deep.equal({description: '<p>Задача</p>'});

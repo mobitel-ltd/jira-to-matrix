@@ -50,7 +50,7 @@ const helper = {
 
 
     getIgnoreBodyData: body => {
-        const username = utils.webHookUser(body);
+        const username = utils.getHookUserName(body);
         const creator = utils.getCreator(body);
 
         const isInUsersToIgnore = arr =>
@@ -86,7 +86,7 @@ const helper = {
             Ramda.map(Ramda.prop('userId'))
         )(roomMembers),
 
-    getUserID: shortName => `@${shortName}:${matrix.domain}`,
+    getMatrixUserID: shortName => `@${shortName}:${matrix.domain}`,
 
     getEpicChangedMessageBody: ({summary, key, status, name}) => {
         const issueRef = utils.getViewUrl(key);
@@ -137,7 +137,6 @@ const helper = {
                 logger.warn('No body for sending to Matrix');
                 return;
             }
-
             await mclient.sendHtmlMessage(roomID, body, htmlBody);
         } catch (err) {
             throw ['Error in postStatusChanged', err].join('\n');

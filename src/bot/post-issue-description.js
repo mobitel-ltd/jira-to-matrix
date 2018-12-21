@@ -1,77 +1,48 @@
-const Ramda = require('ramda');
 const htmlToText = require('html-to-text').fromString;
-const {getIssueFormatted, getRenderedValues} = require('../lib/jira-request.js');
+const utils = require('../../src/lib/utils');
+const {getRenderedValues} = require('../lib/jira-request.js');
 const translate = require('../locales');
-const {jira: {url}} = require('../config');
 
-const getPost = async ({assigneeName,
-    assigneeEmail,
-    reporterName,
-    reporterEmail,
-    typeName,
-    epicLink,
-    estimateTime,
-    description,
-    priority,
-}) => {
-    try {
-        const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
-        const post = `
+const getEpicInfo = epicLink =>
+    ((epicLink === translate('miss'))
+        ? ''
+        : `            <br>Epic link:
+                ${utils.getOpenedDescriptionBlock(epicLink)}
+                ${utils.getClosedDescriptionBlock(utils.getViewUrl(epicLink))}`);
+
+const getPost = description => {
+    const post = `
             Assignee:
-                <br>${indent}${assigneeName}
-                <br>${indent}${assigneeEmail}<br>
+                ${utils.getOpenedDescriptionBlock(description.assigneeName)}
+                ${utils.getClosedDescriptionBlock(description.assigneeEmail)}
             <br>Reporter:
-                <br>${indent}${reporterName}
-                <br>${indent}${reporterEmail}<br>
+                ${utils.getOpenedDescriptionBlock(description.reporterName)}
+                ${utils.getClosedDescriptionBlock(description.reporterEmail)}
             <br>Type:
-                <br>${indent}${typeName}<br>
+                ${utils.getClosedDescriptionBlock(description.typeName)}
             <br>Estimate time:
-                <br>${indent}${estimateTime}<br>
+                ${utils.getClosedDescriptionBlock(description.estimateTime)}
             <br>Description:
-                <br>${indent}${description}<br>
+                ${utils.getClosedDescriptionBlock(description.description)}
             <br>Priority:
-                <br>${indent}${priority}<br>`;
+                ${utils.getClosedDescriptionBlock(description.priority)}`;
 
-        /* eslint-disable no-negated-condition */
-        if (epicLink !== translate('miss')) {
-            const epic = await getIssueFormatted(epicLink);
-            let nameEpic;
-            if (typeof epic === 'object' && epic.key === epicLink) {
-                const renderedField = Ramda.path(['renderedField', 'customfield_10005'], epic);
-                const fields = Ramda.path(['fields', 'customfield_10005'], epic);
-                nameEpic = String(renderedField || fields || epicLink);
-            }
+    const epicInfo = getEpicInfo(description.epicLink);
 
-            const epicInfo = `
-            <br>Epic link:
-                <br>${indent}${nameEpic} (${epicLink})
-                <br>${indent}\t${url}/browse/${epicLink}<br>`;
-            return `${post}${epicInfo}`;
-        }
-        return post;
-    } catch (err) {
-        throw ['Error in getPost', err].join('\n');
-    }
+    return [post, epicInfo].join('\n');
 };
 
-const getTutorial = `
-    <br>
-    Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
-    `;
 
 module.exports = async ({mclient, issue, newRoomID}) => {
     try {
         const {description} = await getRenderedValues(issue.id, ['description']);
         const htmlBody = await getPost({...issue.descriptionFields, description});
-
         const body = htmlToText(htmlBody);
 
-        // description
         await mclient.sendHtmlMessage(newRoomID, body, htmlBody);
 
-        // tutorial jira commands
-        await mclient.sendHtmlMessage(newRoomID, 'Send tutorial', getTutorial);
+        await mclient.sendHtmlMessage(newRoomID, 'Send tutorial', utils.infoBody);
     } catch (err) {
-        throw ['post issue description error', err].join('\n');
+        throw utils.errorTracing('post issue description', err);
     }
 };

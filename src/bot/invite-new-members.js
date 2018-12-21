@@ -1,14 +1,14 @@
 const Ramda = require('ramda');
-const {errorTracing} = require('../lib/utils.js');
+const {getMatrixUserID, errorTracing} = require('../lib/utils.js');
 const {getRoomMembers} = require('../lib/jira-request.js');
-const {getUserID, membersInvited} = require('./helper.js');
+const {membersInvited} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
 const {getNoRoomByAliasLog} = require('../../src/lib/messages');
 
 module.exports = async ({mclient, issue}) => {
     try {
         const roomMembers = await getRoomMembers(issue);
-        const roomMemebersUerId = roomMembers.map(getUserID);
+        const roomMemebersUerId = roomMembers.map(getMatrixUserID);
 
         const room = await mclient.getRoomByAlias(issue.key);
         if (!room) {

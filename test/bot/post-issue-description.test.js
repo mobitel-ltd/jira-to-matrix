@@ -1,43 +1,22 @@
 const nock = require('nock');
-const {auth} = require('../../src/lib/utils.js');
-const {renderedFields} = require('../../test/fixtures/jira-api-requests/issue-renderfields.json');
+const utils = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
-const issueBody = require('../fixtures/jira-api-requests/issue-renderfields.json');
-const logger = require('../../src/modules/log.js')(module);
-const proxyquire = require('proxyquire');
-const projectData = require('../fixtures/jira-api-requests/project.json');
+const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
+const postIssueDescription = require('../../src/bot/post-issue-description.js');
 const htmlToText = require('html-to-text').fromString;
 
 const chai = require('chai');
-const {stub, spy} = require('sinon');
+const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
-const loggerSpy = {
-    error: spy(),
-    warn: spy(),
-    debug: spy(),
-    info: spy(),
-};
-const translateStub = stub();
-const postIssueDescription = proxyquire('../../src/bot/post-issue-description.js', {
-    '../modules/log.js': () => loggerSpy,
-    '../locales': translateStub,
-});
-
 describe('Create room test', () => {
     const newRoomID = 'roomId';
-    const responce = {
-        id: '10002',
-        self: 'http://www.example.com/jira/rest/api/2/issue/10002',
-        key: 'EpicKey',
-        fields: {
-            summary: 'SummaryKey',
-        },
-    };
+    const createRoomData = getCreateRoomData(JSONbody);
 
+    const epicKey = createRoomData.issue.descriptionFields.epicLink;
     const sendHtmlMessageStub = stub();
     const getRoomIdStub = stub().returns('id');
     const createRoomStub = stub().returns('correct room');
@@ -48,85 +27,57 @@ describe('Create room test', () => {
         createRoom: createRoomStub,
     };
 
-    const createRoomData = getCreateRoomData(JSONbody);
 
-    const {assigneeName,
-        assigneeEmail,
-        reporterName,
-        reporterEmail,
-        typeName,
-        estimateTime,
-        priority,
-    } = createRoomData.issue.descriptionFields;
-    const {description} = renderedFields;
-    const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
-    const expectedHTMLBody = `
+    const {descriptionFields} = createRoomData.issue;
+    const {description} = renderedIssueJSON.renderedFields;
+    const post = `
             Assignee:
-                <br>${indent}${assigneeName}
-                <br>${indent}${assigneeEmail}<br>
+                <br>${utils.INDENT}${descriptionFields.assigneeName}
+                <br>${utils.INDENT}${descriptionFields.assigneeEmail}<br>
             <br>Reporter:
-                <br>${indent}${reporterName}
-                <br>${indent}${reporterEmail}<br>
+                <br>${utils.INDENT}${descriptionFields.reporterName}
+                <br>${utils.INDENT}${descriptionFields.reporterEmail}<br>
             <br>Type:
-                <br>${indent}${typeName}<br>
+                <br>${utils.INDENT}${descriptionFields.typeName}<br>
             <br>Estimate time:
-                <br>${indent}${estimateTime}<br>
+                <br>${utils.INDENT}${descriptionFields.estimateTime}<br>
             <br>Description:
-                <br>${indent}${description}<br>
+                <br>${utils.INDENT}${description}<br>
             <br>Priority:
-                <br>${indent}${priority}<br>
-            <br>Epic link:
-                <br>${indent}undefined (BBCOM-801)
-                <br>${indent}\thttps://jira.test-example.ru/jira/browse/BBCOM-801<br>`;
-
+                <br>${utils.INDENT}${descriptionFields.priority}<br>`;
+    const epicInfo = `            <br>Epic link:
+                <br>${utils.INDENT}${epicKey}
+                <br>${utils.INDENT}${utils.getViewUrl(epicKey)}<br>`;
+    const expectedHTMLBody = [post, epicInfo].join('\n');
     const expectedBody = htmlToText(expectedHTMLBody);
 
-    const expetcedTutorial = `
-    <br>
-    Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
-    `;
-
     before(() => {
-        nock('https://jira.test-example.ru', {
+        nock(utils.getRestUrl(), {
             reqheaders: {
-                Authorization: auth(),
+                Authorization: utils.auth(),
             },
         })
-            .get('/jira/rest/api/2/issue/BBCOM-1398/watchers')
-            .times(5)
-            .reply(200, {...responce, id: 28516})
-            .get(`/jira/rest/api/2/issue/30369?expand=renderedFields`)
-            .times(5)
-            .reply(200, issueBody)
-            .get(`/jira/rest/api/2/project/10305`)
-            .times(5)
-            .reply(200, projectData)
-            .get(`/jira/rest/api/2/issue/BBCOM-801?expand=renderedFields`)
-            .times(5)
-            .reply(200, issueBody)
-            .get(url => url.indexOf('null') > 0)
-            .reply(404);
+            .get(`/issue/${createRoomData.issue.id}`)
+            .query(utils.expandParams)
+            .reply(200, renderedIssueJSON);
     });
 
     it('Description with epic should be created', async () => {
         await postIssueDescription({mclient, ...createRoomData, newRoomID});
 
-        logger.debug(sendHtmlMessageStub.secondCall.args);
         expect(sendHtmlMessageStub.firstCall.args).to.be.deep.equal([newRoomID, expectedBody, expectedHTMLBody]);
-        expect(sendHtmlMessageStub.secondCall).to.have.been.calledWith(newRoomID, 'Send tutorial', expetcedTutorial);
+        expect(sendHtmlMessageStub.secondCall).to.have.been.calledWith(newRoomID, 'Send tutorial', utils.infoBody);
     });
 
     it('Description with error', async () => {
-        translateStub.throws('ERROR!!!');
+        let res;
+        const expectedError = utils.getDefaultErrorLog('post issue description');
         try {
-            await postIssueDescription({mclient, ...createRoomData, newRoomID});
+            res = await postIssueDescription({mclient, ...createRoomData, newRoomID});
         } catch (error) {
-            const expectedError = [
-                'post issue description error',
-                'Error in getPost',
-                'ERROR!!!',
-            ].join('\n');
-            expect(error).to.be.equal(expectedError);
+            res = error;
         }
+
+        expect(res).to.include(expectedError);
     });
 });

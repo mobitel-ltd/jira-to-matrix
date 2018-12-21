@@ -33,8 +33,13 @@ describe('Queue handler test', () => {
             .times(5)
             .reply(200, projectData);
     });
+
     afterEach(async () => {
         await cleanRedis();
+    });
+
+    after(() => {
+        nock.cleanAll();
     });
 
     it('Room should not be created, room should be in redis', async () => {

@@ -1,6 +1,6 @@
 const translate = require('../../../locales');
 const {admins} = require('../../../config').matrix;
-const {getUserID} = require('../../../bot/helper.js');
+const {getMatrixUserID} = require('../../../lib/utils');
 
 const getEvent = async (roomId, matrixClient) => {
     // The object of the matrix that contains information about the user group rights
@@ -37,14 +37,14 @@ module.exports = async ({body, sender, room, roomName, matrixClient}) => {
     const event = await getEvent(room.roomId, matrixClient);
 
     if (body === '!op') {
-        const userId = getUserID(sender);
+        const userId = getMatrixUserID(sender);
         await matrixClient.setPowerLevel(room.roomId, userId, 50, event);
 
         return `User ${sender} became a moderator for room ${roomName}`;
     }
 
     const user = body.substring(4);
-    const userId = getUserID(user);
+    const userId = getMatrixUserID(user);
 
     if (isMember(room, userId)) {
         await matrixClient.setPowerLevel(room.roomId, userId, 50, event);

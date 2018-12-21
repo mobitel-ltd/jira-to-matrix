@@ -3,7 +3,7 @@ const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 const sdk = require('matrix-js-sdk');
-const {getUserID} = require('../../src/bot/helper');
+const {getMatrixUserID} = require('../../src/lib/utils.js');
 const {matrix: {userId: matrixUserId}} = require('../../src/config');
 const proxyquire = require('proxyquire');
 const logger = require('../../src/modules/log')(module);
@@ -42,7 +42,7 @@ const roomMock = (roomId, roomName, members, timeline) =>
 const roomName = 'roomName';
 const roomId = '!roomId';
 const sender = 'myUser';
-const myUser = getUserID(sender);
+const myUser = getMatrixUserID(sender);
 const room = {roomId};
 
 describe('Test kicking from room', () => {
@@ -53,13 +53,13 @@ describe('Test kicking from room', () => {
     // logger.debug(timeline.map(time => time.getDate()));
 
     const members = [
-        new sdk.User(getUserID('ivan')),
-        new sdk.User(getUserID('john')),
+        new sdk.User(getMatrixUserID('ivan')),
+        new sdk.User(getMatrixUserID('john')),
         new sdk.User(myUser),
         new sdk.User(matrixUserId),
     ];
     beforeEach(() => {
-        kickStub.withArgs(roomId, getUserID('ivan'), 'This room is outdated').throws();
+        kickStub.withArgs(roomId, getMatrixUserID('ivan'), 'This room is outdated').throws();
         const rooms = [
             roomMock(roomId, roomName, members, timeline),
             roomMock(roomId, roomName, members, timeline),
@@ -71,8 +71,8 @@ describe('Test kicking from room', () => {
         await kick({sender, matrixClient: clientStub, room});
         const kickInfo = translate('kickInfo', {sender});
         const msgItem = [
-            translate('errorUserKick', {user: getUserID('ivan'), roomName}),
-            translate('successUserKick', {user: getUserID('john'), roomName}),
+            translate('errorUserKick', {user: getMatrixUserID('ivan'), roomName}),
+            translate('successUserKick', {user: getMatrixUserID('john'), roomName}),
             translate('successUserKick', {user: myUser, roomName}),
         ];
         const kickMsg = [msgItem, msgItem];
