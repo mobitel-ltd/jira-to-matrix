@@ -16,7 +16,6 @@ const request = async (url, newOptions) => {
         const response = await requestPromise(url, options);
         logger.debug(`${options.method} request to jira with Url ${url} suceeded`);
         if (options.method === 'GET' && url !== jiraUrl) {
-            logger.debug(url, jiraUrl);
             return JSON.parse(response);
         }
     } catch ({statusCode}) {

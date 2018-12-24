@@ -5,6 +5,7 @@ const sinonChai = require('sinon-chai');
 const proxyquire = require('proxyquire');
 const chai = require('chai');
 
+const {jira: {url: jiraUrl}} = require('../../src/config');
 const utils = require('../../src/lib/utils');
 const projectData = require('../fixtures/jira-api-requests/project.json');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
@@ -24,21 +25,19 @@ chai.use(sinonChai);
 describe('Queue handler test', () => {
     let mclientStub;
     before(() => {
+        nock(jiraUrl).get('').reply(200, '<HTML>');
+
         nock(utils.getRestUrl(), {
             reqheaders: {
                 Authorization: utils.auth(),
             },
         })
             .get(`/project/${projectData.id}`)
-            .times(5)
             .reply(200, projectData);
     });
 
     afterEach(async () => {
         await cleanRedis();
-    });
-
-    after(() => {
         nock.cleanAll();
     });
 

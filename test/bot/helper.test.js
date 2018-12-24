@@ -2,6 +2,7 @@ const issueLinkBody = require('../fixtures/jira-api-requests/issuelink.json');
 const postNewLinksbody = require('../fixtures/webhooks/issuelink/created.json');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const assert = require('assert');
+const projectBody = require('../fixtures/jira-api-requests/project.json');
 const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
 const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
 const issueCommentedHook = require('../fixtures/webhooks/issue/updated/commented.json');
@@ -231,6 +232,7 @@ describe('Helper tests', () => {
         beforeEach(() => {
             nock(jiraUrl)
                 .get('')
+                .times(2)
                 .reply(200, '<HTML>');
 
             nock(utils.getRestUrl(), {
@@ -238,14 +240,18 @@ describe('Helper tests', () => {
             })
                 .get(`/project/${issueChangedHook.issue.fields.project.id}`)
                 .times(2)
-                .reply(200, {isPrivate: false})
+                .reply(200, projectBody)
                 .get(`/project/${privateId}`)
-                .reply(200, {isPrivate: true})
+                .times(2)
+                .reply(200, {...projectBody, isPrivate: true})
                 .get(`/issue/${utils.extractID(commentCreatedHook)}`)
+                .times(2)
                 .reply(200, issueBody)
                 .get(`/issueLink/${postNewLinksbody.issueLink.id}`)
+                .times(2)
                 .reply(200, issueLinkBody)
                 .get(`/issue/${issueLinkBody.inwardIssue.key}`)
+                .times(2)
                 .reply(200, issueBody)
                 .get(`/issue/${privateId}`)
                 .reply(404);
@@ -264,7 +270,7 @@ describe('Helper tests', () => {
             expect(result).to.be.deep.eq({userStatus, projectStatus});
         });
 
-        it('Expect getIgnoreProject handle hook correct', async () => {
+        it('Expect getIgnoreProject handle hook correct if project is new-gen', async () => {
             const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(issueChangedHook);
 
             expect(timestamp).to.be.eq(issueChangedHook.timestamp);
@@ -273,7 +279,25 @@ describe('Helper tests', () => {
             expect(ignoreStatus).to.be.false;
         });
 
-        it('Expect hook to be handled and to be ignored if project is private', async () => {
+        it('Expect getIgnoreProject handle hook correct if project is classic', async () => {
+            nock.cleanAll();
+            nock(jiraUrl).get('').reply(200, '<HTML>');
+            nock(utils.getRestUrl(), {reqheaders: {Authorization: utils.auth()}})
+                .get(`/project/${issueChangedHook.issue.fields.project.id}`)
+                .reply(200, {...projectBody, style: 'classic'})
+                .get(`/issue/${utils.extractID(commentCreatedHook)}`)
+                .times(2)
+                .reply(200, issueBody);
+
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(issueChangedHook);
+
+            expect(timestamp).to.be.eq(issueChangedHook.timestamp);
+            expect(webhookEvent).to.be.eq(issueChangedHook.webhookEvent);
+            expect(issueName).to.be.eq(issueChangedHook.issue.key);
+            expect(ignoreStatus).to.be.false;
+        });
+
+        it('Expect hook to be handled and to be ignored if project is private and new-gen', async () => {
             const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(privateHook);
 
             expect(timestamp).to.be.eq(privateHook.timestamp);

@@ -112,5 +112,7 @@
     "name": "FIRST",
     "description": "First Project Category"
   },
-  "simplified": false
+  "simplified": false,
+  "style": "new-gen",
+  "isPrivate": false
 }
