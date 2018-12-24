@@ -5,9 +5,7 @@ const {getPostLinkMessageBody} = require('./helper');
 const {getRelations, getInwardLinkKey, getOutwardLinkKey} = require('../lib/utils');
 
 const postLink = async (key, relations, mclient) => {
-    logger.debug('key is', key);
     const roomID = await mclient.getRoomId(key);
-    logger.debug('roomID is', roomID);
 
     const {body, htmlBody} = getPostLinkMessageBody(relations);
     await mclient.sendHtmlMessage(roomID, body, htmlBody);

@@ -1,5 +1,12 @@
 const utils = require('../lib/utils.js');
 
+const getLinksData = body => {
+    const allLinks = utils.getLinks(body);
+    const links = allLinks.map(link => (link ? link.id : link));
+
+    return {links};
+};
+
 module.exports = {
     getPostCommentData: body => {
         const headerText = utils.getHeaderText(body);
@@ -33,12 +40,7 @@ module.exports = {
         return {issue: {key, roomMembers, url}};
     },
 
-    getPostNewLinksData: body => {
-        const allLinks = utils.getLinks(body);
-        const links = allLinks.map(link => (link ? link.id : link));
-
-        return {links};
-    },
+    getPostNewLinksData: getLinksData,
 
     getPostEpicUpdatesData: body => {
         const epicKey = utils.getEpicKey(body);
@@ -92,4 +94,6 @@ module.exports = {
 
         return {issueKey, fieldKey, summary, roomName, changelog, user, key};
     },
+
+    getDeleteLinksData: getLinksData,
 };
