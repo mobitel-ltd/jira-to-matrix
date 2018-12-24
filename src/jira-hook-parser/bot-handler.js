@@ -49,6 +49,9 @@ const isPostLinkedChanges = body =>
     && utils.getLinks(body).length > 0
     && typeof utils.getNewStatus(body) === 'string';
 
+const isDeleteLinks = body =>
+    utils.getBodyWebhookEvent(body) === 'issuelink_deleted';
+
 const actionFuncs = {
     postIssueUpdates: isPostIssueUpdates,
     inviteNewMembers: isMemberInvite,
@@ -57,6 +60,7 @@ const actionFuncs = {
     postProjectUpdates: isPostProjectUpdates,
     postNewLinks: isPostNewLinks,
     postLinkedChanges: isPostLinkedChanges,
+    postLinksDeleted: isDeleteLinks,
 };
 
 const getBotActions = body =>
@@ -82,6 +86,7 @@ const getFuncAndBody = body => {
 };
 
 module.exports = {
+    isDeleteLinks,
     getFuncAndBody,
     getParserName,
     getBotActions,

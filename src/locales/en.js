@@ -10,6 +10,8 @@ const dict = Object.freeze({
     issueAddedToEpic: 'An issue [%{key} %{summary}](%{issueRef}) was added to the epic',
     newLink: 'New link',
     newLinkMessage: 'A new link. This issue **%{relation}** [%{key} "%{summary}"](%{issueRef})',
+    deleteLink: 'Delete link',
+    deleteLinkMessage: 'Link deleted. This issue **%{relation}** [%{key} "%{summary}"](%{issueRef})',
     miss: 'missing',
     epicAddedToProject: 'An epic [%{key} %{summary}](%{issueRef}) was added to the project',
     newEpicInProject: 'New epic in project',

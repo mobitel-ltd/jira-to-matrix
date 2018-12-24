@@ -201,19 +201,18 @@ const helper = {
         return result;
     },
 
-    getPostLinkMessageBody: ({relation, related}) => {
+    getPostLinkMessageBody: ({relation, related}, action = 'newLink') => {
         const {key} = related;
         const issueRef = utils.getViewUrl(key);
         const summary = Ramda.path(['fields', 'summary'], related);
         const values = {key, relation, summary, issueRef};
 
-        const body = translate('newLink');
-        const message = translate('newLinkMessage', values);
+        const body = translate(action);
+        const message = translate(`${action}Message`, values);
         const htmlBody = marked(message);
 
         return {body, htmlBody};
     },
 };
-
 
 module.exports = helper;
