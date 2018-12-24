@@ -25,6 +25,10 @@ const LINE_BREAKE_TAG = '<br>';
 
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
+    getProjectPrivateStatus: body => Ramda.path(['isPrivate'], body),
+
+    getProjectStyle: body => Ramda.path(['style'], body),
+
     getCreator: body => Ramda.path(['issue', 'fields', 'creator', 'name'], body),
 
     getTypeEvent: body => Ramda.path(['issue_event_type_name'], body),
@@ -76,6 +80,8 @@ const utils = {
     getIssueTypeName: body => Ramda.path(['issue', 'fields', 'issuetype', 'name'], body),
 
     getHookUserName: body => utils.getCommentAuthor(body) || utils.getUserName(body),
+
+    isNewGenProjectStyle: body => utils.getProjectStyle(body) === 'new-gen',
 
     isLinkHook: hook => hook.includes('issuelink'),
 

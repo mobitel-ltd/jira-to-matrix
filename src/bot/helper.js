@@ -8,14 +8,13 @@ const jiraRequests = require('../lib/jira-request.js');
 
 const helper = {
     isStartEndUpdateStatus: body => {
-        const isStart = utils.getChangelogField('Start date', body);
-        const isEnd = utils.getChangelogField('End date', body);
+        const startDate = utils.getChangelogField('Start date', body);
+        const endDate = utils.getChangelogField('End date', body);
 
-        return !!isStart || !!isEnd;
+        return !!(startDate || endDate);
     },
 
     getLink: async id => {
-        logger.debug(id);
         const link = await jiraRequests.getLinkedIssue(id);
 
         return utils.getInwardLinkKey(link);
@@ -26,7 +25,6 @@ const helper = {
             const issueId = utils.isLinkHook(utils.getBodyWebhookEvent(body))
                 ? await helper.getLink(utils.getIssueLinkId(body))
                 : utils.extractID(body);
-            logger.debug(issueId);
 
             const issue = await jiraRequests.getIssue(issueId);
             return !issue;
@@ -36,16 +34,14 @@ const helper = {
     },
 
     getProjectPrivateStatus: async body => {
-        const projectId = utils.getBodyProjectId(body);
-
-        if (projectId) {
-            const projectBody = await jiraRequests.getProject(projectId);
-
-            return Ramda.path(['isPrivate'], projectBody);
-        }
         await jiraRequests.testJiraRequest();
 
-        return helper.isPrivateIssue(body);
+        const projectId = utils.getBodyProjectId(body);
+        const projectBody = projectId && await jiraRequests.getProject(projectId);
+
+        return (utils.isNewGenProjectStyle(projectBody))
+            ? utils.getProjectPrivateStatus(projectBody)
+            : helper.isPrivateIssue(body);
     },
 
 
@@ -57,7 +53,6 @@ const helper = {
             [username, creator].some(user => arr.includes(user));
 
         const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
-        logger.debug('userIgnoreStatus', userIgnoreStatus);
         const startEndUpdateStatus = helper.isStartEndUpdateStatus(body);
         const ignoreStatus = userIgnoreStatus || startEndUpdateStatus;
 

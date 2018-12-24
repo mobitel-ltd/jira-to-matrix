@@ -1,4 +1,5 @@
 const nock = require('nock');
+const {jira: {url: jiraUrl}} = require('../../src/config');
 const {auth, getRestUrl, expandParams} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const projectBody = require('../fixtures/jira-api-requests/project.json');
@@ -135,6 +136,11 @@ describe('redis-data-handle', () => {
     const mclient = {};
 
     beforeEach(async () => {
+        nock(jiraUrl)
+            .get('')
+            .times(2)
+            .reply(200, '<HTML>');
+
         nock(getRestUrl(), {
             reqheaders: {
                 Authorization: auth(),
