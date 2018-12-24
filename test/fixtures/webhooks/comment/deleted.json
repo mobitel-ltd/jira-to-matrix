@@ -1,0 +1,96 @@
+{
+    "timestamp": "2018-12-20 15:45:59,695",
+    "webhookEvent": "comment_deleted",
+    "comment": {
+        "self": "https://jira.test-example.ru/rest/api/2/issue/11961/comment/10757",
+        "id": "10757",
+        "author": {
+            "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
+            "name": "ii_ivanov",
+            "key": "ii_ivanov",
+            "accountId": "5b912e21fa38ae2c896099ae",
+            "avatarUrls": {
+                "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+                "24x24": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+                "16x16": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+                "32x32": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+            },
+            "displayName": "Иванов Иван Иванович",
+            "active": true,
+            "timeZone": "Europe/Moscow"
+        },
+        "body": "12345",
+        "updateAuthor": {
+            "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
+            "name": "ii_ivanov",
+            "key": "ii_ivanov",
+            "accountId": "5b912e21fa38ae2c896099ae",
+            "avatarUrls": {
+                "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+                "24x24": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+                "16x16": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+                "32x32": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+            },
+            "displayName": "Иванов Иван Иванович",
+            "active": true,
+            "timeZone": "Europe/Moscow"
+        },
+        "created": "2018-12-19T13:33:48.447+0300",
+        "updated": "2018-12-20T15:41:13.803+0300",
+        "jsdPublic": true
+    },
+    "issue": {
+        "id": "11961",
+        "self": "https://jira.test-example.ru/rest/api/2/issue/11961",
+        "key": "INDEV-28",
+        "fields": {
+            "summary": "Тест линков",
+            "issuetype": {
+                "self": "https://jira.test-example.ru/rest/api/2/issuetype/10177",
+                "id": "10177",
+                "description": "Las tareas realizan un seguimiento de trabajos pequeños y variados.",
+                "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10318&avatarType=issuetype",
+                "name": "Tarea",
+                "subtask": false,
+                "avatarId": 10318
+            },
+            "project": {
+                "self": "https://jira.test-example.ru/rest/api/2/project/10105",
+                "id": "10105",
+                "key": "INDEV",
+                "name": "Internal Development",
+                "projectTypeKey": "software",
+                "avatarUrls": {
+                    "48x48": "https://jira.test-example.ru/secure/projectavatar?pid=10105&avatarId=10523",
+                    "24x24": "https://jira.test-example.ru/secure/projectavatar?size=small&pid=10105&avatarId=10523",
+                    "16x16": "https://jira.test-example.ru/secure/projectavatar?size=xsmall&pid=10105&avatarId=10523",
+                    "32x32": "https://jira.test-example.ru/secure/projectavatar?size=medium&pid=10105&avatarId=10523"
+                }
+            },
+            "assignee": null,
+            "priority": {
+                "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
+                "name": "Medium",
+                "id": "3"
+            },
+            "status": {
+                "self": "https://jira.test-example.ru/rest/api/2/status/10257",
+                "description": "",
+                "iconUrl": "https://jira.test-example.ru/",
+                "name": "К выполнению",
+                "id": "10257",
+                "statusCategory": {
+                    "self": "https://jira.test-example.ru/rest/api/2/statuscategory/2",
+                    "id": 2,
+                    "key": "new",
+                    "colorName": "blue-gray",
+                    "name": "К выполнению"
+                }
+            }
+        }
+    },
+    "level": "silly",
+    "message": "Jira body",
+    "label": "/src/app.js"
+}

@@ -81,6 +81,9 @@ describe('assign test', () => {
             .reply(404, 'Error!!!');
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
 
     it('should assign sender ("!assign")', async () => {
         searchUserStub.returns(users.slice(2, 3));

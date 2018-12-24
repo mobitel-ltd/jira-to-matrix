@@ -10,8 +10,7 @@ const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 const logger = require('../../src/modules/log.js')(module);
-const {getUserID} = require('../../src/bot/helper');
-const {COMMON_NAME} = require('../../src/lib/utils.js');
+const {getMatrixUserID, COMMON_NAME} = require('../../src/lib/utils.js');
 
 const {
     getRoomsLastUpdate,
@@ -93,6 +92,10 @@ describe('Commands helper tests', () => {
             .get(urlPath)
             .query(errorParams)
             .reply(errorStatus, 'ERROR!!!');
+    });
+
+    after(() => {
+        nock.cleanAll();
     });
 
     it('checkUser test', () => {
@@ -230,7 +233,7 @@ const roomMock = (roomId, roomName, members, timeline) =>
     });
 const roomName = 'roomName';
 const roomId = '!roomId';
-const myUser = getUserID('myUser');
+const myUser = getMatrixUserID('myUser');
 describe('Test room kicking funcs', () => {
     const lastDate = getTimeline(new Date(2018, 5, 5));
     const outDatedTimeline = [
@@ -245,8 +248,8 @@ describe('Test room kicking funcs', () => {
     // logger.debug(timeline.map(time => time.getDate()));
 
     const members = [
-        new sdk.User(getUserID('ivan')),
-        new sdk.User(getUserID('john')),
+        new sdk.User(getMatrixUserID('ivan')),
+        new sdk.User(getMatrixUserID('john')),
         new sdk.User(myUser),
         new sdk.User(matrixUserId),
     ];

@@ -37,6 +37,9 @@ describe('comment test', () => {
             .reply(errorStatus, 'Error!!!');
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
 
     it('should comment', async () => {
         const expected = `Comment from ${sender} for ${roomName}`;

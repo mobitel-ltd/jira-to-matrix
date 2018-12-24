@@ -3,7 +3,7 @@ const {auth} = require('../../src/lib/utils.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const {schemaMove} = require('../../src/matrix/timeline-handler/commands/schemas.js');
 const {move} = require('../../src/matrix/timeline-handler/commands');
-const responce = require('../fixtures/transitions.json');
+const transitions = require('../fixtures/jira-api-requests/transitions.json');
 const {getRequestErrorLog} = require('../../src/lib/messages');
 const translate = require('../../src/locales');
 
@@ -23,7 +23,7 @@ describe('move test', () => {
     };
 
     const errorStatus = 404;
-    const urlPath = `/${roomName}/transitions`;
+    const transitionsPath = `/${roomName}/transitions`;
 
     before(() => {
         nock(BASE_URL, {
@@ -33,13 +33,17 @@ describe('move test', () => {
         })
             .get(`/fake/transitions`)
             .reply(404, 'Error!!!')
-            .get(urlPath)
+            .get(transitionsPath)
             .times(2)
-            .reply(200, responce)
-            .post(urlPath, schemaMove('2'))
+            .reply(200, transitions)
+            .post(transitionsPath, schemaMove('2'))
             .reply(204)
-            .post(urlPath, schemaMove('5'))
+            .post(transitionsPath, schemaMove('5'))
             .reply(errorStatus);
+    });
+
+    after(() => {
+        nock.cleanAll();
     });
 
     it('Get correct !move list commands', async () => {

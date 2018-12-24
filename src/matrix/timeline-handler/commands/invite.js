@@ -1,6 +1,6 @@
 const {domain, admins} = require('../../../config').matrix;
 const translate = require('../../../locales');
-const {getUserID} = require('../../../bot/helper.js');
+const {getMatrixUserID} = require('../../../lib/utils');
 
 const getRoomId = async (room, matrixClient) => {
     try {
@@ -27,7 +27,7 @@ module.exports = async ({bodyText, sender, room, matrixClient}) => {
         }
 
         const roomId = await getRoomId(bodyText, matrixClient);
-        const userId = getUserID(sender);
+        const userId = getMatrixUserID(sender);
         await matrixClient.invite(roomId, userId);
         data.body = translate('successMatrixInvite');
     } catch (err) {

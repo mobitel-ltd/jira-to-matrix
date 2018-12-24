@@ -1,7 +1,7 @@
 const assert = require('assert');
 const nock = require('nock');
-const secondBody = require('../fixtures/comment-create-2.json');
-const jsonBody = require('../fixtures/comment-create-3.json');
+const issueCommentedHook = require('../fixtures/webhooks/issue/updated/commented.json');
+const jsonBody = require('../fixtures/webhooks/issue/updated/commented-changed.json');
 const {postStatusData} = require('../../src/bot/helper');
 const {getPostProjectUpdatesData, getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body');
 const {getNewIssueMessageBody, getEpicChangedMessageBody, getNewEpicMessageBody} = require('../../src/bot/helper.js');
@@ -47,7 +47,7 @@ describe('bot func', () => {
     });
 
     it('getEpicChangedMessageBody', () => {
-        const {data} = getPostProjectUpdatesData(secondBody);
+        const {data} = getPostProjectUpdatesData(issueCommentedHook);
 
         const {body, htmlBody} = getEpicChangedMessageBody(data);
         assert.equal(body, 'Эпик изменён');
@@ -56,7 +56,7 @@ describe('bot func', () => {
     });
 
     it('getEpicChangedMessageBody', () => {
-        const {data} = getPostProjectUpdatesData(secondBody);
+        const {data} = getPostProjectUpdatesData(issueCommentedHook);
         const {body, htmlBody} = getEpicChangedMessageBody(data);
 
         assert.equal(body, 'Эпик изменён');
@@ -65,7 +65,7 @@ describe('bot func', () => {
     });
 
     it('getNewEpicMessageBody', () => {
-        const {data} = getPostProjectUpdatesData(secondBody);
+        const {data} = getPostProjectUpdatesData(issueCommentedHook);
 
         const {body, htmlBody} = getNewEpicMessageBody(data);
 

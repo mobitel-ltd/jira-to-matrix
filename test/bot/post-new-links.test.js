@@ -1,14 +1,14 @@
 const nock = require('nock');
 const {auth, getRestUrl, getInwardLinkKey, getOutwardLinkKey} = require('../../src/lib/utils.js');
-const postNewLinksbody = require('../fixtures/issuelink-created.json');
-const issueLinkBody = require('../fixtures/get-issuelink.json');
+const postNewLinksbody = require('../fixtures/webhooks/issuelink/created.json');
+const issueLinkBody = require('../fixtures/jira-api-requests/issuelink.json');
 const {getPostNewLinksData} = require('../../src/jira-hook-parser/parse-body.js');
 const postNewLinks = require('../../src/bot/post-new-links.js');
 const {isPostNewLinks} = require('../../src/jira-hook-parser/bot-handler.js');
 const {getPostLinkMessageBody} = require('../../src/bot/helper');
 const redis = require('../../src/redis-client.js');
-const {cleanRedis} = require('../fixtures/testing-utils');
-const body = require('../fixtures/comment-create-4.json');
+const {cleanRedis} = require('../test-utils');
+const JSONBody = require('../fixtures/webhooks/issue/updated/generic.json');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -51,12 +51,12 @@ describe('Test postNewLinks', () => {
         nock.cleanAll();
     });
 
-    it('Expect body is true after isPostNewLinks', () => {
+    it('Expect return true after isPostNewLinks', () => {
         const res = isPostNewLinks(postNewLinksbody);
         expect(res).to.be.true;
     });
 
-    it('Expect body to be correct after handling parser', () => {
+    it('Expect result to be correct after handling parser', () => {
         const expected = {links: [issueLinkId]};
         const res = getPostNewLinksData(postNewLinksbody);
         expect(res).to.be.deep.eq(expected);
@@ -90,7 +90,7 @@ describe('Test postNewLinks', () => {
         expect(mclient.sendHtmlMessage).not.to.be.called;
     });
 
-    it('Expect postnewlinks work correct with issue body', async () => {
+    it('Expect postnewlinks work correct with issue JSONBody', async () => {
         const bodyIn = getPostLinkMessageBody({
             relation: issueLinkBody.type.outward,
             related: issueLinkBody.outwardIssue,
@@ -100,7 +100,7 @@ describe('Test postNewLinks', () => {
             related: issueLinkBody.inwardIssue,
         });
 
-        const data = getPostNewLinksData(body);
+        const data = getPostNewLinksData(JSONBody);
         const res = await postNewLinks({...data, mclient});
         expect(res).to.be.true;
         expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);

@@ -1,42 +1,39 @@
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
-const JSONbody = require('../fixtures/create.json');
+const JSONbody = require('../fixtures/webhooks/issue/created.json');
+const watchersBody = require('../fixtures/jira-api-requests/watchers.json');
 const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
-const issueBody = require('../fixtures/response.json');
 const proxyquire = require('proxyquire');
-const projectData = require('../fixtures/project-example.json');
+const projectData = require('../fixtures/jira-api-requests/project.json');
 const chai = require('chai');
 const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
-const postIssueDescriptionStub = stub();
 const createRoom = proxyquire('../../src/bot/create-room.js', {
-    './post-issue-description.js': postIssueDescriptionStub,
+    './post-issue-description.js': stub(),
 });
 
 describe('Create room test', () => {
+    const watchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));
     const errorMsg = 'some error';
 
     const createRoomData = getCreateRoomData(JSONbody);
 
     const projectOpts = utils.getIssueProjectOpts(JSONbody);
 
-    const responce = {
-        id: '10002',
-        self: 'http://www.example.com/jira/rest/api/2/issue/10002',
-        key: 'EpicKey',
-        fields: {
-            summary: 'SummaryKey',
-        },
-    };
-
-    const expectedOptions = {
+    const expectedRoomOptions = {
         'room_alias_name': createRoomData.issue.key,
-        'invite': ['@jira_test:matrix.test-example.ru'],
+        'invite': [utils.getMatrixUserID(JSONbody.user.name), ...watchers],
         'name': utils.composeRoomName(createRoomData.issue),
         'topic': utils.getViewUrl(createRoomData.issue.key),
+    };
+    const expectedProjectOptions = {
+        'room_alias_name': projectData.key,
+        'invite': [utils.getMatrixUserID(projectData.lead.key)],
+        'name': projectData.name,
+        'topic': utils.getViewUrl(projectData.key),
     };
 
     const mclient = {
@@ -54,20 +51,10 @@ describe('Create room test', () => {
         })
             .get(`/issue/${createRoomData.issue.key}/watchers`)
             .times(5)
-            .reply(200, {...responce, id: 28516})
-            .get(`/issue/${createRoomData.issue.id}`)
-            .query(utils.issueFormatedParams)
-            .times(5)
-            .reply(200, issueBody)
+            .reply(200, watchersBody)
             .get(`/project/${projectOpts.id}`)
             .times(5)
-            .reply(200, projectData)
-            .get(`/issue/BBCOM-801`)
-            .query(utils.issueFormatedParams)
-            .times(5)
-            .reply(200, issueBody)
-            .get(url => url.indexOf('null') > 0)
-            .reply(404);
+            .reply(200, projectData);
     });
 
     afterEach(() => {
@@ -87,8 +74,7 @@ describe('Create room test', () => {
     it('Room should be created', async () => {
         mclient.getRoomId.resolves(null);
         const result = await createRoom({mclient, ...createRoomData});
-        expect(mclient.createRoom).to.be.called.calledWithExactly(expectedOptions);
-        expect(postIssueDescriptionStub).to.be.called;
+        expect(mclient.createRoom).to.be.called.calledWithExactly(expectedRoomOptions);
         expect(result).to.be.true;
     });
 
@@ -99,13 +85,6 @@ describe('Create room test', () => {
     });
 
     it('Project room should be created', async () => {
-        const expectedProjectOptions = {
-            'room_alias_name': projectData.key,
-            'invite': ['@fred:matrix.test-example.ru'],
-            'name': 'Example',
-            'topic': utils.getViewUrl(projectData.key),
-        };
-
         mclient.getRoomId.withArgs(projectOpts.key).resolves(false);
         const result = await createRoom({mclient, ...createRoomData, projectOpts});
         expect(mclient.createRoom).to.be.calledWithExactly(expectedProjectOptions);
@@ -114,35 +93,39 @@ describe('Create room test', () => {
 
     it('Get error in room create', async () => {
         mclient.createRoom.throws(errorMsg);
+        let res;
+        const expectedError = [
+            utils.getDefaultErrorLog('create room'),
+            utils.getDefaultErrorLog('createIssueRoom'),
+            errorMsg,
+        ].join('\n');
+
         try {
-            const result = await createRoom({mclient, ...createRoomData});
-            expect(result).not.to.be;
+            res = await createRoom({mclient, ...createRoomData});
         } catch (err) {
-            const expectedError = [
-                utils.getDefaultErrorLog('create room'),
-                utils.getDefaultErrorLog('createIssueRoom'),
-                errorMsg,
-            ].join('\n');
-            expect(err).to.be.deep.equal(expectedError);
+            res = err;
         }
+        expect(res).to.be.deep.equal(expectedError);
     });
 
     it('Get error in room createRoomProject', async () => {
         mclient.createRoom.resetBehavior();
-
         mclient.createRoom.throws(errorMsg);
+        let res;
+        const expectedError = [
+            utils.getDefaultErrorLog('create room'),
+            utils.getDefaultErrorLog('createRoomProject'),
+            errorMsg,
+        ].join('\n');
+
         try {
             mclient.getRoomId.callsFake(id => !(id === projectOpts.key));
 
             const result = await createRoom({mclient, ...createRoomData, projectOpts});
             expect(result).not.to.be;
         } catch (err) {
-            const expectedError = [
-                utils.getDefaultErrorLog('create room'),
-                utils.getDefaultErrorLog('createRoomProject'),
-                errorMsg,
-            ].join('\n');
-            expect(err).to.be.deep.equal(expectedError);
+            res = err;
         }
+        expect(res).to.be.deep.equal(expectedError);
     });
 });

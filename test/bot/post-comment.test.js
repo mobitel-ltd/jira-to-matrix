@@ -1,11 +1,12 @@
 const htmlToString = require('html-to-text').fromString;
 const nock = require('nock');
-const {auth, issueFormatedParams, getRestUrl} = require('../../src/lib/utils.js');
-const {getCommentHTMLBody, getCommentBody} = require('../../src/bot/helper');
-const JSONbody = require('../fixtures/comment-create-1.json');
-const {getPostCommentData} = require('../../src/jira-hook-parser/parse-body.js');
+const utils = require('../../src/lib/utils.js');
+const botHelper = require('../../src/bot/helper');
+const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
+const commentUpdatedHook = require('../fixtures/webhooks/comment/updated.json');
+const issueRenderedBody = require('../fixtures/jira-api-requests/issue-rendered.json');
+const parser = require('../../src/jira-hook-parser/parse-body.js');
 const {postComment} = require('../../src/bot');
-const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -16,38 +17,52 @@ chai.use(sinonChai);
 describe('Post comments test', () => {
     const someError = 'Error!!!';
     const matrixRoomId = 'matrixRoomId';
-    const postCommentData = getPostCommentData(JSONbody);
+    const postCommentData = parser.getPostCommentData(commentCreatedHook);
+    const postCommentUpdatedData = parser.getPostCommentData(commentUpdatedHook);
 
-    const issue = {
-        id: postCommentData.issueID,
-        self: getRestUrl('issue', postCommentData.issueID),
-        key: 'EX-1',
-    };
     const mclient = {
         sendHtmlMessage: stub(),
-        getRoomId: stub().withArgs(issue.key).resolves(matrixRoomId),
+        getRoomId: stub().withArgs(issueRenderedBody.key).resolves(matrixRoomId),
     };
 
     before(() => {
-        nock(BASE_URL, {
-            reqheaders: {
-                Authorization: auth(),
-            },
+        nock(utils.getRestUrl(), {
+            reqheaders: {Authorization: utils.auth()},
         })
-            .get(`/${postCommentData.issueID}`)
-            .query(issueFormatedParams)
+            .get(`/issue/${postCommentData.issueID}`)
+            .query(utils.expandParams)
             .times(2)
-            .reply(200, issue);
+            .reply(200, issueRenderedBody)
+            .get(`/issue/${postCommentUpdatedData.issueID}`)
+            .query(utils.expandParams)
+            .reply(200, issueRenderedBody);
     });
 
     afterEach(() => {
-        Object.values(mclient).map(val => val.reset());
+        Object.values(mclient).map(val => val.resetHistory());
     });
 
-    it('Expect postComment works correct', async () => {
-        const htmlBody = getCommentHTMLBody(postCommentData.headerText, getCommentBody(issue, postCommentData.comment));
+    after(() => {
+        nock.cleanAll();
+    });
+
+    it('Expect postComment works correct with comment-created hook', async () => {
+        const {headerText} = postCommentData;
+        const commentBody = botHelper.getCommentBody(issueRenderedBody, postCommentData.comment);
+        const htmlBody = botHelper.getCommentHTMLBody(headerText, commentBody);
 
         const result = await postComment({mclient, ...postCommentData});
+
+        expect(result).to.be.true;
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(matrixRoomId, htmlToString(htmlBody), htmlBody);
+    });
+
+    it('Expect postComment works correct with comment-updated hook', async () => {
+        const {headerText} = postCommentUpdatedData;
+        const commentBody = botHelper.getCommentBody(issueRenderedBody, postCommentUpdatedData.comment);
+        const htmlBody = botHelper.getCommentHTMLBody(headerText, commentBody);
+        const result = await postComment({mclient, ...postCommentUpdatedData});
+
         expect(result).to.be.true;
         expect(mclient.sendHtmlMessage).to.be.calledWithExactly(matrixRoomId, htmlToString(htmlBody), htmlBody);
     });
@@ -59,10 +74,12 @@ describe('Post comments test', () => {
 
     it('Expect postComment throw error if room is not exists', async () => {
         mclient.getRoomId.throws(someError);
+        let res;
         try {
             await postComment({mclient, ...postCommentData});
         } catch (err) {
-            expect(err).to.include(someError);
+            res = err;
         }
+        expect(res).to.include(someError);
     });
 });

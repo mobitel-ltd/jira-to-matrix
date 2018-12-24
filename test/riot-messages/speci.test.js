@@ -70,6 +70,10 @@ describe('spec test', () => {
             .reply(404, 'Error!!!');
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
+
     it('should add user ("!spec Ivan Andreevich A")', async () => {
         const [user] = users;
         searchUserStub.returns([user]);

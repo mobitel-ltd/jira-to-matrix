@@ -20,6 +20,10 @@ describe('request testing', () => {
             .reply(400, 'Bad Request');
     });
 
+    after(() => {
+        nock.cleanAll();
+    });
+
     it('test request', async () => {
         const testUrl = `${BASE_URL}${urlPath}`;
 

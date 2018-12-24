@@ -1,12 +1,12 @@
 const nock = require('nock');
 const {expect} = require('chai');
-const firstBody = require('../fixtures/comment-create-1.json');
-const secondBody = require('../fixtures/comment-create-2.json');
+const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
+const issueCommentedHook = require('../fixtures/webhooks/issue/updated/commented.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const redis = require('../../src/redis-client.js');
 const utils = require('../../src/lib/utils');
 const {jira: {url: jiraUrl}} = require('../../src/config');
-const {cleanRedis} = require('../fixtures/testing-utils');
+const {cleanRedis} = require('../test-utils');
 
 describe('get-parsed-save to redis', () => {
     const redisKey = 'postComment_1512034084304';
@@ -26,10 +26,10 @@ describe('get-parsed-save to redis', () => {
 
     before(() => {
         nock(utils.getRestUrl())
-            .get(`/project/${secondBody.issue.fields.project.id}`)
+            .get(`/project/${issueCommentedHook.issue.fields.project.id}`)
             .times(5)
             .reply(200, {isPrivate: false})
-            .get(`/issue/${utils.extractID(firstBody)}`)
+            .get(`/issue/${utils.extractID(commentCreatedHook)}`)
             .times(2)
             .reply(200, {isPrivate: false});
         nock(jiraUrl).get('')
@@ -47,14 +47,14 @@ describe('get-parsed-save to redis', () => {
 
 
     it('isCommentEvent', () => {
-        const result1 = utils.isCommentEvent(firstBody);
+        const result1 = utils.isCommentEvent(commentCreatedHook);
         expect(result1).to.be.true;
-        const result2 = utils.isCommentEvent(secondBody);
+        const result2 = utils.isCommentEvent(issueCommentedHook);
         expect(result2).to.be.equal(false);
     });
 
-    it('test correct firstBody parse', async () => {
-        const parsedForQueue = await getParsedAndSaveToRedis(firstBody);
+    it('test correct commentCreatedHook parse', async () => {
+        const parsedForQueue = await getParsedAndSaveToRedis(commentCreatedHook);
 
         expect(parsedForQueue).to.be;
 
@@ -77,7 +77,7 @@ describe('get-parsed-save to redis', () => {
                 },
             },
         };
-        const ignoredBody = {...firstBody, ...ignoredName};
+        const ignoredBody = {...commentCreatedHook, ...ignoredName};
         const parsedForQueue = await getParsedAndSaveToRedis(ignoredBody);
 
         expect(parsedForQueue).to.be.equal(false);

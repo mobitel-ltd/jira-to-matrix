@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const {jira, inviteIgnoreUsers = []} = require('../config');
 const {request} = require('./request.js');
-const {getRestUrl, issueFormatedParams} = require('./utils.js');
+const {getRestUrl, expandParams} = require('./utils.js');
 const messages = require('./messages');
 
 const {url: jiraUrl} = jira;
@@ -96,7 +96,7 @@ const jiraRequests = {
      */
     getIssueFormatted: async issueID => {
         try {
-            const result = await jiraRequests.getIssue(issueID, issueFormatedParams);
+            const result = await jiraRequests.getIssue(issueID, expandParams);
 
             return result;
         } catch (err) {

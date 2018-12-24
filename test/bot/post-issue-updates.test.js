@@ -1,66 +1,67 @@
 const nock = require('nock');
 const chai = require('chai');
-const {auth, issueFormatedParams} = require('../../src/lib/utils.js');
-const JSONbody = require('../fixtures/comment-create-4.json');
+const translate = require('../../src/locales');
+const utils = require('../../src/lib/utils.js');
+const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
 const {getPostIssueUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostIssueUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const {postIssueUpdates} = require('../../src/bot');
-const response = require('../fixtures/response.json');
+const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
 const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Post issue updates test', () => {
-    const sendHtmlMessageStub = stub();
-    const setRoomNameStub = stub();
-    const getRoomIdStub = stub();
-    const createAliasStub = stub();
-    const setRoomTopicStub = stub();
-
+    const matrixRoomId = 'roomId';
+    const {description} = renderedIssueJSON.renderedFields;
     const mclient = {
-        sendHtmlMessage: sendHtmlMessageStub,
-        getRoomId: getRoomIdStub,
-        setRoomName: setRoomNameStub,
-        createAlias: createAliasStub,
-        setRoomTopic: setRoomTopicStub,
+        sendHtmlMessage: stub(),
+        getRoomId: stub(),
+        setRoomName: stub(),
+        createAlias: stub(),
+        setRoomTopic: stub(),
     };
 
     const postIssueUpdatesData = getPostIssueUpdatesData(JSONbody);
+    const {name: userName} = JSONbody.user;
+    const newKey = postIssueUpdatesData.changelog.items.find(({field}) => field === 'Key').toString;
+    const newStatus = postIssueUpdatesData.changelog.items.find(({field}) => field === 'status').toString;
     const expectedData = [
-        'roomIdRN-83',
-        'Задача изменена',
-        'jira_test изменил(а) задачу<br>status: Paused<br>description: <p>Задача</p><br>Key: BAO-193',
+        matrixRoomId,
+        translate('issueHasChanged'),
+        `${userName} ${translate('issue_updated')}<br>status: ${newStatus}<br>description: ${description}<br>Key: ${newKey}`,
     ];
 
     before(() => {
-        nock('https://jira.test-example.ru', {
+        nock(utils.getRestUrl(), {
             reqheaders: {
-                Authorization: auth(),
+                Authorization: utils.auth(),
             },
         })
-            .get(`/jira/rest/api/2/issue/BBCOM-1233`)
+            .get(`/issue/${JSONbody.issue.key}`)
             .times(6)
-            .query(issueFormatedParams)
-            .reply(200, {...response, id: 28516})
-            .get(url => url.indexOf('null') > 0)
-            .reply(404);
+            .query(utils.expandParams)
+            .reply(200, renderedIssueJSON);
     });
 
     beforeEach(() => {
-        getRoomIdStub.callsFake(id => {
-            if (id) {
-                return `roomId${id}`;
-            }
-            throw 'Error';
-        });
+        mclient.getRoomId
+            .resolves(matrixRoomId)
+            .withArgs(null).throws('Error');
     });
 
     afterEach(() => {
-        getRoomIdStub.reset();
+        mclient.getRoomId.reset();
+        mclient.createAlias.reset();
     });
+
+    after(() => {
+        nock.cleanAll();
+    });
+
     it('Expect createAlias to be with error but postIssueUpdates should work', async () => {
-        createAliasStub.callsFake((alias, roomId) => {
+        mclient.createAlias.callsFake((alias, roomId) => {
             try {
                 throw new Error('M_UNKNOWN: Room alias #BAO-193:matrix.test-example.ru already exists');
             } catch (err) {
@@ -71,19 +72,14 @@ describe('Post issue updates test', () => {
             }
         });
 
-        try {
-            const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
-            expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
-            expect(result).to.be.true;
-        } catch (error) {
-            expect(error).to.be.null;
-        }
-        createAliasStub.reset();
+        const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
+        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        expect(result).to.be.true;
     });
 
     it('Is correct postIssueUpdatesData', async () => {
         const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
@@ -99,16 +95,16 @@ describe('Post issue updates test', () => {
         try {
             result = await postIssueUpdates({mclient, ...newBody});
         } catch (error) {
-            expect(error).to.be.not.null;
+            result = error;
         }
-        expect(result).to.be.undefined;
+        expect(result).to.be.string;
     });
 
     it('Get true with empty fieldkey', async () => {
         const newBody = {...postIssueUpdatesData, fieldKey: null};
 
         const result = await postIssueUpdates({mclient, ...newBody});
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
@@ -116,13 +112,13 @@ describe('Post issue updates test', () => {
         const newBody = {...postIssueUpdatesData, summary: null};
 
         const result = await postIssueUpdates({mclient, ...newBody});
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
     it('Get error in postUpdateInfo', async () => {
-        sendHtmlMessageStub.reset();
-        sendHtmlMessageStub.throws('Error!!!');
+        mclient.sendHtmlMessage.reset();
+        mclient.sendHtmlMessage.throws('Error!!!');
 
         try {
             await postIssueUpdates({mclient, ...postIssueUpdatesData});
@@ -137,7 +133,7 @@ describe('Post issue updates test', () => {
     });
 
     it('Get error in move with createAlias', async () => {
-        createAliasStub.throws('Error!!!');
+        mclient.createAlias.throws('Error!!!');
 
         try {
             await postIssueUpdates({mclient, ...postIssueUpdatesData});

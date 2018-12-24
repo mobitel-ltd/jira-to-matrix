@@ -6,10 +6,10 @@ const proxyquire = require('proxyquire');
 const chai = require('chai');
 
 const utils = require('../../src/lib/utils');
-const projectData = require('../fixtures/project-example.json');
-const JSONbody = require('../fixtures/create.json');
+const projectData = require('../fixtures/jira-api-requests/project.json');
+const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
-const {cleanRedis} = require('../fixtures/testing-utils');
+const {cleanRedis} = require('../test-utils');
 const createRoomStub = stub();
 
 const {getRedisRooms, handleRedisRooms} = proxyquire('../../src/queue/redis-data-handle.js', {
@@ -33,8 +33,13 @@ describe('Queue handler test', () => {
             .times(5)
             .reply(200, projectData);
     });
+
     afterEach(async () => {
         await cleanRedis();
+    });
+
+    after(() => {
+        nock.cleanAll();
     });
 
     it('Room should not be created, room should be in redis', async () => {

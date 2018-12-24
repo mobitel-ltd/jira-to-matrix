@@ -1,149 +1,103 @@
 const nock = require('nock');
-const {auth} = require('../../src/lib/utils.js');
-const JSONbody = require('../fixtures/comment-create-2.json');
+const utils = require('../../src/lib/utils.js');
+const JSONbody = require('../fixtures/webhooks/issue/updated/commented.json');
+const epicIssueBody = require('../fixtures/jira-api-requests/issue.json');
 const {getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
-const {cleanRedis} = require('../fixtures/testing-utils');
+const {cleanRedis} = require('../test-utils');
+const translate = require('../../src/locales');
+const redis = require('../../src/redis-client');
 
 const chai = require('chai');
 const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
+const postEpicUpdates = require('../../src/bot/post-epic-updates.js');
 chai.use(sinonChai);
 
-const sismemberAsyncStub = stub();
-const saddAsyncStub = stub();
-const redisStub = {
-    sismemberAsync: sismemberAsyncStub,
-    saddAsync: saddAsyncStub,
-};
-
-const proxyquire = require('proxyquire');
-
-const postEpicUpdates = proxyquire('../../src/bot/post-epic-updates.js', {
-    '../redis-client': redisStub,
-});
-
-
 describe('Post epic updates test', () => {
-    const responce = {
-        id: '10002',
-        self: 'http://www.example.com/jira/rest/api/2/issue/10002',
-        key: 'EX-1',
-        fields: {
-            summary: 'SummaryKey',
-        },
-    };
-    const sendHtmlMessageStub = stub();
-    const getRoomIdStub = stub();
+    const someError = 'No roomId for';
+    const postEpicUpdatesData = getPostEpicUpdatesData(JSONbody);
+    const issueKey = JSONbody.issue.key;
+
+    const epicKey = utils.getEpicKey(JSONbody);
+    const matrixRoomId = 'roomId';
 
     const mclient = {
-        sendHtmlMessage: sendHtmlMessageStub,
-        getRoomId: getRoomIdStub,
+        sendHtmlMessage: stub(),
+        getRoomId: stub(),
     };
 
     const expectedData = [
-        'roomIdBBCOM-801',
-        'Новая задача в эпике',
-        '<p>К эпику добавлена задача <a href="https://jira.test-example.ru/jira/browse/BBCOM-956">BBCOM-956 BBCOM-956</a></p>\n',
+        matrixRoomId,
+        translate('newIssueInEpic'),
+        `<p>К эпику добавлена задача <a href="${utils.getViewUrl(issueKey)}">${issueKey} ${issueKey}</a></p>\n`,
     ];
 
-    const postCommentData = getPostEpicUpdatesData(JSONbody);
-
     before(() => {
-        nock('https://jira.test-example.ru', {
-            reqheaders: {
-                Authorization: auth(),
-            },
+        nock(utils.getRestUrl(), {
+            reqheaders: {Authorization: utils.auth()},
         })
-            .get(`/jira/rest/api/2/issue/BBCOM-801`)
+            .get(`/issue/${epicKey}`)
             .times(7)
-            .reply(200, {...responce, id: 28516})
+            .reply(200, epicIssueBody)
             .get(url => url.indexOf('null') > 0)
             .reply(404);
     });
 
-    afterEach(() => {
-        getRoomIdStub.reset();
-        sendHtmlMessageStub.reset();
-        sismemberAsyncStub.reset();
-        saddAsyncStub.reset();
-    });
-
-    it('Expect postEpicUpdates throw error "No roomId for" if room is not exists', async () => {
-        getRoomIdStub.rejects('No roomId for');
-        try {
-            await postEpicUpdates({mclient, ...postCommentData});
-        } catch (err) {
-            expect(err.includes('No roomId for')).to.be.true;
-        }
-    });
-
-    it('Get true after running postEpicUpdates', async () => {
-        getRoomIdStub.callsFake(id => (id ? `roomId${id}` : null));
-        const result = await postEpicUpdates({mclient, ...postCommentData});
-
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
-        expect(result).to.be.true;
-    });
-
-    it('Get error with empty issueID', async () => {
-        const newBody = {...postCommentData, issueID: null};
-
-        try {
-            await postEpicUpdates({mclient, ...newBody});
-        } catch (err) {
-            const expected = [
-                'Error in postEpicUpdates',
-                'Error in get issue',
-                'Error in request https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-801',
-                'requestError: request to https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-801 failed, reason: Nock: No match for request {',
-            ].join('\n');
-            expect(err).to.include(expected);
-        }
-    });
-
-    it('Redis error in isInEpic', async () => {
-        sismemberAsyncStub.throws('Error in sismemberAsync!!!');
-
-        try {
-            await postEpicUpdates({mclient, ...postCommentData});
-        } catch (err) {
-            const expected = [
-                'Error in postEpicUpdates',
-                'Error in postNewIssue',
-                'Error while querying redis',
-                'Error in sismemberAsync!!!',
-            ].join('\n');
-            expect(err).to.deep.equal(expected);
-        }
-    });
-
-    it('Epic key is in redis', async () => {
-        sismemberAsyncStub.returns('Ok');
-        getRoomIdStub.callsFake(id => (id ? `roomId${id}` : null));
-
-        const result = await postEpicUpdates({mclient, ...postCommentData});
-        expect(sendHtmlMessageStub).not.to.be.called;
-        expect(result).to.be.true;
-    });
-
-    it('Redis error in isInEpic', async () => {
-        saddAsyncStub.throws('Error in saddAsyncStub!!!');
-
-        try {
-            await postEpicUpdates({mclient, ...postCommentData});
-        } catch (err) {
-            const expected = [
-                'Error in postEpicUpdates',
-                'Error in postNewIssue',
-                'Redis error while adding issue to epic',
-                'Error in saddAsyncStub!!!',
-            ].join('\n');
-            expect(err).to.deep.equal(expected);
-        }
+    beforeEach(() => {
+        mclient.getRoomId
+            .withArgs(postEpicUpdatesData.epicKey)
+            .resolves(matrixRoomId)
+            .withArgs(null)
+            .rejects();
     });
 
     afterEach(async () => {
         await cleanRedis();
+        Object.values(mclient).map(val => val.resetHistory());
+    });
+
+    after(() => {
+        nock.cleanAll();
+    });
+
+    it('Expect postEpicUpdates throw error "No roomId for" if room is not exists', async () => {
+        mclient.getRoomId.reset();
+        mclient.getRoomId.rejects(someError);
+        let res;
+        try {
+            await postEpicUpdates({mclient, ...postEpicUpdatesData});
+        } catch (err) {
+            res = err;
+        }
+        expect(res.includes(someError)).to.be.true;
+    });
+
+    it('Get true after running postEpicUpdates', async () => {
+        const result = await postEpicUpdates({mclient, ...postEpicUpdatesData});
+
+        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        expect(result).to.be.true;
+    });
+
+    it('Get error with empty epicKey', async () => {
+        const newBody = {...postEpicUpdatesData, epicKey: null};
+        let res;
+        const expected = 'Error in postEpicUpdates';
+
+        try {
+            await postEpicUpdates({mclient, ...newBody});
+        } catch (err) {
+            res = err;
+        }
+        expect(res).to.include(expected);
+    });
+
+    it('Epic key is in redis', async () => {
+        await redis.saveToEpic(utils.getRedisEpicKey(epicIssueBody.id), postEpicUpdatesData.data.id);
+
+        const result = await postEpicUpdates({mclient, ...postEpicUpdatesData});
+        expect(mclient.sendHtmlMessage).not.to.be.called;
+        expect(result).to.be.true;
     });
 });

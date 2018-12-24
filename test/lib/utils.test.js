@@ -1,11 +1,11 @@
 /* eslint-disable no-undefined */
 const utils = require('../../src/lib/utils');
 const assert = require('assert');
-const hook = require('../fixtures/comment-create-2.json');
-const thirdBody = require('../fixtures/comment-create-3.json');
+const issueCommentedHook = require('../fixtures/webhooks/issue/updated/commented.json');
+const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
 const {expect} = require('chai');
-const body = require('../fixtures/comment-create-4.json');
-const issueData = require('../fixtures/issue-updated.json');
+const body = require('../fixtures/webhooks/issue/updated/generic.json');
+const issueUpdatedGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
 describe('Utils testing', () => {
     const expectedFuncKeys = [
         'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
@@ -40,21 +40,6 @@ describe('Utils testing', () => {
         });
     });
 
-    it('Key/value pairs to URL query string', () => {
-        const samples = [
-            {input: [{par1: 10}, {par2: 20}], result: '?par1=10&par2=20'},
-            {input: '', result: ''},
-            {input: undefined, result: ''},
-            {input: null, result: ''},
-            {input: [], result: ''},
-            {input: {}, result: ''},
-        ];
-        samples.forEach(sample => {
-            const result = utils.paramsToQueryString(sample.input);
-            assert.deepEqual(result, sample.result);
-        });
-    });
-
     it('None-empty string', () => {
         const samples = [
             ['aaa', true],
@@ -70,25 +55,11 @@ describe('Utils testing', () => {
         });
     });
 
-    it('Paths', () => {
-        const result = utils.paths([
-            'user.name',
-            'issue.key',
-            'issue.fields.summary',
-        ], hook);
-        const expected = {
-            'user.name': 'jira_test',
-            'issue.key': 'BBCOM-956',
-            'issue.fields.summary': 'BBCOM-956',
-        };
-
-        assert.deepEqual(result, expected);
-    });
-
     it('getNewStatus', () => {
-        const status = utils.getNewStatus(thirdBody);
+        const status = utils.getNewStatus(issueChangedHook);
         assert.equal(status, 'Closed');
     });
+
     it('Extract username from JIRA webhook', () => {
         const samples = [
             [{
@@ -106,7 +77,7 @@ describe('Utils testing', () => {
             [{}, undefined],
         ];
         samples.forEach(sample => {
-            const result = utils.webHookUser(sample[0]);
+            const result = utils.getHookUserName(sample[0]);
             expect(result).to.be.equal(sample[1]);
         });
     });
@@ -151,19 +122,26 @@ describe('Utils testing', () => {
     });
 
     describe('extractID', () => {
-        it('Comment hook', () => {
-            const id = utils.extractID(hook);
+        it('Comment issueCommentedHook', () => {
+            const id = utils.extractID(issueCommentedHook);
             expect(id).to.be.eq('26313');
         });
 
-        it('Expect issueData works', () => {
-            const id = utils.extractID(issueData);
-            expect(id).to.be.eq('11630');
+        it('Expect issueUpdatedGenericHook works', () => {
+            const id = utils.extractID(issueUpdatedGenericHook);
+            expect(id).to.be.eq('28661');
         });
     });
 
     it('Expect getComment return undefined', () => {
-        const body = utils.getComment(issueData);
+        const body = utils.getComment(issueUpdatedGenericHook);
         expect(body).to.be.undefined;
+    });
+
+    it('getMatrixUserID test', () => {
+        const name = 'BBCOM';
+        const result = utils.getMatrixUserID(name);
+
+        expect(result).to.equal('@BBCOM:matrix.test-example.ru');
     });
 });
