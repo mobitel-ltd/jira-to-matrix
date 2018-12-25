@@ -119,32 +119,37 @@ describe('Post issue updates test', () => {
     it('Get error in postUpdateInfo', async () => {
         mclient.sendHtmlMessage.reset();
         mclient.sendHtmlMessage.throws('Error!!!');
+        const expected = [
+            'Error in postIssueUpdates',
+            'Error in postUpdateInfo',
+            'Error!!!',
+        ].join('\n');
+
+        let res;
 
         try {
-            await postIssueUpdates({mclient, ...postIssueUpdatesData});
+            res = await postIssueUpdates({mclient, ...postIssueUpdatesData});
         } catch (err) {
-            const expected = [
-                'Error in postIssueUpdates',
-                'Error in postUpdateInfo',
-                'Error!!!',
-            ].join('\n');
-            expect(err).to.deep.equal(expected);
+            res = err;
         }
+
+        expect(res).to.deep.equal(expected);
     });
 
     it('Get error in move with createAlias', async () => {
         mclient.createAlias.throws('Error!!!');
+        const expected = [
+            'Error in postIssueUpdates',
+            'Error in move issue',
+            'Error!!!',
+        ].join('\n');
+        let res;
 
         try {
-            await postIssueUpdates({mclient, ...postIssueUpdatesData});
+            res = await postIssueUpdates({mclient, ...postIssueUpdatesData});
         } catch (err) {
-            const expected = [
-                'Error in postIssueUpdates',
-                'Error in move issue',
-                'Error!!!',
-            ].join('\n');
-
-            expect(err).to.deep.equal(expected);
+            res = err;
         }
+        expect(res).to.deep.equal(expected);
     });
 });
