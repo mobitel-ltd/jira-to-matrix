@@ -14,19 +14,14 @@ const helper = {
         return !!(startDate || endDate);
     },
 
-    getLink: async id => {
-        const link = await jiraRequests.getLinkedIssue(id);
-
-        return utils.getInwardLinkKey(link);
-    },
-
     isPrivateIssue: async body => {
         try {
             const issueId = utils.isLinkHook(utils.getBodyWebhookEvent(body))
-                ? await helper.getLink(utils.getIssueLinkId(body))
+                ? utils.getIssueLinkSourceId(body)
                 : utils.extractID(body);
 
             const issue = await jiraRequests.getIssue(issueId);
+
             return !issue;
         } catch (err) {
             return true;
@@ -204,7 +199,7 @@ const helper = {
     getPostLinkMessageBody: ({relation, related}, action = 'newLink') => {
         const {key} = related;
         const issueRef = utils.getViewUrl(key);
-        const summary = Ramda.path(['fields', 'summary'], related);
+        const summary = utils.getSummary(related);
         const values = {key, relation, summary, issueRef};
 
         const body = translate(action);

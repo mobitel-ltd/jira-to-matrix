@@ -51,7 +51,7 @@ const utils = {
 
     getIssueId: body => Ramda.path(['issue', 'id'], body),
 
-    getKey: body => Ramda.path(['issue', 'key'], body),
+    getKey: body => Ramda.path(['issue', 'key'], body) || Ramda.path(['key'], body),
 
     getInwardLinkKey: body => Ramda.path(['inwardIssue', 'key'], body),
 
@@ -63,13 +63,19 @@ const utils = {
 
     getProjectOpts: body => Ramda.path(['project'], body),
 
-    getLinks: body => Ramda.pathOr([utils.getIssueCreatedLinks(body)], ['issue', 'fields', 'issuelinks'], body),
+    getLinks: body => Ramda.pathOr([utils.getLinksIssueLink(body)], ['issue', 'fields', 'issuelinks'], body),
 
-    getIssueCreatedLinks: body => Ramda.path(['issueLink'], body),
+    getLinksIssueLink: body => Ramda.path(['issueLink'], body),
 
-    getIssueLinkId: body => Ramda.path(['issueLink', 'id'], body),
+    getIssueLinkSourceId: body => Ramda.path(['sourceIssueId'], body) || Ramda.path(['sourceIssueId'], utils.getLinksIssueLink(body)),
 
-    getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body),
+    getIssueLinkDestinationId: body => Ramda.path(['destinationIssueId'], body),
+
+    getSourceRelation: body => Ramda.path(['issueLinkType', 'inwardName'], body),
+
+    getDestinationRelation: body => Ramda.path(['issueLinkType', 'outwardName'], body),
+
+    getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body) || Ramda.path(['fields', 'summary'], body),
 
     getCommentAuthor: body => Ramda.path(['comment', 'author', 'name'], body),
 

@@ -1,7 +1,7 @@
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const linkDeletedHook = require('../fixtures/webhooks/issuelink/deleted.json');
-const issueLinkBody = require('../fixtures/jira-api-requests/issuelink.json');
+const issueBody = require('../fixtures/jira-api-requests/issue.json');
 const {getDeleteLinksData} = require('../../src/jira-hook-parser/parse-body.js');
 const postLinksDeleted = require('../../src/bot/post-link-deleted');
 const {isDeleteLinks} = require('../../src/jira-hook-parser/bot-handler.js');
@@ -15,7 +15,9 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Test postLinksDeleted', () => {
-    const issueLinkId = linkDeletedHook.issueLink.id;
+    const {sourceIssueId} = linkDeletedHook.issueLink;
+    const {destinationIssueId} = linkDeletedHook.issueLink;
+
     const roomIDIn = 'inId';
     const roomIDOut = 'outId';
     const mclient = {
@@ -23,8 +25,8 @@ describe('Test postLinksDeleted', () => {
         getRoomId: stub(),
     };
 
-    mclient.getRoomId.withArgs(utils.getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
-    mclient.getRoomId.withArgs(utils.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
+    mclient.getRoomId.withArgs(utils.getKey(issueBody)).onFirstCall().resolves(roomIDIn);
+    mclient.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
 
     before(() => {
         nock(utils.getRestUrl(), {
@@ -32,12 +34,10 @@ describe('Test postLinksDeleted', () => {
                 Authorization: utils.auth(),
             },
         })
-            .get(`/issueLink/${issueLinkId}`)
-            .reply(200, issueLinkBody)
-            .get(`/issueLink/${30137}`)
-            .reply(200, issueLinkBody)
-            .get(`/issueLink/${28516}`)
-            .reply(200, issueLinkBody);
+            .get(`/issue/${sourceIssueId}`)
+            .reply(200, issueBody)
+            .get(`/issue/${destinationIssueId}`)
+            .reply(200, issueBody);
     });
 
     afterEach(async () => {
@@ -55,19 +55,24 @@ describe('Test postLinksDeleted', () => {
     });
 
     it('Expect result to be correct after handling parser', () => {
-        const expected = {links: [issueLinkId]};
+        const expected = {
+            sourceIssueId,
+            destinationIssueId,
+            sourceRelation: linkDeletedHook.issueLink.issueLinkType.inwardName,
+            destinationRelation: linkDeletedHook.issueLink.issueLinkType.outwardName,
+        };
         const res = getDeleteLinksData(linkDeletedHook);
         expect(res).to.be.deep.eq(expected);
     });
 
     it('Expect data to be handled by postLinksDeleted', async () => {
         const bodyIn = getPostLinkMessageBody({
-            relation: issueLinkBody.type.outward,
-            related: issueLinkBody.outwardIssue,
+            relation: linkDeletedHook.issueLink.issueLinkType.inwardName,
+            related: issueBody,
         }, 'deleteLink');
         const bodyOut = getPostLinkMessageBody({
-            relation: issueLinkBody.type.inward,
-            related: issueLinkBody.inwardIssue,
+            relation: linkDeletedHook.issueLink.issueLinkType.outwardName,
+            related: issueBody,
         }, 'deleteLink');
 
         const data = getDeleteLinksData(linkDeletedHook);
@@ -76,5 +81,18 @@ describe('Test postLinksDeleted', () => {
         expect(res).to.be.true;
         expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
         expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
+    });
+
+    it('Expect postlink throws error with expected data if smth wrong', async () => {
+        let res;
+        const data = getDeleteLinksData(linkDeletedHook);
+
+        try {
+            res = await postLinksDeleted({...data, mclient});
+        } catch (err) {
+            res = err;
+        }
+
+        expect(res).includes(utils.errorTracing('post delete link'));
     });
 });

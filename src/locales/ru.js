@@ -15,7 +15,7 @@ const dict = Object.freeze({
     newLink: 'Новый линк',
     newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{issueRef})',
     deleteLink: 'Связь удалена',
-    deleteLinkMessage: 'Связь удалена, эта задача **%{relation}** [%{key} "%{summary}"](%{issueRef})',
+    deleteLinkMessage: 'Связь удалена, эта задача больше не **%{relation}** [%{key} "%{summary}"](%{issueRef})',
     miss: 'отсутствует',
     epicAddedToProject: 'К проекту добавлен эпик [%{key} %{summary}](%{issueRef})',
     newEpicInProject: 'Новый эпик в проекте',

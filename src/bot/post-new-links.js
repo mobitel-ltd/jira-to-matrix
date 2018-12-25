@@ -2,7 +2,7 @@ const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const {getLinkedIssue} = require('../lib/jira-request.js');
 const {getPostLinkMessageBody} = require('./helper');
-const {getRelations, getInwardLinkKey, getOutwardLinkKey} = require('../lib/utils');
+const utils = require('../lib/utils');
 
 const postLink = async (key, relations, mclient) => {
     const roomID = await mclient.getRoomId(key);
@@ -19,13 +19,13 @@ const handleLink = mclient => async issueLinkId => {
         }
 
         const link = await getLinkedIssue(issueLinkId);
-        const {inward, outward} = getRelations(link);
+        const {inward, outward} = utils.getRelations(link);
 
-        await postLink(getOutwardLinkKey(link), inward, mclient);
-        await postLink(getInwardLinkKey(link), outward, mclient);
+        await postLink(utils.getOutwardLinkKey(link), inward, mclient);
+        await postLink(utils.getInwardLinkKey(link), outward, mclient);
         logger.debug(`Issue link ${issueLinkId} is successfully posted!`);
     } catch (err) {
-        throw ['HandleLink error in post link', err].join('\n');
+        throw utils.errorTracing('handleLink');
     }
 };
 
@@ -34,6 +34,6 @@ module.exports = async ({mclient, links}) => {
         await Promise.all(links.map(handleLink(mclient)));
         return true;
     } catch (err) {
-        throw ['Error in postNewLinks', err].join('\n');
+        throw utils.errorTracing('post new link');
     }
 };
