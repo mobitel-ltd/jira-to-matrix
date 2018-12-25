@@ -1,5 +1,5 @@
 const nock = require('nock');
-const {auth, getRestUrl, getInwardLinkKey, getOutwardLinkKey} = require('../../src/lib/utils.js');
+const utils = require('../../src/lib/utils.js');
 const postNewLinksbody = require('../fixtures/webhooks/issuelink/created.json');
 const issueLinkBody = require('../fixtures/jira-api-requests/issuelink.json');
 const {getPostNewLinksData} = require('../../src/jira-hook-parser/parse-body.js');
@@ -25,13 +25,13 @@ describe('Test postNewLinks', () => {
         getRoomId: stub(),
     };
 
-    mclient.getRoomId.withArgs(getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
-    mclient.getRoomId.withArgs(getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
+    mclient.getRoomId.withArgs(utils.getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
+    mclient.getRoomId.withArgs(utils.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
 
     before(() => {
-        nock(getRestUrl(), {
+        nock(utils.getRestUrl(), {
             reqheaders: {
-                Authorization: auth(),
+                Authorization: utils.auth(),
             },
         })
             .get(`/issueLink/${issueLinkId}`)
@@ -105,5 +105,18 @@ describe('Test postNewLinks', () => {
         expect(res).to.be.true;
         expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
         expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
+    });
+
+    it('Expect postlink throws error with expected data if smth wrong', async () => {
+        let res;
+        const data = getPostNewLinksData(JSONBody);
+
+        try {
+            res = await postNewLinks({...data, mclient});
+        } catch (err) {
+            res = err;
+        }
+
+        expect(res).includes(utils.errorTracing('post new link'));
     });
 });

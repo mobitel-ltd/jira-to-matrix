@@ -1,31 +1,24 @@
 const logger = require('../modules/log.js')(module);
-const {getLinkedIssue} = require('../lib/jira-request.js');
+const {getIssue} = require('../lib/jira-request.js');
 const {getPostLinkMessageBody} = require('./helper.js');
 const utils = require('../lib/utils');
 
-const postLink = async (key, relations, mclient) => {
+const postLink = async (key, related, relation, mclient) => {
     const roomID = await mclient.getRoomId(key);
 
-    const {body, htmlBody} = getPostLinkMessageBody(relations, 'deleteLink');
+    const {body, htmlBody} = getPostLinkMessageBody({relation, related}, 'deleteLink');
     await mclient.sendHtmlMessage(roomID, body, htmlBody);
+
+    logger.debug(`Deleted Issue link in issue ${key} is successfully posted!`);
 };
 
-const handleLink = mclient => async issueLinkId => {
+module.exports = async ({mclient, sourceIssueId, destinationIssueId, sourceRelation, destinationRelation}) => {
     try {
-        const link = await getLinkedIssue(issueLinkId);
-        const {inward, outward} = utils.getRelations(link);
+        const sourceIssue = await getIssue(sourceIssueId);
+        const destinationIssue = await getIssue(destinationIssueId);
 
-        await postLink(utils.getOutwardLinkKey(link), inward, mclient);
-        await postLink(utils.getInwardLinkKey(link), outward, mclient);
-        logger.debug(`Issue link ${issueLinkId} is successfully posted!`);
-    } catch (err) {
-        throw ['HandleLink error in delete link', err].join('\n');
-    }
-};
-
-module.exports = async ({mclient, links}) => {
-    try {
-        await Promise.all(links.map(handleLink(mclient)));
+        await postLink(utils.getKey(sourceIssue), destinationIssue, sourceRelation, mclient);
+        await postLink(utils.getKey(destinationIssue), sourceIssue, destinationRelation, mclient);
 
         return true;
     } catch (err) {

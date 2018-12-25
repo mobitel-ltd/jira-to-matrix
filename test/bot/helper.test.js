@@ -1,5 +1,5 @@
-const issueLinkBody = require('../fixtures/jira-api-requests/issuelink.json');
 const postNewLinksbody = require('../fixtures/webhooks/issuelink/created.json');
+const postNewLinksDeletedBody = require('../fixtures/webhooks/issuelink/deleted.json');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const assert = require('assert');
 const projectBody = require('../fixtures/jira-api-requests/project.json');
@@ -247,11 +247,9 @@ describe('Helper tests', () => {
                 .get(`/issue/${utils.extractID(commentCreatedHook)}`)
                 .times(2)
                 .reply(200, issueBody)
-                .get(`/issueLink/${postNewLinksbody.issueLink.id}`)
-                .times(2)
-                .reply(200, issueLinkBody)
-                .get(`/issue/${issueLinkBody.inwardIssue.key}`)
-                .times(2)
+                .get(`/issue/${utils.getIssueLinkSourceId(postNewLinksDeletedBody)}`)
+                .reply(200, issueBody)
+                .get(`/issue/${utils.getIssueLinkSourceId(postNewLinksbody)}`)
                 .reply(200, issueBody)
                 .get(`/issue/${privateId}`)
                 .reply(404);
@@ -345,6 +343,15 @@ describe('Helper tests', () => {
             expect(timestamp).to.be.eq(postNewLinksbody.timestamp);
             expect(webhookEvent).to.be.eq(postNewLinksbody.webhookEvent);
             expect(issueName).to.be.eq(utils.extractID(postNewLinksbody));
+            expect(ignoreStatus).to.be.false;
+        });
+
+        it('Expect getIgnoreProject to have "true" status with issuelink deleted', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(postNewLinksDeletedBody);
+
+            expect(timestamp).to.be.eq(postNewLinksDeletedBody.timestamp);
+            expect(webhookEvent).to.be.eq(postNewLinksDeletedBody.webhookEvent);
+            expect(issueName).to.be.eq(utils.extractID(postNewLinksDeletedBody));
             expect(ignoreStatus).to.be.false;
         });
     });
