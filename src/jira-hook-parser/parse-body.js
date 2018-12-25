@@ -93,7 +93,7 @@ module.exports = {
         return {issueKey, fieldKey, summary, roomName, changelog, user, key};
     },
 
-    getDeleteLinksData: body => {
+    getPostLinksDeletedData: body => {
         const issueLink = utils.getLinksIssueLink(body);
 
         return {

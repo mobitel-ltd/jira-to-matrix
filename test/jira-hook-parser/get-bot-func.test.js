@@ -55,10 +55,9 @@ describe('bot func', () => {
         assert.deepEqual(result, expected);
     });
 
-    // TODO fix test
-    it.skip('Expect issueLinkDeletedHook returns correct funcs list', () => {
+    it('Expect issueLinkDeletedHook returns correct funcs list', () => {
         const result = getBotActions(issueLinkDeletedHook);
-        const expected = ['postLinkedChanges'];
+        const expected = ['postLinksDeleted'];
         assert.deepEqual(result, expected);
     });
 

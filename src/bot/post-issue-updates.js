@@ -1,4 +1,4 @@
-const {getViewUrl} = require('../lib/utils');
+const utils = require('../lib/utils');
 const logger = require('../modules/log.js')(module);
 const {getIssueUpdateInfoMessageBody} = require('./helper.js');
 
@@ -9,7 +9,7 @@ const postUpdateInfo = async (mclient, roomID, data) => {
 
         logger.debug(`Posted updates to ${roomID}`);
     } catch (err) {
-        throw ['Error in postUpdateInfo', err].join('\n');
+        throw utils.errorTracing('postUpdateInfo', err);
     }
 };
 
@@ -21,9 +21,9 @@ const move = async (mclient, roomID, {issueKey, fieldKey, summary}) => {
         await mclient.createAlias(fieldKey.toString, roomID);
         logger.debug(`Successfully added alias ${fieldKey.toString} for room ${fieldKey.fromString}`);
 
-        await mclient.setRoomTopic(roomID, getViewUrl(issueKey));
+        await mclient.setRoomTopic(roomID, utils.getViewUrl(issueKey));
     } catch (err) {
-        throw ['Error in move issue', err].join('\n');
+        throw utils.errorTracing('move issue', err);
     }
 };
 
@@ -47,6 +47,6 @@ module.exports = async ({mclient, ...body}) => {
 
         return true;
     } catch (err) {
-        throw ['Error in postIssueUpdates', err].join('\n');
+        throw utils.errorTracing('postIssueUpdates', err);
     }
 };

@@ -2,7 +2,7 @@ const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const linkDeletedHook = require('../fixtures/webhooks/issuelink/deleted.json');
 const issueBody = require('../fixtures/jira-api-requests/issue.json');
-const {getDeleteLinksData} = require('../../src/jira-hook-parser/parse-body.js');
+const {getPostLinksDeletedData} = require('../../src/jira-hook-parser/parse-body.js');
 const postLinksDeleted = require('../../src/bot/post-link-deleted');
 const {isDeleteLinks} = require('../../src/jira-hook-parser/bot-handler.js');
 const {getPostLinkMessageBody} = require('../../src/bot/helper');
@@ -61,7 +61,7 @@ describe('Test postLinksDeleted', () => {
             sourceRelation: linkDeletedHook.issueLink.issueLinkType.inwardName,
             destinationRelation: linkDeletedHook.issueLink.issueLinkType.outwardName,
         };
-        const res = getDeleteLinksData(linkDeletedHook);
+        const res = getPostLinksDeletedData(linkDeletedHook);
         expect(res).to.be.deep.eq(expected);
     });
 
@@ -75,7 +75,7 @@ describe('Test postLinksDeleted', () => {
             related: issueBody,
         }, 'deleteLink');
 
-        const data = getDeleteLinksData(linkDeletedHook);
+        const data = getPostLinksDeletedData(linkDeletedHook);
         const res = await postLinksDeleted({...data, mclient});
 
         expect(res).to.be.true;
@@ -85,7 +85,7 @@ describe('Test postLinksDeleted', () => {
 
     it('Expect postlink throws error with expected data if smth wrong', async () => {
         let res;
-        const data = getDeleteLinksData(linkDeletedHook);
+        const data = getPostLinksDeletedData(linkDeletedHook);
 
         try {
             res = await postLinksDeleted({...data, mclient});
