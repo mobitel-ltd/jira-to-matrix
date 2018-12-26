@@ -71,9 +71,9 @@ const utils = {
 
     getIssueLinkDestinationId: body => Ramda.path(['destinationIssueId'], body),
 
-    getSourceRelation: body => Ramda.path(['issueLinkType', 'inwardName'], body),
+    getSourceRelation: body => Ramda.path(['issueLinkType', 'outwardName'], body),
 
-    getDestinationRelation: body => Ramda.path(['issueLinkType', 'outwardName'], body),
+    getDestinationRelation: body => Ramda.path(['issueLinkType', 'inwardName'], body),
 
     getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body) || Ramda.path(['fields', 'summary'], body),
 
