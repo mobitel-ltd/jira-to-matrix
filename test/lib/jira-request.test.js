@@ -1,10 +1,10 @@
 const proxyquire = require('proxyquire');
 const {expect} = require('chai');
 const {auth, getViewUrl, getRestUrl, expandParams} = require('../../src/lib/utils.js');
+const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
 const {getRenderedValues, getRoomMembers} = require('../../src/lib/jira-request');
 const {getRequestErrorLog} = require('../../src/lib/messages');
 const nock = require('nock');
-const issueBody = require('../fixtures/jira-api-requests/issue-renderfields.json');
 const {url} = require('../../src/config').jira;
 const watchersJSON = require('../fixtures/jira-api-requests/watchers.json');
 
@@ -25,7 +25,7 @@ describe('Issue test', () => {
         })
             .get(`/${issue.id}`)
             .query(expandParams)
-            .reply(200, issueBody)
+            .reply(200, renderedIssueJSON)
             .get(`/${fakeEndPoint}`)
             .query(expandParams)
             .reply(404, 'Error!!!')
@@ -40,7 +40,7 @@ describe('Issue test', () => {
 
     it('getRenderedValues test', async () => {
         const getRenderedValuesData = await getRenderedValues(issue.id, ['description']);
-        expect(getRenderedValuesData).to.be.deep.equal({description: '<p>Задача</p>'});
+        expect(getRenderedValuesData).to.be.deep.equal({description: renderedIssueJSON.renderedFields.description});
     });
 
     it('getRenderedValues error test', async () => {
