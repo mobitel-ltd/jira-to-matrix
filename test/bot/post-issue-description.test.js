@@ -29,7 +29,7 @@ describe('Create room test', () => {
 
 
     const {descriptionFields} = createRoomData.issue;
-    const {description} = renderedIssueJSON.renderedFields;
+    const description = htmlToText(renderedIssueJSON.renderedFields.description);
     const post = `
             Assignee:
                 <br>${utils.INDENT}${descriptionFields.assigneeName}

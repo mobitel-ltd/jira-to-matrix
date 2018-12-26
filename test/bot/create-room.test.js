@@ -5,13 +5,13 @@ const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const watchersBody = require('../fixtures/jira-api-requests/watchers.json');
 const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
 const projectData = require('../fixtures/jira-api-requests/project.json');
+const createRoom = require('../../src/bot/create-room.js');
+
 const chai = require('chai');
 const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
-
-const createRoom = require('../../src/bot/create-room.js');
 
 describe('Create room test', () => {
     const watchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));

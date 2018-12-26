@@ -7,16 +7,16 @@ const {getNoRoomByAliasLog} = require('../../src/lib/messages');
 
 module.exports = async ({mclient, issue}) => {
     try {
-        const roomMembers = await getRoomMembers(issue);
-        const roomMemebersUerId = roomMembers.map(getMatrixUserID);
-
         const room = await mclient.getRoomByAlias(issue.key);
         if (!room) {
             throw getNoRoomByAliasLog(issue.key);
         }
 
+        const roomMembers = await getRoomMembers(issue);
+        const roomMemebersUserId = roomMembers.map(getMatrixUserID);
+
         const members = membersInvited(room.getJoinedMembers());
-        const newMembers = Ramda.difference(roomMemebersUerId, members);
+        const newMembers = Ramda.difference(roomMemebersUserId, members);
 
         await Promise.all(newMembers.map(async userID => {
             await mclient.invite(room.roomId, userID);
