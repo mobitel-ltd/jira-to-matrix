@@ -14,7 +14,7 @@ const getRoomId = async (mclient, key) => {
     }
 };
 
-const createIssueRoom = async (client, issue) => {
+const createIssueRoom = async (mclient, issue) => {
     try {
         const roomMembers = await getRoomMembers(issue);
         const invite = roomMembers.map(getMatrixUserID);
@@ -30,10 +30,10 @@ const createIssueRoom = async (client, issue) => {
             topic,
         };
 
-        const roomId = await client.createRoom(options);
+        const roomId = await mclient.createRoom(options);
 
         logger.info(`Created room for ${key}: ${roomId}`);
-        await postIssueDescription({client, issue, newRoomID: roomId});
+        await postIssueDescription({mclient, issue, newRoomID: roomId});
 
         return roomId;
     } catch (err) {
@@ -41,7 +41,7 @@ const createIssueRoom = async (client, issue) => {
     }
 };
 
-const createRoomProject = async (client, id) => {
+const createRoomProject = async (mclient, id) => {
     try {
         const {key, lead, name} = await getProject(id);
         const invite = [getMatrixUserID(lead.key)];
@@ -54,7 +54,7 @@ const createRoomProject = async (client, id) => {
             topic,
         };
 
-        const roomId = await client.createRoom(options);
+        const roomId = await mclient.createRoom(options);
 
         logger.info(`Created room for project ${key}: ${roomId}`);
         return roomId;

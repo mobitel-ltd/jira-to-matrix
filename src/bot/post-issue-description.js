@@ -36,7 +36,7 @@ const getPost = description => {
 module.exports = async ({mclient, issue, newRoomID}) => {
     try {
         const {description} = await getRenderedValues(issue.id, ['description']);
-        const htmlBody = await getPost({...issue.descriptionFields, description});
+        const htmlBody = getPost({...issue.descriptionFields, description});
         const body = htmlToText(htmlBody);
 
         await mclient.sendHtmlMessage(newRoomID, body, htmlBody);
