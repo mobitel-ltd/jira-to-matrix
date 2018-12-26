@@ -22,6 +22,6 @@ module.exports = async ({mclient, sourceIssueId, destinationIssueId, sourceRelat
 
         return true;
     } catch (err) {
-        throw utils.errorTracing('post delete link');
+        throw utils.errorTracing('post delete link', err);
     }
 };

@@ -1,3 +1,5 @@
+const issueBody = require('../fixtures/jira-api-requests/issue.json');
+const deletedLinkBody = require('../fixtures/webhooks/issuelink/deleted.json');
 /* eslint {no-unused-expressions: 0, max-nested-callbacks: 0, global-require: 0} */
 const nock = require('nock');
 const {stub} = require('sinon');
@@ -9,22 +11,31 @@ const {jira: {url: jiraUrl}} = require('../../src/config');
 const utils = require('../../src/lib/utils');
 const projectData = require('../fixtures/jira-api-requests/project.json');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
-const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const {cleanRedis} = require('../test-utils');
 const createRoomStub = stub();
 
-const {getRedisRooms, handleRedisRooms} = proxyquire('../../src/queue/redis-data-handle.js', {
+const {getRedisRooms, handleRedisRooms, handleRedisData, getDataFromRedis} = proxyquire('../../src/queue/redis-data-handle.js', {
     '../bot': {
         createRoom: createRoomStub,
     },
+});
+
+const getParsedAndSaveToRedis = proxyquire('../../src/jira-hook-parser', {
+    './is-ignore': stub(),
 });
 
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Queue handler test', () => {
-    let mclientStub;
-    before(() => {
+    const {sourceIssueId} = deletedLinkBody.issueLink;
+    const {destinationIssueId} = deletedLinkBody.issueLink;
+
+    const mclient = {
+        sendHtmlMessage: stub(),
+        getRoomId: stub(),
+    };
+    beforeEach(() => {
         nock(jiraUrl).get('').reply(200, '<HTML>');
 
         nock(utils.getRestUrl(), {
@@ -33,7 +44,11 @@ describe('Queue handler test', () => {
             },
         })
             .get(`/project/${projectData.id}`)
-            .reply(200, projectData);
+            .reply(200, projectData)
+            .get(`/issue/${sourceIssueId}`)
+            .reply(200, issueBody)
+            .get(`/issue/${destinationIssueId}`)
+            .reply(200, issueBody);
     });
 
     afterEach(async () => {
@@ -47,10 +62,19 @@ describe('Queue handler test', () => {
         expect(roomsKeys).to.be.an('array').that.has.length(1);
 
         createRoomStub.throws('Incorrect room data');
-        await handleRedisRooms(mclientStub, roomsKeys);
+        await handleRedisRooms(mclient, roomsKeys);
         const newRoomsKeys = await getRedisRooms();
 
         expect(newRoomsKeys).to.be.an('array').that.has.length(1);
         expect(newRoomsKeys).to.deep.equal(roomsKeys);
+    });
+
+    it('Expect deleteLink to be handled', async () => {
+        await getParsedAndSaveToRedis(deletedLinkBody);
+        const data = await getDataFromRedis();
+        await handleRedisData(mclient, data);
+
+        const resKeys = await getDataFromRedis();
+        expect(resKeys).to.be.null;
     });
 });
