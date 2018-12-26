@@ -58,8 +58,8 @@ describe('Test postLinksDeleted', () => {
         const expected = {
             sourceIssueId,
             destinationIssueId,
-            sourceRelation: linkDeletedHook.issueLink.issueLinkType.inwardName,
-            destinationRelation: linkDeletedHook.issueLink.issueLinkType.outwardName,
+            sourceRelation: linkDeletedHook.issueLink.issueLinkType.outwardName,
+            destinationRelation: linkDeletedHook.issueLink.issueLinkType.inwardName,
         };
         const res = getPostLinksDeletedData(linkDeletedHook);
         expect(res).to.be.deep.eq(expected);
@@ -67,11 +67,11 @@ describe('Test postLinksDeleted', () => {
 
     it('Expect data to be handled by postLinksDeleted', async () => {
         const bodyIn = getPostLinkMessageBody({
-            relation: linkDeletedHook.issueLink.issueLinkType.inwardName,
+            relation: linkDeletedHook.issueLink.issueLinkType.outwardName,
             related: issueBody,
         }, 'deleteLink');
         const bodyOut = getPostLinkMessageBody({
-            relation: linkDeletedHook.issueLink.issueLinkType.outwardName,
+            relation: linkDeletedHook.issueLink.issueLinkType.inwardName,
             related: issueBody,
         }, 'deleteLink');
 
