@@ -25,7 +25,7 @@ const handleLink = mclient => async issueLinkId => {
         await postLink(utils.getInwardLinkKey(link), outward, mclient);
         logger.debug(`Issue link ${issueLinkId} is successfully posted!`);
     } catch (err) {
-        throw utils.errorTracing('handleLink');
+        throw utils.errorTracing('handleLink', err);
     }
 };
 
@@ -34,6 +34,6 @@ module.exports = async ({mclient, links}) => {
         await Promise.all(links.map(handleLink(mclient)));
         return true;
     } catch (err) {
-        throw utils.errorTracing('post new link');
+        throw utils.errorTracing('post new link', err);
     }
 };

@@ -6,6 +6,7 @@ const postEpicUpdates = require('./post-epic-updates.js');
 const postProjectUpdates = require('./post-project-updates.js');
 const postNewLinks = require('./post-new-links.js');
 const postLinkedChanges = require('./post-linked-changes.js');
+const postLinksDeleted = require('./post-link-deleted');
 
 module.exports = {
     createRoom,
@@ -16,4 +17,5 @@ module.exports = {
     postProjectUpdates,
     postNewLinks,
     postLinkedChanges,
+    postLinksDeleted,
 };
