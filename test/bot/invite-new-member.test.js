@@ -1,7 +1,9 @@
 const nock = require('nock');
-const {auth} = require('../../src/lib/utils.js');
+const utils = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
+const watchersBody = require('../fixtures/jira-api-requests/watchers.json');
 const {getInviteNewMembersData} = require('../../src/jira-hook-parser/parse-body.js');
+const inviteNewMembers = require('../../src/bot/invite-new-members.js');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -9,65 +11,32 @@ const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
-const proxyquire = require('proxyquire');
-
-const inviteNewMembers = proxyquire('../../src/bot/invite-new-members.js', {
-});
-
-
 describe('inviteNewMembers test', () => {
-    const responce = {
-        'self': 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-1233/watchers',
-        'isWatching': false,
-        'watchCount': 1,
-        'watchers': [
-            {
-                'self': 'http://www.example.com/jira/rest/api/2/user?username=fred',
-                'name': 'fred',
-                'displayName': 'Fred F. User',
-                'active': false,
-            },
-            {
-                'self': 'http://www.example.com/jira/rest/api/2/user?username=alex',
-                'name': 'alex',
-                'displayName': 'Alex F. User',
-                'active': false,
-            },
-            {
-                'self': 'http://www.example.com/jira/rest/api/2/user?username=vasya',
-                'name': 'vasya',
-                'displayName': 'Vasya F. User',
-                'active': false,
-            },
-        ],
-    };
-
-    const getRoomByAliasStub = stub();
-    const inviteStub = stub();
-
+    const expectedWatchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));
     const mclient = {
-        getRoomByAlias: getRoomByAliasStub,
-        invite: inviteStub,
+        getRoomByAlias: stub(),
+        invite: stub(),
     };
 
     const inviteNewMembersData = getInviteNewMembersData(JSONbody);
-    const expected = [
-        '@fred:matrix.test-example.ru',
-        '@alex:matrix.test-example.ru',
-        '@vasya:matrix.test-example.ru',
-    ];
 
     before(() => {
-        nock('https://jira.test-example.ru', {
-            reqheaders: {
-                Authorization: auth(),
-            },
+        nock(utils.getRestUrl(), {
+            reqheaders: {Authorization: utils.auth()},
         })
-            .get(`/jira/rest/api/2/issue/BBCOM-1233/watchers`)
-            .times(4)
-            .reply(200, responce)
-            .get(url => url.indexOf('null') > 0)
-            .reply(404);
+            .get(`/issue/${JSONbody.issue.key}/watchers`)
+            .times(3)
+            .reply(200, watchersBody);
+    });
+
+    beforeEach(() => {
+        mclient.getRoomByAlias.resolves({
+            getJoinedMembers: () => [{userId: '@jira_test:matrix.test-example.ru'}],
+        });
+    });
+
+    afterEach(() => {
+        Object.values(mclient).map(val => val.reset());
     });
 
     after(() => {
@@ -75,41 +44,36 @@ describe('inviteNewMembers test', () => {
     });
 
     it('Get undefined with no room for key', async () => {
-        getRoomByAliasStub.returns(null);
+        mclient.getRoomByAlias.resolves(null);
+
         let result;
         try {
             result = await inviteNewMembers({mclient, ...inviteNewMembersData});
         } catch (error) {
-            expect(error).to.be.not.null;
+            result = error;
         }
-
-        expect(result).to.be.undefined;
+        expect(result).to.include(utils.getDefaultErrorLog('inviteNewMembers'));
     });
 
     it('Get true after running inviteNewMembers', async () => {
-        getRoomByAliasStub.reset();
-        getRoomByAliasStub.returns({
-            getJoinedMembers: () => [{userId: '@jira_test:matrix.test-example.ru'}],
-        });
         const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
 
-        expect(result).to.deep.equal(expected);
+        expect(result).to.deep.equal(expectedWatchers);
     });
 
     it('Get error after throw in invite', async () => {
-        getRoomByAliasStub.returns({
-            getJoinedMembers: () => [{userId: '@jira_test:matrix.test-example.ru'}],
-        });
-        inviteStub.throws('Error in inviteStub!!!');
+        mclient.invite.throws('Error in inviteStub!!!');
+        let result;
+        const expectedWatchers = [
+            'Error in inviteNewMembers',
+            'Error in inviteStub!!!',
+        ].join('\n');
 
         try {
             await inviteNewMembers({mclient, ...inviteNewMembersData});
         } catch (err) {
-            const expected = [
-                'Error in inviteNewMembers',
-                'Error in inviteStub!!!',
-            ].join('\n');
-            expect(err).to.deep.equal(expected);
+            result = err;
         }
+        expect(result).to.deep.equal(expectedWatchers);
     });
 });
