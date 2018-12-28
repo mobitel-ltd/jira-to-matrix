@@ -43,7 +43,7 @@ describe('inviteNewMembers test', () => {
         nock.cleanAll();
     });
 
-    it('Get undefined with no room for key', async () => {
+    it('Expect inviteNewMembers to be trown with no room for key', async () => {
         mclient.getRoomByAlias.resolves(null);
 
         let result;
@@ -55,13 +55,13 @@ describe('inviteNewMembers test', () => {
         expect(result).to.include(utils.getDefaultErrorLog('inviteNewMembers'));
     });
 
-    it('Get true after running inviteNewMembers', async () => {
+    it('Expect inviteNewMembers work correct', async () => {
         const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
 
         expect(result).to.deep.equal(expectedWatchers);
     });
 
-    it('Get error after throw in invite', async () => {
+    it('Expect inviteNewMembers to be trown if 404 in invite', async () => {
         mclient.invite.throws('Error in inviteStub!!!');
         let result;
         const expectedWatchers = [
