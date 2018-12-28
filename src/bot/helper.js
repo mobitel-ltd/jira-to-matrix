@@ -2,7 +2,7 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
 const marked = require('marked');
-const {usersToIgnore, testMode, matrix} = require('../config');
+const {usersToIgnore, testMode} = require('../config');
 const utils = require('../lib/utils.js');
 const jiraRequests = require('../lib/jira-request.js');
 
@@ -75,8 +75,6 @@ const helper = {
             Ramda.values,
             Ramda.map(Ramda.prop('userId'))
         )(roomMembers),
-
-    getMatrixUserID: shortName => `@${shortName}:${matrix.domain}`,
 
     getEpicChangedMessageBody: ({summary, key, status, name}) => {
         const issueRef = utils.getViewUrl(key);

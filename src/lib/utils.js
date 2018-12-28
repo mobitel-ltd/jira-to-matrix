@@ -133,7 +133,8 @@ const utils = {
     ),
 
     getNewStatus: body => {
-        const changelogItems = Ramda.pathOr([], ['items'], utils.getIssueChangelog(body));
+        const changelog = utils.getIssueChangelog(body) || utils.getChangelog(body);
+        const changelogItems = Ramda.pathOr([], ['items'], changelog);
         const statusField = changelogItems.find(({field}) => field === 'status');
 
         return Ramda.pathOr(null, ['toString'], statusField);

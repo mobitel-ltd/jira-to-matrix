@@ -46,6 +46,7 @@ describe('bot func', () => {
             'postEpicUpdates',
             'postProjectUpdates',
             'postNewLinks',
+            'postLinkedChanges',
         ]);
     });
 
