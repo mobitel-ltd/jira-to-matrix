@@ -32,8 +32,7 @@ const getRoomId = client => async alias => {
 
 const getRoomByAlias = client => async alias => {
     try {
-        const {room_id: roomId} = await client.getRoomIdForAlias(getAlias(alias));
-
+        const roomId = await getRoomId(client)(alias);
         const room = await client.getRoom(roomId);
         return room;
     } catch (err) {

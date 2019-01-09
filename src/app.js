@@ -97,13 +97,11 @@ server.listen(conf.port, () => {
 });
 
 queuePush.on('startQueueHandler', async () => {
-    logger.info('QueuePush start');
     if (client) {
         logger.debug('queueFsm.state', queueFsm.state);
         await queueHandler(client);
     }
     queueFsm.is('waiting') ? queueFsm.queueHandler() : queueFsm.handled();
-    logger.debug('history', queueFsm.history);
     queueFsm.clearHistory();
 });
 
