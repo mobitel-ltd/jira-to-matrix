@@ -6,6 +6,12 @@ const {getPostLinkedChangesData} = require('../../src/jira-hook-parser/parse-bod
 const postLinkedChanges = require('../../src/bot/post-linked-changes.js');
 const {isPostLinkedChanges} = require('../../src/jira-hook-parser/bot-handler.js');
 
+const chai = require('chai');
+const {stub} = require('sinon');
+const sinonChai = require('sinon-chai');
+const {expect} = chai;
+chai.use(sinonChai);
+
 describe('post New Links test', () => {
     const responce = {
         type: {
@@ -41,17 +47,20 @@ describe('post New Links test', () => {
         },
     };
 
-    const sendHtmlMessage = (roomId, body, htmlBody) => {
-        assert.equal('BBCOM-1233 "POupok" теперь в статусе "Paused"', body);
-        assert.equal(roomId, 'roomIdBBCOM-1150');
-        const expectedHtmlBody =
-            '<p>jira_test изменил(а) статус связанной задачи <a href="https://jira.test-example.ru/jira/browse/BBCOM-1233">BBCOM-1233 &quot;POupok&quot;</a> на <strong>Paused</strong></p>\n';
+    // const sendHtmlMessage = (roomId, body, htmlBody) => {
+    //     assert.equal('BBCOM-1233 "POupok" теперь в статусе "Paused"', body);
+    //     assert.equal(roomId, 'roomIdBBCOM-1150');
+    //     const expectedHtmlBody =
+    //         '<p>jira_test изменил(а) статус связанной задачи <a href="https://jira.test-example.ru/jira/browse/BBCOM-1233">BBCOM-1233 &quot;POupok&quot;</a> на <strong>Paused</strong></p>\n';
 
-        assert.ok(expectedHtmlBody.includes(htmlBody));
-        return true;
+    //     assert.ok(expectedHtmlBody.includes(htmlBody));
+    //     return true;
+    // };
+
+    const mclient = {
+        sendHtmlMessage: stub(),
+        getRoomId: stub().resolves('roomId'),
     };
-    const getRoomId = id => `roomId${id}`;
-    const mclient = {sendHtmlMessage, getRoomId};
 
     before(() => {
         nock('https://jira.test-example.ru', {
@@ -63,6 +72,10 @@ describe('post New Links test', () => {
             .reply(200, {...responce, id: 28516})
             .get(`/jira/rest/api/2/issueLink/30137`)
             .reply(200, {...responce, id: 30137});
+    });
+
+    afterEach(() => {
+        Object.values(mclient).map(val => val.resetHistory());
     });
 
     after(() => {
@@ -80,5 +93,18 @@ describe('post New Links test', () => {
         const newBody = {...body, issue: {fields: {issuelinks: []}}};
         const isLink = isPostLinkedChanges(newBody);
         assert.equal(isLink, false);
+    });
+
+    it('Expect send status not to be sent if at least one of room is not found', async () => {
+        mclient.getRoomId.rejects();
+        const data = getPostLinkedChangesData(body);
+        let res;
+        try {
+            res = await postLinkedChanges({mclient, ...data});
+        } catch (err) {
+            res = err;
+        }
+        expect(res).to.include('Error in postLinkedChanges');
+        expect(mclient.sendHtmlMessage).not.to.be.called;
     });
 });
