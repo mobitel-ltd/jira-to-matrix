@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 const dict = Object.freeze({
+    setBotToAdmin: 'Bot don\'t have permission for this command',
     comment_created: 'commented',
     comment_updated: 'changed comment',
     issue_updated: 'changed issue',

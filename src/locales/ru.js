@@ -4,6 +4,7 @@ const names = require('ru-names');
 
 /* spell-checker: disable */
 const dict = Object.freeze({
+    setBotToAdmin: 'У бота нет прав для данной операции',
     comment_created: 'добавил%{f} комментарий',
     comment_updated: 'изменил%{f} комментарий',
     issue_updated: 'изменил%{f} задачу',

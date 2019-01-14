@@ -286,6 +286,11 @@ const utils = {
 
     getMatrixUserID: shortName => `@${shortName}:${matrix.domain}`,
 
+    getListToHTML: list => list.reduce((prev, cur) =>
+        `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
+    'List users:<br>'),
+
+
     expandParams: {expand: 'renderedFields'},
 
     propIn: Ramda.curry((prop, arr, obj) =>
