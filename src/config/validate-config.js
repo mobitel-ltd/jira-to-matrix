@@ -53,6 +53,7 @@ const schema = obj({
         user: string,
         password: string,
         pollTimeout: int,
+        lazyLoadMembers: boolean,
     }),
     log: {
         type: string,
