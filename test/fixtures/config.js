@@ -42,6 +42,7 @@ module.exports = Object.freeze({
         user: 'jira_test_bot', // short name, before colon, without @
         password: 'fakepasswprd',
         pollTimeout: 30000,
+        lazyLoadMembers: true,
     },
     log: {
         type: 'console',
