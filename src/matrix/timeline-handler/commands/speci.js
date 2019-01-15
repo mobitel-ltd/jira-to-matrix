@@ -1,5 +1,7 @@
 const translate = require('../../../locales');
 const {searchUser, addToWatchers} = require('./helper.js');
+const utils = require('../../../lib/utils');
+const messages = require('../../../lib/messages');
 
 module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
@@ -9,7 +11,7 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
                 const post = translate('errorWatcherJira');
                 await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-                return `Watcher "${bodyText}" isn't added to ${roomName} issue`;
+                return messages.getWatcherNotAddedLog(bodyText);
             }
             case 1: {
                 const [{name, displayName}] = users;
@@ -19,19 +21,22 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
                 const post = translate('successWatcherJira');
                 await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-                return `User ${displayName} was added in watchers for issue ${roomName}`;
+                return messages.getWatcherAddedLog(displayName, roomName);
             }
             default: {
-                const post = users.reduce(
-                    (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
-                    'List users:<br>');
-
+                const post = utils.getListToHTML(users);
                 await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
 
                 return;
             }
         }
     } catch (err) {
+        if (err.includes('status is 403')) {
+            const post = translate('setBotToAdmin');
+            await matrixClient.sendHtmlMessage(room.roomId, post, post);
+
+            return true;
+        }
         throw ['Matrix spec command error', err].join('\n');
     }
 };

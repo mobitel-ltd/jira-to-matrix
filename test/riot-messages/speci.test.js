@@ -1,9 +1,8 @@
 const nock = require('nock');
-const {auth} = require('../../src/lib/utils.js');
-const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
+const utils = require('../../src/lib/utils.js');
 const {schemaWatcher} = require('../../src/matrix/timeline-handler/commands/schemas.js');
-const {domain} = require('../../src/config').matrix;
 const translate = require('../../src/locales');
+const messages = require('../../src/lib/messages');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -21,53 +20,53 @@ const spec = proxyquire('../../src/matrix/timeline-handler/commands/speci.js', {
 });
 
 describe('spec test', () => {
-    const users = [
-        {
-            displayName: 'Ivan Andreevich A',
-            name: 'ia_a',
-        },
-        {
-            displayName: 'Ivan Sergeevich B',
-            name: 'is_b',
-        },
-    ];
+    const noPermissionUser = {
+        displayName: 'Ignore User',
+        name: 'ignore',
+    };
 
-    const sendHtmlMessageStub = stub();
-    const inviteStub = stub();
+    const userA = {displayName: 'Ivan Andreevich A', name: 'ia_a'};
+    const userB = {displayName: 'Ivan Sergeevich B', name: 'is_b'};
+
+    const users = [userA, userB];
+
     const matrixClient = {
-        invite: inviteStub,
-        sendHtmlMessage: sendHtmlMessageStub,
+        sendHtmlMessage: stub(),
+        invite: stub(),
     };
 
     const roomName = 'BBCOM-123';
-    const body = '!spec';
     const room = {
         roomId: 12345,
         members: [
             {
-                userId: `@is_b:${domain}`,
+                userId: utils.getMatrixUserID(userB.name),
             },
         ],
         getJoinedMembers: () => room.members,
     };
 
     before(() => {
-        nock(BASE_URL, {
+        nock(utils.getRestUrl(), {
             reqheaders: {
-                Authorization: auth(),
+                Authorization: utils.auth(),
             },
         })
-            .post(`/${roomName}/watchers`, schemaWatcher('is_b'))
+            .post(`/issue/${roomName}/watchers`, schemaWatcher(userB.name))
             .times(2)
-            .delayBody(2000)
             .reply(204)
-            .post(`/${roomName}/watchers`, schemaWatcher('ia_a'))
+            .post(`/issue/${roomName}/watchers`, schemaWatcher(userA.name))
             .times(2)
-            .delayBody(2000)
             .reply(204)
-            .post(`/${roomName}/assignee`)
+            .post(`/issue/${roomName}/watchers`, schemaWatcher(noPermissionUser.name))
+            .reply(403)
+            .post(`/issue/${roomName}/assignee`)
             .delayBody(2000)
             .reply(404, 'Error!!!');
+    });
+
+    afterEach(() => {
+        Object.values(matrixClient).map(val => val.reset());
     });
 
     after(() => {
@@ -75,73 +74,69 @@ describe('spec test', () => {
     });
 
     it('should add user ("!spec Ivan Andreevich A")', async () => {
-        const [user] = users;
-        searchUserStub.returns([user]);
+        searchUserStub.resolves([userA]);
         const post = translate('successWatcherJira');
-        const expected = `User ${user.displayName} was added in watchers for issue ${roomName}`;
-        const result = await spec({body, room, roomName, matrixClient});
+        const result = await spec({bodyText: 'Ivan Andreevich A', room, roomName, matrixClient});
 
-        expect(result).to.be.equal(expected);
-        expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, post, post);
-
-        sendHtmlMessageStub.reset();
+        expect(result).to.be.equal(messages.getWatcherAddedLog(userA.displayName, roomName));
+        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
-    it('should not to watchers("!spec fake")', async () => {
-        searchUserStub.returns([]);
-        const fakeUser = 'fake';
+    it('should not add to watchers("!spec fake")', async () => {
+        searchUserStub.resolves([]);
+        const bodyText = 'fake';
+        const result = await spec({bodyText, room, roomName, matrixClient});
         const post = translate('errorWatcherJira');
-        const expected = `Watcher "${fakeUser}" isn't added to ${roomName} issue`;
-        const result = await spec({bodyText: fakeUser, room, roomName, matrixClient});
 
-        expect(result).to.be.equal(expected);
-        expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, post, post);
-
-        sendHtmlMessageStub.reset();
+        expect(result).to.be.equal(messages.getWatcherNotAddedLog(bodyText));
+        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('should show list of users ("!spec Ivan")', async () => {
-        searchUserStub.returns(users.slice(0, 2));
-        const post = 'List users:<br><strong>ia_a</strong> - Ivan Andreevich A<br><strong>is_b</strong> - Ivan Sergeevich B<br>';
+        searchUserStub.resolves(users.slice(0, 2));
+        const post = utils.getListToHTML(users);
         const result = await spec({bodyText: 'Ivan', room, roomName, matrixClient});
 
         expect(result).to.be.undefined;
-        expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, 'List users', post);
-
-        sendHtmlMessageStub.reset();
-        inviteStub.reset();
+        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, 'List users', post);
     });
 
     it('should be in room', async () => {
-        const [newUser] = users.slice(1, 2);
-        searchUserStub.returns([newUser]);
-        inviteStub.throws('Error!!!');
+        searchUserStub.resolves([userB]);
+        matrixClient.invite.throws('Error!!!');
         const post = translate('successWatcherJira');
-        const expected = `User ${newUser.displayName} was added in watchers for issue ${roomName}`;
         const result = await spec({bodyText: 'Ivan Sergeevich B', room, roomName, matrixClient});
 
-        expect(sendHtmlMessageStub).to.have.been.calledWithExactly(room.roomId, post, post);
-        expect(inviteStub).not.to.be.called;
-        expect(result).to.be.equal(expected);
-
-        sendHtmlMessageStub.reset();
-        inviteStub.reset();
+        expect(result).to.be.equal(messages.getWatcherAddedLog(userB.displayName, roomName));
+        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(matrixClient.invite).not.to.be.called;
     });
 
     it('should be error (invite throw)', async () => {
-        searchUserStub.returns(users.slice(0, 1));
-        inviteStub.throws('Error!!!');
+        searchUserStub.resolves(users.slice(0, 1));
+        matrixClient.invite.throws('Error!!!');
+        const expected = [
+            'Matrix spec command error',
+            'addAssigneeInWatchers error',
+            'Error!!!',
+        ].join('\n');
+        let result;
         try {
-            const result = await spec({bodyText: 'Ivan Andreevich A', room, roomName, matrixClient});
-            expect(sendHtmlMessageStub).not.to.have.been.called;
-            expect(result).not.to.be;
+            result = await spec({bodyText: 'Ivan Andreevich A', room, roomName, matrixClient});
         } catch (err) {
-            const expected = [
-                'Matrix spec command error',
-                'addAssigneeInWatchers error',
-                'Error!!!',
-            ].join('\n');
-            expect(err).to.be.equal(expected);
+            result = err;
         }
+
+        expect(result).to.be.equal(expected);
+        expect(matrixClient.sendHtmlMessage).not.to.have.been.called;
+    });
+
+    it('should be sent msg about adding admin status if 403 error got in request', async () => {
+        searchUserStub.resolves([noPermissionUser]);
+        const post = translate('setBotToAdmin');
+        const result = await spec({bodyText: noPermissionUser.displayName, room, roomName, matrixClient});
+
+        expect(result).to.be.true;
+        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 });
