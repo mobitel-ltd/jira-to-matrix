@@ -1,7 +1,7 @@
-const {requestPut} = require('../../../lib/request.js');
+const utils = require('../../../lib/utils');
 const translate = require('../../../locales');
-const {schemaAssignee} = require('./schemas.js');
-const {searchUser, BASE_URL, addToWatchers} = require('./helper.js');
+const {searchUser, addToAssignee} = require('./helper.js');
+const messages = require('../../../lib/messages');
 
 module.exports = async ({body, sender, room, roomName, matrixClient}) => {
     try {
@@ -13,32 +13,40 @@ module.exports = async ({body, sender, room, roomName, matrixClient}) => {
                 const post = translate('errorMatrixAssign', {userToFind});
                 await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-                return `User ${userToFind} or issue ${roomName} is not exist`;
+                return messages.getAssigneeNotAddedLog(userToFind, roomName);
             }
             case 1: {
                 const [{displayName, name}] = users;
-                await requestPut(
-                    `${BASE_URL}/${roomName}/assignee`,
-                    schemaAssignee(name)
-                );
 
-                await addToWatchers(room, roomName, name, matrixClient);
+                await addToAssignee(room, roomName, name, matrixClient);
 
                 const post = translate('successMatrixAssign', {displayName});
                 await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-                return `The user ${displayName} is assigned to issue ${roomName}`;
+                return messages.getAssigneeAddedLog(displayName, roomName);
             }
             default: {
-                const post = users.reduce(
-                    (prev, cur) => `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
-                    'List users:<br>');
-
+                const post = utils.getListToHTML(users);
                 await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
+
                 return;
             }
         }
     } catch (err) {
-        throw ['Matrix assign command error', err].join('\n');
+        if (err.includes('status is 403')) {
+            const post = translate('setBotToAdmin');
+            await matrixClient.sendHtmlMessage(room.roomId, post, post);
+
+            return post;
+        }
+
+        if (err.includes('status is 404')) {
+            const post = translate('noRulesToWatchIssue');
+            await matrixClient.sendHtmlMessage(room.roomId, post, post);
+
+            return post;
+        }
+
+        throw utils.errorTracing('Assign command', err);
     }
 };

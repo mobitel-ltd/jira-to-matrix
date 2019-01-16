@@ -144,4 +144,11 @@ describe('Utils testing', () => {
 
         expect(result).to.equal('@BBCOM:matrix.test-example.ru');
     });
+
+    it('Expect getLimit to be timestamp of 01.01.2018', () => {
+        const limit = utils.getLimit();
+        const expected = 1514775600000;
+
+        expect(limit).to.be.equal(expected);
+    });
 });

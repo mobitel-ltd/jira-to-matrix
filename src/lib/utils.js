@@ -1,6 +1,5 @@
 const translate = require('../locales');
 const Ramda = require('ramda');
-const conf = require('../config');
 const logger = require('../modules/log.js')(module);
 const {jira, features, matrix} = require('../config');
 const {epicUpdates, postChangesToLinks} = features;
@@ -8,6 +7,7 @@ const messages = require('./messages');
 
 const {field: epicField} = epicUpdates;
 const {url: jiraUrl} = jira;
+const {userId: botId} = matrix;
 
 const REDIS_ROOM_KEY = 'newrooms';
 // TODO: change until start correct bot work
@@ -17,11 +17,14 @@ const REDIS_EPIC_PREFIX = 'epic';
 
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
-const [COMMON_NAME] = conf.matrix.domain.split('.').slice(1, 2);
+const [COMMON_NAME] = matrix.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
 const INDENT = '&nbsp;&nbsp;&nbsp;&nbsp;';
 const LINE_BREAKE_TAG = '<br>';
+
+const NEW_YEAR_2018 = new Date(Date.UTC(2018, 0, 1, 3));
+
 
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
@@ -272,7 +275,7 @@ const utils = {
     // * --------------------------------- Request utils ------------------------------- *
 
     auth: () => {
-        const {user, password} = conf.jira;
+        const {user, password} = jira;
         const encoded = Buffer.from(`${user}:${password}`).toString('base64');
 
         return `Basic ${encoded}`;
@@ -283,6 +286,13 @@ const utils = {
     getViewUrl: (key, type = 'browse') => [jiraUrl, type, key].join('/'),
 
     // * --------------------------------- Other utils ------------------------------- *
+
+    getLimit: () => NEW_YEAR_2018.getTime(),
+
+    getMembersExceptBot: joinedMembers =>
+        joinedMembers.reduce((acc, {userId}) =>
+            (userId === botId ? acc : [...acc, userId]), []),
+
 
     getMatrixUserID: shortName => `@${shortName}:${matrix.domain}`,
 

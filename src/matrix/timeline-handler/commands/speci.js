@@ -35,8 +35,16 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
             const post = translate('setBotToAdmin');
             await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-            return true;
+            return post;
         }
-        throw ['Matrix spec command error', err].join('\n');
+
+        if (err.includes('status is 404')) {
+            const post = translate('noRulesToWatchIssue');
+            await matrixClient.sendHtmlMessage(room.roomId, post, post);
+
+            return post;
+        }
+
+        throw utils.errorTracing('Spec command', err);
     }
 };
