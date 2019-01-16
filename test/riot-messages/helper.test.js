@@ -1,8 +1,6 @@
 const nock = require('nock');
-const {auth} = require('../../src/lib/utils.js');
-const {jira: {url}, matrix: {userId: matrixUserId}} = require('../../src/config');
-const {getRequestErrorLog} = require('../../src/lib/messages');
-const querystring = require('querystring');
+const utils = require('../../src/lib/utils.js');
+const {userId: botId} = require('../../src/config').matrix;
 const sdk = require('matrix-js-sdk');
 
 const chai = require('chai');
@@ -15,15 +13,12 @@ const {getMatrixUserID, COMMON_NAME} = require('../../src/lib/utils.js');
 const {
     getRoomsLastUpdate,
     parseRoom,
-    getLimit,
     getOutdatedRoomsWithSender,
-    getUsers,
     checkUser,
     checkCommand,
     checkNamePriority,
     searchUser,
     getAllUsers,
-    BASE_URL,
     parseEventBody,
 } = require('../../src/matrix/timeline-handler/commands/helper');
 
@@ -47,51 +42,23 @@ describe('Commands helper tests', () => {
             name: 'pa_d',
         },
     ];
-    const errorStatus = 400;
-    const errorParams = {
-        username: COMMON_NAME,
-        startAt: 5,
-        maxResults: 3,
-    };
-    const urlPath = `/rest/api/2/user/search`;
 
     before(() => {
-        nock(url, {
-            reqheaders: {
-                Authorization: auth(),
-            },
-        })
-            .get(urlPath)
+        nock(utils.getRestUrl())
+            .get('/user/search')
             .times(3)
             .query({
                 username: userName,
             })
             .reply(200, users)
-            .get(urlPath)
+            .get('/user/search')
             .times(3)
             .query({
                 username: COMMON_NAME,
                 startAt: 0,
                 maxResults: 999,
             })
-            .reply(200, users)
-            .get(urlPath)
-            .query({
-                username: COMMON_NAME,
-                startAt: 0,
-                maxResults: 3,
-            })
-            .reply(200, users.slice(0, 3))
-            .get(urlPath)
-            .query({
-                username: COMMON_NAME,
-                startAt: 3,
-                maxResults: 3,
-            })
-            .reply(200, users.slice(3))
-            .get(urlPath)
-            .query(errorParams)
-            .reply(errorStatus, 'ERROR!!!');
+            .reply(200, users);
     });
 
     after(() => {
@@ -140,17 +107,6 @@ describe('Commands helper tests', () => {
         expect(allUsers).to.be.deep.equal(users);
     });
 
-    it('getUsers test', async () => {
-        const maxResults = 3;
-        const startAt = 0;
-        const allUsers = await getUsers(maxResults, startAt);
-        expect(allUsers).to.be.deep.equal(users);
-    });
-
-    it('BASE_URL test', () => {
-        expect(BASE_URL).to.be.equal(`${url}/rest/api/2/issue`);
-    });
-
     it('searchUser test', async () => {
         const result = await searchUser('Ivan');
         const expected = [
@@ -170,23 +126,6 @@ describe('Commands helper tests', () => {
         const result = await searchUser('');
         const expected = [];
         expect(result).to.be.deep.equal(expected);
-    });
-
-    it('getUsers test error', async () => {
-        const maxResults = 3;
-        const startAt = 5;
-        try {
-            const allUsers = await getUsers(maxResults, startAt);
-            expect(allUsers).not.to.be;
-        } catch (err) {
-            const fakeUrl = `${url}${urlPath}?${querystring.stringify(errorParams)}`;
-            const requestErrorLog = getRequestErrorLog(fakeUrl, errorStatus);
-            const expected = [
-                'getUsers error',
-                requestErrorLog,
-            ].join('\n');
-            expect(err).to.be.deep.equal(expected);
-        }
     });
 });
 
@@ -251,7 +190,7 @@ describe('Test room kicking funcs', () => {
         new sdk.User(getMatrixUserID('ivan')),
         new sdk.User(getMatrixUserID('john')),
         new sdk.User(myUser),
-        new sdk.User(matrixUserId),
+        new sdk.User(botId),
     ];
     const newRoom = roomMock(roomId, roomName, members, timeline);
 
@@ -269,15 +208,6 @@ describe('Test room kicking funcs', () => {
             const result = parseRoom([], roomMock(roomId, roomName, members, []));
 
             expect(result).to.be.deep.eq([]);
-        });
-    });
-
-    describe('Testsing getLimit', () => {
-        it('Expect getLimit to be timestamp of 01.01.2018', () => {
-            const limit = getLimit();
-            const expected = 1514775600000;
-
-            expect(limit).to.be.equal(expected);
         });
     });
 

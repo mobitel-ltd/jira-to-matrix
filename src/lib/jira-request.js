@@ -1,8 +1,10 @@
+const {schemaWatcher, schemaAssignee} = require('../matrix/timeline-handler/commands/schemas');
+const querystring = require('querystring');
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const {jira, inviteIgnoreUsers = []} = require('../config');
-const {request} = require('./request.js');
-const {getRestUrl, expandParams} = require('./utils.js');
+const {request, requestPost, requestPut} = require('./request.js');
+const utils = require('./utils.js');
 const messages = require('./messages');
 
 const {url: jiraUrl} = jira;
@@ -50,7 +52,7 @@ const jiraRequests = {
      */
     getLinkedIssue: async id => {
         try {
-            const body = await request(getRestUrl('issueLink', id));
+            const body = await request(utils.getRestUrl('issueLink', id));
 
             return body;
         } catch (err) {
@@ -66,7 +68,7 @@ const jiraRequests = {
      */
     getIssue: async (id, params) => {
         try {
-            const url = getRestUrl('issue', id);
+            const url = utils.getRestUrl('issue', id);
             const issue = await request(url, {qs: params});
 
             return issue;
@@ -82,7 +84,7 @@ const jiraRequests = {
      */
     getProject: async id => {
         try {
-            const project = await request(getRestUrl('project', id));
+            const project = await request(utils.getRestUrl('project', id));
 
             return project;
         } catch (err) {
@@ -97,7 +99,7 @@ const jiraRequests = {
      */
     getIssueFormatted: async issueID => {
         try {
-            const result = await jiraRequests.getIssue(issueID, expandParams);
+            const result = await jiraRequests.getIssue(issueID, utils.expandParams);
 
             return result;
         } catch (err) {
@@ -125,6 +127,54 @@ const jiraRequests = {
             throw ['getRenderedValues error', err].join('\n');
         }
     },
+
+    getUsersByParam: username => {
+        try {
+            const queryPararms = querystring.stringify({username});
+            const url = utils.getRestUrl('user', `search?${queryPararms}`);
+
+            return request(url);
+        } catch (err) {
+            throw utils.errorTracing('getUserByParam', err);
+        }
+    },
+
+    // recursive function to get users by num and startAt (start position in jira list of users)
+    getUsers: async (maxResults, startAt, acc = []) => {
+        try {
+            const params = {
+                username: utils.COMMON_NAME,
+                startAt,
+                maxResults,
+            };
+
+            const queryPararms = querystring.stringify(params);
+            const url = utils.getRestUrl('user', `search?${queryPararms}`);
+
+            const users = await request(url);
+            let resultAcc = [...acc, ...users];
+            if (users.length >= maxResults) {
+                resultAcc = await jiraRequests.getUsers(maxResults, startAt + maxResults, resultAcc);
+            }
+
+            return resultAcc;
+        } catch (err) {
+            throw utils.errorTracing('getUsers', err);
+        }
+    },
+
+    addWatcher: (name, roomName) => {
+        const watchersUrl = utils.getRestUrl('issue', roomName, 'watchers');
+
+        return requestPost(watchersUrl, schemaWatcher(name));
+    },
+
+    addAssignee: (name, roomName) => {
+        const assigneeUrl = utils.getRestUrl('issue', roomName, 'assignee');
+
+        return requestPut(assigneeUrl, schemaAssignee(name));
+    },
+
 };
 
 module.exports = jiraRequests;

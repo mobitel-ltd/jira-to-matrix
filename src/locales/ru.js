@@ -4,7 +4,8 @@ const names = require('ru-names');
 
 /* spell-checker: disable */
 const dict = Object.freeze({
-    setBotToAdmin: 'У бота нет прав для данной операции',
+    setBotToAdmin: 'У бота нет прав для добавления пользователя в наблюдателя или исполнители задачи в Jira',
+    noRulesToWatchIssue: 'У бота нет прав для просмотра и совершения действий в данной задаче в Jira',
     comment_created: 'добавил%{f} комментарий',
     comment_updated: 'изменил%{f} комментарий',
     issue_updated: 'изменил%{f} задачу',

@@ -1,15 +1,36 @@
-const proxyquire = require('proxyquire');
-const {expect} = require('chai');
-const {auth, getViewUrl, getRestUrl, expandParams} = require('../../src/lib/utils.js');
-const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
-const {getRenderedValues, getRoomMembers} = require('../../src/lib/jira-request');
-const {getRequestErrorLog} = require('../../src/lib/messages');
 const nock = require('nock');
+const querystring = require('querystring');
+const proxyquire = require('proxyquire');
+
+const utils = require('../../src/lib/utils.js');
+const {expect} = require('chai');
+const {getRenderedValues, getRoomMembers, getUsers} = require('../../src/lib/jira-request');
+const {getRequestErrorLog} = require('../../src/lib/messages');
 const {url} = require('../../src/config').jira;
+const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
 const watchersJSON = require('../fixtures/jira-api-requests/watchers.json');
 
 const watchersUsers = watchersJSON.watchers.map(({name}) => name);
 describe('Issue test', () => {
+    const users = [
+        {
+            displayName: 'Ivan Andreevich A',
+            name: 'ia_a',
+        },
+        {
+            displayName: 'Ivan Sergeevich B',
+            name: 'is_b',
+        },
+        {
+            displayName: 'Anton Matveevich C',
+            name: 'am_c',
+        },
+        {
+            displayName: 'Petr Andreevich D',
+            name: 'pa_d',
+        },
+    ];
+
     const issue = {
         id: 26313,
     };
@@ -17,21 +38,34 @@ describe('Issue test', () => {
     const fakeEndPoint = '1000';
     const roomMembers = ['testName1', 'testName2'];
 
+    const params = {
+        username: utils.COMMON_NAME,
+        startAt: 0,
+        maxResults: 3,
+    };
+    const errorParams = {...params, startAt: 5};
+    const errorStatus = 400;
+
     before(() => {
-        nock(getRestUrl('issue'), {
-            reqheaders: {
-                Authorization: auth(),
-            },
-        })
-            .get(`/${issue.id}`)
-            .query(expandParams)
+        nock(utils.getRestUrl())
+            .get(`/issue/${issue.id}`)
+            .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
-            .get(`/${fakeEndPoint}`)
-            .query(expandParams)
+            .get(`/issue/${fakeEndPoint}`)
+            .query(utils.expandParams)
             .reply(404, 'Error!!!')
-            .get(`/${issue.id}/watchers`)
+            .get(`/issue/${issue.id}/watchers`)
             .times(4)
-            .reply(200, watchersJSON);
+            .reply(200, watchersJSON)
+            .get('/user/search')
+            .query(errorParams)
+            .reply(errorStatus, 'ERROR!!!')
+            .get('/user/search')
+            .query({...params, startAt: 3})
+            .reply(200, users.slice(3))
+            .get('/user/search')
+            .query(params)
+            .reply(200, users.slice(0, 3));
     });
 
     after(() => {
@@ -44,7 +78,7 @@ describe('Issue test', () => {
     });
 
     it('getRenderedValues error test', async () => {
-        const fakeUrl = getRestUrl('issue', fakeEndPoint);
+        const fakeUrl = utils.getRestUrl('issue', fakeEndPoint);
         const expectedData = [
             'getRenderedValues error',
             'getIssueFormatted Error',
@@ -59,21 +93,21 @@ describe('Issue test', () => {
     });
 
     it('getViewUrl test', () => {
-        const projectResult = getViewUrl(issue.id, 'projects');
+        const projectResult = utils.getViewUrl(issue.id, 'projects');
         expect(projectResult).to.be.deep.equal(`${url}/projects/${issue.id}`);
 
-        const issueResult = getViewUrl(issue.id);
+        const issueResult = utils.getViewUrl(issue.id);
         expect(issueResult).to.be.deep.equal(`${url}/browse/${issue.id}`);
     });
 
     it('expect getRoomMembers works correct', async () => {
-        const url = getRestUrl('issue', issue.id, 'watchers');
+        const url = utils.getRestUrl('issue', issue.id, 'watchers');
         const result = await getRoomMembers({url, roomMembers});
         expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
     });
 
     it('expect getRoomMembers works correct if watchersUrl exists', async () => {
-        const url = getRestUrl('issue', issue.id, 'watchers');
+        const url = utils.getRestUrl('issue', issue.id, 'watchers');
         const result = await getRoomMembers({roomMembers, watchersUrl: url});
         expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
     });
@@ -84,7 +118,7 @@ describe('Issue test', () => {
                 inviteIgnoreUsers: roomMembers,
             },
         });
-        const url = getRestUrl('issue', issue.id, 'watchers');
+        const url = utils.getRestUrl('issue', issue.id, 'watchers');
         const result = await getCollectParticipantsProxy({url, roomMembers});
         expect(result).to.be.deep.eq(watchersUsers);
     });
@@ -95,7 +129,7 @@ describe('Issue test', () => {
                 inviteIgnoreUsers: watchersUsers,
             },
         });
-        const url = getRestUrl('issue', issue.id, 'watchers');
+        const url = utils.getRestUrl('issue', issue.id, 'watchers');
         const result = await getCollectParticipantsProxy({url, roomMembers});
         expect(result).to.be.deep.eq(roomMembers);
     });
@@ -113,5 +147,34 @@ describe('Issue test', () => {
     it('Expect getRoomMembers works correct if roomMembers is empty', async () => {
         const result = await getRoomMembers({roomMembers: []});
         expect(result).to.be.deep.eq([]);
+    });
+
+    it('Expect getUsers returns correct users witn right length', async () => {
+        const maxResults = 3;
+        const startAt = 0;
+        const allUsers = await getUsers(maxResults, startAt);
+
+        expect(allUsers).to.be.deep.equal(users);
+    });
+
+    it('Expect getUsers test throws error if start is incorrect', async () => {
+        const maxResults = 3;
+        const startAt = 5;
+        const fakeUrl = utils.getRestUrl('user', `search?${querystring.stringify(errorParams)}`);
+        const expected = [
+            utils.getDefaultErrorLog('getUsers'),
+            getRequestErrorLog(fakeUrl, errorStatus),
+        ].join('\n');
+
+        let allUsers;
+        let res;
+        try {
+            allUsers = await getUsers(maxResults, startAt);
+        } catch (err) {
+            res = err;
+        }
+
+        expect(allUsers).to.be.undefined;
+        expect(res).to.be.deep.equal(expected);
     });
 });

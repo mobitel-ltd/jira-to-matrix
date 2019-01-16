@@ -20,6 +20,11 @@ const spec = proxyquire('../../src/matrix/timeline-handler/commands/speci.js', {
 });
 
 describe('spec test', () => {
+    const noRulesUser = {
+        displayName: 'No Rules User',
+        name: 'noRules',
+    };
+
     const noPermissionUser = {
         displayName: 'Ignore User',
         name: 'ignore',
@@ -60,9 +65,8 @@ describe('spec test', () => {
             .reply(204)
             .post(`/issue/${roomName}/watchers`, schemaWatcher(noPermissionUser.name))
             .reply(403)
-            .post(`/issue/${roomName}/assignee`)
-            .delayBody(2000)
-            .reply(404, 'Error!!!');
+            .post(`/issue/${roomName}/watchers`, schemaWatcher(noRulesUser.name))
+            .reply(404);
     });
 
     afterEach(() => {
@@ -76,7 +80,7 @@ describe('spec test', () => {
     it('should add user ("!spec Ivan Andreevich A")', async () => {
         searchUserStub.resolves([userA]);
         const post = translate('successWatcherJira');
-        const result = await spec({bodyText: 'Ivan Andreevich A', room, roomName, matrixClient});
+        const result = await spec({bodyText: userA.displayName, room, roomName, matrixClient});
 
         expect(result).to.be.equal(messages.getWatcherAddedLog(userA.displayName, roomName));
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
@@ -84,16 +88,15 @@ describe('spec test', () => {
 
     it('should not add to watchers("!spec fake")', async () => {
         searchUserStub.resolves([]);
-        const bodyText = 'fake';
-        const result = await spec({bodyText, room, roomName, matrixClient});
+        const result = await spec({bodyText: userA.displayName, room, roomName, matrixClient});
         const post = translate('errorWatcherJira');
 
-        expect(result).to.be.equal(messages.getWatcherNotAddedLog(bodyText));
+        expect(result).to.be.equal(messages.getWatcherNotAddedLog(userA.displayName));
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('should show list of users ("!spec Ivan")', async () => {
-        searchUserStub.resolves(users.slice(0, 2));
+        searchUserStub.resolves(users);
         const post = utils.getListToHTML(users);
         const result = await spec({bodyText: 'Ivan', room, roomName, matrixClient});
 
@@ -105,7 +108,7 @@ describe('spec test', () => {
         searchUserStub.resolves([userB]);
         matrixClient.invite.throws('Error!!!');
         const post = translate('successWatcherJira');
-        const result = await spec({bodyText: 'Ivan Sergeevich B', room, roomName, matrixClient});
+        const result = await spec({bodyText: userB.displayName, room, roomName, matrixClient});
 
         expect(result).to.be.equal(messages.getWatcherAddedLog(userB.displayName, roomName));
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
@@ -116,13 +119,13 @@ describe('spec test', () => {
         searchUserStub.resolves(users.slice(0, 1));
         matrixClient.invite.throws('Error!!!');
         const expected = [
-            'Matrix spec command error',
-            'addAssigneeInWatchers error',
+            utils.getDefaultErrorLog('Spec command'),
+            utils.getDefaultErrorLog('addToWatchers'),
             'Error!!!',
         ].join('\n');
         let result;
         try {
-            result = await spec({bodyText: 'Ivan Andreevich A', room, roomName, matrixClient});
+            result = await spec({bodyText: userA.displayName, room, roomName, matrixClient});
         } catch (err) {
             result = err;
         }
@@ -136,7 +139,16 @@ describe('spec test', () => {
         const post = translate('setBotToAdmin');
         const result = await spec({bodyText: noPermissionUser.displayName, room, roomName, matrixClient});
 
-        expect(result).to.be.true;
+        expect(result).to.be.eq(post);
+        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+    });
+
+    it('should be sent msg about no access to project if 404 error got in request', async () => {
+        searchUserStub.resolves([noRulesUser]);
+        const post = translate('noRulesToWatchIssue');
+        const result = await spec({bodyText: noRulesUser.displayName, room, roomName, matrixClient});
+
+        expect(result).to.be.eq(post);
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 });
