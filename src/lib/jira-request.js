@@ -30,7 +30,7 @@ const jiraRequests = {
      * @param {array} roomMembers array of users linked to current issue
      * @return {array} jira response with issue
      */
-    getRoomMembers: async ({url, roomMembers, watchersUrl}) => {
+    getIssueWatchers: async ({url, roomMembers, watchersUrl}) => {
         const correctUrl = url || watchersUrl;
 
         try {
@@ -41,7 +41,7 @@ const jiraRequests = {
 
             return [...allWatchersSet].filter(isExpectedToInvite);
         } catch (err) {
-            throw ['getRoomMembers error', err].join('\n');
+            throw ['getIssueWatchers error', err].join('\n');
         }
     },
 

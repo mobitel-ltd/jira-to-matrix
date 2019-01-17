@@ -1,4 +1,4 @@
-const {getRoomMembers, getProject} = require('../lib/jira-request.js');
+const {getIssueWatchers, getProject} = require('../lib/jira-request.js');
 const {composeRoomName, getViewUrl, errorTracing, getMatrixUserID} = require('../lib/utils.js');
 const logger = require('../modules/log.js')(module);
 const postIssueDescription = require('./post-issue-description.js');
@@ -16,7 +16,7 @@ const getRoomId = async (mclient, key) => {
 
 const createIssueRoom = async (mclient, issue) => {
     try {
-        const roomMembers = await getRoomMembers(issue);
+        const roomMembers = await getIssueWatchers(issue);
         const invite = roomMembers.map(getMatrixUserID);
 
         const {key} = issue;

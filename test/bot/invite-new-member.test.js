@@ -21,9 +21,7 @@ describe('inviteNewMembers test', () => {
     const inviteNewMembersData = getInviteNewMembersData(JSONbody);
 
     before(() => {
-        nock(utils.getRestUrl(), {
-            reqheaders: {Authorization: utils.auth()},
-        })
+        nock(utils.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}/watchers`)
             .times(3)
             .reply(200, watchersBody);
@@ -75,5 +73,18 @@ describe('inviteNewMembers test', () => {
             result = err;
         }
         expect(result).to.deep.equal(expectedWatchers);
+    });
+
+    it('Expect inviteNewMembers works correct if some members are in room already', async () => {
+        const [userToadd, ...otherUsers] = expectedWatchers;
+        mclient.getRoomByAlias.resolves({
+            getJoinedMembers: () => [
+                {userId: '@jira_test:matrix.test-example.ru'},
+                {userId: userToadd},
+            ],
+        });
+
+        const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
+        expect(result).to.deep.equal(otherUsers);
     });
 });
