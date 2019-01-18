@@ -1,7 +1,8 @@
 const logger = require('../modules/log')(module);
-const {getIssue} = require('../lib/jira-request');
+const {getIssueSafety} = require('../lib/jira-request');
 const {getPostLinkMessageBody} = require('./helper');
 const utils = require('../lib/utils');
+const {getNoIssueLinkLog} = require('../lib/messages');
 
 const postLink = async (key, related, relation, mclient) => {
     if (!key) {
@@ -15,23 +16,15 @@ const postLink = async (key, related, relation, mclient) => {
     logger.debug(`Deleted Issue link in issue ${key} is successfully posted!`);
 };
 
-const getLinkedIssue = async id => {
-    try {
-        const issue = await getIssue(id);
-        return issue;
-    } catch (err) {
-        return false;
-    }
-};
-
 module.exports = async ({mclient, sourceIssueId, destinationIssueId, sourceRelation, destinationRelation}) => {
     try {
-        const [sourceIssue, destinationIssue] =
-            await Promise.all([sourceIssueId, destinationIssueId].map(getLinkedIssue));
+        const links = [sourceIssueId, destinationIssueId];
+        const [sourceIssue, destinationIssue] = await Promise.all(links.map(getIssueSafety));
 
-        if (!sourceIssue) {
-            throw 'Cannot get no one issue to info about deleting link';
+        if (!sourceIssue && !destinationIssue) {
+            throw getNoIssueLinkLog(...links);
         }
+
         await postLink(utils.getKey(sourceIssue), destinationIssue, sourceRelation, mclient);
         await postLink(utils.getKey(destinationIssue), sourceIssue, destinationRelation, mclient);
 

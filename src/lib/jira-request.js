@@ -175,6 +175,16 @@ const jiraRequests = {
         return requestPut(assigneeUrl, schemaAssignee(name));
     },
 
+    getIssueSafety: async id => {
+        try {
+            const issue = await jiraRequests.getIssue(id);
+
+            return issue;
+        } catch (err) {
+            logger.warn('No issue by ', id);
+            return false;
+        }
+    },
 };
 
 module.exports = jiraRequests;

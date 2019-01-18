@@ -1,5 +1,6 @@
-const postNewLinksbody = require('../fixtures/webhooks/issuelink/created.json');
-const postNewLinksDeletedBody = require('../fixtures/webhooks/issuelink/deleted.json');
+const faker = require('faker');
+const newLinksbody = require('../fixtures/webhooks/issuelink/created.json');
+const linksDeletedBody = require('../fixtures/webhooks/issuelink/deleted.json');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const assert = require('assert');
 const projectBody = require('../fixtures/jira-api-requests/project.json');
@@ -21,7 +22,7 @@ chai.use(sinonChai);
 
 const {
     isStartEndUpdateStatus,
-    membersInvited,
+    getMembersUserId,
     postStatusData,
     getEpicChangedMessageBody,
     getNewEpicMessageBody,
@@ -100,14 +101,14 @@ describe('Helper tests', () => {
         assert.equal(htmlBody, '<p>К эпику добавлена задача <a href="https://jira.test-example.ru/jira/browse/BBCOM-956">BBCOM-956 lalalla</a></p>\n');
     });
 
-    it('membersInvited test', () => {
+    it('getMembersUserId test', () => {
         const data = [
             {userId: 'one', other: 'a'},
             {userId: 'two', other: 'b'},
             {userId: 'three', other: 'c'},
         ];
 
-        const result = membersInvited(data);
+        const result = getMembersUserId(data);
         expect(result).to.deep.equal(['one', 'two', 'three']);
     });
 
@@ -235,9 +236,7 @@ describe('Helper tests', () => {
                 .times(2)
                 .reply(200, '<HTML>');
 
-            nock(utils.getRestUrl(), {
-                reqheaders: {Authorization: utils.auth()},
-            })
+            nock(utils.getRestUrl())
                 .get(`/project/${issueChangedHook.issue.fields.project.id}`)
                 .times(2)
                 .reply(200, projectBody)
@@ -247,9 +246,13 @@ describe('Helper tests', () => {
                 .get(`/issue/${utils.extractID(commentCreatedHook)}`)
                 .times(2)
                 .reply(200, issueBody)
-                .get(`/issue/${utils.getIssueLinkSourceId(postNewLinksDeletedBody)}`)
+                .get(`/issue/${linksDeletedBody.issueLink.sourceIssueId}`)
                 .reply(200, issueBody)
-                .get(`/issue/${utils.getIssueLinkSourceId(postNewLinksbody)}`)
+                .get(`/issue/${linksDeletedBody.issueLink.destinationIssueId}`)
+                .reply(200, issueBody)
+                .get(`/issue/${newLinksbody.issueLink.sourceIssueId}`)
+                .reply(200, issueBody)
+                .get(`/issue/${newLinksbody.issueLink.destinationIssueId}`)
                 .reply(200, issueBody)
                 .get(`/issue/${privateId}`)
                 .reply(404);
@@ -337,21 +340,38 @@ describe('Helper tests', () => {
             expect(result).to.be.eq(messages.noJiraConnection);
         });
 
-        it('Expect getIgnoreProject to have "true" status with issuelink created', async () => {
-            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(postNewLinksbody);
+        it('Expect getIgnoreProject to have "true" status with issuelink deleted/created if both id are not available', async () => {
+            nock.cleanAll();
+            nock(jiraUrl).get('').reply(200, '<HTML>');
+            const body = faker.random.arrayElement([linksDeletedBody, newLinksbody]);
 
-            expect(timestamp).to.be.eq(postNewLinksbody.timestamp);
-            expect(webhookEvent).to.be.eq(postNewLinksbody.webhookEvent);
-            expect(issueName).to.be.eq(utils.extractID(postNewLinksbody));
-            expect(ignoreStatus).to.be.false;
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(body);
+
+            expect(timestamp).to.be.eq(body.timestamp);
+            expect(webhookEvent).to.be.eq(body.webhookEvent);
+            // TODO add issue id
+            expect(issueName).to.be.undefined;
+            expect(ignoreStatus).to.be.true;
         });
 
-        it('Expect getIgnoreProject to have "true" status with issuelink deleted', async () => {
-            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(postNewLinksDeletedBody);
+        it('Expect getIgnoreProject to have "false" status with issuelink deleted/created if one of links is available', async () => {
+            const [status1, status2] = faker.random.arrayElement([[404, 200], [200, 404]]);
+            const body = faker.random.arrayElement([linksDeletedBody, newLinksbody]);
+            nock.cleanAll();
+            nock(jiraUrl).get('').reply(200, '<HTML>');
 
-            expect(timestamp).to.be.eq(postNewLinksDeletedBody.timestamp);
-            expect(webhookEvent).to.be.eq(postNewLinksDeletedBody.webhookEvent);
-            expect(issueName).to.be.eq(utils.extractID(postNewLinksDeletedBody));
+            nock(utils.getRestUrl())
+                .get(`/issue/${body.issueLink.sourceIssueId}`)
+                .reply(status1, issueBody)
+                .get(`/issue/${body.issueLink.destinationIssueId}`)
+                .reply(status2, issueBody);
+
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(body);
+
+            expect(timestamp).to.be.eq(body.timestamp);
+            expect(webhookEvent).to.be.eq(body.webhookEvent);
+            // TODO add issue id
+            expect(issueName).to.be.undefined;
             expect(ignoreStatus).to.be.false;
         });
     });

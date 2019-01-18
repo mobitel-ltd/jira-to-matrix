@@ -13,4 +13,7 @@ module.exports = {
     getAssigneeNotAddedLog: (name, roomName) => `User ${name} or issue ${roomName} is not exist`,
 
     getAssigneeAddedLog: (name, roomName) => `The user ${name} is assigned to issue ${roomName}`,
+
+    getNoIssueLinkLog: (id1, id2) =>
+        `Cannot get no one issue to info about deleting link with issues: ${id1} ${id2}`,
 };

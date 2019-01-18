@@ -21,9 +21,9 @@ describe('post New Links test', () => {
     const summary = utils.getSummary(body);
     const status = utils.getStatus(body);
     const name = utils.getUserName(body);
-    const issueRef = utils.getViewUrl(key);
+    const viewUrl = utils.getViewUrl(key);
     const expectedBody = translate('statusHasChanged', {key, summary, status});
-    const expectedHTMLBody = marked(translate('statusHasChangedMessage', {name, key, summary, status, issueRef}));
+    const expectedHTMLBody = marked(translate('statusHasChangedMessage', {name, key, summary, status, viewUrl}));
 
     const mclient = {
         sendHtmlMessage: stub(),

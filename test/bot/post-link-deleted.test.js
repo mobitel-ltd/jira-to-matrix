@@ -1,3 +1,4 @@
+const faker = require('faker');
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const linkDeletedHook = require('../fixtures/webhooks/issuelink/deleted.json');
@@ -94,12 +95,13 @@ describe('Test postLinksDeleted', () => {
         expect(res).includes(utils.errorTracing('post delete link'));
     });
 
-    it('Expect postlink correct works if destination issue is not available', async () => {
+    it('Expect postlink correct works if one of issue id in link is not available', async () => {
         nock.cleanAll();
-
+        const issueId = faker.random.arrayElement([sourceIssueId, destinationIssueId]);
         nock(utils.getRestUrl())
-            .get(`/issue/${sourceIssueId}`)
+            .get(`/issue/${issueId}`)
             .reply(200, issueBody);
+
         const expectedPost = translate('deleteLink');
         const data = getPostLinksDeletedData(linkDeletedHook);
         const res = await postLinksDeleted({...data, mclient});

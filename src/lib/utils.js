@@ -72,7 +72,9 @@ const utils = {
 
     getIssueLinkSourceId: body => Ramda.path(['sourceIssueId'], body) || Ramda.path(['sourceIssueId'], utils.getLinksIssueLink(body)),
 
-    getIssueLinkDestinationId: body => Ramda.path(['destinationIssueId'], body),
+    getIssueLinkDestinationId: body => Ramda.path(['destinationIssueId'], body) || Ramda.path(['destinationIssueId'], utils.getLinksIssueLink(body)),
+
+    getLinksIssueIds: body => [utils.getIssueLinkSourceId(body), utils.getIssueLinkDestinationId(body)],
 
     getSourceRelation: body => Ramda.path(['issueLinkType', 'outwardName'], body),
 
@@ -92,7 +94,11 @@ const utils = {
 
     isNewGenProjectStyle: body => utils.getProjectStyle(body) === 'new-gen',
 
-    isLinkHook: hook => hook.includes('issuelink'),
+    isLinkHook: body => {
+        const hook = utils.getBodyWebhookEvent(body);
+
+        return hook.includes('issuelink');
+    },
 
     isCorrectWebhook: (body, hookName) => utils.getBodyWebhookEvent(body) === hookName,
 

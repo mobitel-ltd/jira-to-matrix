@@ -31,4 +31,16 @@ describe('Post project updates test', () => {
         await postProjectUpdates({mclient, ...postProjectUpdatesData});
         expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, body, htmlBody);
     });
+
+    it('Expect postProjectUpdates to be thrown if no room is found', async () => {
+        const errName = 'Error!';
+        mclient.getRoomId.throws(errName);
+        let res;
+        try {
+            res = await postProjectUpdates({mclient, ...postProjectUpdatesData});
+        } catch (err) {
+            res = err;
+        }
+        expect(res).to.include(errName);
+    });
 });

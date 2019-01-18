@@ -74,7 +74,7 @@ describe('Create room test', () => {
     });
 
     it('Room should be created', async () => {
-        mclient.getRoomId.resolves(null);
+        mclient.getRoomId.throws('No room');
         const result = await createRoom({mclient, ...createRoomData});
         expect(mclient.createRoom).to.be.called.calledWithExactly(expectedRoomOptions);
         expect(result).to.be.true;
