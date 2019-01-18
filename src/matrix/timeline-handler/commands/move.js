@@ -10,12 +10,6 @@ const getMoveId = async (bodyText, roomName) => {
         `${BASE_URL}/${roomName}/transitions`,
     );
 
-    if (!transitions) {
-        throw new Error(`Jira not return list transitions for ${roomName}`);
-    }
-
-    logger.debug('transitions', transitions);
-
     const moveId = transitions.find(({name, id}, index) => checkCommand(bodyText, name, index));
     if (moveId) {
         return moveId;

@@ -1,14 +1,17 @@
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
-const {getLinkedIssue} = require('../lib/jira-request.js');
+const {getLinkedIssue, getIssueSafety} = require('../lib/jira-request.js');
 const {getPostLinkMessageBody} = require('./helper');
 const utils = require('../lib/utils');
 
 const postLink = async (key, relations, mclient) => {
-    const roomID = await mclient.getRoomId(key);
+    const issue = await getIssueSafety(key);
+    if (issue) {
+        const roomID = await mclient.getRoomId(key);
 
-    const {body, htmlBody} = getPostLinkMessageBody(relations);
-    await mclient.sendHtmlMessage(roomID, body, htmlBody);
+        const {body, htmlBody} = getPostLinkMessageBody(relations);
+        await mclient.sendHtmlMessage(roomID, body, htmlBody);
+    }
 };
 
 const handleLink = mclient => async issueLinkId => {

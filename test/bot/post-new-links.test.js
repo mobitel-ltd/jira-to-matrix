@@ -9,6 +9,7 @@ const {getPostLinkMessageBody} = require('../../src/bot/helper');
 const redis = require('../../src/redis-client.js');
 const {cleanRedis} = require('../test-utils');
 const JSONBody = require('../fixtures/webhooks/issue/updated/generic.json');
+const issueBody = require('../fixtures/jira-api-requests/issue.json');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -29,17 +30,19 @@ describe('Test postNewLinks', () => {
     mclient.getRoomId.withArgs(utils.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
 
     before(() => {
-        nock(utils.getRestUrl(), {
-            reqheaders: {
-                Authorization: utils.auth(),
-            },
-        })
+        nock(utils.getRestUrl())
             .get(`/issueLink/${issueLinkId}`)
             .reply(200, issueLinkBody)
             .get(`/issueLink/${30137}`)
             .reply(200, issueLinkBody)
             .get(`/issueLink/${28516}`)
-            .reply(200, issueLinkBody);
+            .reply(200, issueLinkBody)
+            .get(`/issue/${issueLinkBody.outwardIssue.key}`)
+            .times(2)
+            .reply(200, issueBody)
+            .get(`/issue/${issueLinkBody.inwardIssue.key}`)
+            .times(2)
+            .reply(200, issueBody);
     });
 
     afterEach(async () => {
@@ -118,5 +121,27 @@ describe('Test postNewLinks', () => {
         }
 
         expect(res).includes(utils.errorTracing('post new link'));
+    });
+
+    it('Expect data to be handled by postNewLinks if one of room is not available', async () => {
+        nock.cleanAll();
+
+        nock(utils.getRestUrl())
+            .get(`/issueLink/${issueLinkId}`)
+            .reply(200, issueLinkBody)
+            .get(`/issue/${issueLinkBody.inwardIssue.key}`)
+            .reply(200, issueBody);
+
+        const bodyIn = getPostLinkMessageBody({
+            relation: issueLinkBody.type.outward,
+            related: issueLinkBody.outwardIssue,
+        });
+
+        const data = getPostNewLinksData(postNewLinksbody);
+        const res = await postNewLinks({...data, mclient});
+
+        expect(res).to.be.true;
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
+        expect(mclient.sendHtmlMessage).to.be.calledOnce;
     });
 });

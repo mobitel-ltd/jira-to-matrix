@@ -14,18 +14,23 @@ const helper = {
         return !!(startDate || endDate);
     },
 
+    isAllIdsIgnored: async linksIds => {
+        const issues = await Promise.all(linksIds.map(jiraRequests.getIssueSafety));
+
+        return !issues.some(Boolean);
+    },
     isPrivateIssue: async body => {
-        try {
-            const issueId = utils.isLinkHook(utils.getBodyWebhookEvent(body))
-                ? utils.getIssueLinkSourceId(body)
-                : utils.extractID(body);
+        if (utils.isLinkHook(body)) {
+            const linksIssueIds = utils.getLinksIssueIds(body);
+            const status = await helper.isAllIdsIgnored(linksIssueIds);
 
-            const issue = await jiraRequests.getIssue(issueId);
-
-            return !issue;
-        } catch (err) {
-            return true;
+            return status;
         }
+
+        const issueId = utils.extractID(body);
+        const status = await jiraRequests.getIssueSafety(issueId);
+
+        return !status;
     },
 
     getProjectPrivateStatus: async body => {
@@ -70,15 +75,11 @@ const helper = {
         return {userStatus, projectStatus};
     },
 
-    membersInvited: roomMembers =>
-        Ramda.pipe(
-            Ramda.values,
-            Ramda.map(Ramda.prop('userId'))
-        )(roomMembers),
+    getMembersUserId: members => members.map(({userId}) => userId),
 
     getEpicChangedMessageBody: ({summary, key, status, name}) => {
-        const issueRef = utils.getViewUrl(key);
-        const values = {name, key, summary, status, issueRef};
+        const viewUrl = utils.getViewUrl(key);
+        const values = {name, key, summary, status, viewUrl};
 
         const body = translate('statusEpicChanged');
         const message = translate('statusEpicChangedMessage', values, values.name);
@@ -88,8 +89,8 @@ const helper = {
     },
 
     getNewEpicMessageBody: ({key, summary}) => {
-        const issueRef = utils.getViewUrl(key);
-        const values = {key, summary, issueRef};
+        const viewUrl = utils.getViewUrl(key);
+        const values = {key, summary, viewUrl};
 
         const body = translate('newEpicInProject');
         const message = translate('epicAddedToProject', values, values.name);
@@ -106,8 +107,8 @@ const helper = {
             return {};
         }
 
-        const issueRef = utils.getViewUrl(data.key);
-        const baseValues = {status, issueRef};
+        const viewUrl = utils.getViewUrl(data.key);
+        const baseValues = {status, viewUrl};
         const values = ['name', 'key', 'summary']
             .reduce((acc, key) => ({...acc, [key]: data[key]}), baseValues);
 
@@ -132,8 +133,8 @@ const helper = {
     },
 
     getNewIssueMessageBody: ({summary, key}) => {
-        const issueRef = utils.getViewUrl(key);
-        const values = {key, issueRef, summary};
+        const viewUrl = utils.getViewUrl(key);
+        const values = {key, viewUrl, summary};
 
         const body = translate('newIssueInEpic');
         const message = translate('issueAddedToEpic', values);
@@ -196,9 +197,9 @@ const helper = {
 
     getPostLinkMessageBody: ({relation, related}, action = 'newLink') => {
         const key = utils.getKey(related);
-        const issueRef = utils.getViewUrl(key);
+        const viewUrl = utils.getViewUrl(key);
         const summary = utils.getSummary(related);
-        const values = {key, relation, summary, issueRef};
+        const values = {key, relation, summary, viewUrl};
 
         const body = translate(action);
         const htmlBodyAction = related ? `${action}Message` : action;
