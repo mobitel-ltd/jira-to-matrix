@@ -7,6 +7,8 @@ const postLinksDeleted = require('../../src/bot/post-link-deleted');
 const {isDeleteLinks} = require('../../src/jira-hook-parser/bot-handler.js');
 const {getPostLinkMessageBody} = require('../../src/bot/helper');
 const {cleanRedis} = require('../test-utils');
+const translate = require('../../src/locales');
+const marked = require('marked');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -29,11 +31,7 @@ describe('Test postLinksDeleted', () => {
     mclient.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
 
     before(() => {
-        nock(utils.getRestUrl(), {
-            reqheaders: {
-                Authorization: utils.auth(),
-            },
-        })
+        nock(utils.getRestUrl())
             .get(`/issue/${sourceIssueId}`)
             .reply(200, issueBody)
             .get(`/issue/${destinationIssueId}`)
@@ -94,5 +92,19 @@ describe('Test postLinksDeleted', () => {
         }
 
         expect(res).includes(utils.errorTracing('post delete link'));
+    });
+
+    it('Expect postlink correct works if destination issue is not available', async () => {
+        nock.cleanAll();
+
+        nock(utils.getRestUrl())
+            .get(`/issue/${sourceIssueId}`)
+            .reply(200, issueBody);
+        const expectedPost = translate('deleteLink');
+        const data = getPostLinksDeletedData(linkDeletedHook);
+        const res = await postLinksDeleted({...data, mclient});
+
+        expect(res).to.be.true;
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, expectedPost, marked(expectedPost));
     });
 });

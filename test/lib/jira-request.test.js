@@ -4,7 +4,7 @@ const proxyquire = require('proxyquire');
 
 const utils = require('../../src/lib/utils.js');
 const {expect} = require('chai');
-const {getRenderedValues, getRoomMembers, getUsers} = require('../../src/lib/jira-request');
+const {getRenderedValues, getIssueWatchers, getUsers} = require('../../src/lib/jira-request');
 const {getRequestErrorLog} = require('../../src/lib/messages');
 const {url} = require('../../src/config').jira;
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
@@ -100,20 +100,20 @@ describe('Issue test', () => {
         expect(issueResult).to.be.deep.equal(`${url}/browse/${issue.id}`);
     });
 
-    it('expect getRoomMembers works correct', async () => {
+    it('expect getIssueWatchers works correct', async () => {
         const url = utils.getRestUrl('issue', issue.id, 'watchers');
-        const result = await getRoomMembers({url, roomMembers});
+        const result = await getIssueWatchers({url, roomMembers});
         expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
     });
 
-    it('expect getRoomMembers works correct if watchersUrl exists', async () => {
+    it('expect getIssueWatchers works correct if watchersUrl exists', async () => {
         const url = utils.getRestUrl('issue', issue.id, 'watchers');
-        const result = await getRoomMembers({roomMembers, watchersUrl: url});
+        const result = await getIssueWatchers({roomMembers, watchersUrl: url});
         expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
     });
 
-    it('expect getRoomMembers avoid users from ignore invite list', async () => {
-        const {getRoomMembers: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
+    it('expect getIssueWatchers avoid users from ignore invite list', async () => {
+        const {getIssueWatchers: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
             '../config': {
                 inviteIgnoreUsers: roomMembers,
             },
@@ -123,8 +123,8 @@ describe('Issue test', () => {
         expect(result).to.be.deep.eq(watchersUsers);
     });
 
-    it('expect getRoomMembers avoid users from ignore invite list2', async () => {
-        const {getRoomMembers: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
+    it('expect getIssueWatchers avoid users from ignore invite list2', async () => {
+        const {getIssueWatchers: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
             '../config': {
                 inviteIgnoreUsers: watchersUsers,
             },
@@ -134,18 +134,18 @@ describe('Issue test', () => {
         expect(result).to.be.deep.eq(roomMembers);
     });
 
-    it('Expect getRoomMembers not fall if no url', async () => {
-        const result = await getRoomMembers({roomMembers});
+    it('Expect getIssueWatchers not fall if no url', async () => {
+        const result = await getIssueWatchers({roomMembers});
         expect(result).to.be.deep.eq(roomMembers);
     });
 
-    it('Expect getRoomMembers works correct if roomMembers have "null"', async () => {
-        const result = await getRoomMembers({roomMembers: [...roomMembers, null]});
+    it('Expect getIssueWatchers works correct if roomMembers have "null"', async () => {
+        const result = await getIssueWatchers({roomMembers: [...roomMembers, null]});
         expect(result).to.be.deep.eq(roomMembers);
     });
 
-    it('Expect getRoomMembers works correct if roomMembers is empty', async () => {
-        const result = await getRoomMembers({roomMembers: []});
+    it('Expect getIssueWatchers works correct if roomMembers is empty', async () => {
+        const result = await getIssueWatchers({roomMembers: []});
         expect(result).to.be.deep.eq([]);
     });
 

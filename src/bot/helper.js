@@ -195,13 +195,15 @@ const helper = {
     },
 
     getPostLinkMessageBody: ({relation, related}, action = 'newLink') => {
-        const {key} = related;
+        const key = utils.getKey(related);
         const issueRef = utils.getViewUrl(key);
         const summary = utils.getSummary(related);
         const values = {key, relation, summary, issueRef};
 
         const body = translate(action);
-        const message = translate(`${action}Message`, values);
+        const htmlBodyAction = related ? `${action}Message` : action;
+
+        const message = translate(htmlBodyAction, values);
         const htmlBody = marked(message);
 
         return {body, htmlBody};
