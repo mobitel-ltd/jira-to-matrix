@@ -7,6 +7,14 @@ const utils = require('../lib/utils.js');
 const jiraRequests = require('../lib/jira-request.js');
 
 const helper = {
+    isAvailabledIssue: async issueKey => {
+        const projectKey = utils.getProjectKey(issueKey);
+        const project = await jiraRequests.getProject(projectKey);
+        const privateStatus = utils.getProjectPrivateStatus(project);
+
+        return !privateStatus && jiraRequests.getIssueSafety(issueKey);
+    },
+
     isStartEndUpdateStatus: body => {
         const startDate = utils.getChangelogField('Start date', body);
         const endDate = utils.getChangelogField('End date', body);
