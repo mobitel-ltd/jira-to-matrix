@@ -258,6 +258,8 @@ const utils = {
         }, []);
     },
 
+    getProjectKey: issueKey => issueKey.split('-').slice(0, 1),
+
     // * --------------------------------- Redis utils ------------------------------- *
 
     getRedisLinkKey: id => [REDIS_LINK_PREFIX, DELIMITER, id].join(''),

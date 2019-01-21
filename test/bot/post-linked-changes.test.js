@@ -6,7 +6,8 @@ const body = require('../fixtures/webhooks/issue/updated/generic.json');
 const {getPostLinkedChangesData} = require('../../src/jira-hook-parser/parse-body.js');
 const postLinkedChanges = require('../../src/bot/post-linked-changes.js');
 const {isPostLinkedChanges} = require('../../src/jira-hook-parser/bot-handler.js');
-const issueLinkJSON = require('../fixtures/jira-api-requests/issuelink.json');
+const projectJSON = require('../fixtures/jira-api-requests/project.json');
+const issueJson = require('../fixtures/jira-api-requests/issue.json');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -15,7 +16,11 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('post New Links test', () => {
-    const [linkId1, linkId2] = utils.getLinks(body).map(({id}) => id);
+    const ignoredProject = 'IGNORE';
+    const ignoredProjectIssue = `${ignoredProject}-123`;
+    const availableProject = 'AVAILABLE';
+    const availableProjectIssue = `${availableProject}-123`;
+
     const roomId = 'roomId';
     const key = utils.getKey(body);
     const summary = utils.getSummary(body);
@@ -31,15 +36,16 @@ describe('post New Links test', () => {
     };
 
     before(() => {
-        nock(utils.getRestUrl(), {
-            reqheaders: {
-                Authorization: utils.auth(),
-            },
-        })
-            .get(`/issueLink/${linkId1}`)
-            .reply(200, {...issueLinkJSON, id: linkId1})
-            .get(`/issueLink/${linkId2}`)
-            .reply(200, {...issueLinkJSON, id: linkId2});
+        nock(utils.getRestUrl())
+            .get(`/project/${ignoredProject}`)
+            .times(2)
+            .reply(200, {...projectJSON, isPrivate: true})
+            .get(`/project/${availableProject}`)
+            .times(2)
+            .reply(200, projectJSON)
+            .get(`/issue/${availableProjectIssue}`)
+            .times(2)
+            .reply(200, issueJson);
     });
 
     afterEach(() => {
@@ -50,14 +56,6 @@ describe('post New Links test', () => {
         nock.cleanAll();
     });
 
-    it('Get links changes', async () => {
-        const data = getPostLinkedChangesData(body);
-        const result = await postLinkedChanges({mclient, ...data});
-
-        expect(result).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedBody, expectedHTMLBody);
-    });
-
     it('Get empty links', () => {
         const newBody = {...body, issue: {fields: {issuelinks: []}}};
         const isLink = isPostLinkedChanges(newBody);
@@ -65,12 +63,35 @@ describe('post New Links test', () => {
         expect(isLink).to.be.false;
     });
 
+    it('Expect all linked issues in projects if they are not available to be ignored and no error to be thrown', async () => {
+        const data = getPostLinkedChangesData(body);
+        const res = await postLinkedChanges({mclient, ...data, linksKeys: [ignoredProjectIssue]});
+
+        expect(res).to.be.true;
+        expect(mclient.getRoomId).not.to.be.called;
+        expect(mclient.sendHtmlMessage).not.to.be.called;
+    });
+
+    it('Expect all linked issues in projects which are available to be handled other to be ignored', async () => {
+        const data = getPostLinkedChangesData(body);
+        let res;
+        try {
+            res = await postLinkedChanges({mclient, ...data, linksKeys: [ignoredProjectIssue, availableProjectIssue]});
+        } catch (error) {
+            res = error;
+        }
+
+        expect(res).to.be.true;
+        expect(mclient.getRoomId).to.be.calledOnce;
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedBody, expectedHTMLBody);
+    });
+
     it('Expect send status not to be sent if at least one of room is not found', async () => {
         mclient.getRoomId.rejects();
         const data = getPostLinkedChangesData(body);
         let res;
         try {
-            res = await postLinkedChanges({mclient, ...data});
+            res = await postLinkedChanges({mclient, ...data, linksKeys: [availableProjectIssue]});
         } catch (err) {
             res = err;
         }
