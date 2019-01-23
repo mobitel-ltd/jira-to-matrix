@@ -28,9 +28,8 @@ module.exports = Object.freeze({
     // useful for testing, add a test user into production config
     usersToIgnore: ['jira_test'],
     // list of users which will be avoided in inviting to room in matrix
-    inviteIgnoreUsers: [],
     testMode: {
-        on: true,
+        on: false,
         users: ['ivan', 'masha'],
     },
     redis: {
@@ -38,11 +37,16 @@ module.exports = Object.freeze({
         port: 6379,
         prefix: 'jira-hooks:',
     },
-    ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
     matrix: {
         domain: 'matrix.example-example.org',
         user: 'bot', // short name, before colon, without @
         password: 'key',
         pollTimeout: 30000 // The number of milliseconds to wait on /sync
     },
-})
+    log: {
+        type: 'console',
+        filePath: 'logs/service',
+        fileLevel: 'silly',
+        consoleLevel: 'debug',
+    },
+});

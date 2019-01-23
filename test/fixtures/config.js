@@ -35,14 +35,12 @@ module.exports = Object.freeze({
         port: 6379,
         prefix: 'test-jira-hooks:',
     },
-    ttm_minutes: 60, // time-to-matter, how long to re-try digesting jira hooks
     matrix: {
         admins: ['jira_test'],
         domain: 'matrix.test-example.ru',
         user: 'jira_test_bot', // short name, before colon, without @
         password: 'fakepasswprd',
         pollTimeout: 30000,
-        lazyLoadMembers: true,
     },
     log: {
         type: 'console',
