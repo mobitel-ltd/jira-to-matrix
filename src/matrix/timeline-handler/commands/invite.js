@@ -1,15 +1,9 @@
-const {domain, admins} = require('../../../config').matrix;
 const translate = require('../../../locales');
-const {getMatrixUserID} = require('../../../lib/utils');
+const utils = require('../../../lib/utils');
 
 const getRoomId = async (room, matrixClient) => {
     try {
-        if (~room.indexOf(domain)) {
-            const {room_id: roomId} = await matrixClient.getRoomIdForAlias(room);
-            return roomId;
-        }
-
-        const alias = `#${room.toUpperCase()}:${domain}`;
+        const alias = utils.isMatrixRoomName(room) ? room : utils.getMatrixRoomAlias(room.toUpperCase());
         const {room_id: roomId} = await matrixClient.getRoomIdForAlias(alias);
 
         return roomId;
@@ -21,13 +15,13 @@ const getRoomId = async (room, matrixClient) => {
 module.exports = async ({bodyText, sender, room, matrixClient}) => {
     const data = {};
     try {
-        if (!admins.includes(sender)) {
+        if (!utils.isAdmin(sender)) {
             data.body = translate('rightsError');
             return;
         }
 
         const roomId = await getRoomId(bodyText, matrixClient);
-        const userId = getMatrixUserID(sender);
+        const userId = utils.getMatrixUserID(sender);
         await matrixClient.invite(roomId, userId);
         data.body = translate('successMatrixInvite');
     } catch (err) {

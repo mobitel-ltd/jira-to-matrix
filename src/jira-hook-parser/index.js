@@ -5,13 +5,16 @@ const {saveIncoming} = require('../queue/redis-data-handle.js');
 
 module.exports = async body => {
     try {
-        await isIgnore(body);
+        if (await isIgnore(body)) {
+            return;
+        }
+
         const parsedBody = getFuncAndBody(body);
         await Promise.all(parsedBody.map(saveIncoming));
 
         return true;
     } catch (err) {
-        logger.warn('Error in parsing ', err);
+        logger.error('Error in parsing ', err);
 
         return false;
     }

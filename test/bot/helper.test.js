@@ -267,8 +267,9 @@ describe('Helper tests', () => {
 
             const userStatus = getIgnoreBodyData(issueChangedHook);
             const projectStatus = await getIgnoreProject(issueChangedHook);
+            const status = userStatus.ignoreStatus || projectStatus.ignoreStatus;
 
-            expect(result).to.be.deep.eq({userStatus, projectStatus});
+            expect(result).to.be.deep.eq({userStatus, projectStatus, status});
         });
 
         it('Expect getIgnoreProject handle hook correct if project is new-gen', async () => {

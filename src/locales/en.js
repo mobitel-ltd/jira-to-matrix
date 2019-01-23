@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 const dict = Object.freeze({
+    notAdmin: 'User "%{sender}" don\'t have admin status for this command',
     setBotToAdmin: 'Bot don\'t have permission to add user to Jira issue',
     noRulesToWatchIssue: 'Bot don\'t have permission to watch or make actions in this Jira issue',
     comment_created: 'commented',

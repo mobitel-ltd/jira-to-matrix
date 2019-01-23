@@ -2,12 +2,11 @@ const conf = require('../config').matrix;
 const logger = require('../modules/log.js')(module);
 const cbTimeline = require('./timeline-handler');
 const Ramda = require('ramda');
+const utils = require('../lib/utils');
 
 // TODO: delete EVENT_EXCEPTION check in errors after resolving 'no-event' bug
 const EVENT_EXCEPTION = 'Could not find event';
 const BOT_OUT_OF_ROOM_EXEPTION = `User ${conf.userId} not in room`;
-
-const getAlias = alias => `#${alias}:${conf.domain}`;
 
 const getRooms = client => () =>
     client.getRooms();
@@ -23,7 +22,7 @@ const createRoom = client => async options => {
 
 const getRoomId = client => async alias => {
     try {
-        const {room_id: roomId} = await client.getRoomIdForAlias(getAlias(alias));
+        const {room_id: roomId} = await client.getRoomIdForAlias(utils.getMatrixRoomAlias(alias));
         return roomId;
     } catch (err) {
         throw (`No roomId for ${alias} from Matrix\n`, err);
@@ -73,7 +72,7 @@ const sendHtmlMessage = client => async (roomId, body, htmlBody) => {
 };
 
 const createAlias = client => async (alias, roomId) => {
-    const newAlias = getAlias(alias);
+    const newAlias = utils.getMatrixRoomAlias(alias);
     try {
         await client.createAlias(newAlias, roomId);
     } catch (err) {

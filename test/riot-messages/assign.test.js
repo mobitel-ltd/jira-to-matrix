@@ -1,6 +1,6 @@
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
-const {schemaAssignee} = require('../../src/matrix/timeline-handler/commands/schemas.js');
+const schemas = require('../../src/lib/schemas.js');
 const translate = require('../../src/locales');
 const messages = require('../../src/lib/messages');
 
@@ -31,10 +31,10 @@ describe('assign test', () => {
 
     const userA = {displayName: 'Ivan Andreevich A', name: 'ia_a'};
     const userB = {displayName: 'Ivan Sergeevich B', name: 'is_b'};
-    const senderName = 'my_sender';
+    const sender = 'my_sender';
     const senderDisplayName = 'My Sender S';
 
-    const userSender = {displayName: senderDisplayName, name: senderName};
+    const userSender = {displayName: senderDisplayName, name: sender};
     const users = [userA, userB, userSender];
 
     const matrixClient = {
@@ -43,9 +43,7 @@ describe('assign test', () => {
     };
 
     const roomName = 'BBCOM-123';
-    const body = '!assign';
 
-    const sender = utils.getMatrixUserID(senderName);
     const room = {
         roomId: 12345,
         members: [
@@ -60,15 +58,15 @@ describe('assign test', () => {
         nock(utils.getRestUrl(), {
             reqheaders: {Authorization: utils.auth()},
         })
-            .put(`/issue/${roomName}/assignee`, schemaAssignee(senderName))
+            .put(`/issue/${roomName}/assignee`, schemas.assignee(sender))
             .reply(204)
-            .put(`/issue/${roomName}/assignee`, schemaAssignee(userB.name))
+            .put(`/issue/${roomName}/assignee`, schemas.assignee(userB.name))
             .reply(204)
-            .put(`/issue/${roomName}/assignee`, schemaAssignee(userA.name))
+            .put(`/issue/${roomName}/assignee`, schemas.assignee(userA.name))
             .reply(204)
-            .put(`/issue/${roomName}/assignee`, schemaAssignee(noPermissionUser.name))
+            .put(`/issue/${roomName}/assignee`, schemas.assignee(noPermissionUser.name))
             .reply(403)
-            .put(`/issue/${roomName}/assignee`, schemaAssignee(noRulesUser.name))
+            .put(`/issue/${roomName}/assignee`, schemas.assignee(noRulesUser.name))
             .reply(404);
     });
 
@@ -80,25 +78,25 @@ describe('assign test', () => {
         nock.cleanAll();
     });
 
-    it('should assign sender ("!assign")', async () => {
+    it('Expect assign sender ("!assign")', async () => {
         searchUserStub.returns(users.slice(2, 3));
         const post = translate('successMatrixAssign', {displayName: senderDisplayName});
-        const result = await assign({body, sender, room, roomName, matrixClient});
+        const result = await assign({sender, room, roomName, matrixClient});
 
         expect(result).to.be.equal(messages.getAssigneeAddedLog(senderDisplayName, roomName));
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
-    it('should not assign sender ("!assign fake")', async () => {
+    it('Expect not assign sender ("!assign fake")', async () => {
         searchUserStub.returns([]);
         const post = translate('errorMatrixAssign', {userToFind: userA.displayName});
-        const result = await assign({body: `!assign ${userA.displayName}`, sender, room, roomName, matrixClient});
+        const result = await assign({bodyText: userA.displayName, sender, room, roomName, matrixClient});
 
         expect(result).to.be.equal(messages.getAssigneeNotAddedLog(userA.displayName, roomName));
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
-    it('should assign list of senders ("!assign Ivan")', async () => {
+    it('Expect assign list of senders ("!assign Ivan")', async () => {
         searchUserStub.returns(users.slice(0, 2));
         const post = 'List users:<br><strong>ia_a</strong> - Ivan Andreevich A<br><strong>is_b</strong> - Ivan Sergeevich B<br>';
         const result = await assign({body: '!assign Ivan', sender, room, roomName, matrixClient});
@@ -107,7 +105,7 @@ describe('assign test', () => {
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, 'List users', post);
     });
 
-    it('should be in room', async () => {
+    it('Expect be in room', async () => {
         const newUsers = users.slice(1, 2);
         searchUserStub.returns(newUsers);
         matrixClient.invite.throws('Error!!!');
@@ -120,7 +118,7 @@ describe('assign test', () => {
         expect(result).to.be.equal(expected);
     });
 
-    it('should be error (invite throw)', async () => {
+    it('Expect be error (invite throw)', async () => {
         searchUserStub.returns(users.slice(0, 1));
         matrixClient.invite.throws('Error!!!');
         const expected = [
@@ -139,7 +137,7 @@ describe('assign test', () => {
         expect(result).to.be.equal(expected);
     });
 
-    it('should be sent msg about adding admin status if 403 error got in request', async () => {
+    it('Expect be sent msg about adding admin status if 403 error got in request', async () => {
         searchUserStub.resolves([noPermissionUser]);
         const post = translate('setBotToAdmin');
         const noPermissionUserBody = `!assign ${noPermissionUser.displayName}`;
@@ -149,7 +147,7 @@ describe('assign test', () => {
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
-    it('should be sent msg about no access to project if 404 error got in request', async () => {
+    it('Expect be sent msg about no access to project if 404 error got in request', async () => {
         searchUserStub.resolves([noRulesUser]);
         const post = translate('noRulesToWatchIssue');
         const noRulesUserBody = `!assign ${noRulesUser.displayName}`;

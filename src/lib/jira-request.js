@@ -1,4 +1,3 @@
-const {schemaWatcher, schemaAssignee} = require('../matrix/timeline-handler/commands/schemas');
 const querystring = require('querystring');
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
@@ -6,12 +5,45 @@ const {jira, inviteIgnoreUsers = []} = require('../config');
 const {request, requestPost, requestPut} = require('./request.js');
 const utils = require('./utils.js');
 const messages = require('./messages');
+const schemas = require('./schemas');
 
 const {url: jiraUrl} = jira;
 
 const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
 
 const jiraRequests = {
+    postComment: (roomName, sender, bodyText) => {
+        const url = utils.getRestUrl('issue', roomName, 'comment');
+
+        return requestPost(url, schemas.comment(sender, bodyText));
+    },
+
+    postIssueStatus: (roomName, id) => {
+        const url = utils.getRestUrl('issue', roomName, 'transitions');
+
+        return requestPost(url, schemas.move(id));
+    },
+
+    getPossibleIssueStatuses: async roomName => {
+        const url = utils.getRestUrl('issue', roomName, 'transitions');
+        const {transitions} = await request(url);
+
+        return transitions;
+    },
+
+    getIssuePriorities: async roomName => {
+        const url = utils.getRestUrl('issue', roomName, 'editmeta');
+        const res = await request(url);
+
+        return Ramda.path(['fields', 'priority', 'allowedValues'], res);
+    },
+
+    updateIssuePriority: (roomName, id) => {
+        const url = utils.getRestUrl('issue', roomName);
+
+        return requestPost(url, schemas.fields(id));
+    },
+
     testJiraRequest: async () => {
         try {
             const res = await request(jiraUrl);
@@ -166,13 +198,13 @@ const jiraRequests = {
     addWatcher: (name, roomName) => {
         const watchersUrl = utils.getRestUrl('issue', roomName, 'watchers');
 
-        return requestPost(watchersUrl, schemaWatcher(name));
+        return requestPost(watchersUrl, schemas.watcher(name));
     },
 
     addAssignee: (name, roomName) => {
         const assigneeUrl = utils.getRestUrl('issue', roomName, 'assignee');
 
-        return requestPut(assigneeUrl, schemaAssignee(name));
+        return requestPut(assigneeUrl, schemas.assignee(name));
     },
 
     getIssueSafety: async id => {

@@ -79,8 +79,9 @@ const helper = {
     getIgnoreInfo: async body => {
         const userStatus = helper.getIgnoreBodyData(body);
         const projectStatus = await helper.getIgnoreProject(body);
+        const status = userStatus.ignoreStatus || projectStatus.ignoreStatus;
 
-        return {userStatus, projectStatus};
+        return {userStatus, projectStatus, status};
     },
 
     getMembersUserId: members => members.map(({userId}) => userId),

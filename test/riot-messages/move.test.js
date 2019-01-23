@@ -1,11 +1,10 @@
 const nock = require('nock');
-const {auth} = require('../../src/lib/utils.js');
 const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
-const {schemaMove} = require('../../src/matrix/timeline-handler/commands/schemas.js');
+const schemas = require('../../src/lib/schemas');
 const {move} = require('../../src/matrix/timeline-handler/commands');
 const transitions = require('../fixtures/jira-api-requests/transitions.json');
-const {getRequestErrorLog} = require('../../src/lib/messages');
 const translate = require('../../src/locales');
+const messages = require('../../src/lib/messages');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -16,30 +15,22 @@ chai.use(sinonChai);
 describe('move test', () => {
     const roomName = 'BBCOM-123';
     const room = {roomId: 12345};
-    const sendHtmlMessageStub = stub();
 
-    const matrixClient = {
-        sendHtmlMessage: sendHtmlMessageStub,
-    };
-
-    const errorStatus = 404;
-    const transitionsPath = `/${roomName}/transitions`;
+    const matrixClient = {sendHtmlMessage: stub()};
 
     before(() => {
-        nock(BASE_URL, {
-            reqheaders: {
-                Authorization: auth(),
-            },
-        })
-            .get(`/fake/transitions`)
-            .reply(404, 'Error!!!')
-            .get(transitionsPath)
+        nock(BASE_URL)
+            .get(`/${roomName}/transitions`)
             .times(2)
             .reply(200, transitions)
-            .post(transitionsPath, schemaMove('2'))
+            .post(`/${roomName}/transitions`, schemas.move('2'))
             .reply(204)
-            .post(transitionsPath, schemaMove('5'))
-            .reply(errorStatus);
+            .post(`/${roomName}/transitions`, schemas.move('5'))
+            .reply(404);
+    });
+
+    afterEach(() => {
+        Object.values(matrixClient).map(val => val.resetHistory());
     });
 
     after(() => {
@@ -54,35 +45,22 @@ describe('move test', () => {
         ];
 
         const result = await move({bodyText: '', room, roomName, matrixClient});
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(matrixClient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.undefined;
-        sendHtmlMessageStub.reset();
     });
 
     it('Get correct !move command', async () => {
         const result = await move({bodyText: '1', room, roomName, matrixClient});
 
-        const expected = `Issue ${roomName} changed status`;
-        expect(sendHtmlMessageStub).not.to.have.been.called;
-        expect(result).to.be.equal(expected);
-        sendHtmlMessageStub.reset();
+        expect(matrixClient.sendHtmlMessage).not.to.have.been.called;
+        expect(result).to.be.equal(messages.getMoveSuccessLog(roomName));
     });
 
     it('Get error', async () => {
-        const fakeRoom = 'fake';
-        const fakeUrl = `${BASE_URL}/${fakeRoom}/transitions`;
-        const requestErrorLog = getRequestErrorLog(fakeUrl, errorStatus);
-        const post = translate('errorMoveJira');
-        const expectedData = [
-            room.roomId,
-            requestErrorLog,
-            post,
-        ];
+        const result = await move({bodyText: '1', room, roomName: 'fakeRoom', matrixClient});
 
-        const result = await move({bodyText: '1', room, roomName: fakeRoom, matrixClient});
-        const expected = `Issue ${fakeRoom} not changed status`;
-        expect(result).to.be.equal(expected);
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
-        sendHtmlMessageStub.reset();
+        const post = translate('errorMoveJira');
+        expect(result).to.be.equal(post);
+        expect(matrixClient.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, post, post);
     });
 });

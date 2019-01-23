@@ -7,7 +7,8 @@ const redis = require('../../src/redis-client.js');
 const utils = require('../../src/lib/utils');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const {cleanRedis} = require('../test-utils');
-
+const proxyquire = require('proxyquire');
+const {stub} = require('sinon');
 describe('get-parsed-save to redis', () => {
     const redisKey = 'postComment_1512034084304';
     const expected = {
@@ -80,6 +81,26 @@ describe('get-parsed-save to redis', () => {
         const ignoredBody = {...commentCreatedHook, ...ignoredName};
         const parsedForQueue = await getParsedAndSaveToRedis(ignoredBody);
 
-        expect(parsedForQueue).to.be.equal(false);
+        expect(parsedForQueue).not.to.be.true;
+    });
+
+    it('Expect false to be returned if some error was thrown inside handling', async () => {
+        const saveIncoming = stub();
+        const getParsedAndSaveToRedisStub = proxyquire('../../src/jira-hook-parser', {
+            './bot-handler.js': {
+                getFuncAndBody: stub().throws(),
+            },
+            '../queue/redis-data-handle.js': {saveIncoming},
+        });
+
+        let res;
+        try {
+            res = await getParsedAndSaveToRedisStub(commentCreatedHook);
+        } catch (err) {
+            res = err;
+        }
+
+        expect(res).to.be.false;
+        expect(saveIncoming).not.to.be.called;
     });
 });

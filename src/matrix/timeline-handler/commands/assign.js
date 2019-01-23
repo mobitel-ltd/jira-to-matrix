@@ -3,9 +3,9 @@ const translate = require('../../../locales');
 const {searchUser, addToAssignee} = require('./helper.js');
 const messages = require('../../../lib/messages');
 
-module.exports = async ({body, sender, room, roomName, matrixClient}) => {
+module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
     try {
-        const userToFind = body === '!assign' ? sender : body.substring(8).trim();
+        const userToFind = bodyText || sender;
         const users = await searchUser(userToFind);
 
         switch (users.length) {

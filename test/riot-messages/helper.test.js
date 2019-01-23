@@ -134,7 +134,14 @@ describe('command handler test', () => {
         const body = '!help';
         const {commandName, bodyText} = parseEventBody(body);
         expect(commandName).to.be.equal('help');
-        expect(bodyText).to.be.equal('');
+        expect(bodyText).to.be.undefined;
+    });
+
+    it('correct command name', () => {
+        const body = '!help   ';
+        const {commandName, bodyText} = parseEventBody(body);
+        expect(commandName).to.be.equal('help');
+        expect(bodyText).to.be.undefined;
     });
 
     it('correct command name', () => {

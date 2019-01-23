@@ -1,19 +1,14 @@
-const {request, requestPut} = require('../../../lib/request.js');
+const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
-const {checkNamePriority, BASE_URL} = require('./helper.js');
-const {shemaFields} = require('./schemas.js');
+const {checkNamePriority} = require('./helper.js');
 
 module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
-        const {fields} = await request(
-            `${BASE_URL}/${roomName}/editmeta`,
-        );
+        const priorities = await jiraRequests.getIssuePriorities(roomName);
 
-        if (!fields) {
+        if (!priorities) {
             throw new Error(`Jira not return list priorities for ${roomName}`);
         }
-
-        const priorities = fields.priority.allowedValues;
 
         const priority = priorities.reduce((prev, cur, index) => {
             if (checkNamePriority(cur, index, bodyText)) {
@@ -31,10 +26,7 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
             return;
         }
 
-        await requestPut(
-            `${BASE_URL}/${roomName}`,
-            shemaFields(priority.id)
-        );
+        await jiraRequests.updateIssuePriority(roomName, priority.id);
 
         const post = translate('setPriority', priority);
         await matrixClient.sendHtmlMessage(room.roomId, 'Successful set priority', post);
