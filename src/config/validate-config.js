@@ -46,14 +46,12 @@ const schema = obj({
         port: int,
         prefix: string,
     }),
-    ttm_minutes: int,
     matrix: obj({
         admins: array(Joi.string()),
         domain: string,
         user: string,
         password: string,
         pollTimeout: int,
-        lazyLoadMembers: boolean,
     }),
     log: {
         type: string,
