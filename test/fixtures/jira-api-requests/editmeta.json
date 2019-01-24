@@ -1,0 +1,225 @@
+{
+    "fields": {
+        "summary": {
+            "required": true,
+            "schema": {
+                "type": "string",
+                "system": "summary"
+            },
+            "name": "Описание",
+            "key": "summary",
+            "operations": [
+                "set"
+            ]
+        },
+        "issuetype": {
+            "required": true,
+            "schema": {
+                "type": "issuetype",
+                "system": "issuetype"
+            },
+            "name": "Тип задачи",
+            "key": "issuetype",
+            "operations": [],
+            "allowedValues": [
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/issuetype/10169",
+                    "id": "10169",
+                    "description": "Создано с помощью Jira Agile – не редактировать и не удалять. Тип задачи для пользовательской истории.",
+                    "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10315&avatarType=issuetype",
+                    "name": "История",
+                    "subtask": false,
+                    "avatarId": 10315
+                },
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/issuetype/10176",
+                    "id": "10176",
+                    "description": "Los errores realizan un seguimiento de otros problemas o errores.",
+                    "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10303&avatarType=issuetype",
+                    "name": "Error",
+                    "subtask": false,
+                    "avatarId": 10303
+                },
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/issuetype/10177",
+                    "id": "10177",
+                    "description": "Las tareas realizan un seguimiento de trabajos pequeños y variados.",
+                    "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10318&avatarType=issuetype",
+                    "name": "Tarea",
+                    "subtask": false,
+                    "avatarId": 10318
+                },
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/issuetype/10180",
+                    "id": "10180",
+                    "description": "",
+                    "iconUrl": "https://priority/secure/viewavatar?size=xsmall&avatarId=10321&avatarType=issuetype",
+                    "name": "test",
+                    "subtask": false,
+                    "avatarId": 10321
+                }
+            ]
+        },
+        "environment": {
+            "required": false,
+            "schema": {
+                "type": "string",
+                "system": "environment"
+            },
+            "name": "Окружение",
+            "key": "environment",
+            "operations": [
+                "set"
+            ]
+        },
+        "customfield_10019": {
+            "required": false,
+            "schema": {
+                "type": "any",
+                "custom": "com.pyxis.greenhopper.jira:gh-lexo-rank",
+                "customId": 10019
+            },
+            "name": "Rank",
+            "key": "customfield_10019",
+            "operations": [
+                "set"
+            ]
+        },
+        "attachment": {
+            "required": false,
+            "schema": {
+                "type": "array",
+                "items": "attachment",
+                "system": "attachment"
+            },
+            "name": "Вложение",
+            "key": "attachment",
+            "operations": []
+        },
+        "duedate": {
+            "required": false,
+            "schema": {
+                "type": "date",
+                "system": "duedate"
+            },
+            "name": "Срок исполнения",
+            "key": "duedate",
+            "operations": [
+                "set"
+            ]
+        },
+        "description": {
+            "required": false,
+            "schema": {
+                "type": "string",
+                "system": "description"
+            },
+            "name": "Описание",
+            "key": "description",
+            "operations": [
+                "set"
+            ]
+        },
+        "issuelinks": {
+            "required": false,
+            "schema": {
+                "type": "array",
+                "items": "issuelinks",
+                "system": "issuelinks"
+            },
+            "name": "Связанные задачи",
+            "key": "issuelinks",
+            "autoCompleteUrl": "https://jira.test-example.ru/rest/api/2/issue/picker?currentProjectId=&showSubTaskParent=true&showSubTasks=true&currentIssueKey=INDEV-6&query=",
+            "operations": [
+                "add"
+            ]
+        },
+        "comment": {
+            "required": false,
+            "schema": {
+                "type": "comments-page",
+                "system": "comment"
+            },
+            "name": "Комментарий",
+            "key": "comment",
+            "operations": [
+                "add",
+                "edit",
+                "remove"
+            ]
+        },
+        "assignee": {
+            "required": false,
+            "schema": {
+                "type": "user",
+                "system": "assignee"
+            },
+            "name": "Исполнитель",
+            "key": "assignee",
+            "autoCompleteUrl": "https://jira.test-example.ru/rest/api/latest/user/assignable/search?issueKey=INDEV-6&query=",
+            "operations": [
+                "set"
+            ]
+        },
+        "priority": {
+            "required": false,
+            "schema": {
+                "type": "priority",
+                "system": "priority"
+            },
+            "name": "Приоритет",
+            "key": "priority",
+            "operations": [
+                "set"
+            ],
+            "allowedValues": [
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/priority/1",
+                    "iconUrl": "https://jira.test-example.ru/images/icons/priorities/highest.svg",
+                    "name": "Highest",
+                    "id": "1"
+                },
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/priority/2",
+                    "iconUrl": "https://jira.test-example.ru/images/icons/priorities/high.svg",
+                    "name": "High",
+                    "id": "2"
+                },
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                    "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
+                    "name": "Medium",
+                    "id": "3"
+                },
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/priority/4",
+                    "iconUrl": "https://jira.test-example.ru/images/icons/priorities/low.svg",
+                    "name": "Low",
+                    "id": "4"
+                },
+                {
+                    "self": "https://jira.test-example.ru/rest/api/2/priority/5",
+                    "iconUrl": "https://jira.test-example.ru/images/icons/priorities/lowest.svg",
+                    "name": "Lowest",
+                    "id": "5"
+                }
+            ]
+        },
+        "labels": {
+            "required": false,
+            "schema": {
+                "type": "array",
+                "items": "string",
+                "system": "labels"
+            },
+            "name": "Метки",
+            "key": "labels",
+            "autoCompleteUrl": "https://jira.test-example.ru/rest/api/1.0/labels/suggest?query=",
+            "operations": [
+                "add",
+                "set",
+                "remove"
+            ]
+        }
+    }
+}

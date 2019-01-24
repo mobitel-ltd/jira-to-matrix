@@ -7,16 +7,18 @@ const utils = require('../../../lib/utils.js');
 const MAX_USERS = 999;
 const START_AT = 0;
 
-const getInviteUser = (name, room) => {
-    const user = utils.getMatrixUserID(name);
-    const members = room.getJoinedMembers();
-    const isInRoom = members.some(({userId}) => userId === user);
-
-    return isInRoom ? false : user;
-};
 
 const helper = {
-    BASE_URL: utils.getRestUrl('issue'),
+    getInviteUser: (name, room) => {
+        const user = utils.getMatrixUserID(name);
+
+        return helper.isMember(room, user) ? false : user;
+    },
+
+    isMember: (room, userIdMatrix) => {
+        const members = room.getJoinedMembers();
+        return members.some(({userId}) => userId === userIdMatrix);
+    },
 
     // Checking occurrences of current name
     checkUser: ({name, displayName}, expectedName) =>
@@ -26,10 +28,6 @@ const helper = {
     checkCommand: (body, name, index) =>
         body.toLowerCase() === name.toLowerCase()
         || body.includes(String(index + 1)),
-
-    checkNamePriority: (priority, index, name) =>
-        priority.name.toLowerCase() === name.toLowerCase()
-        || String(index + 1) === name,
 
     getAllUsers: async () => {
         try {
@@ -59,11 +57,18 @@ const helper = {
     // Parse body of event from Matrix
     parseEventBody: body => {
         try {
-            const commandName = body
+            const trimedBody = body.trim();
+
+            const commandName = trimedBody
                 .split(' ')[0]
                 .match(/^!\w+$/g)[0]
                 .substring(1);
-            const bodyText = body
+
+            if (`!${commandName}` === trimedBody) {
+                return {commandName};
+            }
+
+            const bodyText = trimedBody
                 .replace(`!${commandName}`, '')
                 .trim();
 
@@ -73,11 +78,10 @@ const helper = {
         }
     },
 
-
     addToWatchers: async (room, roomName, name, matrixClient) => {
         try {
             await jiraRequests.addWatcher(name, roomName);
-            const inviteUser = getInviteUser(name, room);
+            const inviteUser = helper.getInviteUser(name, room);
 
             if (inviteUser) {
                 await matrixClient.invite(room.roomId, inviteUser);
@@ -90,7 +94,7 @@ const helper = {
     addToAssignee: async (room, roomName, name, matrixClient) => {
         try {
             await jiraRequests.addAssignee(name, roomName);
-            const inviteUser = getInviteUser(name, room);
+            const inviteUser = helper.getInviteUser(name, room);
             if (inviteUser) {
                 await matrixClient.invite(room.roomId, inviteUser);
             }

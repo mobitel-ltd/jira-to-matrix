@@ -1,20 +1,11 @@
 const logger = require('../modules/log.js')(module);
 const {getIgnoreInfo} = require('../bot/helper.js');
-
-const getUserStatusMsg = ({username, creator, startEndUpdateStatus, ignoreStatus}) =>
-    `User "${username}", creator "${creator}", startendmode "${startEndUpdateStatus}" ignore status: ${ignoreStatus}`;
-
-const getProjectStatusMsg = ({webhookEvent, ignoreStatus, timestamp, issueName}) =>
-    `webhookEvent ${webhookEvent}, timestamp ${timestamp}, issueName ${issueName}, ignored status: ${ignoreStatus}`;
+const messages = require('../lib/messages');
 
 module.exports = async body => {
-    const {projectStatus, userStatus} = await getIgnoreInfo(body);
-    const userStatusMsg = getUserStatusMsg(userStatus);
-    const projectStatusMsg = getProjectStatusMsg(projectStatus);
+    const ignoreInfo = await getIgnoreInfo(body);
+    const msg = messages.getWebhookStatusLog(ignoreInfo);
+    logger.info(msg);
 
-    logger.info(userStatusMsg, '\n', projectStatusMsg);
-
-    if (userStatus.ignoreStatus || projectStatus.ignoreStatus) {
-        throw 'User ignored';
-    }
+    return ignoreInfo.status;
 };

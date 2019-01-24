@@ -295,19 +295,39 @@ const utils = {
 
     // * --------------------------------- Other utils ------------------------------- *
 
+
+    getEvent: content => ({
+        getType: () => 'm.room.power_levels',
+        getContent: () => content,
+    }),
+
+    isAdmin: user => matrix.admins.includes(user),
+
     getLimit: () => NEW_YEAR_2018.getTime(),
 
     getMembersExceptBot: joinedMembers =>
         joinedMembers.reduce((acc, {userId}) =>
             (userId === botId ? acc : [...acc, userId]), []),
 
+    isMatrixRoomName: room => ~room.indexOf(matrix.domain),
+
+    getMatrixRoomAlias: alias => `#${alias}:${matrix.domain}`,
 
     getMatrixUserID: shortName => `@${shortName}:${matrix.domain}`,
 
-    getListToHTML: list => list.reduce((prev, cur) =>
-        `${prev}<strong>${cur.name}</strong> - ${cur.displayName}<br>`,
+    getNameFromMatrixId: id => {
+        const [name] = id.split(':').slice(0, 1);
+
+        return name.slice(1);
+    },
+
+    getListToHTML: list => list.reduce((acc, {name, displayName}) =>
+        `${acc}<strong>${name}</strong> - ${displayName}<br>`,
     'List users:<br>'),
 
+    getListPriorities: list => list.reduce((acc, {name, id}) =>
+        `${acc}<strong>${id}</strong> - ${name}<br>`,
+    'List priorities:<br>'),
 
     expandParams: {expand: 'renderedFields'},
 

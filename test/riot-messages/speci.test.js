@@ -1,6 +1,6 @@
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
-const {schemaWatcher} = require('../../src/matrix/timeline-handler/commands/schemas.js');
+const schemas = require('../../src/lib/schemas');
 const translate = require('../../src/locales');
 const messages = require('../../src/lib/messages');
 
@@ -57,15 +57,15 @@ describe('spec test', () => {
                 Authorization: utils.auth(),
             },
         })
-            .post(`/issue/${roomName}/watchers`, schemaWatcher(userB.name))
+            .post(`/issue/${roomName}/watchers`, schemas.watcher(userB.name))
             .times(2)
             .reply(204)
-            .post(`/issue/${roomName}/watchers`, schemaWatcher(userA.name))
+            .post(`/issue/${roomName}/watchers`, schemas.watcher(userA.name))
             .times(2)
             .reply(204)
-            .post(`/issue/${roomName}/watchers`, schemaWatcher(noPermissionUser.name))
+            .post(`/issue/${roomName}/watchers`, schemas.watcher(noPermissionUser.name))
             .reply(403)
-            .post(`/issue/${roomName}/watchers`, schemaWatcher(noRulesUser.name))
+            .post(`/issue/${roomName}/watchers`, schemas.watcher(noRulesUser.name))
             .reply(404);
     });
 

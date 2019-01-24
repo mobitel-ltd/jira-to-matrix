@@ -5,12 +5,12 @@ const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
-const {auth} = require('../../src/lib/utils.js');
-const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
-const {schemaComment} = require('../../src/matrix/timeline-handler/commands/schemas.js');
+const utils = require('../../src/lib/utils');
+const schemas = require('../../src/lib/schemas.js');
 const {comment} = require('../../src/matrix/timeline-handler/commands');
 const {getRequestErrorLog} = require('../../src/lib/messages');
 const {dict: {errorMatrixComment}} = require('../../src/locales/ru.js');
+const messages = require('../../src/lib/messages');
 
 describe('comment test', () => {
     const sendHtmlMessageStub = stub();
@@ -20,32 +20,25 @@ describe('comment test', () => {
     };
     const roomName = 'BBCOM-123';
     const bodyText = 'text in body';
-    const sender = 'Bot';
+    const sender = 'user';
     const room = {roomId: 12345};
-    const urlPath = `/${roomName}/comment`;
     const errorStatus = 400;
 
     before(() => {
-        nock(BASE_URL, {
-            reqheaders: {
-                Authorization: auth(),
-            },
-        })
-            .post(urlPath, schemaComment(sender, bodyText))
+        nock(utils.getRestUrl())
+            .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
             .reply(201)
-            .post(urlPath)
-            .reply(errorStatus, 'Error!!!');
+            .post(`/issue/${roomName}/comment`)
+            .reply(400);
     });
 
     after(() => {
         nock.cleanAll();
     });
 
-    it('should comment', async () => {
-        const expected = `Comment from ${sender} for ${roomName}`;
-
+    it('Expect comment to be sent', async () => {
         const result = await comment({bodyText, sender, room, roomName, matrixClient});
-        expect(result).to.be.equal(expected);
+        expect(result).to.be.equal(messages.getCommentSuccessSentLog(sender, roomName));
 
         expect(sendHtmlMessageStub).not.to.have.been.called;
 
@@ -54,10 +47,10 @@ describe('comment test', () => {
 
     it('comment not published', async () => {
         const sender = null;
-        const body = schemaComment(sender, bodyText);
-        const requestErrorLog = getRequestErrorLog(`${BASE_URL}${urlPath}`, errorStatus, {method: 'POST', body});
+        const body = schemas.comment(sender, bodyText);
+        const requestErrorLog = getRequestErrorLog(utils.getRestUrl('issue', roomName, 'comment'), errorStatus, {method: 'POST', body});
 
-        const expected = [`Comment from null for ${roomName} not published`, requestErrorLog].join('\n');
+        const expected = [messages.getCommentFailSentLog(sender, roomName), requestErrorLog].join('\n');
         const expectedData = [
             room.roomId,
             errorMatrixComment,

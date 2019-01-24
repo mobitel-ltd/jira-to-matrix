@@ -1,46 +1,38 @@
-const {request, requestPut} = require('../../../lib/request.js');
+const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
-const {checkNamePriority, BASE_URL} = require('./helper.js');
-const {shemaFields} = require('./schemas.js');
+const messages = require('../../../lib/messages');
+const utils = require('../../../lib/utils');
+
+const getPrority = (val, collection) =>
+    collection.find(({id, name}) => id === val || name.toLowerCase() === val);
 
 module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
-        const {fields} = await request(
-            `${BASE_URL}/${roomName}/editmeta`,
-        );
+        const allPriorities = await jiraRequests.getIssuePriorities(roomName);
 
-        if (!fields) {
-            throw new Error(`Jira not return list priorities for ${roomName}`);
-        }
+        if (!bodyText) {
+            const listPrio = utils.getListPriorities(allPriorities);
+            await matrixClient.sendHtmlMessage(room.roomId, listPrio, listPrio);
 
-        const priorities = fields.priority.allowedValues;
-
-        const priority = priorities.reduce((prev, cur, index) => {
-            if (checkNamePriority(cur, index, bodyText)) {
-                return {id: cur.id, name: cur.name};
-            }
-            return prev;
-        }, 0);
-
-        if (!priority) {
-            const listPrio = priorities.reduce(
-                (prev, cur, index) => `${prev}${index + 1}) ${cur.name}<br>`,
-                ''
-            );
-            await matrixClient.sendHtmlMessage(room.roomId, 'List priorities', listPrio);
             return;
         }
 
-        await requestPut(
-            `${BASE_URL}/${roomName}`,
-            shemaFields(priority.id)
-        );
+        const priority = getPrority(bodyText.toLowerCase(), allPriorities);
+
+        if (!priority) {
+            const post = translate('notFoundPrio', {bodyText});
+            await matrixClient.sendHtmlMessage(room.roomId, post, post);
+
+            return messages.getNotFoundPrioCommandLog(roomName, bodyText);
+        }
+
+        await jiraRequests.updateIssuePriority(roomName, priority.id);
 
         const post = translate('setPriority', priority);
-        await matrixClient.sendHtmlMessage(room.roomId, 'Successful set priority', post);
+        await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
-        return `Issue ${roomName} now has priority ${priority.name}`;
+        return messages.getUpdatedIssuePriorityLog(roomName, priority.name);
     } catch (err) {
-        throw ['Matrix prio command error', err].join('\n');
+        throw utils.errorTracing('Matrix prio command', err);
     }
 };
