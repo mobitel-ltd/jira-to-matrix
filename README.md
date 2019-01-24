@@ -110,7 +110,7 @@ When Bot is stopped:
 Disconnected from Matrix
 ```
 
-### Структура хранения данных в Redis:
+### Redis records structure
 
 To be sure that no data is lost we use Redis to save parsed webhooks. Prefix in Redis which all data is saved is in config as `redis.prefix`.
 
