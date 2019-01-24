@@ -16,7 +16,6 @@ const {
     getOutdatedRoomsWithSender,
     checkUser,
     checkCommand,
-    checkNamePriority,
     searchUser,
     getAllUsers,
     parseEventBody,
@@ -87,19 +86,6 @@ describe('Commands helper tests', () => {
             checkCommand('move done', 'movedone', 4),
         ];
         expect(result).to.deep.equal([true, true, false]);
-    });
-
-    it('checkNamePriority test', () => {
-        const priority = {
-            name: 'Lowest',
-        };
-        const result = [
-            checkNamePriority(priority, 0, 'Lowest'),
-            checkNamePriority(priority, 2, '2'),
-            checkNamePriority(priority, 4, 'Highest'),
-            checkNamePriority(priority, 4, '5'),
-        ];
-        expect(result).to.deep.equal([true, false, false, true]);
     });
 
     it('getAllUsers test', async () => {

@@ -4,6 +4,7 @@ const names = require('ru-names');
 
 /* spell-checker: disable */
 const dict = Object.freeze({
+    notFoundPrio: 'Новый приоритет с именем "%{bodyText}" не найден',
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',
     setBotToAdmin: 'У бота нет прав для добавления пользователя в наблюдателя или исполнители задачи в Jira',
     noRulesToWatchIssue: 'У бота нет прав для просмотра и совершения действий в данной задаче в Jira',

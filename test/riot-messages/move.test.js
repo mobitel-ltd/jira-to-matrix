@@ -1,10 +1,10 @@
 const nock = require('nock');
-const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 const schemas = require('../../src/lib/schemas');
 const {move} = require('../../src/matrix/timeline-handler/commands');
 const transitions = require('../fixtures/jira-api-requests/transitions.json');
 const translate = require('../../src/locales');
 const messages = require('../../src/lib/messages');
+const utils = require('../../src/lib/utils');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -19,13 +19,13 @@ describe('move test', () => {
     const matrixClient = {sendHtmlMessage: stub()};
 
     before(() => {
-        nock(BASE_URL)
-            .get(`/${roomName}/transitions`)
+        nock(utils.getRestUrl())
+            .get(`/issue/${roomName}/transitions`)
             .times(2)
             .reply(200, transitions)
-            .post(`/${roomName}/transitions`, schemas.move('2'))
+            .post(`/issue/${roomName}/transitions`, schemas.move('2'))
             .reply(204)
-            .post(`/${roomName}/transitions`, schemas.move('5'))
+            .post(`/issue/${roomName}/transitions`, schemas.move('5'))
             .reply(404);
     });
 

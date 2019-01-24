@@ -18,7 +18,6 @@ describe('op test', () => {
     const userB = {displayName: 'Ivan Sergeevich B', name: 'is_b'};
 
     const roomName = 'BBCOM-123';
-    const content = 'content';
 
     const room = {
         roomId: 12345,
@@ -35,8 +34,7 @@ describe('op test', () => {
 
     const matrixClient = {
         sendHtmlMessage: stub(),
-        setPowerLevel: stub(),
-        getStateEvent: stub().withArgs(room.roomId, 'm.room.power_levels', '').resolves(content),
+        setPower: stub(),
     };
 
     afterEach(() => {
@@ -49,7 +47,7 @@ describe('op test', () => {
         const post = translate('notAdmin', {sender: fakeSender});
         expect(res).to.be.eq(post);
         expect(matrixClient.sendHtmlMessage).to.be.calledWithExactly(room.roomId, post, post);
-        expect(matrixClient.setPowerLevel).not.to.be.called;
+        expect(matrixClient.setPower).not.to.be.called;
     });
 
     it('Expect power level of sender to be put ("!op" command)', async () => {
@@ -57,7 +55,7 @@ describe('op test', () => {
 
         expect(res).to.be.eq(messages.getModeratorAddLog(utils.getMatrixUserID(sender), roomName));
         expect(matrixClient.sendHtmlMessage).not.to.be.called;
-        expect(matrixClient.setPowerLevel).to.be.calledWith(room.roomId, utils.getMatrixUserID(sender), 50);
+        expect(matrixClient.setPower).to.be.calledWithExactly(room.roomId, utils.getMatrixUserID(sender));
     });
 
     it('Expect power level of adding user to be put if he is a room member ("!op is_b")', async () => {
@@ -66,7 +64,7 @@ describe('op test', () => {
 
         expect(res).to.be.eq(messages.getModeratorAddLog(utils.getMatrixUserID(userB.name), roomName));
         expect(matrixClient.sendHtmlMessage).not.to.be.called;
-        expect(matrixClient.setPowerLevel).to.be.calledWith(room.roomId, utils.getMatrixUserID(userB.name), 50);
+        expect(matrixClient.setPower).to.be.calledWithExactly(room.roomId, utils.getMatrixUserID(userB.name));
     });
 
     it('Expect power level of adding user NOT to be put if he is NOT a room member ("!op fake")', async () => {
@@ -76,6 +74,6 @@ describe('op test', () => {
         const post = translate('notFoundUser', {user: fakeSender});
         expect(res).to.be.eq(post);
         expect(matrixClient.sendHtmlMessage).to.be.calledWithExactly(room.roomId, post, post);
-        expect(matrixClient.setPowerLevel).not.to.be.called;
+        expect(matrixClient.setPower).not.to.be.called;
     });
 });

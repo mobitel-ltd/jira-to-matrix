@@ -8,6 +8,17 @@ const utils = require('../lib/utils');
 const EVENT_EXCEPTION = 'Could not find event';
 const BOT_OUT_OF_ROOM_EXEPTION = `User ${conf.userId} not in room`;
 
+const setPower = client => async (roomId, userId) => {
+    try {
+        const content = await client.getStateEvent(roomId, 'm.room.power_levels', '');
+        const event = utils.getEvent(content);
+
+        await client.setPowerLevel(roomId, userId, 50, event);
+    } catch (err) {
+        throw [`Error setting power level for user ${userId} in room ${roomId}`, err].join('\n');
+    }
+};
+
 const getRooms = client => () =>
     client.getRooms();
 
@@ -25,7 +36,7 @@ const getRoomId = client => async alias => {
         const {room_id: roomId} = await client.getRoomIdForAlias(utils.getMatrixRoomAlias(alias));
         return roomId;
     } catch (err) {
-        throw (`No roomId for ${alias} from Matrix\n`, err);
+        throw [`No roomId for ${alias} from Matrix`, err].join('\n');
     }
 };
 
@@ -116,6 +127,7 @@ const setRoomTopic = client => async (roomId, topic) => {
 };
 
 const api = {
+    setPower,
     getRooms,
     createRoom,
     getRoomId,
@@ -136,7 +148,7 @@ const inviteBot = async function InviteBot(event) {
     sender = sender.slice(1, -conf.postfix);
 
     if (
-        !conf.admins.includes(sender)
+        !utils.isAdmin(sender)
         && sender !== conf.user
         && event.getStateKey() === conf.userId
     ) {

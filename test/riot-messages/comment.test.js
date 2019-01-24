@@ -5,7 +5,7 @@ const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
-const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
+const utils = require('../../src/lib/utils');
 const schemas = require('../../src/lib/schemas.js');
 const {comment} = require('../../src/matrix/timeline-handler/commands');
 const {getRequestErrorLog} = require('../../src/lib/messages');
@@ -25,10 +25,10 @@ describe('comment test', () => {
     const errorStatus = 400;
 
     before(() => {
-        nock(BASE_URL)
-            .post(`/${roomName}/comment`, schemas.comment(sender, bodyText))
+        nock(utils.getRestUrl())
+            .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
             .reply(201)
-            .post(`/${roomName}/comment`)
+            .post(`/issue/${roomName}/comment`)
             .reply(400);
     });
 
@@ -48,7 +48,7 @@ describe('comment test', () => {
     it('comment not published', async () => {
         const sender = null;
         const body = schemas.comment(sender, bodyText);
-        const requestErrorLog = getRequestErrorLog(`${BASE_URL}${`/${roomName}/comment`}`, errorStatus, {method: 'POST', body});
+        const requestErrorLog = getRequestErrorLog(utils.getRestUrl('issue', roomName, 'comment'), errorStatus, {method: 'POST', body});
 
         const expected = [messages.getCommentFailSentLog(sender, roomName), requestErrorLog].join('\n');
         const expectedData = [

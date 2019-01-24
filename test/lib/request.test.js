@@ -1,22 +1,19 @@
 const assert = require('assert');
-const {auth} = require('../../src/lib/utils.js');
+const utils = require('../../src/lib/utils.js');
 const {request} = require('../../src/lib/request');
 const {getRequestErrorLog} = require('../../src/lib/messages');
 const nock = require('nock');
-const {BASE_URL} = require('../../src/matrix/timeline-handler/commands/helper.js');
 
 describe('request testing', () => {
-    const urlPath = '/12345';
-    const fakePath = '/error';
+    const urlPath = '12345';
+    const fakePath = 'error';
+    const body = {result: true};
+
     before(() => {
-        nock(BASE_URL, {
-            reqheaders: {
-                Authorization: auth(),
-            },
-        })
-            .get(urlPath)
-            .reply(200, {result: true})
-            .get(fakePath)
+        nock(utils.getRestUrl())
+            .get(`/${urlPath}`)
+            .reply(200, body)
+            .get(`/${fakePath}`)
             .reply(400, 'Bad Request');
     });
 
@@ -24,23 +21,23 @@ describe('request testing', () => {
         nock.cleanAll();
     });
 
-    it('test request', async () => {
-        const testUrl = `${BASE_URL}${urlPath}`;
-
+    it('Expect request works', async () => {
+        const testUrl = utils.getRestUrl(urlPath);
         const result = await request(testUrl);
 
-        assert.deepEqual(result, {result: true});
+        assert.deepEqual(result, body);
     });
 
     it('test request with error url', async () => {
-        const testUrl = `${BASE_URL}${fakePath}`;
+        const testUrl = utils.getRestUrl(fakePath);
+        let res;
+        const expected = getRequestErrorLog(testUrl, 400);
 
         try {
             await request(testUrl);
         } catch (err) {
-            const expected = getRequestErrorLog(testUrl, 400);
-
-            assert.deepEqual(err, expected);
+            res = err;
         }
+        assert.deepEqual(res, expected);
     });
 });

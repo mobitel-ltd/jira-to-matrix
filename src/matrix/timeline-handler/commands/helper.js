@@ -20,13 +20,6 @@ const helper = {
         return members.some(({userId}) => userId === userIdMatrix);
     },
 
-    getEvent: content => ({
-        getType: () => 'm.room.power_levels',
-        getContent: () => content,
-    }),
-
-    BASE_URL: utils.getRestUrl('issue'),
-
     // Checking occurrences of current name
     checkUser: ({name, displayName}, expectedName) =>
         name.toLowerCase().includes(expectedName.toLowerCase())
@@ -35,10 +28,6 @@ const helper = {
     checkCommand: (body, name, index) =>
         body.toLowerCase() === name.toLowerCase()
         || body.includes(String(index + 1)),
-
-    checkNamePriority: (priority, index, name) =>
-        priority.name.toLowerCase() === name.toLowerCase()
-        || String(index + 1) === name,
 
     getAllUsers: async () => {
         try {
@@ -88,7 +77,6 @@ const helper = {
             return {};
         }
     },
-
 
     addToWatchers: async (room, roomName, name, matrixClient) => {
         try {

@@ -30,4 +30,8 @@ module.exports = {
     getCommentSuccessSentLog: (sender, roomName) => `Comment from ${sender} for ${roomName} sent`,
 
     getCommentFailSentLog: (sender, roomName) => `Comment from ${sender} for ${roomName} not published`,
+
+    getUpdatedIssuePriorityLog: (roomName, priority) => `Issue ${roomName} now has priority ${priority}`,
+
+    getNotFoundPrioCommandLog: (roomName, priority) => `Not found ${priority} in issue ${roomName}`,
 };
