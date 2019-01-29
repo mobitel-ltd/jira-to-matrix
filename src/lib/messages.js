@@ -27,9 +27,11 @@ module.exports = {
 
     getMoveSuccessLog: issue => `Issue ${issue} changed status`,
 
+    getNotFoundMoveCommandLog: (roomName, status) => `Not found ${status} in issue ${roomName}`,
+
     getCommentSuccessSentLog: (sender, roomName) => `Comment from ${sender} for ${roomName} sent`,
 
-    getCommentFailSentLog: (sender, roomName) => `Comment from ${sender} for ${roomName} not published`,
+    getCommentFailSentLog: (sender, roomName) => `Comment from ${sender} for ${roomName} not published with empty body`,
 
     getUpdatedIssuePriorityLog: (roomName, priority) => `Issue ${roomName} now has priority ${priority}`,
 

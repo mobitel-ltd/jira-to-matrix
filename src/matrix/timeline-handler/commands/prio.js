@@ -3,21 +3,18 @@ const translate = require('../../../locales');
 const messages = require('../../../lib/messages');
 const utils = require('../../../lib/utils');
 
-const getPrority = (val, collection) =>
-    collection.find(({id, name}) => id === val || name.toLowerCase() === val);
-
 module.exports = async ({bodyText, room, roomName, matrixClient}) => {
     try {
         const allPriorities = await jiraRequests.getIssuePriorities(roomName);
 
         if (!bodyText) {
-            const listPrio = utils.getListPriorities(allPriorities);
+            const listPrio = utils.getCommandList(allPriorities);
             await matrixClient.sendHtmlMessage(room.roomId, listPrio, listPrio);
 
             return;
         }
 
-        const priority = getPrority(bodyText.toLowerCase(), allPriorities);
+        const priority = utils.getCommandAction(bodyText, allPriorities);
 
         if (!priority) {
             const post = translate('notFoundPrio', {bodyText});

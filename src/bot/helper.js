@@ -8,7 +8,7 @@ const jiraRequests = require('../lib/jira-request.js');
 
 const helper = {
     isAvailabledIssue: async issueKey => {
-        const projectKey = utils.getProjectKey(issueKey);
+        const projectKey = utils.getProjectKeyFromIssueKey(issueKey);
         const project = await jiraRequests.getProject(projectKey);
         const privateStatus = utils.getProjectPrivateStatus(project);
 

@@ -4,63 +4,53 @@ const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
+const translate = require('../../src/locales');
 
 const utils = require('../../src/lib/utils');
 const schemas = require('../../src/lib/schemas.js');
 const {comment} = require('../../src/matrix/timeline-handler/commands');
-const {getRequestErrorLog} = require('../../src/lib/messages');
-const {dict: {errorMatrixComment}} = require('../../src/locales/ru.js');
 const messages = require('../../src/lib/messages');
 
 describe('comment test', () => {
-    const sendHtmlMessageStub = stub();
-
-    const matrixClient = {
-        sendHtmlMessage: sendHtmlMessageStub,
-    };
     const roomName = 'BBCOM-123';
     const bodyText = 'text in body';
     const sender = 'user';
     const room = {roomId: 12345};
-    const errorStatus = 400;
 
-    before(() => {
-        nock(utils.getRestUrl())
-            .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
-            .reply(201)
-            .post(`/issue/${roomName}/comment`)
-            .reply(400);
-    });
+    const matrixClient = {sendHtmlMessage: stub()};
 
-    after(() => {
+    afterEach(() => {
         nock.cleanAll();
     });
 
     it('Expect comment to be sent', async () => {
-        const result = await comment({bodyText, sender, room, roomName, matrixClient});
+        nock(utils.getRestUrl())
+            .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
+            .reply(201);
+        const result = await comment({bodyText, sender, roomName});
         expect(result).to.be.equal(messages.getCommentSuccessSentLog(sender, roomName));
-
-        expect(sendHtmlMessageStub).not.to.have.been.called;
-
-        sendHtmlMessageStub.reset();
     });
 
-    it('comment not published', async () => {
-        const sender = null;
-        const body = schemas.comment(sender, bodyText);
-        const requestErrorLog = getRequestErrorLog(utils.getRestUrl('issue', roomName, 'comment'), errorStatus, {method: 'POST', body});
+    it('Expect error to be thrown with tag', async () => {
+        nock(utils.getRestUrl())
+            .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
+            .reply(400);
 
-        const expected = [messages.getCommentFailSentLog(sender, roomName), requestErrorLog].join('\n');
-        const expectedData = [
-            room.roomId,
-            errorMatrixComment,
-            errorMatrixComment,
-        ];
+        let res;
+        try {
+            await comment({bodyText, sender, roomName});
+        } catch (err) {
+            res = err;
+        }
 
-        const commentAnswer = await comment({bodyText, sender, room, roomName, matrixClient});
-        expect(commentAnswer).to.be.equal(expected);
+        expect(res).to.be.include('Matrix Comment command');
+    });
 
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
-        sendHtmlMessageStub.reset();
+    it('Expect comment not to be sent with empty body and warn message will be sent', async () => {
+        const result = await comment({sender, roomName, room, matrixClient});
+
+        expect(result).to.be.equal(messages.getCommentFailSentLog(sender, roomName));
+        const body = translate('emptyMatrixComment');
+        expect(matrixClient.sendHtmlMessage).to.be.calledWithExactly(room.roomId, body, body);
     });
 });

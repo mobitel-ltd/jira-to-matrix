@@ -58,7 +58,7 @@ describe('Prio command test', () => {
     });
 
     it('Expect prio show all priorities with empty body ("!prio")', async () => {
-        const post = utils.getListPriorities(allPriorities);
+        const post = utils.getCommandList(allPriorities);
         const result = await prio({room, roomName, matrixClient});
 
         expect(result).to.be.undefined;
@@ -74,7 +74,7 @@ describe('Prio command test', () => {
         expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
-    it('Expect prio command to handle error if something is wrong', async () => {
+    it('Expect error to be thrown with tag', async () => {
         const error = 'Error';
         matrixClient.sendHtmlMessage.throws(error);
         let res;

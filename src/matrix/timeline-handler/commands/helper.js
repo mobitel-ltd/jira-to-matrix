@@ -25,10 +25,6 @@ const helper = {
         name.toLowerCase().includes(expectedName.toLowerCase())
         || displayName.toLowerCase().includes(expectedName.toLowerCase()),
 
-    checkCommand: (body, name, index) =>
-        body.toLowerCase() === name.toLowerCase()
-        || body.includes(String(index + 1)),
-
     getAllUsers: async () => {
         try {
             const allUsers = await jiraRequests.getUsers(MAX_USERS, START_AT);

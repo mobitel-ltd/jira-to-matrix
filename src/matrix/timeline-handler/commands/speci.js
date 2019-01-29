@@ -25,14 +25,16 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
             }
             default: {
                 const post = utils.getListToHTML(users);
-                await matrixClient.sendHtmlMessage(room.roomId, 'List users', post);
+                await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
                 return;
             }
         }
     } catch (err) {
         if (err.includes('status is 403')) {
-            const post = translate('setBotToAdmin');
+            const projectKey = utils.getProjectKeyFromIssueKey(roomName);
+            const viewUrl = utils.getViewUrl(projectKey);
+            const post = translate('setBotToAdmin', {projectKey, viewUrl});
             await matrixClient.sendHtmlMessage(room.roomId, post, post);
 
             return post;

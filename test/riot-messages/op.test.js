@@ -76,4 +76,16 @@ describe('op test', () => {
         expect(matrixClient.sendHtmlMessage).to.be.calledWithExactly(room.roomId, post, post);
         expect(matrixClient.setPower).not.to.be.called;
     });
+
+    it('Expect some other error to be not handled', async () => {
+        matrixClient.sendHtmlMessage.throws('Error!!!');
+        let res;
+        try {
+            res = await op({sender: fakeSender, room, roomName, matrixClient});
+        } catch (err) {
+            res = err;
+        }
+
+        expect(res).to.include('Matrix Op command');
+    });
 });

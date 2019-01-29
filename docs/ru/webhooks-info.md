@@ -9,7 +9,9 @@
     * [Handler](../../src/bot/create-room.js)
     * [Test](../../test/bot/create-room.test.js)
 2. jira:issue_updated
-<!-- 3. jira:issue_deleted -->
+    * [Webhook example](../../test/fixtures/webhooks/issue/updated/generic.json)
+    * [Handler](../../src/bot/post-issue-updates.js)
+    * [Test](../../test/bot/create-room.test.js)
 
 ### Comment
 
@@ -37,4 +39,3 @@
 
 1. project_created
 2. project_updated
-<!-- 3. project_deleted -->

@@ -258,7 +258,7 @@ const utils = {
         }, []);
     },
 
-    getProjectKey: issueKey => issueKey.split('-').slice(0, 1),
+    getProjectKeyFromIssueKey: issueKey => issueKey.split('-').slice(0, 1),
 
     // * --------------------------------- Redis utils ------------------------------- *
 
@@ -295,6 +295,8 @@ const utils = {
 
     // * --------------------------------- Other utils ------------------------------- *
 
+    getCommandAction: (val, collection) =>
+        collection.find(({id, name}) => id === val || name.toLowerCase() === val.toLowerCase()),
 
     getEvent: content => ({
         getType: () => 'm.room.power_levels',
@@ -323,11 +325,11 @@ const utils = {
 
     getListToHTML: list => list.reduce((acc, {name, displayName}) =>
         `${acc}<strong>${name}</strong> - ${displayName}<br>`,
-    'List users:<br>'),
+    `${translate('listUsers')}:<br>`),
 
-    getListPriorities: list => list.reduce((acc, {name, id}) =>
-        `${acc}<strong>${id}</strong> - ${name}<br>`,
-    'List priorities:<br>'),
+    getCommandList: list => list.reduce((acc, {name, id}) =>
+        `${acc}<strong>${id})</strong> - ${name}<br>`,
+    `${translate('listJiraCommand')}:<br>`),
 
     expandParams: {expand: 'renderedFields'},
 
