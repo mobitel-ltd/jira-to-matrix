@@ -97,8 +97,9 @@ describe('assign test', () => {
     });
 
     it('Expect assign list of senders ("!assign Ivan")', async () => {
-        searchUserStub.returns(users.slice(0, 2));
-        const post = 'List users:<br><strong>ia_a</strong> - Ivan Andreevich A<br><strong>is_b</strong> - Ivan Sergeevich B<br>';
+        const addedUsers = users.slice(0, 2);
+        searchUserStub.resolves(addedUsers);
+        const post = utils.getListToHTML(addedUsers);
         const result = await assign({body: '!assign Ivan', sender, room, roomName, matrixClient});
 
         expect(result).to.be.undefined;

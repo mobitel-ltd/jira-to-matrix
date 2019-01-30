@@ -25,7 +25,7 @@ const dict = Object.freeze({
     statusEpicChanged: 'Эпик изменён',
     statusEpicChangedMessage: '%{name} изменил%{f} статус связанного эпика [%{key} "%{summary}"](%{viewUrl}) на **%{status}**',
     errorMatrixCommands: 'Что-то пошло не так! Ваш запрос не выполнен, пожалуйста, попробуйте еще раз',
-    errorMatrixAssign: 'ОШИБКА! Пользователь "%{userToFind}" не существует',
+    errorMatrixAssign: 'Наблюдатель %{userToFind} не добавлен! Проверьте имя пользователя и попробуйте еще раз',
     successMatrixInvite: 'Пользователь %{sender} приглашен в комнату %{roomName}',
     successMatrixAssign: 'Пользователь "%{displayName}" назначен исполнителем задачи',
     emptyMatrixComment: 'Добавьте текст комментария',
