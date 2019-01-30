@@ -16,7 +16,6 @@ const {
     getOutdatedRoomsWithSender,
     checkUser,
     searchUser,
-    getAllUsers,
     parseEventBody,
 } = require('../../src/matrix/timeline-handler/commands/helper');
 
@@ -76,11 +75,6 @@ describe('Commands helper tests', () => {
             checkUser(user, '_NMe'),
         ];
         expect(result).to.deep.equal([true, true, true, true, false]);
-    });
-
-    it('getAllUsers test', async () => {
-        const allUsers = await getAllUsers();
-        expect(allUsers).to.be.deep.equal(users);
     });
 
     it('searchUser test', async () => {

@@ -3,11 +3,6 @@ const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
 const utils = require('../../../lib/utils.js');
 
-// Let get all users even if they are more 1000
-const MAX_USERS = 999;
-const START_AT = 0;
-
-
 const helper = {
     getInviteUser: (name, room) => {
         const user = utils.getMatrixUserID(name);
@@ -24,15 +19,6 @@ const helper = {
     checkUser: ({name, displayName}, expectedName) =>
         name.toLowerCase().includes(expectedName.toLowerCase())
         || displayName.toLowerCase().includes(expectedName.toLowerCase()),
-
-    getAllUsers: async () => {
-        try {
-            const allUsers = await jiraRequests.getUsers(MAX_USERS, START_AT);
-            return allUsers;
-        } catch (err) {
-            throw utils.errorTracing('getAllUsers', err);
-        }
-    },
 
     // Search users by part of name
     searchUser: async name => {
