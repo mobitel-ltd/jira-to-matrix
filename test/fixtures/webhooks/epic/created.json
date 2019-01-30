@@ -1,0 +1,229 @@
+{
+    "timestamp": "2019-1-30 19:48:08,900",
+    "webhookEvent": "jira:issue_created",
+    "issue_event_type_name": "issue_created",
+    "user": {
+        "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
+        "name": "jira_test",
+        "key": "jira_test",
+        "accountId": "5b912e21fa38ae2c896099ae",
+        "emailAddress": "jira_test@jira.test-example.ru",
+        "avatarUrls": {
+            "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+            "24x24": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+            "16x16": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+            "32x32": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+        },
+        "displayName": "Jira Test",
+        "active": true,
+        "timeZone": "Europe/Moscow"
+    },
+    "issue": {
+        "id": "13877",
+        "self": "https://jira.test-example.ru/rest/api/2/issue/13877",
+        "key": "DTP-1",
+        "fields": {
+            "issuetype": {
+                "self": "https://jira.test-example.ru/rest/api/2/issuetype/10350",
+                "id": "10350",
+                "description": "Track large pieces of work.",
+                "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10307&avatarType=issuetype",
+                "name": "Epic",
+                "subtask": false,
+                "avatarId": 10307
+            },
+            "timespent": null,
+            "customfield_10030": null,
+            "project": {
+                "self": "https://jira.test-example.ru/rest/api/2/project/10181",
+                "id": "10181",
+                "key": "DTP",
+                "name": "Dev Test Project",
+                "projectTypeKey": "software",
+                "avatarUrls": {
+                    "48x48": "https://jira.test-example.ru/secure/projectavatar?avatarId=10324",
+                    "24x24": "https://jira.test-example.ru/secure/projectavatar?size=small&avatarId=10324",
+                    "16x16": "https://jira.test-example.ru/secure/projectavatar?size=xsmall&avatarId=10324",
+                    "32x32": "https://jira.test-example.ru/secure/projectavatar?size=medium&avatarId=10324"
+                }
+            },
+            "fixVersions": [],
+            "aggregatetimespent": null,
+            "resolution": null,
+            "resolutiondate": null,
+            "workratio": -1,
+            "lastViewed": null,
+            "watches": {
+                "self": "https://jira.test-example.ru/rest/api/2/issue/DTP-1/watchers",
+                "watchCount": 0,
+                "isWatching": true
+            },
+            "created": "2019-01-30T19:48:08.263+0300",
+            "customfield_10020": null,
+            "customfield_10021": [],
+            "priority": {
+                "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
+                "name": "Medium",
+                "id": "3"
+            },
+            "customfield_10025": null,
+            "customfield_10026": null,
+            "labels": [],
+            "customfield_10016": null,
+            "customfield_10017": null,
+            "customfield_10018": null,
+            "customfield_10019": "0|i00k8q:",
+            "timeestimate": null,
+            "aggregatetimeoriginalestimate": null,
+            "versions": [],
+            "issuelinks": [],
+            "assignee": null,
+            "updated": "2019-01-30T19:48:08.263+0300",
+            "status": {
+                "self": "https://jira.test-example.ru/rest/api/2/status/10501",
+                "description": "",
+                "iconUrl": "https://jira.test-example.ru/",
+                "name": "To Do",
+                "id": "10501",
+                "statusCategory": {
+                    "self": "https://jira.test-example.ru/rest/api/2/statuscategory/2",
+                    "id": 2,
+                    "key": "new",
+                    "colorName": "blue-gray",
+                    "name": "New"
+                }
+            },
+            "components": [],
+            "timeoriginalestimate": null,
+            "description": "Тестовый эпик",
+            "customfield_10055": null,
+            "customfield_10056": null,
+            "customfield_10013": null,
+            "customfield_10057": null,
+            "customfield_10014": null,
+            "customfield_10058": null,
+            "timetracking": {},
+            "customfield_10015": {
+                "hasEpicLinkFieldDependency": false,
+                "showField": false,
+                "nonEditableReason": {
+                    "reason": "PLUGIN_LICENSE_ERROR",
+                    "message": "Portfolio for Jira must be licensed for the Parent Link to be available."
+                }
+            },
+            "customfield_10005": null,
+            "customfield_10006": null,
+            "security": null,
+            "customfield_10007": null,
+            "customfield_10008": null,
+            "attachment": [],
+            "customfield_10009": null,
+            "aggregatetimeestimate": null,
+            "summary": "Тестовый эпик",
+            "creator": {
+                "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
+                "name": "jira_test",
+                "key": "jira_test",
+                "accountId": "5b912e21fa38ae2c896099ae",
+                "emailAddress": "jira_test@jira.test-example.ru",
+                "avatarUrls": {
+                    "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+                    "24x24": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+                    "16x16": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+                    "32x32": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+                },
+                "displayName": "Jira Test",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
+            "subtasks": [],
+            "customfield_10040": null,
+            "customfield_10041": null,
+            "reporter": {
+                "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
+                "name": "jira_test",
+                "key": "jira_test",
+                "accountId": "5b912e21fa38ae2c896099ae",
+                "emailAddress": "jira_test@jira.test-example.ru",
+                "avatarUrls": {
+                    "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+                    "24x24": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+                    "16x16": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+                    "32x32": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+                },
+                "displayName": "Jira Test",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
+            "customfield_10000": "{}",
+            "aggregateprogress": {
+                "progress": 0,
+                "total": 0
+            },
+            "customfield_10001": null,
+            "customfield_10002": null,
+            "customfield_10003": null,
+            "customfield_10004": null,
+            "customfield_10039": null,
+            "environment": null,
+            "duedate": null,
+            "progress": {
+                "progress": 0,
+                "total": 0
+            },
+            "votes": {
+                "self": "https://jira.test-example.ru/rest/api/2/issue/DTP-1/votes",
+                "votes": 0,
+                "hasVoted": false
+            }
+        }
+    },
+    "changelog": {
+        "id": "35063",
+        "items": [{
+            "field": "description",
+            "fieldtype": "jira",
+            "fieldId": "description",
+            "from": null,
+            "fromString": null,
+            "to": null,
+            "toString": "Тестовый эпик"
+        }, {
+            "field": "priority",
+            "fieldtype": "jira",
+            "fieldId": "priority",
+            "from": null,
+            "fromString": null,
+            "to": "3",
+            "toString": "Medium"
+        }, {
+            "field": "reporter",
+            "fieldtype": "jira",
+            "fieldId": "reporter",
+            "from": null,
+            "fromString": null,
+            "to": "jira_test",
+            "toString": "Jira Test"
+        }, {
+            "field": "Статус",
+            "fieldtype": "jira",
+            "fieldId": "status",
+            "from": null,
+            "fromString": null,
+            "to": "10501",
+            "toString": "To Do"
+        }, {
+            "field": "summary",
+            "fieldtype": "jira",
+            "fieldId": "summary",
+            "from": null,
+            "fromString": null,
+            "to": null,
+            "toString": "Тестовый эпик"
+        }]
+    },
+    "level": "silly",
+    "message": "Jira body",
+    "label": "/src/app.js"
+}

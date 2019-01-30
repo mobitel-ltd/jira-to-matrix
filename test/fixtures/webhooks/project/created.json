@@ -1,0 +1,28 @@
+{
+    "timestamp": "2019-1-30 19:25:40,770",
+    "webhookEvent": "project_created",
+    "project": {
+        "self": "https://jira.test-example.ru/rest/api/2/project/10181",
+        "id": 10181,
+        "key": "DTP",
+        "name": "Dev Test Project",
+        "avatarUrls": {
+            "48x48": "https://jira.test-example.ru/secure/projectavatar?avatarId=10324",
+            "24x24": "https://jira.test-example.ru/secure/projectavatar?size=small&avatarId=10324",
+            "16x16": "https://jira.test-example.ru/secure/projectavatar?size=xsmall&avatarId=10324",
+            "32x32": "https://jira.test-example.ru/secure/projectavatar?size=medium&avatarId=10324"
+        },
+        "projectLead": {
+            "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
+            "name": "jira_test",
+            "key": "jira_test",
+            "emailAddress": "jira_test@jira.test-example.ru",
+            "displayName": "Jira Test",
+            "accountId": "5b912e21fa38ae2c896099ae"
+        },
+        "assigneeType": "admin.assignee.type.unassigned"
+    },
+    "level": "silly",
+    "message": "Jira body",
+    "label": "/src/app.js"
+}

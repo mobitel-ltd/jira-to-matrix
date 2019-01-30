@@ -1,6 +1,6 @@
 module.exports = Object.freeze({
     port: 4100, // where to listen JIRA webhooks
-    lang: 'ru', // a language bot talks to users in
+    lang: 'en', // a language bot talks to users in
     jira: {
         url: 'https://jira.test-example.ru/jira',
         user: 'jira_test_bot',

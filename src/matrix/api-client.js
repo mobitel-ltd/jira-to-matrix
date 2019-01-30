@@ -8,10 +8,15 @@ const utils = require('../lib/utils');
 const EVENT_EXCEPTION = 'Could not find event';
 const BOT_OUT_OF_ROOM_EXEPTION = `User ${conf.userId} not in room`;
 
+const getEvent = content => ({
+    getType: () => 'm.room.power_levels',
+    getContent: () => content,
+});
+
 const setPower = client => async (roomId, userId) => {
     try {
         const content = await client.getStateEvent(roomId, 'm.room.power_levels', '');
-        const event = utils.getEvent(content);
+        const event = getEvent(content);
 
         await client.setPowerLevel(roomId, userId, 50, event);
     } catch (err) {
@@ -144,8 +149,7 @@ const inviteBot = async function InviteBot(event) {
         return;
     }
 
-    let sender = event.getSender();
-    sender = sender.slice(1, -conf.postfix);
+    const sender = utils.getNameFromMatrixId(event.getSender());
 
     if (
         !utils.isAdmin(sender)

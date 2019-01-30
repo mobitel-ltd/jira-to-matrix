@@ -34,6 +34,10 @@ const utils = {
 
     getCreator: body => Ramda.path(['issue', 'fields', 'creator', 'name'], body),
 
+    getReporter: body => Ramda.path(['issue', 'fields', 'reporter', 'name'], body),
+
+    getAssignee: body => Ramda.path(['issue', 'fields', 'assignee', 'name'], body),
+
     getTypeEvent: body => Ramda.path(['issue_event_type_name'], body),
 
     getIssueChangelog: body => Ramda.path(['issue', 'changelog'], body),
@@ -45,6 +49,8 @@ const utils = {
     getFullName: body => Ramda.path(['comment', 'author', 'displayName'], body),
 
     getIssueProjectOpts: body => Ramda.path(['issue', 'fields', 'project'], body),
+
+    getIssueProjectKey: body => Ramda.path(['issue', 'fields', 'project', 'key'], body),
 
     getStatus: body => Ramda.path(['issue', 'fields', 'status', 'name'], body),
 
@@ -60,11 +66,11 @@ const utils = {
 
     getOutwardLinkKey: body => Ramda.path(['outwardIssue', 'key'], body),
 
-    getWatchersPath: baseUrl => [baseUrl, 'watchers'].join('/'),
+    getWatchersPath: url => [url, 'watchers'].join('/'),
 
     getBodyIssueLink: body => Ramda.path(['issue', 'self'], body),
 
-    getProjectOpts: body => Ramda.path(['project'], body),
+    getProjectKey: body => Ramda.pathOr(utils.getIssueProjectKey(body), ['project'], body),
 
     getLinks: body => Ramda.pathOr([utils.getLinksIssueLink(body)], ['issue', 'fields', 'issuelinks'], body),
 
@@ -187,16 +193,16 @@ const utils = {
 
     getCreateProjectOpts: body => {
         if (utils.isEpic(body) || utils.isProjectEvent(body)) {
-            return utils.getProjectOpts(body) || utils.getIssueProjectOpts(body);
+            return utils.getProjectKey(body);
         }
     },
 
 
     getHeaderText: body => {
-        const fullName = utils.getFullName(body);
-        const event = utils.getBodyWebhookEvent(body);
+        const name = utils.getFullName(body);
+        const eventName = utils.getBodyWebhookEvent(body);
 
-        return `${fullName} ${translate(event, null, fullName)}`;
+        return translate(eventName, {name});
     },
 
     getCommentBody: body => ({
@@ -218,15 +224,16 @@ const utils = {
     getBodyProjectId: body =>
         Ramda.pathOr(Ramda.path(['fields', 'project', 'id'], body), ['issue', 'fields', 'project', 'id'], body),
 
-    getIssueMembers: body => [
-        utils.getCreator(body),
-        Ramda.path(['issue', 'fields', 'reporter', 'name'], body),
-        Ramda.path(['issue', 'fields', 'assignee', 'name'], body),
-    ].filter(Boolean),
+    getIssueMembers: body => {
+        const set = new Set([utils.getCreator(body), utils.getReporter(body), utils.getAssignee(body)]);
+
+        return [...set].filter(Boolean);
+    },
 
     getWatchersUrl: body => {
         const selfLink = utils.getBodyIssueLink(body);
         const watcherPath = utils.getWatchersPath(selfLink);
+
         return Ramda.pathOr(watcherPath, ['issue', 'fields', 'watches', 'self'], body);
     },
 
@@ -247,9 +254,7 @@ const utils = {
                 Ramda.prop('outwardIssue'),
                 Ramda.prop('inwardIssue')
             )(link);
-            if (!destIssue) {
-                return acc;
-            }
+
             const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
             if (postChangesToLinks.ignoreDestStatusCat.includes(destStatusCat)) {
                 return acc;
@@ -297,11 +302,6 @@ const utils = {
 
     getCommandAction: (val, collection) =>
         collection.find(({id, name}) => id === val || name.toLowerCase() === val.toLowerCase()),
-
-    getEvent: content => ({
-        getType: () => 'm.room.power_levels',
-        getContent: () => content,
-    }),
 
     isAdmin: user => matrix.admins.includes(user),
 

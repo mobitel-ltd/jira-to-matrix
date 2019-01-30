@@ -22,18 +22,14 @@ const helper = {
 
     // Search users by part of name
     searchUser: async name => {
-        try {
-            if (!name) {
-                return [];
-            }
-            const allUsers = await jiraRequests.getUsersByParam(name);
-
-            return allUsers.reduce((prev, cur) =>
-                (helper.checkUser(cur, name) ? [...prev, cur] : prev),
-            []);
-        } catch (err) {
-            throw utils.errorTracing('searchUser', err);
+        if (!name) {
+            return [];
         }
+        const allUsers = await jiraRequests.getUsersByParam(name);
+
+        return allUsers.reduce((prev, cur) =>
+            (helper.checkUser(cur, name) ? [...prev, cur] : prev),
+        []);
     },
 
     // Parse body of event from Matrix

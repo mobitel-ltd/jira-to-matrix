@@ -2,26 +2,22 @@ const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client');
 const {getIssue} = require('../lib/jira-request.js');
 const {epicUpdates: epicConf} = require('../config').features;
-const {postStatusChanged, getNewIssueMessageBody} = require('./helper.js');
+const {getNewIssueMessageBody, getPostStatusData} = require('./helper.js');
 const utils = require('../lib/utils');
 
 const postNewIssue = async (roomID, {epic, issue}, mclient) => {
-    try {
-        const redisEpicKey = utils.getRedisEpicKey(epic.id);
-        if (await redis.isInEpic(redisEpicKey, issue.id)) {
-            logger.debug(`Issue ${issue.key} already saved in Redis by epic ${epic.key}`);
+    const redisEpicKey = utils.getRedisEpicKey(epic.id);
+    if (await redis.isInEpic(redisEpicKey, issue.id)) {
+        logger.debug(`Issue ${issue.key} already saved in Redis by epic ${epic.key}`);
 
-            return;
-        }
-
-        const {body, htmlBody} = getNewIssueMessageBody(issue);
-        await redis.saveToEpic(redisEpicKey, issue.id);
-        logger.info(`Info about issue ${issue.key} added to epic ${epic.key}`);
-
-        await mclient.sendHtmlMessage(roomID, body, htmlBody);
-    } catch (err) {
-        throw ['Error in postNewIssue', err].join('\n');
+        return;
     }
+
+    const {body, htmlBody} = getNewIssueMessageBody(issue);
+    await redis.saveToEpic(redisEpicKey, issue.id);
+    logger.info(`Info about issue ${issue.key} added to epic ${epic.key}`);
+
+    await mclient.sendHtmlMessage(roomID, body, htmlBody);
 };
 
 module.exports = async ({mclient, data, epicKey}) => {
@@ -33,7 +29,10 @@ module.exports = async ({mclient, data, epicKey}) => {
             await postNewIssue(roomID, {epic, issue: data}, mclient);
         }
         if (epicConf.issuesStatusChanged === 'on') {
-            await postStatusChanged({roomID, data, mclient});
+            const {body, htmlBody} = getPostStatusData(data);
+            if (body) {
+                await mclient.sendHtmlMessage(roomID, body, htmlBody);
+            }
         }
 
         return true;

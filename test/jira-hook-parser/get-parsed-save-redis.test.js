@@ -9,13 +9,15 @@ const {jira: {url: jiraUrl}} = require('../../src/config');
 const {cleanRedis} = require('../test-utils');
 const proxyquire = require('proxyquire');
 const {stub} = require('sinon');
+const translate = require('../../src/locales');
+
 describe('get-parsed-save to redis', () => {
     const redisKey = 'postComment_1512034084304';
     const expected = {
         funcName: 'postComment',
         data: {
             issueID: '26313',
-            headerText: 'jira_test добавил(а) комментарий',
+            headerText: translate('comment_created', {name: 'jira_test'}),
             comment: {
                 body: '12345',
                 id: '31039',
