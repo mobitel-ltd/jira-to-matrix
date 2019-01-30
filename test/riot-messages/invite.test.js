@@ -1,5 +1,6 @@
 const {invite} = require('../../src/matrix/timeline-handler/commands');
-const {domain} = require('../fixtures/config.js').matrix;
+const translate = require('../../src/locales');
+const utils = require('../../src/lib/utils');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -8,84 +9,77 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('invite test', () => {
-    const inviteStub = stub();
-    const getRoomIdForAliasStub = stub().callsFake(room => ({'room_id': room}));
-    const sendHtmlMessageStub = stub();
+    const room = {roomId: 12345};
+    const inviteRoomId = 'someID';
 
     const matrixClient = {
-        invite: inviteStub,
-        getRoomIdForAlias: getRoomIdForAliasStub,
-        sendHtmlMessage: sendHtmlMessageStub,
+        invite: stub(),
+        getRoomId: stub(),
+        sendHtmlMessage: stub(),
     };
 
     const bodyText = 'BBCOM-123';
     const sender = 'jira_test';
-    const room = {roomId: 12345};
+    const senderMatrixId = utils.getMatrixUserID(sender);
+    const alias = utils.getMatrixRoomAlias(bodyText.toUpperCase());
+
+    beforeEach(() => {
+        matrixClient.getRoomId.resolves(inviteRoomId);
+    });
 
     afterEach(() => {
-        getRoomIdForAliasStub.reset();
-        inviteStub.reset();
-        sendHtmlMessageStub.reset();
+        Object.values(matrixClient).map(val => val.reset());
     });
 
-    it('should invite', async () => {
-        const expectedData = [
-            room.roomId,
-            'Успешно приглашен',
-            'Успешно приглашен',
-        ];
+    it('Expect invite successfully', async () => {
+        const body = translate('successMatrixInvite', {sender, roomName: bodyText});
 
-        const alias = `#${bodyText.toUpperCase()}:${domain}`;
         await invite({bodyText, sender, room, matrixClient});
-        const userId = `@${sender}:${domain}`;
 
-        expect(getRoomIdForAliasStub).have.to.been.calledWithExactly(alias);
-        expect(inviteStub).have.to.been.calledWithExactly(alias, userId);
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(matrixClient.getRoomId).have.to.been.calledWithExactly(alias);
+        expect(matrixClient.invite).have.to.been.calledWithExactly(inviteRoomId, senderMatrixId);
+        expect(matrixClient.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
     });
 
-    it('should invite to room with domain', async () => {
-        getRoomIdForAliasStub.callsFake(room => ({'room_id': room}));
-        const expectedData = [
-            room.roomId,
-            'Успешно приглашен',
-            'Успешно приглашен',
-        ];
+    it('Expect invite to room with domain', async () => {
+        const body = translate('successMatrixInvite', {sender, roomName: alias});
 
-        const alias = `#${bodyText.toUpperCase()}:${domain}`;
         await invite({bodyText: alias, sender, room, matrixClient});
-        const userId = `@${sender}:${domain}`;
 
-        expect(getRoomIdForAliasStub).have.to.been.calledWithExactly(alias);
-        expect(inviteStub).have.to.been.calledWithExactly(alias, userId);
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(matrixClient.getRoomId).have.to.been.calledWithExactly(alias);
+        expect(matrixClient.invite).have.to.been.calledWithExactly(inviteRoomId, senderMatrixId);
+        expect(matrixClient.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
     });
 
-    it('invite error', async () => {
-        const expectedData = [
-            room.roomId,
-            'Ошибка при присоединение к комнате',
-            'Error in getRoomId\nError!!!',
-        ];
-        getRoomIdForAliasStub.throws('Error!!!');
+    it('Expect invite to not found room return no found warn', async () => {
+        matrixClient.getRoomId.throws('Error!!!');
+        const body = translate('notFoundRoom', {roomName: bodyText});
         await invite({bodyText, sender, room, matrixClient});
 
-        expect(getRoomIdForAliasStub).have.to.been.thrown;
-        expect(inviteStub).not.to.have.been.called;
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(matrixClient.getRoomId).have.to.been.thrown;
+        expect(matrixClient.invite).not.to.have.been.called;
+        expect(matrixClient.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
     });
 
-    it('invite rights error', async () => {
-        const expectedData = [
-            room.roomId,
-            'У вас нет прав на это действие',
-            'У вас нет прав на это действие',
-        ];
-        getRoomIdForAliasStub.throws('Error!!!');
-        await invite({bodyText, sender: 'Fedor', room, matrixClient});
+    it('Expect invite not admin user return no permission warn', async () => {
+        const noAdminUser = 'Fedor';
+        const body = translate('notAdmin', {sender: noAdminUser});
+        await invite({bodyText, sender: noAdminUser, room, matrixClient});
 
-        expect(getRoomIdForAliasStub).not.to.have.been.called;
-        expect(inviteStub).not.to.have.been.called;
-        expect(sendHtmlMessageStub).have.to.been.calledWithExactly(...expectedData);
+        expect(matrixClient.getRoomId).not.to.have.been.called;
+        expect(matrixClient.invite).not.to.have.been.called;
+        expect(matrixClient.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
+    });
+
+    it('Expect some other error to be not handled', async () => {
+        matrixClient.invite.throws('Error!!!');
+        let res;
+        try {
+            await invite({bodyText, sender, room, matrixClient});
+        } catch (err) {
+            res = err;
+        }
+
+        expect(res).to.include('Matrix Invite command');
     });
 });

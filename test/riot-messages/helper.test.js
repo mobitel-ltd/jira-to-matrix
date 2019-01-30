@@ -15,7 +15,6 @@ const {
     parseRoom,
     getOutdatedRoomsWithSender,
     checkUser,
-    checkCommand,
     searchUser,
     getAllUsers,
     parseEventBody,
@@ -77,15 +76,6 @@ describe('Commands helper tests', () => {
             checkUser(user, '_NMe'),
         ];
         expect(result).to.deep.equal([true, true, true, true, false]);
-    });
-
-    it('checkCommand test', () => {
-        const result = [
-            checkCommand('move 1', 'done', 0),
-            checkCommand('move', 'move', 2),
-            checkCommand('move done', 'movedone', 4),
-        ];
-        expect(result).to.deep.equal([true, true, false]);
     });
 
     it('getAllUsers test', async () => {

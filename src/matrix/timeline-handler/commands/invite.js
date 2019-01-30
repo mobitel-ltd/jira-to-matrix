@@ -1,33 +1,39 @@
 const translate = require('../../../locales');
 const utils = require('../../../lib/utils');
 
-const getRoomId = async (room, matrixClient) => {
+const getRoomId = (text, matrixClient) => {
     try {
-        const alias = utils.isMatrixRoomName(room) ? room : utils.getMatrixRoomAlias(room.toUpperCase());
-        const {room_id: roomId} = await matrixClient.getRoomIdForAlias(alias);
+        const alias = utils.isMatrixRoomName(text) ? text : utils.getMatrixRoomAlias(text.toUpperCase());
 
-        return roomId;
+        return matrixClient.getRoomId(alias);
     } catch (err) {
-        throw ['Error in getRoomId', err].join('\n');
+        return false;
     }
 };
 
-module.exports = async ({bodyText, sender, room, matrixClient}) => {
-    const data = {};
-    try {
-        if (!utils.isAdmin(sender)) {
-            data.body = translate('rightsError');
-            return;
-        }
+const getBody = async (roomName, sender, matrixClient) => {
+    if (!utils.isAdmin(sender)) {
+        return translate('notAdmin', {sender});
+    }
 
-        const roomId = await getRoomId(bodyText, matrixClient);
-        const userId = utils.getMatrixUserID(sender);
-        await matrixClient.invite(roomId, userId);
-        data.body = translate('successMatrixInvite');
+    const roomId = await getRoomId(roomName, matrixClient);
+    if (!roomId) {
+        return translate('notFoundRoom', {roomName});
+    }
+
+    const userId = utils.getMatrixUserID(sender);
+    await matrixClient.invite(roomId, userId);
+
+    return translate('successMatrixInvite', {sender, roomName});
+};
+
+module.exports = async ({bodyText, sender, room, matrixClient}) => {
+    try {
+        const body = await getBody(bodyText, sender, matrixClient);
+        await matrixClient.sendHtmlMessage(room.roomId, body, body);
+
+        return body;
     } catch (err) {
-        data.body = translate('errorMatrixInvite');
-        data.err = err;
-    } finally {
-        await matrixClient.sendHtmlMessage(room.roomId, data.body, data.err || data.body);
+        throw utils.errorTracing('Matrix Invite command', err);
     }
 };

@@ -101,7 +101,7 @@ describe('spec test', () => {
         const result = await spec({bodyText: 'Ivan', room, roomName, matrixClient});
 
         expect(result).to.be.undefined;
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, 'List users', post);
+        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('should be in room', async () => {
@@ -136,7 +136,9 @@ describe('spec test', () => {
 
     it('should be sent msg about adding admin status if 403 error got in request', async () => {
         searchUserStub.resolves([noPermissionUser]);
-        const post = translate('setBotToAdmin');
+        const projectKey = utils.getProjectKeyFromIssueKey(roomName);
+        const viewUrl = utils.getViewUrl(projectKey);
+        const post = translate('setBotToAdmin', {projectKey, viewUrl});
         const result = await spec({bodyText: noPermissionUser.displayName, room, roomName, matrixClient});
 
         expect(result).to.be.eq(post);
