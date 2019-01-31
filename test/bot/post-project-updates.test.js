@@ -1,8 +1,9 @@
-const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
+const genericJSON = require('../fixtures/webhooks/issue/updated/generic.json');
+const createdJSON = require('../fixtures/webhooks/issue/created.json');
 const {getPostProjectUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostProjectUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const {postProjectUpdates} = require('../../src/bot');
-const {getEpicChangedMessageBody} = require('../../src/bot/helper');
+const {getEpicChangedMessageBody, getNewEpicMessageBody} = require('../../src/bot/helper');
 const chai = require('chai');
 const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
@@ -17,18 +18,25 @@ describe('Post project updates test', () => {
         getRoomId: stub().resolves(roomId),
     };
 
-    const postProjectUpdatesData = getPostProjectUpdatesData(JSONbody);
+    const postProjectUpdatesData = getPostProjectUpdatesData(genericJSON);
 
     it('getPostProjectUpdatesData', () => {
-        const result = isPostProjectUpdates(JSONbody);
+        const result = isPostProjectUpdates(genericJSON);
         expect(result).to.be.true;
     });
 
-    it('postProjectUpdates', async () => {
-        //     "issue_event_type_name": "issue_generic" in JSONbody
+    it('Expect postProjectUpdates works correct with issue_generic', async () => {
         const {body, htmlBody} = getEpicChangedMessageBody(postProjectUpdatesData.data);
 
         await postProjectUpdates({mclient, ...postProjectUpdatesData});
+        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, body, htmlBody);
+    });
+
+    it('Expect postProjectUpdates works correct with issue_created', async () => {
+        const postProjectUpdatesData2 = getPostProjectUpdatesData(createdJSON);
+        const {body, htmlBody} = getNewEpicMessageBody(postProjectUpdatesData2.data);
+
+        await postProjectUpdates({mclient, ...postProjectUpdatesData2});
         expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, body, htmlBody);
     });
 

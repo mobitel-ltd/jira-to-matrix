@@ -11,7 +11,7 @@ const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.
 const watchersJSON = require('../fixtures/jira-api-requests/watchers.json');
 
 const watchersUsers = watchersJSON.watchers.map(({name}) => name);
-describe('Issue test', () => {
+describe('Jira request test', () => {
     const users = [
         {
             displayName: 'Ivan Andreevich A',
@@ -33,6 +33,7 @@ describe('Issue test', () => {
 
     const issue = {
         id: 26313,
+        key: 'ABC',
     };
     const fakeId = 1000;
     const fakeEndPoint = '1000';
@@ -54,7 +55,7 @@ describe('Issue test', () => {
             .get(`/issue/${fakeEndPoint}`)
             .query(utils.expandParams)
             .reply(404, 'Error!!!')
-            .get(`/issue/${issue.id}/watchers`)
+            .get(`/issue/${issue.key}/watchers`)
             .times(4)
             .reply(200, watchersJSON)
             .get('/user/search')
@@ -101,14 +102,7 @@ describe('Issue test', () => {
     });
 
     it('expect getIssueWatchers works correct', async () => {
-        const url = utils.getRestUrl('issue', issue.id, 'watchers');
-        const result = await getIssueWatchers({url, roomMembers});
-        expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
-    });
-
-    it('expect getIssueWatchers works correct if watchersUrl exists', async () => {
-        const url = utils.getRestUrl('issue', issue.id, 'watchers');
-        const result = await getIssueWatchers({roomMembers, watchersUrl: url});
+        const result = await getIssueWatchers({key: issue.key, roomMembers});
         expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
     });
 
@@ -118,8 +112,7 @@ describe('Issue test', () => {
                 inviteIgnoreUsers: roomMembers,
             },
         });
-        const url = utils.getRestUrl('issue', issue.id, 'watchers');
-        const result = await getCollectParticipantsProxy({url, roomMembers});
+        const result = await getCollectParticipantsProxy({key: issue.key, roomMembers});
         expect(result).to.be.deep.eq(watchersUsers);
     });
 
@@ -129,24 +122,8 @@ describe('Issue test', () => {
                 inviteIgnoreUsers: watchersUsers,
             },
         });
-        const url = utils.getRestUrl('issue', issue.id, 'watchers');
-        const result = await getCollectParticipantsProxy({url, roomMembers});
+        const result = await getCollectParticipantsProxy({key: issue.key, roomMembers});
         expect(result).to.be.deep.eq(roomMembers);
-    });
-
-    it('Expect getIssueWatchers not fall if no url', async () => {
-        const result = await getIssueWatchers({roomMembers});
-        expect(result).to.be.deep.eq(roomMembers);
-    });
-
-    it('Expect getIssueWatchers works correct if roomMembers have "null"', async () => {
-        const result = await getIssueWatchers({roomMembers: [...roomMembers, null]});
-        expect(result).to.be.deep.eq(roomMembers);
-    });
-
-    it('Expect getIssueWatchers works correct if roomMembers is empty', async () => {
-        const result = await getIssueWatchers({roomMembers: []});
-        expect(result).to.be.deep.eq([]);
     });
 
     it('Expect getUsers returns correct users witn right length', async () => {

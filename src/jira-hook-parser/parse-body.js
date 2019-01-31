@@ -11,26 +11,24 @@ module.exports = {
     },
 
     getCreateRoomData: body => {
-        const projectOpts = utils.getCreateProjectOpts(body);
+        const projectKey = utils.getCreateProjectOpts(body);
         const roomMembers = utils.getIssueMembers(body);
-        const url = utils.getWatchersUrl(body);
         const summary = utils.getSummary(body);
         const key = utils.getKey(body);
         const id = utils.getIssueId(body);
         const webhookEvent = utils.getBodyWebhookEvent(body);
         const descriptionFields = utils.getDescriptionFields(body);
 
-        const parsedIssue = {key, id, roomMembers, url, summary, descriptionFields};
+        const parsedIssue = {key, id, roomMembers, summary, descriptionFields};
 
-        return {issue: parsedIssue, webhookEvent, projectOpts};
+        return {issue: parsedIssue, webhookEvent, projectKey};
     },
 
     getInviteNewMembersData: body => {
         const roomMembers = utils.getIssueMembers(body);
-        const url = utils.getWatchersUrl(body);
         const key = utils.getKey(body);
 
-        return {issue: {key, roomMembers, url}};
+        return {issue: {key, roomMembers}};
     },
 
     getPostNewLinksData: body => {

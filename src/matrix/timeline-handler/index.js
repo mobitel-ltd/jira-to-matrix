@@ -1,8 +1,8 @@
 const logger = require('../../modules/log.js')(module);
 const translate = require('../../locales');
-const {postfix} = require('../../config').matrix;
 const commands = require('./commands');
 const {parseEventBody} = require('./commands/helper.js');
+const utils = require('../../lib/utils');
 
 const eventFromMatrix = async (event, room, sender, matrixClient) => {
     try {
@@ -14,7 +14,7 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
             return;
         }
 
-        const roomName = room.getCanonicalAlias().slice(1, -postfix);
+        const roomName = utils.getNameFromMatrixId(room.getCanonicalAlias());
 
         const params = {
             bodyText,
@@ -46,7 +46,7 @@ const handler = async function Handler(event, room, toStartOfTimeline) {
     // matrixClient
     const self = this;
 
-    const sender = event.getSender().slice(1, -postfix);
+    const sender = utils.getNameFromMatrixId(event.getSender());
 
     try {
         const command = await eventFromMatrix(event, room, sender, self);

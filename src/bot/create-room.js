@@ -41,9 +41,9 @@ const createIssueRoom = async (mclient, issue) => {
     }
 };
 
-const createRoomProject = async (mclient, id) => {
+const createProjectRoom = async (mclient, projectKey) => {
     try {
-        const {key, lead, name} = await getProject(id);
+        const {key, lead, name} = await getProject(projectKey);
         const invite = [getMatrixUserID(lead.key)];
         const topic = getViewUrl(key);
 
@@ -59,15 +59,15 @@ const createRoomProject = async (mclient, id) => {
         logger.info(`Created room for project ${key}: ${roomId}`);
         return roomId;
     } catch (err) {
-        throw errorTracing('createRoomProject', err);
+        throw errorTracing('createProjectRoom', err);
     }
 };
 
-module.exports = async ({mclient, issue, webhookEvent, projectOpts}) => {
+module.exports = async ({mclient, issue, webhookEvent, projectKey}) => {
     try {
         await getRoomId(mclient, issue.key) || await createIssueRoom(mclient, issue);
-        if (projectOpts) {
-            await getRoomId(mclient, projectOpts.key) || await createRoomProject(mclient, projectOpts.id);
+        if (projectKey) {
+            await getRoomId(mclient, projectKey) || await createProjectRoom(mclient, projectKey);
         }
 
         return true;

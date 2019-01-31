@@ -108,10 +108,10 @@ const helper = {
         return {body, htmlBody};
     },
 
-    postStatusData: data => {
+    getPostStatusData: data => {
         const {status} = data;
         if (typeof status !== 'string') {
-            logger.warn('No status in postStatusData');
+            logger.warn('No status in getPostStatusData');
 
             return {};
         }
@@ -126,19 +126,6 @@ const helper = {
         const htmlBody = marked(message);
 
         return {body, htmlBody};
-    },
-
-    postStatusChanged: async ({mclient, roomID, data}) => {
-        try {
-            const {body, htmlBody} = helper.postStatusData(data);
-            if (!body) {
-                logger.warn('No body for sending to Matrix');
-                return;
-            }
-            await mclient.sendHtmlMessage(roomID, body, htmlBody);
-        } catch (err) {
-            throw ['Error in postStatusChanged', err].join('\n');
-        }
     },
 
     getNewIssueMessageBody: ({summary, key}) => {
@@ -170,30 +157,23 @@ const helper = {
     },
 
     getIssueUpdateInfoMessageBody: async ({changelog, key, user}) => {
-        try {
-            const author = user.displayName;
-            const fields = helper.fieldNames(changelog.items);
-            const renderedValues = await jiraRequests.getRenderedValues(key, fields);
+        const author = user.displayName;
+        const fields = helper.fieldNames(changelog.items);
+        const renderedValues = await jiraRequests.getRenderedValues(key, fields);
 
-            const changelogItemsTostring = helper.itemsToString(changelog.items);
-            const formattedValues = {...changelogItemsTostring, ...renderedValues};
+        const changelogItemsTostring = helper.itemsToString(changelog.items);
+        const formattedValues = {...changelogItemsTostring, ...renderedValues};
 
-            const htmlBody = helper.composeText({author, fields, formattedValues});
-            const body = translate('issueHasChanged');
+        const htmlBody = helper.composeText({author, fields, formattedValues});
+        const body = translate('issueHasChanged');
 
-            return {htmlBody, body};
-        } catch (err) {
-            throw ['Error in getIssueUpdateInfoMessageBody', err].join('\n');
-        }
+        return {htmlBody, body};
     },
 
     getCommentHTMLBody: (headerText, commentBody) => `${headerText}: <br>${commentBody}`,
 
     getCommentBody: (issue, comment) => {
         const comments = Ramda.path(['renderedFields', 'comment', 'comments'], issue);
-        if (!(comments instanceof Array)) {
-            return comment.body;
-        }
 
         const result = Ramda.propOr(
             comment.body,

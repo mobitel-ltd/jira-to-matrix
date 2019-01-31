@@ -58,23 +58,18 @@ const jiraRequests = {
 
     /**
      * Make jira request to get watchers of issue from url and add to roomMembers
-     * @param {string} url url for request
+     * @param {string} key issue key
      * @param {array} roomMembers array of users linked to current issue
      * @return {array} jira response with issue
      */
-    getIssueWatchers: async ({url, roomMembers, watchersUrl}) => {
-        const correctUrl = url || watchersUrl;
+    getIssueWatchers: async ({key, roomMembers}) => {
+        const url = utils.getRestUrl('issue', key, 'watchers');
+        const body = await request(url);
+        const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];
 
-        try {
-            const body = correctUrl && await request(correctUrl);
-            const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];
+        const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
-            const allWatchersSet = new Set([...roomMembers, ...watchers]);
-
-            return [...allWatchersSet].filter(isExpectedToInvite);
-        } catch (err) {
-            throw ['getIssueWatchers error', err].join('\n');
-        }
+        return [...allWatchersSet].filter(isExpectedToInvite);
     },
 
     /**
@@ -114,15 +109,7 @@ const jiraRequests = {
      * @param {string} id project ID in jira
      * @return {object} jira response with issue
      */
-    getProject: async id => {
-        try {
-            const project = await request(utils.getRestUrl('project', id));
-
-            return project;
-        } catch (err) {
-            throw ['getProject error', err].join('\n');
-        }
-    },
+    getProject: id => request(utils.getRestUrl('project', id)),
 
     /**
      * Make request to jira by issueID adding renderedFields
@@ -161,14 +148,10 @@ const jiraRequests = {
     },
 
     getUsersByParam: username => {
-        try {
-            const queryPararms = querystring.stringify({username});
-            const url = utils.getRestUrl('user', `search?${queryPararms}`);
+        const queryPararms = querystring.stringify({username});
+        const url = utils.getRestUrl('user', `search?${queryPararms}`);
 
-            return request(url);
-        } catch (err) {
-            throw utils.errorTracing('getUserByParam', err);
-        }
+        return request(url);
     },
 
     // recursive function to get users by num and startAt (start position in jira list of users)

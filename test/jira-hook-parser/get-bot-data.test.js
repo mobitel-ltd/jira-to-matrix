@@ -3,6 +3,7 @@ const assert = require('assert');
 const firstJSON = require('../fixtures/webhooks/comment/created.json');
 const secondJSON = require('../fixtures/webhooks/issue/updated/commented.json');
 const {getBotActions, getParserName, getFuncAndBody} = require('../../src/jira-hook-parser/bot-handler.js');
+const translate = require('../../src/locales');
 
 describe('get-bot-data', () => {
     const firstBodyArr = getBotActions(firstJSON);
@@ -41,7 +42,7 @@ describe('get-bot-data', () => {
                 funcName: 'postComment',
                 data: {
                     issueID: '26313',
-                    headerText: 'jira_test добавил(а) комментарий',
+                    headerText: translate('comment_created', {name: 'jira_test'}),
                     comment: {
                         body: '12345',
                         id: '31039',
@@ -58,15 +59,13 @@ describe('get-bot-data', () => {
                     'issue': {
                         'roomMembers': [
                             'jira_test',
-                            'jira_test',
-                            'jira_test',
                         ],
                         'descriptionFields': {
                             'assigneeEmail': 'jira_test@test-example.ru',
                             'assigneeName': 'jira_test',
                             'description': 'dafdasfadf',
                             'epicLink': 'BBCOM-801',
-                            'estimateTime': 'отсутствует',
+                            'estimateTime': translate('miss'),
                             'priority': 'Blocker',
                             'reporterEmail': 'jira_test@test-example.ru',
                             'reporterName': 'jira_test',
@@ -75,9 +74,8 @@ describe('get-bot-data', () => {
                         'id': '26313',
                         'key': 'BBCOM-956',
                         'summary': 'BBCOM-956',
-                        'url': 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-956/watchers',
                     },
-                    'projectOpts': undefined,
+                    'projectKey': undefined,
                     'webhookEvent': 'jira:issue_updated',
 
                 },
@@ -89,11 +87,8 @@ describe('get-bot-data', () => {
                     'issue': {
                         'roomMembers': [
                             'jira_test',
-                            'jira_test',
-                            'jira_test',
                         ],
                         'key': 'BBCOM-956',
-                        'url': 'https://jira.test-example.ru/jira/rest/api/2/issue/BBCOM-956/watchers',
                     },
                 },
             },

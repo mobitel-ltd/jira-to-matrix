@@ -19,18 +19,14 @@ const composeConfig = config => {
         userId: `@${config.matrix.user}:${config.matrix.domain}`,
     };
 
-    const version = '2017-06-27';
+    const version = process.env.npm_package_version;
 
     config.features.epicUpdates.on = () => (
         config.features.epicUpdates.newIssuesInEpic === 'on'
         || config.features.epicUpdates.issuesStatusChanged === 'on'
     );
-    const result = Ramda.mergeAll([config, {matrix}, {version}]);
 
-    return result;
+    return {...config, matrix, version};
 };
 
-const config = composeConfig(configData);
-config.matrix.postfix = `:${config.matrix.domain}`.length;
-
-module.exports = config;
+module.exports = composeConfig(configData);
