@@ -46,7 +46,7 @@ describe('saveIncoming', () => {
     });
 });
 
-describe('redis-data-handle', () => {
+describe('redis-data-handle test', () => {
     const createRoomData = [{
         issue: {
             key: 'BBCOM-1111',
@@ -65,7 +65,6 @@ describe('redis-data-handle', () => {
                 priority: 'Medium',
             },
         },
-        webhookEvent: 'jira:issue_created',
     }];
 
     const expectedFuncKeys = [
@@ -83,7 +82,6 @@ describe('redis-data-handle', () => {
                     summary: 'Test',
                     id: '30369',
                     name: 'jira_test',
-                    status: null,
                 },
             },
         },
@@ -108,7 +106,7 @@ describe('redis-data-handle', () => {
                     priority: 'Medium',
                 },
             },
-            webhookEvent: 'jira:issue_created',
+            projectKey: 'BBCOM',
         },
     ];
 
@@ -144,7 +142,7 @@ describe('redis-data-handle', () => {
                 Authorization: auth(),
             },
         })
-            .get('/project/10305')
+            .get(`/project/${JSONbody.issue.fields.project.key}`)
             .reply(200, projectBody)
             .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, {...responce, id: 28516})
@@ -156,6 +154,7 @@ describe('redis-data-handle', () => {
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)
             .reply(404);
+
         await getParsedAndSaveToRedis(JSONbody);
     });
 

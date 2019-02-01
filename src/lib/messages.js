@@ -4,6 +4,11 @@ const getMessage = obj =>
         .join(', ');
 
 module.exports = {
+    infoBody: `
+    <br>
+    Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
+    `,
+
     noJiraConnection: 'No connection with Jira!!!',
 
     getRequestErrorLog: (url, status, {method, body} = {method: 'GET'}) =>

@@ -1,7 +1,8 @@
 const {getIssueWatchers, getProject} = require('../lib/jira-request.js');
 const {composeRoomName, getViewUrl, errorTracing, getMatrixUserID} = require('../lib/utils.js');
 const logger = require('../modules/log.js')(module);
-const postIssueDescription = require('./post-issue-description.js');
+const {getDescription} = require('./helper');
+const {infoBody} = require('../lib/messages');
 
 const getRoomId = async (mclient, key) => {
     try {
@@ -10,7 +11,7 @@ const getRoomId = async (mclient, key) => {
 
         return id;
     } catch (err) {
-        return null;
+        return false;
     }
 };
 
@@ -33,9 +34,10 @@ const createIssueRoom = async (mclient, issue) => {
         const roomId = await mclient.createRoom(options);
 
         logger.info(`Created room for ${key}: ${roomId}`);
-        await postIssueDescription({mclient, issue, newRoomID: roomId});
+        const {body, htmlBody} = await getDescription(issue);
 
-        return roomId;
+        await mclient.sendHtmlMessage(roomId, body, htmlBody);
+        await mclient.sendHtmlMessage(roomId, infoBody, infoBody);
     } catch (err) {
         throw errorTracing('createIssueRoom', err);
     }
@@ -43,29 +45,29 @@ const createIssueRoom = async (mclient, issue) => {
 
 const createProjectRoom = async (mclient, projectKey) => {
     try {
-        const {key, lead, name} = await getProject(projectKey);
+        const {lead, name} = await getProject(projectKey);
         const invite = [getMatrixUserID(lead.key)];
-        const topic = getViewUrl(key);
+        const topic = getViewUrl(projectKey);
 
         const options = {
-            'room_alias_name': key,
+            'room_alias_name': projectKey,
             invite,
             name,
             topic,
         };
 
         const roomId = await mclient.createRoom(options);
-
-        logger.info(`Created room for project ${key}: ${roomId}`);
-        return roomId;
+        logger.info(`Created room for project ${projectKey}: ${roomId}`);
     } catch (err) {
         throw errorTracing('createProjectRoom', err);
     }
 };
 
-module.exports = async ({mclient, issue, webhookEvent, projectKey}) => {
+module.exports = async ({mclient, issue, projectKey}) => {
     try {
-        await getRoomId(mclient, issue.key) || await createIssueRoom(mclient, issue);
+        if (issue.key) {
+            await getRoomId(mclient, issue.key) || await createIssueRoom(mclient, issue);
+        }
         if (projectKey) {
             await getRoomId(mclient, projectKey) || await createProjectRoom(mclient, projectKey);
         }

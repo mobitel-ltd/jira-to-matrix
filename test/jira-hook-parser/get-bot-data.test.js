@@ -75,9 +75,7 @@ describe('get-bot-data', () => {
                         'key': 'BBCOM-956',
                         'summary': 'BBCOM-956',
                     },
-                    'projectKey': undefined,
-                    'webhookEvent': 'jira:issue_updated',
-
+                    'projectKey': 'BBCOM',
                 },
             },
             {
@@ -97,12 +95,11 @@ describe('get-bot-data', () => {
                 funcName: 'postEpicUpdates',
                 data: {
                     data: {
-                        'changelog': undefined,
-                        'id': '26313',
-                        'key': 'BBCOM-956',
-                        'name': 'jira_test',
-                        'status': null,
-                        'summary': 'BBCOM-956',
+                        id: '26313',
+                        key: 'BBCOM-956',
+                        name: 'jira_test',
+                        summary: 'BBCOM-956',
+                        status: undefined,
                     },
                     epicKey: 'BBCOM-801',
                 },
@@ -112,4 +109,8 @@ describe('get-bot-data', () => {
         assert.deepEqual(funcAndBodyFirst, firstBodyArrExpected);
         assert.deepEqual(funcAndBodySecond, secondBodyArrExpected);
     });
+
+    // it('Expect project_create data have only project key, no issue data', () => {
+
+    // });
 });
