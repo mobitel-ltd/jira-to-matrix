@@ -72,6 +72,7 @@ const hooks = {
         }),
     },
     issuelink: {
+        getCreator: body => false,
         // getIssueKey: () => false,
         // getIssueId: () => false,
         getLinks: body => [Ramda.path(['issueLink'], body)],

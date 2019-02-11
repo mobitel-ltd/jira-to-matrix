@@ -4,13 +4,17 @@ const bodyParser = require('body-parser');
 const EventEmitter = require('events');
 const StateMachine = require('javascript-state-machine');
 const StateMachineHistory = require('javascript-state-machine/lib/history');
+const timelineHandler = require('./matrix/timeline-handler');
 
 const conf = require('./config');
-const Matrix = require('./matrix');
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('./jira-hook-parser');
 const queueHandler = require('../src/queue');
+const Matrix = require('./matrix');
 
+const matrixClient = new Matrix({config: conf.matrix, timelineHandler});
+
+const CHECK_QUEUE_DELAY = 30 * 60 * 1000;
 const queuePush = new EventEmitter();
 
 const queueFsm = new StateMachine({
@@ -35,17 +39,16 @@ const queueFsm = new StateMachine({
 
 const connectToMatrix = () => (async () => {
     try {
-        const connection = await Matrix.connect();
+        await matrixClient.connect();
         queueFsm.queueHandler();
 
-        return connection;
+        return matrixClient;
     } catch (err) {
         logger.error('No Matrix connection ', err);
         return null;
     }
 })();
 
-const CHECK_QUEUE_DELAY = 30 * 60 * 1000;
 
 const checkQueueInterval = setInterval(() => {
     queuePush.emit('startQueueHandler');
@@ -97,7 +100,7 @@ server.listen(conf.port, () => {
 });
 
 queuePush.on('startQueueHandler', async () => {
-    if (client) {
+    if (matrixClient.isConnected()) {
         logger.debug('queueFsm.state', queueFsm.state);
         await queueHandler(client);
     }
@@ -108,7 +111,7 @@ queuePush.on('startQueueHandler', async () => {
 const onExit = err => {
     logger.warn('Jira Bot stopped ', err);
     clearInterval(checkQueueInterval);
-    Matrix.disconnect();
+    matrixClient.disconnect();
 
     if (server.listening) {
         server.close();
