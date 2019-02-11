@@ -10,9 +10,9 @@ const conf = require('./config');
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('./jira-hook-parser');
 const queueHandler = require('../src/queue');
-const Matrix = require('./matrix');
+const Matrix = require('matrix-sdk-fasade');
 
-const matrixClient = new Matrix({config: conf.matrix, timelineHandler});
+const matrixClient = new Matrix({config: conf.matrix, timelineHandler, logger});
 
 const CHECK_QUEUE_DELAY = 30 * 60 * 1000;
 const queuePush = new EventEmitter();
