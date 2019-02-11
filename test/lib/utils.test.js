@@ -1,7 +1,6 @@
 /* eslint-disable no-undefined */
 const utils = require('../../src/lib/utils');
 const assert = require('assert');
-const issueCommentedHook = require('../fixtures/webhooks/issue/updated/commented.json');
 const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
 const {expect} = require('chai');
 const body = require('../fixtures/webhooks/issue/updated/generic.json');
@@ -112,25 +111,6 @@ describe('Utils testing', () => {
         const changelogField = utils.getChangelogField('fake', body);
 
         expect(changelogField).to.be.undefined;
-    });
-
-    it('expect getWatchersUrl works well', () => {
-        const self = 'url';
-        const body = {issue: {self}};
-        const result = utils.getWatchersUrl(body);
-        expect(result).to.be.eq(`${self}/watchers`);
-    });
-
-    describe('extractID', () => {
-        it('Comment issueCommentedHook', () => {
-            const id = utils.extractID(issueCommentedHook);
-            expect(id).to.be.eq('26313');
-        });
-
-        it('Expect issueUpdatedGenericHook works', () => {
-            const id = utils.extractID(issueUpdatedGenericHook);
-            expect(id).to.be.eq('28661');
-        });
     });
 
     it('Expect getComment return undefined', () => {

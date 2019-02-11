@@ -32,7 +32,7 @@ describe('get-parsed-save to redis', () => {
             .get(`/project/${issueCommentedHook.issue.fields.project.id}`)
             .times(5)
             .reply(200, {isPrivate: false})
-            .get(`/issue/${utils.extractID(commentCreatedHook)}`)
+            .get(`/issue/${utils.getIssueId(commentCreatedHook)}`)
             .times(2)
             .reply(200, {isPrivate: false});
         nock(jiraUrl).get('')

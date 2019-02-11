@@ -1,5 +1,6 @@
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
 const epicJSON = require('../fixtures/webhooks/epic/created.json');
+const projectJSON = require('../fixtures/webhooks/project/created.json');
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
@@ -20,7 +21,7 @@ describe('Create room test', () => {
 
     const createRoomData = getCreateRoomData(JSONbody);
 
-    const projectKey = utils.getProjectKey(epicJSON);
+    const projectKey = epicJSON.issue.fields.project.key;
 
     const expectedEpicRoomOptions = {
         'room_alias_name': epicJSON.issue.key,
@@ -29,17 +30,25 @@ describe('Create room test', () => {
         'topic': utils.getViewUrl(epicJSON.issue.key),
     };
 
-    const expectedRoomOptions = {
+    const expectedIssueRoomOptions = {
         'room_alias_name': createRoomData.issue.key,
         'invite': [utils.getMatrixUserID(JSONbody.user.name), ...watchers],
         'name': utils.composeRoomName(createRoomData.issue),
         'topic': utils.getViewUrl(createRoomData.issue.key),
     };
-    const expectedProjectOptions = {
-        'room_alias_name': projectData.key,
+
+    const expectedEpicProjectOptions = {
+        'room_alias_name': projectKey,
         'invite': [utils.getMatrixUserID(projectData.lead.key)],
         'name': projectData.name,
-        'topic': utils.getViewUrl(projectData.key),
+        'topic': utils.getViewUrl(projectKey),
+    };
+
+    const expectedCreateProjectOptions = {
+        'room_alias_name': projectJSON.project.key,
+        'invite': [utils.getMatrixUserID(projectData.lead.key)],
+        'name': projectData.name,
+        'topic': utils.getViewUrl(projectJSON.project.key),
     };
 
     const mclient = {
@@ -57,7 +66,12 @@ describe('Create room test', () => {
             .get(`/issue/${epicJSON.issue.key}/watchers`)
             .reply(200, watchersBody)
             .get(`/project/${projectKey}`)
-            .times(5)
+            .times(2)
+            .reply(200, projectData)
+            .get(`/project/${JSONbody.issue.fields.project.key}`)
+            .times(2)
+            .reply(200, projectData)
+            .get(`/project/${projectJSON.project.key}`)
             .reply(200, projectData)
             .get(`/issue/${createRoomData.issue.id}`)
             .query(utils.expandParams)
@@ -76,35 +90,35 @@ describe('Create room test', () => {
         nock.cleanAll();
     });
 
-    it('Room should not be created', async () => {
+    it('Expect issue room and project room should not be created if we run simple issue_created', async () => {
         const result = await createRoom({mclient, ...createRoomData});
+        expect(result).to.be.true;
         expect(mclient.createRoom).not.to.be.called;
-        expect(result).to.be.true;
     });
 
-    it('Room should be created', async () => {
-        mclient.getRoomId.throws('No room');
-        const result = await createRoom({mclient, ...createRoomData});
-        expect(mclient.createRoom).to.be.calledWithExactly(expectedRoomOptions);
-        expect(result).to.be.true;
-    });
-
-    it('Issue room and project room should not be created', async () => {
-        mclient.getRoomId.withArgs(projectKey).resolves('id');
-        const result = await createRoom({mclient, ...createRoomData, projectKey});
-        expect(result).to.be.true;
-    });
-
-    it('Project and epic rooms should be created if Epic body we get and no rooms exists', async () => {
+    it('Expect room should be created if it\'s not exists and project creates if we run simple issue_created', async () => {
         mclient.getRoomId.throws();
-        const roomData = getCreateRoomData(epicJSON);
-        const result = await createRoom({mclient, ...roomData});
-        expect(mclient.createRoom).to.be.calledWithExactly(expectedEpicRoomOptions);
-        expect(mclient.createRoom).to.be.calledWithExactly(expectedProjectOptions);
+        const result = await createRoom({mclient, ...createRoomData});
+        expect(mclient.createRoom).to.be.calledWithExactly(expectedIssueRoomOptions);
         expect(result).to.be.true;
     });
 
-    it('Get error in room create', async () => {
+    it('Expect project and epic rooms should be created if Epic body we get and no rooms exists', async () => {
+        mclient.getRoomId.throws();
+        const result = await createRoom({mclient, ...getCreateRoomData(epicJSON)});
+        expect(mclient.createRoom).to.be.calledWithExactly(expectedEpicRoomOptions);
+        expect(mclient.createRoom).to.be.calledWithExactly(expectedEpicProjectOptions);
+        expect(result).to.be.true;
+    });
+
+    it('Expect project should be created if project_created hook we get and no project room exists', async () => {
+        mclient.getRoomId.throws();
+        const result = await createRoom({mclient, ...getCreateRoomData(projectJSON)});
+        expect(mclient.createRoom).to.be.calledOnceWithExactly(expectedCreateProjectOptions);
+        expect(result).to.be.true;
+    });
+
+    it('Expect error in room create throws error', async () => {
         mclient.createRoom.throws(errorMsg);
         let res;
         const expectedError = [
@@ -121,8 +135,7 @@ describe('Create room test', () => {
         expect(res).to.be.deep.equal(expectedError);
     });
 
-    it('Get error in room createRoomProject', async () => {
-        mclient.createRoom.resetBehavior();
+    it('Expect error in room createRoomProject throw error', async () => {
         mclient.createRoom.throws(errorMsg);
         let res;
         const expectedError = [

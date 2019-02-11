@@ -1,3 +1,4 @@
+const htmlToText = require('html-to-text').fromString;
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const translate = require('../locales');
@@ -6,52 +7,80 @@ const {usersToIgnore, testMode} = require('../config');
 const utils = require('../lib/utils.js');
 const jiraRequests = require('../lib/jira-request.js');
 
+const getEpicInfo = epicLink =>
+    ((epicLink === translate('miss'))
+        ? ''
+        : `            <br>Epic link:
+                ${utils.getOpenedDescriptionBlock(epicLink)}
+                ${utils.getClosedDescriptionBlock(utils.getViewUrl(epicLink))}`);
+
+const getPost = description => {
+    const post = `
+            Assignee:
+                ${utils.getOpenedDescriptionBlock(description.assigneeName)}
+                ${utils.getClosedDescriptionBlock(description.assigneeEmail)}
+            <br>Reporter:
+                ${utils.getOpenedDescriptionBlock(description.reporterName)}
+                ${utils.getClosedDescriptionBlock(description.reporterEmail)}
+            <br>Type:
+                ${utils.getClosedDescriptionBlock(description.typeName)}
+            <br>Estimate time:
+                ${utils.getClosedDescriptionBlock(description.estimateTime)}
+            <br>Description:
+                ${utils.getClosedDescriptionBlock(htmlToText(description.description))}
+            <br>Priority:
+                ${utils.getClosedDescriptionBlock(description.priority)}`;
+
+    const epicInfo = getEpicInfo(description.epicLink);
+
+    return [post, epicInfo].join('\n');
+};
+
 const helper = {
+    getDescription: async issue => {
+        try {
+            const {description} = await jiraRequests.getRenderedValues(issue.id, ['description']);
+            const htmlBody = getPost({...issue.descriptionFields, description});
+            const body = htmlToText(htmlBody);
+
+            return {body, htmlBody};
+        } catch (err) {
+            throw utils.errorTracing('getDescription', err);
+        }
+    },
+
     isAvailabledIssue: async issueKey => {
         const projectKey = utils.getProjectKeyFromIssueKey(issueKey);
-        const project = await jiraRequests.getProject(projectKey);
-        const privateStatus = utils.getProjectPrivateStatus(project);
+        const projectBody = await jiraRequests.getProject(projectKey);
 
-        return !privateStatus && jiraRequests.getIssueSafety(issueKey);
+        return !utils.isIgnoreProject(projectBody) || jiraRequests.getIssueSafety(issueKey);
     },
 
-    isStartEndUpdateStatus: body => {
-        const startDate = utils.getChangelogField('Start date', body);
-        const endDate = utils.getChangelogField('End date', body);
+    privateByType: {
+        issue: async body => {
+            const key = utils.getIssueKey(body);
+            const status = await helper.isAvailabledIssue(key);
 
-        return !!(startDate || endDate);
+            return !status;
+        },
+        issuelink: async body => {
+            const allId = [utils.getIssueLinkSourceId(body), utils.getIssueLinkDestinationId(body)];
+            const issues = await Promise.all(allId.map(jiraRequests.getIssueSafety));
+
+            return !issues.some(Boolean);
+        },
+        project: async body => {
+            const key = utils.getProjectKey(body);
+            const projectBody = await jiraRequests.getProject(key);
+            return utils.isIgnoreProject(projectBody);
+        },
+        comment: async body => {
+            const id = utils.getIssueId(body);
+            const status = await jiraRequests.getIssueSafety(id);
+
+            return !status;
+        },
     },
-
-    isAllIdsIgnored: async linksIds => {
-        const issues = await Promise.all(linksIds.map(jiraRequests.getIssueSafety));
-
-        return !issues.some(Boolean);
-    },
-    isPrivateIssue: async body => {
-        if (utils.isLinkHook(body)) {
-            const linksIssueIds = utils.getLinksIssueIds(body);
-            const status = await helper.isAllIdsIgnored(linksIssueIds);
-
-            return status;
-        }
-
-        const issueId = utils.extractID(body);
-        const status = await jiraRequests.getIssueSafety(issueId);
-
-        return !status;
-    },
-
-    getProjectPrivateStatus: async body => {
-        await jiraRequests.testJiraRequest();
-
-        const projectId = utils.getBodyProjectId(body);
-        const projectBody = projectId && await jiraRequests.getProject(projectId);
-
-        return (utils.isNewGenProjectStyle(projectBody))
-            ? utils.getProjectPrivateStatus(projectBody)
-            : helper.isPrivateIssue(body);
-    },
-
 
     getIgnoreBodyData: body => {
         const username = utils.getHookUserName(body);
@@ -61,14 +90,16 @@ const helper = {
             [username, creator].some(user => arr.includes(user));
 
         const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
-        const startEndUpdateStatus = helper.isStartEndUpdateStatus(body);
-        const ignoreStatus = userIgnoreStatus || startEndUpdateStatus;
+        const ignoreStatus = userIgnoreStatus;
 
-        return {username, creator, startEndUpdateStatus, ignoreStatus};
+        return {username, creator, ignoreStatus};
     },
 
     getIgnoreProject: async body => {
-        const ignoreStatus = await helper.getProjectPrivateStatus(body);
+        await jiraRequests.testJiraRequest();
+        const action = helper.privateByType[utils.getHookType(body)];
+
+        const ignoreStatus = action && await action(body);
         const webhookEvent = utils.getBodyWebhookEvent(body);
         const timestamp = utils.getBodyTimestamp(body);
         const issueName = utils.getBodyIssueName(body);
@@ -107,22 +138,17 @@ const helper = {
 
         return {body, htmlBody};
     },
-
     getPostStatusData: data => {
-        const {status} = data;
-        if (typeof status !== 'string') {
+        if (!data.status) {
             logger.warn('No status in getPostStatusData');
 
             return {};
         }
 
         const viewUrl = utils.getViewUrl(data.key);
-        const baseValues = {status, viewUrl};
-        const values = ['name', 'key', 'summary']
-            .reduce((acc, key) => ({...acc, [key]: data[key]}), baseValues);
 
-        const body = translate('statusHasChanged', values);
-        const message = translate('statusHasChangedMessage', values, values.name);
+        const body = translate('statusHasChanged', {...data, viewUrl});
+        const message = translate('statusHasChangedMessage', {...data, viewUrl}, data.name);
         const htmlBody = marked(message);
 
         return {body, htmlBody};
