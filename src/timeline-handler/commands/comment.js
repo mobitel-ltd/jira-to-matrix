@@ -1,9 +1,9 @@
-const jiraRequests = require('../../../lib/jira-request');
-const messages = require('../../../lib/messages');
-const utils = require('../../../lib/utils');
-const translate = require('../../../locales');
+const jiraRequests = require('../../lib/jira-request');
+const messages = require('../../lib/messages');
+const utils = require('../../lib/utils');
+const translate = require('../../locales');
 
-module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
+module.exports = async ({bodyText, sender, room, roomName, chatApi}) => {
     try {
         if (bodyText) {
             await jiraRequests.postComment(roomName, sender, bodyText);
@@ -12,7 +12,7 @@ module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
         }
 
         const body = translate('emptyMatrixComment');
-        await matrixClient.sendHtmlMessage(room.roomId, body, body);
+        await chatApi.sendHtmlMessage(room.roomId, body, body);
 
         return messages.getCommentFailSentLog(sender, roomName);
     } catch (err) {

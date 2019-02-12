@@ -1,14 +1,14 @@
-const jiraRequests = require('../../../lib/jira-request');
-const translate = require('../../../locales');
-const messages = require('../../../lib/messages');
-const utils = require('../../../lib/utils');
+const jiraRequests = require('../../lib/jira-request');
+const translate = require('../../locales');
+const messages = require('../../lib/messages');
+const utils = require('../../lib/utils');
 
-module.exports = async ({bodyText, room, sender, roomName, matrixClient}) => {
+module.exports = async ({bodyText, room, sender, roomName, chatApi}) => {
     try {
         const transitions = await jiraRequests.getPossibleIssueStatuses(roomName);
         if (!bodyText) {
             const list = utils.getCommandList(transitions);
-            await matrixClient.sendHtmlMessage(room.roomId, list, list);
+            await chatApi.sendHtmlMessage(room.roomId, list, list);
 
             return;
         }
@@ -17,14 +17,14 @@ module.exports = async ({bodyText, room, sender, roomName, matrixClient}) => {
 
         if (!newStatus) {
             const post = translate('notFoundMove', {bodyText});
-            await matrixClient.sendHtmlMessage(room.roomId, post, post);
+            await chatApi.sendHtmlMessage(room.roomId, post, post);
 
             return messages.getNotFoundMoveCommandLog(roomName, bodyText);
         }
 
         await jiraRequests.postIssueStatus(roomName, newStatus.id);
         const post = translate('successMoveJira', {...newStatus, sender});
-        await matrixClient.sendHtmlMessage(room.roomId, post, post);
+        await chatApi.sendHtmlMessage(room.roomId, post, post);
 
         return messages.getMoveSuccessLog(roomName);
     } catch (err) {

@@ -1,15 +1,15 @@
-const jiraRequests = require('../../../lib/jira-request');
-const translate = require('../../../locales');
-const messages = require('../../../lib/messages');
-const utils = require('../../../lib/utils');
+const jiraRequests = require('../../lib/jira-request');
+const translate = require('../../locales');
+const messages = require('../../lib/messages');
+const utils = require('../../lib/utils');
 
-module.exports = async ({bodyText, room, roomName, matrixClient}) => {
+module.exports = async ({bodyText, room, roomName, chatApi}) => {
     try {
         const allPriorities = await jiraRequests.getIssuePriorities(roomName);
 
         if (!bodyText) {
             const listPrio = utils.getCommandList(allPriorities);
-            await matrixClient.sendHtmlMessage(room.roomId, listPrio, listPrio);
+            await chatApi.sendHtmlMessage(room.roomId, listPrio, listPrio);
 
             return;
         }
@@ -18,7 +18,7 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
 
         if (!priority) {
             const post = translate('notFoundPrio', {bodyText});
-            await matrixClient.sendHtmlMessage(room.roomId, post, post);
+            await chatApi.sendHtmlMessage(room.roomId, post, post);
 
             return messages.getNotFoundPrioCommandLog(roomName, bodyText);
         }
@@ -26,7 +26,7 @@ module.exports = async ({bodyText, room, roomName, matrixClient}) => {
         await jiraRequests.updateIssuePriority(roomName, priority.id);
 
         const post = translate('setPriority', priority);
-        await matrixClient.sendHtmlMessage(room.roomId, post, post);
+        await chatApi.sendHtmlMessage(room.roomId, post, post);
 
         return messages.getUpdatedIssuePriorityLog(roomName, priority.name);
     } catch (err) {

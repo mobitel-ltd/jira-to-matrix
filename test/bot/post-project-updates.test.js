@@ -13,7 +13,7 @@ chai.use(sinonChai);
 describe('Post project updates test', () => {
     const roomId = 'roomId';
 
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub().resolves(roomId),
     };
@@ -28,24 +28,24 @@ describe('Post project updates test', () => {
     it('Expect postProjectUpdates works correct with issue_generic', async () => {
         const {body, htmlBody} = getEpicChangedMessageBody(postProjectUpdatesData.data);
 
-        await postProjectUpdates({mclient, ...postProjectUpdatesData});
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, body, htmlBody);
+        await postProjectUpdates({chatApi, ...postProjectUpdatesData});
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, body, htmlBody);
     });
 
     it('Expect postProjectUpdates works correct with issue_created', async () => {
         const postProjectUpdatesData2 = getPostProjectUpdatesData(createdJSON);
         const {body, htmlBody} = getNewEpicMessageBody(postProjectUpdatesData2.data);
 
-        await postProjectUpdates({mclient, ...postProjectUpdatesData2});
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, body, htmlBody);
+        await postProjectUpdates({chatApi, ...postProjectUpdatesData2});
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, body, htmlBody);
     });
 
     it('Expect postProjectUpdates to be thrown if no room is found', async () => {
         const errName = 'Error!';
-        mclient.getRoomId.throws(errName);
+        chatApi.getRoomId.throws(errName);
         let res;
         try {
-            res = await postProjectUpdates({mclient, ...postProjectUpdatesData});
+            res = await postProjectUpdates({chatApi, ...postProjectUpdatesData});
         } catch (err) {
             res = err;
         }

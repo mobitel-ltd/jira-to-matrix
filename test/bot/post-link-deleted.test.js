@@ -23,13 +23,13 @@ describe('Test postLinksDeleted', () => {
 
     const roomIDIn = 'inId';
     const roomIDOut = 'outId';
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub(),
     };
 
-    mclient.getRoomId.withArgs(utils.getKey(issueBody)).onFirstCall().resolves(roomIDIn);
-    mclient.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
+    chatApi.getRoomId.withArgs(utils.getKey(issueBody)).onFirstCall().resolves(roomIDIn);
+    chatApi.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
 
     before(() => {
         nock(utils.getRestUrl())
@@ -40,7 +40,7 @@ describe('Test postLinksDeleted', () => {
     });
 
     afterEach(async () => {
-        Object.values(mclient).map(val => val.resetHistory());
+        Object.values(chatApi).map(val => val.resetHistory());
         await cleanRedis();
     });
 
@@ -75,11 +75,11 @@ describe('Test postLinksDeleted', () => {
         }, 'deleteLink');
 
         const data = getPostLinksDeletedData(linkDeletedHook);
-        const res = await postLinksDeleted({...data, mclient});
+        const res = await postLinksDeleted({...data, chatApi});
 
         expect(res).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
     });
 
     it('Expect postlink throws error with expected data if smth wrong', async () => {
@@ -87,7 +87,7 @@ describe('Test postLinksDeleted', () => {
         const data = getPostLinksDeletedData(linkDeletedHook);
 
         try {
-            res = await postLinksDeleted({...data, mclient});
+            res = await postLinksDeleted({...data, chatApi});
         } catch (err) {
             res = err;
         }
@@ -104,9 +104,9 @@ describe('Test postLinksDeleted', () => {
 
         const expectedPost = translate('deleteLink');
         const data = getPostLinksDeletedData(linkDeletedHook);
-        const res = await postLinksDeleted({...data, mclient});
+        const res = await postLinksDeleted({...data, chatApi});
 
         expect(res).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, expectedPost, marked(expectedPost));
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, expectedPost, marked(expectedPost));
     });
 });

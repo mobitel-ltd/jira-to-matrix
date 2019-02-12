@@ -4,9 +4,9 @@ const logger = require('../modules/log.js')(module);
 const {getDescription} = require('./helper');
 const {infoBody} = require('../lib/messages');
 
-const getRoomId = async (mclient, key) => {
+const getRoomId = async (chatApi, key) => {
     try {
-        const id = await mclient.getRoomId(key);
+        const id = await chatApi.getRoomId(key);
         logger.debug(`Room should not be created, roomId is ${id} for room ${key}`);
 
         return id;
@@ -15,7 +15,7 @@ const getRoomId = async (mclient, key) => {
     }
 };
 
-const createIssueRoom = async (mclient, issue) => {
+const createIssueRoom = async (chatApi, issue) => {
     try {
         const roomMembers = await getIssueWatchers(issue);
         const invite = roomMembers.map(getMatrixUserID);
@@ -31,19 +31,19 @@ const createIssueRoom = async (mclient, issue) => {
             topic,
         };
 
-        const roomId = await mclient.createRoom(options);
+        const roomId = await chatApi.createRoom(options);
 
         logger.info(`Created room for ${key}: ${roomId}`);
         const {body, htmlBody} = await getDescription(issue);
 
-        await mclient.sendHtmlMessage(roomId, body, htmlBody);
-        await mclient.sendHtmlMessage(roomId, infoBody, infoBody);
+        await chatApi.sendHtmlMessage(roomId, body, htmlBody);
+        await chatApi.sendHtmlMessage(roomId, infoBody, infoBody);
     } catch (err) {
         throw errorTracing('createIssueRoom', err);
     }
 };
 
-const createProjectRoom = async (mclient, projectKey) => {
+const createProjectRoom = async (chatApi, projectKey) => {
     try {
         const {lead, name} = await getProject(projectKey);
         const invite = [getMatrixUserID(lead.key)];
@@ -56,20 +56,20 @@ const createProjectRoom = async (mclient, projectKey) => {
             topic,
         };
 
-        const roomId = await mclient.createRoom(options);
+        const roomId = await chatApi.createRoom(options);
         logger.info(`Created room for project ${projectKey}: ${roomId}`);
     } catch (err) {
         throw errorTracing('createProjectRoom', err);
     }
 };
 
-module.exports = async ({mclient, issue, projectKey}) => {
+module.exports = async ({chatApi, issue, projectKey}) => {
     try {
         if (issue.key) {
-            await getRoomId(mclient, issue.key) || await createIssueRoom(mclient, issue);
+            await getRoomId(chatApi, issue.key) || await createIssueRoom(chatApi, issue);
         }
         if (projectKey) {
-            await getRoomId(mclient, projectKey) || await createProjectRoom(mclient, projectKey);
+            await getRoomId(chatApi, projectKey) || await createProjectRoom(chatApi, projectKey);
         }
 
         return true;

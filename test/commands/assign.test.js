@@ -13,7 +13,7 @@ chai.use(sinonChai);
 const proxyquire = require('proxyquire');
 const searchUserStub = stub();
 
-const assign = proxyquire('../../src/matrix/timeline-handler/commands/assign.js', {
+const assign = proxyquire('../../src/timeline-handler/commands/assign.js', {
     './helper.js': {
         searchUser: searchUserStub,
     },
@@ -37,7 +37,7 @@ describe('assign test', () => {
     const userSender = {displayName: senderDisplayName, name: sender};
     const users = [userA, userB, userSender];
 
-    const matrixClient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         invite: stub(),
     };
@@ -71,7 +71,7 @@ describe('assign test', () => {
     });
 
     afterEach(() => {
-        Object.values(matrixClient).map(val => val.reset());
+        Object.values(chatApi).map(val => val.reset());
     });
 
     after(() => {
@@ -81,47 +81,47 @@ describe('assign test', () => {
     it('Expect assign sender ("!assign")', async () => {
         searchUserStub.returns(users.slice(2, 3));
         const post = translate('successMatrixAssign', {displayName: senderDisplayName});
-        const result = await assign({sender, room, roomName, matrixClient});
+        const result = await assign({sender, room, roomName, chatApi});
 
         expect(result).to.be.equal(messages.getAssigneeAddedLog(senderDisplayName, roomName));
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('Expect not assign sender ("!assign fake")', async () => {
         searchUserStub.returns([]);
         const post = translate('errorMatrixAssign', {userToFind: userA.displayName});
-        const result = await assign({bodyText: userA.displayName, sender, room, roomName, matrixClient});
+        const result = await assign({bodyText: userA.displayName, sender, room, roomName, chatApi});
 
         expect(result).to.be.equal(messages.getAssigneeNotAddedLog(userA.displayName, roomName));
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('Expect assign list of senders ("!assign Ivan")', async () => {
         const addedUsers = users.slice(0, 2);
         searchUserStub.resolves(addedUsers);
         const post = utils.getListToHTML(addedUsers);
-        const result = await assign({body: '!assign Ivan', sender, room, roomName, matrixClient});
+        const result = await assign({body: '!assign Ivan', sender, room, roomName, chatApi});
 
         expect(result).to.be.undefined;
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, 'List users', post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, 'List users', post);
     });
 
     it('Expect be in room', async () => {
         const newUsers = users.slice(1, 2);
         searchUserStub.returns(newUsers);
-        matrixClient.invite.throws('Error!!!');
+        chatApi.invite.throws('Error!!!');
         const [{displayName}] = newUsers;
         const post = translate('successMatrixAssign', {displayName});
         const expected = `The user ${displayName} is assigned to issue ${roomName}`;
-        const result = await assign({body: '!assign Ivan Sergeevich B', sender, room, roomName, matrixClient});
+        const result = await assign({body: '!assign Ivan Sergeevich B', sender, room, roomName, chatApi});
 
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
         expect(result).to.be.equal(expected);
     });
 
     it('Expect be error (invite throw)', async () => {
         searchUserStub.returns(users.slice(0, 1));
-        matrixClient.invite.throws('Error!!!');
+        chatApi.invite.throws('Error!!!');
         const expected = [
             utils.getDefaultErrorLog('Assign command'),
             utils.getDefaultErrorLog('addToAssignee'),
@@ -129,8 +129,8 @@ describe('assign test', () => {
         ].join('\n');
         let result;
         try {
-            result = await assign({body: '!assign Ivan Andreevich A', sender, room, roomName, matrixClient});
-            expect(matrixClient.sendHtmlMessage).not.to.have.been.called;
+            result = await assign({body: '!assign Ivan Andreevich A', sender, room, roomName, chatApi});
+            expect(chatApi.sendHtmlMessage).not.to.have.been.called;
             expect(result).not.to.be;
         } catch (err) {
             result = err;
@@ -142,19 +142,19 @@ describe('assign test', () => {
         searchUserStub.resolves([noPermissionUser]);
         const post = translate('setBotToAdmin');
         const noPermissionUserBody = `!assign ${noPermissionUser.displayName}`;
-        const result = await assign({body: noPermissionUserBody, sender, room, roomName, matrixClient});
+        const result = await assign({body: noPermissionUserBody, sender, room, roomName, chatApi});
 
         expect(result).to.be.eq(post);
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('Expect be sent msg about no access to project if 404 error got in request', async () => {
         searchUserStub.resolves([noRulesUser]);
         const post = translate('noRulesToWatchIssue');
         const noRulesUserBody = `!assign ${noRulesUser.displayName}`;
-        const result = await assign({body: noRulesUserBody, sender, room, roomName, matrixClient});
+        const result = await assign({body: noRulesUserBody, sender, room, roomName, chatApi});
 
         expect(result).to.be.eq(post);
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 });

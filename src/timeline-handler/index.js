@@ -4,7 +4,7 @@ const commands = require('./commands');
 const {parseEventBody} = require('./commands/helper.js');
 const utils = require('../../lib/utils');
 
-const eventFromMatrix = async (event, room, sender, matrixClient) => {
+const eventFromMatrix = async (event, room, sender, chatApi) => {
     try {
         const {body} = event.getContent();
 
@@ -23,7 +23,7 @@ const eventFromMatrix = async (event, room, sender, matrixClient) => {
             body,
             roomName,
             sender,
-            matrixClient,
+            chatApi,
         };
 
         if (commands[commandName]) {
@@ -43,7 +43,7 @@ const handler = async function Handler(event, room, toStartOfTimeline) {
         return;
     }
 
-    // matrixClient
+    // chatApi
     const self = this;
 
     const sender = utils.getNameFromMatrixId(event.getSender());

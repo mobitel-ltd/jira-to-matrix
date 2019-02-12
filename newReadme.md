@@ -86,7 +86,7 @@ Result of handling redis key <redisKey> --- <true/false>
 Для работы с `Riot` используется [SDK Matrix](https://github.com/matrix-org/matrix-js-sdk). При запуске бота происходит подключение к домену матрикса (`matrix.domain` из конфига) под `userId` вида `@${config.matrix.user}:${config.matrix.domain}`. После успешной авторизации и поключення лог должен вывести сообщение вида:
 ```
 createClient OK BaseUrl: https://<домен>, userId: @<имя_пользователя>:<домен>, password: <пароль>
-Started connect to matrixClient
+Started connect to chatApi
 Got push rules
 well connected
 

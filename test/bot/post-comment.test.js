@@ -20,7 +20,7 @@ describe('Post comments test', () => {
     const postCommentData = parser.getPostCommentData(commentCreatedHook);
     const postCommentUpdatedData = parser.getPostCommentData(commentUpdatedHook);
 
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub().withArgs(issueRenderedBody.key).resolves(matrixRoomId),
     };
@@ -39,7 +39,7 @@ describe('Post comments test', () => {
     });
 
     afterEach(() => {
-        Object.values(mclient).map(val => val.resetHistory());
+        Object.values(chatApi).map(val => val.resetHistory());
     });
 
     after(() => {
@@ -51,32 +51,32 @@ describe('Post comments test', () => {
         const commentBody = botHelper.getCommentBody(issueRenderedBody, postCommentData.comment);
         const htmlBody = botHelper.getCommentHTMLBody(headerText, commentBody);
 
-        const result = await postComment({mclient, ...postCommentData});
+        const result = await postComment({chatApi, ...postCommentData});
 
         expect(result).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(matrixRoomId, htmlToString(htmlBody), htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(matrixRoomId, htmlToString(htmlBody), htmlBody);
     });
 
     it('Expect postComment works correct with comment-updated hook', async () => {
         const {headerText} = postCommentUpdatedData;
         const commentBody = botHelper.getCommentBody(issueRenderedBody, postCommentUpdatedData.comment);
         const htmlBody = botHelper.getCommentHTMLBody(headerText, commentBody);
-        const result = await postComment({mclient, ...postCommentUpdatedData});
+        const result = await postComment({chatApi, ...postCommentUpdatedData});
 
         expect(result).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(matrixRoomId, htmlToString(htmlBody), htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(matrixRoomId, htmlToString(htmlBody), htmlBody);
     });
 
     it('Expect return with empty issueID. No way to handle issue', async () => {
-        const res = await postComment({mclient, ...postCommentData, issueID: null});
+        const res = await postComment({chatApi, ...postCommentData, issueID: null});
         expect(res).to.be.undefined;
     });
 
     it('Expect postComment throw error if room is not exists', async () => {
-        mclient.getRoomId.throws(someError);
+        chatApi.getRoomId.throws(someError);
         let res;
         try {
-            await postComment({mclient, ...postCommentData});
+            await postComment({chatApi, ...postCommentData});
         } catch (err) {
             res = err;
         }

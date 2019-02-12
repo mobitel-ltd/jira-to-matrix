@@ -51,7 +51,7 @@ describe('Create room test', () => {
         'topic': utils.getViewUrl(projectJSON.project.key),
     };
 
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub().resolves('id'),
         createRoom: stub().resolves('correct room'),
@@ -83,7 +83,7 @@ describe('Create room test', () => {
     });
 
     afterEach(() => {
-        Object.values(mclient).map(val => val.reset());
+        Object.values(chatApi).map(val => val.reset());
     });
 
     after(() => {
@@ -91,35 +91,35 @@ describe('Create room test', () => {
     });
 
     it('Expect issue room and project room should not be created if we run simple issue_created', async () => {
-        const result = await createRoom({mclient, ...createRoomData});
+        const result = await createRoom({chatApi, ...createRoomData});
         expect(result).to.be.true;
-        expect(mclient.createRoom).not.to.be.called;
+        expect(chatApi.createRoom).not.to.be.called;
     });
 
     it('Expect room should be created if it\'s not exists and project creates if we run simple issue_created', async () => {
-        mclient.getRoomId.throws();
-        const result = await createRoom({mclient, ...createRoomData});
-        expect(mclient.createRoom).to.be.calledWithExactly(expectedIssueRoomOptions);
+        chatApi.getRoomId.throws();
+        const result = await createRoom({chatApi, ...createRoomData});
+        expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptions);
         expect(result).to.be.true;
     });
 
     it('Expect project and epic rooms should be created if Epic body we get and no rooms exists', async () => {
-        mclient.getRoomId.throws();
-        const result = await createRoom({mclient, ...getCreateRoomData(epicJSON)});
-        expect(mclient.createRoom).to.be.calledWithExactly(expectedEpicRoomOptions);
-        expect(mclient.createRoom).to.be.calledWithExactly(expectedEpicProjectOptions);
+        chatApi.getRoomId.throws();
+        const result = await createRoom({chatApi, ...getCreateRoomData(epicJSON)});
+        expect(chatApi.createRoom).to.be.calledWithExactly(expectedEpicRoomOptions);
+        expect(chatApi.createRoom).to.be.calledWithExactly(expectedEpicProjectOptions);
         expect(result).to.be.true;
     });
 
     it('Expect project should be created if project_created hook we get and no project room exists', async () => {
-        mclient.getRoomId.throws();
-        const result = await createRoom({mclient, ...getCreateRoomData(projectJSON)});
-        expect(mclient.createRoom).to.be.calledOnceWithExactly(expectedCreateProjectOptions);
+        chatApi.getRoomId.throws();
+        const result = await createRoom({chatApi, ...getCreateRoomData(projectJSON)});
+        expect(chatApi.createRoom).to.be.calledOnceWithExactly(expectedCreateProjectOptions);
         expect(result).to.be.true;
     });
 
     it('Expect error in room create throws error', async () => {
-        mclient.createRoom.throws(errorMsg);
+        chatApi.createRoom.throws(errorMsg);
         let res;
         const expectedError = [
             utils.getDefaultErrorLog('create room'),
@@ -128,7 +128,7 @@ describe('Create room test', () => {
         ].join('\n');
 
         try {
-            res = await createRoom({mclient, ...createRoomData});
+            res = await createRoom({chatApi, ...createRoomData});
         } catch (err) {
             res = err;
         }
@@ -136,7 +136,7 @@ describe('Create room test', () => {
     });
 
     it('Expect error in room createRoomProject throw error', async () => {
-        mclient.createRoom.throws(errorMsg);
+        chatApi.createRoom.throws(errorMsg);
         let res;
         const expectedError = [
             utils.getDefaultErrorLog('create room'),
@@ -145,9 +145,9 @@ describe('Create room test', () => {
         ].join('\n');
 
         try {
-            mclient.getRoomId.callsFake(id => !(id === projectKey));
+            chatApi.getRoomId.callsFake(id => !(id === projectKey));
 
-            const result = await createRoom({mclient, ...createRoomData, projectKey});
+            const result = await createRoom({chatApi, ...createRoomData, projectKey});
             expect(result).not.to.be;
         } catch (err) {
             res = err;

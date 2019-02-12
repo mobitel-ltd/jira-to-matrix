@@ -21,13 +21,13 @@ describe('Test postNewLinks', () => {
     const issueLinkId = postNewLinksbody.issueLink.id;
     const roomIDIn = 'inId';
     const roomIDOut = 'outId';
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub(),
     };
 
-    mclient.getRoomId.withArgs(utils.getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
-    mclient.getRoomId.withArgs(utils.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
+    chatApi.getRoomId.withArgs(utils.getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
+    chatApi.getRoomId.withArgs(utils.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
 
     before(() => {
         nock(utils.getRestUrl())
@@ -46,7 +46,7 @@ describe('Test postNewLinks', () => {
     });
 
     afterEach(async () => {
-        Object.values(mclient).map(val => val.resetHistory());
+        Object.values(chatApi).map(val => val.resetHistory());
         await cleanRedis();
     });
 
@@ -76,21 +76,21 @@ describe('Test postNewLinks', () => {
         });
 
         const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({...data, mclient});
+        const res = await postNewLinks({...data, chatApi});
 
         expect(res).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
     });
 
     it('Expect link not to be posted if it is already saved', async () => {
         await redis.isNewLink(issueLinkId);
 
         const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({...data, mclient});
+        const res = await postNewLinks({...data, chatApi});
 
         expect(res).to.be.true;
-        expect(mclient.sendHtmlMessage).not.to.be.called;
+        expect(chatApi.sendHtmlMessage).not.to.be.called;
     });
 
     it('Expect postnewlinks work correct with issue JSONBody', async () => {
@@ -104,10 +104,10 @@ describe('Test postNewLinks', () => {
         });
 
         const data = getPostNewLinksData(JSONBody);
-        const res = await postNewLinks({...data, mclient});
+        const res = await postNewLinks({...data, chatApi});
         expect(res).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
     });
 
     it('Expect postlink throws error with expected data if smth wrong', async () => {
@@ -115,7 +115,7 @@ describe('Test postNewLinks', () => {
         const data = getPostNewLinksData(JSONBody);
 
         try {
-            res = await postNewLinks({...data, mclient});
+            res = await postNewLinks({...data, chatApi});
         } catch (err) {
             res = err;
         }
@@ -138,10 +138,10 @@ describe('Test postNewLinks', () => {
         });
 
         const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({...data, mclient});
+        const res = await postNewLinks({...data, chatApi});
 
         expect(res).to.be.true;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
-        expect(mclient.sendHtmlMessage).to.be.calledOnce;
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledOnce;
     });
 });

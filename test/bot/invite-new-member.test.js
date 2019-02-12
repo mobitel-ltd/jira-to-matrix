@@ -13,7 +13,7 @@ chai.use(sinonChai);
 
 describe('inviteNewMembers test', () => {
     const expectedWatchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));
-    const mclient = {
+    const chatApi = {
         getRoomByAlias: stub(),
         invite: stub(),
     };
@@ -28,13 +28,13 @@ describe('inviteNewMembers test', () => {
     });
 
     beforeEach(() => {
-        mclient.getRoomByAlias.resolves({
+        chatApi.getRoomByAlias.resolves({
             getJoinedMembers: () => [{userId: '@jira_test:matrix.test-example.ru'}],
         });
     });
 
     afterEach(() => {
-        Object.values(mclient).map(val => val.reset());
+        Object.values(chatApi).map(val => val.reset());
     });
 
     after(() => {
@@ -42,11 +42,11 @@ describe('inviteNewMembers test', () => {
     });
 
     it('Expect inviteNewMembers to be trown with no room for key', async () => {
-        mclient.getRoomByAlias.resolves(null);
+        chatApi.getRoomByAlias.resolves(null);
 
         let result;
         try {
-            result = await inviteNewMembers({mclient, ...inviteNewMembersData});
+            result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
         } catch (error) {
             result = error;
         }
@@ -54,13 +54,13 @@ describe('inviteNewMembers test', () => {
     });
 
     it('Expect inviteNewMembers work correct', async () => {
-        const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
+        const result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
 
         expect(result).to.deep.equal(expectedWatchers);
     });
 
     it('Expect inviteNewMembers to be trown if 404 in invite', async () => {
-        mclient.invite.throws('Error in inviteStub!!!');
+        chatApi.invite.throws('Error in inviteStub!!!');
         let result;
         const expectedWatchers = [
             'Error in inviteNewMembers',
@@ -68,7 +68,7 @@ describe('inviteNewMembers test', () => {
         ].join('\n');
 
         try {
-            await inviteNewMembers({mclient, ...inviteNewMembersData});
+            await inviteNewMembers({chatApi, ...inviteNewMembersData});
         } catch (err) {
             result = err;
         }
@@ -77,14 +77,14 @@ describe('inviteNewMembers test', () => {
 
     it('Expect inviteNewMembers works correct if some members are in room already', async () => {
         const [userToadd, ...otherUsers] = expectedWatchers;
-        mclient.getRoomByAlias.resolves({
+        chatApi.getRoomByAlias.resolves({
             getJoinedMembers: () => [
                 {userId: '@jira_test:matrix.test-example.ru'},
                 {userId: userToadd},
             ],
         });
 
-        const result = await inviteNewMembers({mclient, ...inviteNewMembersData});
+        const result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
         expect(result).to.deep.equal(otherUsers);
     });
 });

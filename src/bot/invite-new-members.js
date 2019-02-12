@@ -5,9 +5,9 @@ const {getMembersUserId} = require('./helper.js');
 const logger = require('../modules/log.js')(module);
 const {getNoRoomByAliasLog} = require('../../src/lib/messages');
 
-module.exports = async ({mclient, issue}) => {
+module.exports = async ({chatApi, issue}) => {
     try {
-        const room = await mclient.getRoomByAlias(issue.key);
+        const room = await chatApi.getRoomByAlias(issue.key);
         if (!room) {
             throw getNoRoomByAliasLog(issue.key);
         }
@@ -20,7 +20,7 @@ module.exports = async ({mclient, issue}) => {
         const newMembers = Ramda.difference(issueWatchersMatrixIds, matrixRoomMembers);
 
         await Promise.all(newMembers.map(async userID => {
-            await mclient.invite(room.roomId, userID);
+            await chatApi.invite(room.roomId, userID);
             logger.debug(`New member ${userID} invited to ${issue.key}`);
         }));
 

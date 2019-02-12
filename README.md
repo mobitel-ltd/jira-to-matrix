@@ -95,7 +95,7 @@ More info about all commands you can get [here](./docs/en/commands)
 To work with `Riot` we use [SDK Matrix](https://github.com/matrix-org/matrix-js-sdk). Starting bot connect to matrix domain from config as user like `@${config.matrix.user}:${config.matrix.domain}`. After succedded connection you will see in logs:
 ```
 createClient OK BaseUrl: https://<domain>, userId: @<user_name>:<domain>
-Started connect to matrixClient
+Started connect to chatApi
 Got push rules
 well connected
 ```

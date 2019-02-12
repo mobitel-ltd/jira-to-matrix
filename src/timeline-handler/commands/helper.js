@@ -1,7 +1,7 @@
-const logger = require('../../../modules/log')(module);
-const jiraRequests = require('../../../lib/jira-request');
-const translate = require('../../../locales');
-const utils = require('../../../lib/utils.js');
+const logger = require('../../modules/log')(module);
+const jiraRequests = require('../../lib/jira-request');
+const translate = require('../../locales');
+const utils = require('../../lib/utils.js');
 
 const helper = {
     getInviteUser: (name, room) => {
@@ -56,25 +56,25 @@ const helper = {
         }
     },
 
-    addToWatchers: async (room, roomName, name, matrixClient) => {
+    addToWatchers: async (room, roomName, name, chatApi) => {
         try {
             await jiraRequests.addWatcher(name, roomName);
             const inviteUser = helper.getInviteUser(name, room);
 
             if (inviteUser) {
-                await matrixClient.invite(room.roomId, inviteUser);
+                await chatApi.invite(room.roomId, inviteUser);
             }
         } catch (err) {
             throw utils.errorTracing('addToWatchers', err);
         }
     },
 
-    addToAssignee: async (room, roomName, name, matrixClient) => {
+    addToAssignee: async (room, roomName, name, chatApi) => {
         try {
             await jiraRequests.addAssignee(name, roomName);
             const inviteUser = helper.getInviteUser(name, room);
             if (inviteUser) {
-                await matrixClient.invite(room.roomId, inviteUser);
+                await chatApi.invite(room.roomId, inviteUser);
             }
         } catch (err) {
             throw utils.errorTracing('addToAssignee', err);
@@ -124,9 +124,9 @@ const helper = {
         }
     },
 
-    kickAllMembers: mclient => ({members, room}) =>
+    kickAllMembers: chatApi => ({members, room}) =>
         Promise.all(members.map(user =>
-            helper.kickUser(mclient)(user, room))),
+            helper.kickUser(chatApi)(user, room))),
 };
 
 module.exports = helper;

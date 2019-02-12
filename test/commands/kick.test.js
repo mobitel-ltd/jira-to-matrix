@@ -11,8 +11,8 @@ const translate = require('../../src/locales');
 
 chai.use(sinonChai);
 const infoStub = stub();
-const kick = proxyquire('../../src/matrix/timeline-handler/commands/kick.js', {
-    '../../../modules/log.js': () => ({
+const kick = proxyquire('../../src/timeline-handler/commands/kick.js', {
+    '../../modules/log.js': () => ({
         info: infoStub,
         debug: logger.debug,
     }),
@@ -68,7 +68,7 @@ describe('Test kicking from room', () => {
     });
 
     it('Expect to kick from room', async () => {
-        await kick({sender, matrixClient: clientStub, room});
+        await kick({sender, chatApi: clientStub, room});
         const kickInfo = translate('kickInfo', {sender});
         const msgItem = [
             translate('errorUserKick', {user: getMatrixUserID('ivan'), roomName}),
@@ -83,7 +83,7 @@ describe('Test kicking from room', () => {
         const errName = 'some error';
         getRoomsStub.throws(errName);
         try {
-            await kick({sender, matrixClient: clientStub, room});
+            await kick({sender, chatApi: clientStub, room});
         } catch (err) {
             expect(err).to.be.eq(`Matrix kick command error\n${errName}`);
         }

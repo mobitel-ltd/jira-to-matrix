@@ -15,7 +15,7 @@ chai.use(sinonChai);
 describe('Post issue updates test', () => {
     const matrixRoomId = 'roomId';
     const {description} = renderedIssueJSON.renderedFields;
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub(),
         setRoomName: stub(),
@@ -46,14 +46,14 @@ describe('Post issue updates test', () => {
     });
 
     beforeEach(() => {
-        mclient.getRoomId
+        chatApi.getRoomId
             .resolves(matrixRoomId)
             .withArgs(null).throws('Error');
     });
 
     afterEach(() => {
-        mclient.getRoomId.reset();
-        mclient.createAlias.reset();
+        chatApi.getRoomId.reset();
+        chatApi.createAlias.reset();
     });
 
     after(() => {
@@ -61,7 +61,7 @@ describe('Post issue updates test', () => {
     });
 
     it('Expect createAlias to be with error but postIssueUpdates should work', async () => {
-        mclient.createAlias.callsFake((alias, roomId) => {
+        chatApi.createAlias.callsFake((alias, roomId) => {
             try {
                 throw new Error('M_UNKNOWN: Room alias #BAO-193:matrix.test-example.ru already exists');
             } catch (err) {
@@ -72,14 +72,14 @@ describe('Post issue updates test', () => {
             }
         });
 
-        const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
-        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        const result = await postIssueUpdates({chatApi, ...postIssueUpdatesData});
+        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
     it('Is correct postIssueUpdatesData', async () => {
-        const result = await postIssueUpdates({mclient, ...postIssueUpdatesData});
-        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        const result = await postIssueUpdates({chatApi, ...postIssueUpdatesData});
+        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
@@ -93,7 +93,7 @@ describe('Post issue updates test', () => {
         const newBody = {...postIssueUpdatesData, issueKey: null};
         let result;
         try {
-            result = await postIssueUpdates({mclient, ...newBody});
+            result = await postIssueUpdates({chatApi, ...newBody});
         } catch (error) {
             result = error;
         }
@@ -103,22 +103,22 @@ describe('Post issue updates test', () => {
     it('Get true with empty fieldkey', async () => {
         const newBody = {...postIssueUpdatesData, fieldKey: null};
 
-        const result = await postIssueUpdates({mclient, ...newBody});
-        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        const result = await postIssueUpdates({chatApi, ...newBody});
+        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
     it('Get true with empty summary', async () => {
         const newBody = {...postIssueUpdatesData, summary: null};
 
-        const result = await postIssueUpdates({mclient, ...newBody});
-        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        const result = await postIssueUpdates({chatApi, ...newBody});
+        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
     it('Get error in postUpdateInfo', async () => {
-        mclient.sendHtmlMessage.reset();
-        mclient.sendHtmlMessage.throws('Error!!!');
+        chatApi.sendHtmlMessage.reset();
+        chatApi.sendHtmlMessage.throws('Error!!!');
         const expected = [
             'Error in postIssueUpdates',
             'Error in postUpdateInfo',
@@ -128,7 +128,7 @@ describe('Post issue updates test', () => {
         let res;
 
         try {
-            res = await postIssueUpdates({mclient, ...postIssueUpdatesData});
+            res = await postIssueUpdates({chatApi, ...postIssueUpdatesData});
         } catch (err) {
             res = err;
         }
@@ -137,7 +137,7 @@ describe('Post issue updates test', () => {
     });
 
     it('Get error in move with createAlias', async () => {
-        mclient.createAlias.throws('Error!!!');
+        chatApi.createAlias.throws('Error!!!');
         const expected = [
             'Error in postIssueUpdates',
             'Error in move issue',
@@ -146,7 +146,7 @@ describe('Post issue updates test', () => {
         let res;
 
         try {
-            res = await postIssueUpdates({mclient, ...postIssueUpdatesData});
+            res = await postIssueUpdates({chatApi, ...postIssueUpdatesData});
         } catch (err) {
             res = err;
         }

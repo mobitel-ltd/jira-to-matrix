@@ -30,7 +30,7 @@ describe('post New Links test', () => {
     const expectedBody = translate('statusHasChanged', {key, summary, status});
     const expectedHTMLBody = marked(translate('statusHasChangedMessage', {name, key, summary, status, viewUrl}));
 
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub().resolves(roomId),
     };
@@ -49,7 +49,7 @@ describe('post New Links test', () => {
     });
 
     afterEach(() => {
-        Object.values(mclient).map(val => val.resetHistory());
+        Object.values(chatApi).map(val => val.resetHistory());
     });
 
     after(() => {
@@ -65,38 +65,38 @@ describe('post New Links test', () => {
 
     it('Expect all linked issues in projects if they are not available to be ignored and no error to be thrown', async () => {
         const data = getPostLinkedChangesData(body);
-        const res = await postLinkedChanges({mclient, ...data, linksKeys: [ignoredProjectIssue]});
+        const res = await postLinkedChanges({chatApi, ...data, linksKeys: [ignoredProjectIssue]});
 
         expect(res).to.be.true;
-        expect(mclient.getRoomId).not.to.be.called;
-        expect(mclient.sendHtmlMessage).not.to.be.called;
+        expect(chatApi.getRoomId).not.to.be.called;
+        expect(chatApi.sendHtmlMessage).not.to.be.called;
     });
 
     it('Expect all linked issues in projects which are available to be handled other to be ignored', async () => {
         const data = getPostLinkedChangesData(body);
         let res;
         try {
-            res = await postLinkedChanges({mclient, ...data, linksKeys: [ignoredProjectIssue, availableProjectIssue]});
+            res = await postLinkedChanges({chatApi, ...data, linksKeys: [ignoredProjectIssue, availableProjectIssue]});
         } catch (error) {
             res = error;
         }
 
         expect(res).to.be.true;
-        expect(mclient.getRoomId).to.be.calledOnce;
-        expect(mclient.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedBody, expectedHTMLBody);
+        expect(chatApi.getRoomId).to.be.calledOnce;
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedBody, expectedHTMLBody);
     });
 
     it('Expect send status not to be sent if at least one of room is not found', async () => {
-        mclient.getRoomId.rejects();
+        chatApi.getRoomId.rejects();
         const data = getPostLinkedChangesData(body);
         let res;
         try {
-            res = await postLinkedChanges({mclient, ...data, linksKeys: [availableProjectIssue]});
+            res = await postLinkedChanges({chatApi, ...data, linksKeys: [availableProjectIssue]});
         } catch (err) {
             res = err;
         }
 
         expect(res).to.include('Error in postLinkedChanges');
-        expect(mclient.sendHtmlMessage).not.to.be.called;
+        expect(chatApi.sendHtmlMessage).not.to.be.called;
     });
 });

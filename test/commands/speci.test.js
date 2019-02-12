@@ -13,7 +13,7 @@ chai.use(sinonChai);
 const proxyquire = require('proxyquire');
 const searchUserStub = stub();
 
-const spec = proxyquire('../../src/matrix/timeline-handler/commands/speci.js', {
+const spec = proxyquire('../../src/timeline-handler/commands/speci.js', {
     './helper.js': {
         searchUser: searchUserStub,
     },
@@ -35,7 +35,7 @@ describe('spec test', () => {
 
     const users = [userA, userB];
 
-    const matrixClient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         invite: stub(),
     };
@@ -70,7 +70,7 @@ describe('spec test', () => {
     });
 
     afterEach(() => {
-        Object.values(matrixClient).map(val => val.reset());
+        Object.values(chatApi).map(val => val.reset());
     });
 
     after(() => {
@@ -80,44 +80,44 @@ describe('spec test', () => {
     it('should add user ("!spec Ivan Andreevich A")', async () => {
         searchUserStub.resolves([userA]);
         const post = translate('successWatcherJira');
-        const result = await spec({bodyText: userA.displayName, room, roomName, matrixClient});
+        const result = await spec({bodyText: userA.displayName, room, roomName, chatApi});
 
         expect(result).to.be.equal(messages.getWatcherAddedLog(userA.displayName, roomName));
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('should not add to watchers("!spec fake")', async () => {
         searchUserStub.resolves([]);
-        const result = await spec({bodyText: userA.displayName, room, roomName, matrixClient});
+        const result = await spec({bodyText: userA.displayName, room, roomName, chatApi});
         const post = translate('errorWatcherJira');
 
         expect(result).to.be.equal(messages.getWatcherNotAddedLog(userA.displayName));
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('should show list of users ("!spec Ivan")', async () => {
         searchUserStub.resolves(users);
         const post = utils.getListToHTML(users);
-        const result = await spec({bodyText: 'Ivan', room, roomName, matrixClient});
+        const result = await spec({bodyText: 'Ivan', room, roomName, chatApi});
 
         expect(result).to.be.undefined;
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('should be in room', async () => {
         searchUserStub.resolves([userB]);
-        matrixClient.invite.throws('Error!!!');
+        chatApi.invite.throws('Error!!!');
         const post = translate('successWatcherJira');
-        const result = await spec({bodyText: userB.displayName, room, roomName, matrixClient});
+        const result = await spec({bodyText: userB.displayName, room, roomName, chatApi});
 
         expect(result).to.be.equal(messages.getWatcherAddedLog(userB.displayName, roomName));
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
-        expect(matrixClient.invite).not.to.be.called;
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.invite).not.to.be.called;
     });
 
     it('should be error (invite throw)', async () => {
         searchUserStub.resolves(users.slice(0, 1));
-        matrixClient.invite.throws('Error!!!');
+        chatApi.invite.throws('Error!!!');
         const expected = [
             utils.getDefaultErrorLog('Spec command'),
             utils.getDefaultErrorLog('addToWatchers'),
@@ -125,13 +125,13 @@ describe('spec test', () => {
         ].join('\n');
         let result;
         try {
-            result = await spec({bodyText: userA.displayName, room, roomName, matrixClient});
+            result = await spec({bodyText: userA.displayName, room, roomName, chatApi});
         } catch (err) {
             result = err;
         }
 
         expect(result).to.be.equal(expected);
-        expect(matrixClient.sendHtmlMessage).not.to.have.been.called;
+        expect(chatApi.sendHtmlMessage).not.to.have.been.called;
     });
 
     it('should be sent msg about adding admin status if 403 error got in request', async () => {
@@ -139,18 +139,18 @@ describe('spec test', () => {
         const projectKey = utils.getProjectKeyFromIssueKey(roomName);
         const viewUrl = utils.getViewUrl(projectKey);
         const post = translate('setBotToAdmin', {projectKey, viewUrl});
-        const result = await spec({bodyText: noPermissionUser.displayName, room, roomName, matrixClient});
+        const result = await spec({bodyText: noPermissionUser.displayName, room, roomName, chatApi});
 
         expect(result).to.be.eq(post);
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 
     it('should be sent msg about no access to project if 404 error got in request', async () => {
         searchUserStub.resolves([noRulesUser]);
         const post = translate('noRulesToWatchIssue');
-        const result = await spec({bodyText: noRulesUser.displayName, room, roomName, matrixClient});
+        const result = await spec({bodyText: noRulesUser.displayName, room, roomName, chatApi});
 
         expect(result).to.be.eq(post);
-        expect(matrixClient.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
     });
 });

@@ -1,13 +1,13 @@
-const translate = require('../../../locales');
-const utils = require('../../../lib/utils');
+const translate = require('../../locales');
+const utils = require('../../lib/utils');
 const helper = require('./helper');
-const messages = require('../../../lib/messages');
+const messages = require('../../lib/messages');
 
-module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
+module.exports = async ({bodyText, sender, room, roomName, chatApi}) => {
     try {
         if (!utils.isAdmin(sender)) {
             const post = translate('notAdmin', {sender});
-            await matrixClient.sendHtmlMessage(room.roomId, post, post);
+            await chatApi.sendHtmlMessage(room.roomId, post, post);
 
             return post;
         }
@@ -15,13 +15,13 @@ module.exports = async ({bodyText, sender, room, roomName, matrixClient}) => {
         const userId = utils.getMatrixUserID(bodyText || sender);
 
         if (helper.isMember(room, userId)) {
-            await matrixClient.setPower(room.roomId, userId);
+            await chatApi.setPower(room.roomId, userId);
 
             return messages.getModeratorAddLog(userId, roomName);
         }
 
         const post = translate('notFoundUser', {user: utils.getNameFromMatrixId(userId)});
-        await matrixClient.sendHtmlMessage(room.roomId, post, post);
+        await chatApi.sendHtmlMessage(room.roomId, post, post);
 
         return post;
     } catch (err) {

@@ -17,7 +17,7 @@ const {
     checkUser,
     searchUser,
     parseEventBody,
-} = require('../../src/matrix/timeline-handler/commands/helper');
+} = require('../../src/timeline-handler/commands/helper');
 
 describe('Commands helper tests', () => {
     const userName = 'Ivan';

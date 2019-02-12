@@ -1,6 +1,6 @@
-const logger = require('../../../modules/log.js')(module);
+const logger = require('../../modules/log.js')(module);
 const {getRoomsLastUpdate, kickAllMembers} = require('./helper.js');
-const translate = require('../../../locales');
+const translate = require('../../locales');
 
 const getKickedRoomsBody = (sender, roomKickInfo) => {
     const roomsHTMLList = roomKickInfo.join('<br><br>');
@@ -19,14 +19,14 @@ const getKickInfoBody = (sender, roomKickInfo) => {
     return bodyFunc(sender, roomKickInfo);
 };
 
-module.exports = async ({sender, matrixClient, room}) => {
+module.exports = async ({sender, chatApi, room}) => {
     try {
-        const rooms = await matrixClient.getRooms();
+        const rooms = await chatApi.getRooms();
         const roomsLastUpdate = getRoomsLastUpdate(rooms, sender);
-        const roomKickInfo = await Promise.all(roomsLastUpdate.map(kickAllMembers(matrixClient)));
+        const roomKickInfo = await Promise.all(roomsLastUpdate.map(kickAllMembers(chatApi)));
 
         const body = getKickInfoBody(sender, roomKickInfo);
-        await matrixClient.sendHtmlMessage(room.roomId, 'Kick info', body);
+        await chatApi.sendHtmlMessage(room.roomId, 'Kick info', body);
 
         logger.info(translate('kickInfo', {sender}), roomKickInfo);
     } catch (err) {

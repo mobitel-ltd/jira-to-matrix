@@ -5,7 +5,7 @@ const {epicUpdates: epicConf} = require('../config').features;
 const {getNewIssueMessageBody, getPostStatusData} = require('./helper.js');
 const utils = require('../lib/utils');
 
-const postNewIssue = async (roomID, {epic, issue}, mclient) => {
+const postNewIssue = async (roomID, {epic, issue}, chatApi) => {
     const redisEpicKey = utils.getRedisEpicKey(epic.id);
     if (await redis.isInEpic(redisEpicKey, issue.id)) {
         logger.debug(`Issue ${issue.key} already saved in Redis by epic ${epic.key}`);
@@ -17,21 +17,21 @@ const postNewIssue = async (roomID, {epic, issue}, mclient) => {
     await redis.saveToEpic(redisEpicKey, issue.id);
     logger.info(`Info about issue ${issue.key} added to epic ${epic.key}`);
 
-    await mclient.sendHtmlMessage(roomID, body, htmlBody);
+    await chatApi.sendHtmlMessage(roomID, body, htmlBody);
 };
 
-module.exports = async ({mclient, data, epicKey}) => {
+module.exports = async ({chatApi, data, epicKey}) => {
     try {
-        const roomID = await mclient.getRoomId(epicKey);
+        const roomID = await chatApi.getRoomId(epicKey);
         const epic = await getIssue(epicKey);
 
         if (epicConf.newIssuesInEpic === 'on') {
-            await postNewIssue(roomID, {epic, issue: data}, mclient);
+            await postNewIssue(roomID, {epic, issue: data}, chatApi);
         }
         if (epicConf.issuesStatusChanged === 'on') {
             const {body, htmlBody} = getPostStatusData(data);
             if (body) {
-                await mclient.sendHtmlMessage(roomID, body, htmlBody);
+                await chatApi.sendHtmlMessage(roomID, body, htmlBody);
             }
         }
 

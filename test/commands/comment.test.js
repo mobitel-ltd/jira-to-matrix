@@ -8,7 +8,7 @@ const translate = require('../../src/locales');
 
 const utils = require('../../src/lib/utils');
 const schemas = require('../../src/lib/schemas.js');
-const {comment} = require('../../src/matrix/timeline-handler/commands');
+const {comment} = require('../../src/timeline-handler/commands');
 const messages = require('../../src/lib/messages');
 
 describe('comment test', () => {
@@ -17,7 +17,7 @@ describe('comment test', () => {
     const sender = 'user';
     const room = {roomId: 12345};
 
-    const matrixClient = {sendHtmlMessage: stub()};
+    const chatApi = {sendHtmlMessage: stub()};
 
     afterEach(() => {
         nock.cleanAll();
@@ -47,10 +47,10 @@ describe('comment test', () => {
     });
 
     it('Expect comment not to be sent with empty body and warn message will be sent', async () => {
-        const result = await comment({sender, roomName, room, matrixClient});
+        const result = await comment({sender, roomName, room, chatApi});
 
         expect(result).to.be.equal(messages.getCommentFailSentLog(sender, roomName));
         const body = translate('emptyMatrixComment');
-        expect(matrixClient.sendHtmlMessage).to.be.calledWithExactly(room.roomId, body, body);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(room.roomId, body, body);
     });
 });

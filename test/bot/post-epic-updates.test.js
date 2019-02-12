@@ -25,7 +25,7 @@ describe('Post epic updates test', () => {
     const epicKey = utils.getEpicKey(JSONbody);
     const matrixRoomId = 'roomId';
 
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub(),
     };
@@ -48,7 +48,7 @@ describe('Post epic updates test', () => {
     });
 
     beforeEach(() => {
-        mclient.getRoomId
+        chatApi.getRoomId
             .withArgs(postEpicUpdatesData.epicKey)
             .resolves(matrixRoomId)
             .withArgs(null)
@@ -57,7 +57,7 @@ describe('Post epic updates test', () => {
 
     afterEach(async () => {
         await cleanRedis();
-        Object.values(mclient).map(val => val.resetHistory());
+        Object.values(chatApi).map(val => val.resetHistory());
     });
 
     after(() => {
@@ -65,11 +65,11 @@ describe('Post epic updates test', () => {
     });
 
     it('Expect postEpicUpdates throw error "No roomId for" if room is not exists', async () => {
-        mclient.getRoomId.reset();
-        mclient.getRoomId.rejects(someError);
+        chatApi.getRoomId.reset();
+        chatApi.getRoomId.rejects(someError);
         let res;
         try {
-            await postEpicUpdates({mclient, ...postEpicUpdatesData});
+            await postEpicUpdates({chatApi, ...postEpicUpdatesData});
         } catch (err) {
             res = err;
         }
@@ -77,9 +77,9 @@ describe('Post epic updates test', () => {
     });
 
     it('Expect postEpicUpdates returns true after running with correct data', async () => {
-        const result = await postEpicUpdates({mclient, ...postEpicUpdatesData});
+        const result = await postEpicUpdates({chatApi, ...postEpicUpdatesData});
 
-        expect(mclient.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
 
@@ -89,7 +89,7 @@ describe('Post epic updates test', () => {
         const expected = 'Error in postEpicUpdates';
 
         try {
-            await postEpicUpdates({mclient, ...newBody});
+            await postEpicUpdates({chatApi, ...newBody});
         } catch (err) {
             res = err;
         }
@@ -100,8 +100,8 @@ describe('Post epic updates test', () => {
         const body = getPostEpicUpdatesData(noStatusChangedJSON);
         await redis.saveToEpic(utils.getRedisEpicKey(epicIssueBody.id), body.data.id);
 
-        const result = await postEpicUpdates({mclient, ...body});
-        expect(mclient.sendHtmlMessage).not.to.be.called;
+        const result = await postEpicUpdates({chatApi, ...body});
+        expect(chatApi.sendHtmlMessage).not.to.be.called;
         expect(result).to.be.true;
     });
 });
