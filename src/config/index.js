@@ -19,14 +19,12 @@ const composeConfig = config => {
         userId: `@${config.matrix.user}:${config.matrix.domain}`,
     };
 
-    const version = process.env.npm_package_version;
-
     config.features.epicUpdates.on = () => (
         config.features.epicUpdates.newIssuesInEpic === 'on'
         || config.features.epicUpdates.issuesStatusChanged === 'on'
     );
 
-    return {...config, matrix, version};
+    return {...config, matrix};
 };
 
 module.exports = composeConfig(configData);

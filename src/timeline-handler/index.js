@@ -1,8 +1,8 @@
-const logger = require('../../modules/log.js')(module);
-const translate = require('../../locales');
+const logger = require('../modules/log.js')(module);
+const translate = require('../locales');
 const commands = require('./commands');
 const {parseEventBody} = require('./commands/helper.js');
-const utils = require('../../lib/utils');
+const utils = require('../lib/utils');
 
 const eventFromMatrix = async (event, room, sender, chatApi) => {
     try {
