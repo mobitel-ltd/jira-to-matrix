@@ -1,23 +1,13 @@
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
-const {userId: botId} = require('../../src/config').matrix;
-const sdk = require('matrix-js-sdk');
 
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
-const logger = require('../../src/modules/log.js')(module);
-const {getMatrixUserID, COMMON_NAME} = require('../../src/lib/utils.js');
+const {COMMON_NAME} = require('../../src/lib/utils.js');
 
-const {
-    getRoomsLastUpdate,
-    parseRoom,
-    getOutdatedRoomsWithSender,
-    checkUser,
-    searchUser,
-    parseEventBody,
-} = require('../../src/timeline-handler/commands/helper');
+const {checkUser, searchUser, parseEventBody} = require('../../src/bot/timeline-handler/commands/helper');
 
 describe('Commands helper tests', () => {
     const userName = 'Ivan';
@@ -135,82 +125,3 @@ describe('command handler test', () => {
     });
 });
 
-const getTimeline = date => ({
-    getTs: () => date.getTime(),
-    getDate: () => date,
-});
-
-const roomMock = (roomId, roomName, members, timeline) =>
-    ({
-        roomId,
-        name: roomName,
-        getJoinedMembers: () => members,
-        timeline,
-    });
-const roomName = 'roomName';
-const roomId = '!roomId';
-const myUser = getMatrixUserID('myUser');
-describe('Test room kicking funcs', () => {
-    const lastDate = getTimeline(new Date(2018, 5, 5));
-    const outDatedTimeline = [
-        getTimeline(new Date(2017, 5, 5)),
-        getTimeline(new Date(2017, 10, 10)),
-    ];
-    const timeline = [
-        ...outDatedTimeline,
-        getTimeline(new Date(2018, 2, 3)),
-        lastDate,
-    ];
-    // logger.debug(timeline.map(time => time.getDate()));
-
-    const members = [
-        new sdk.User(getMatrixUserID('ivan')),
-        new sdk.User(getMatrixUserID('john')),
-        new sdk.User(myUser),
-        new sdk.User(botId),
-    ];
-    const newRoom = roomMock(roomId, roomName, members, timeline);
-
-    describe('Testsing parseRoom', () => {
-        it('Expect parseRoom to be ', () => {
-            const [{members, room, timestamp}] = parseRoom([], newRoom);
-            logger.debug(members);
-
-            expect(members.length).to.be.eq(3);
-            expect(room).to.be.deep.eq({roomId, roomName});
-            expect(timestamp).to.be.eq(lastDate.getTs());
-        });
-
-        it('Expect parseRoom not fall if room has no lastevent', () => {
-            const result = parseRoom([], roomMock(roomId, roomName, members, []));
-
-            expect(result).to.be.deep.eq([]);
-        });
-    });
-
-    describe('Testsing getRoomsLastUpdate', () => {
-        it('Expect getRoomsLastUpdate to be ', () => {
-            const result = getRoomsLastUpdate([newRoom], myUser);
-
-            expect(result.length).not.to.be;
-        });
-
-        it('Expect getRoomsLastUpdate not to be for room which has last event from last year', () => {
-            const testRoom = roomMock(roomId, roomName, members, outDatedTimeline);
-            const result = getRoomsLastUpdate([testRoom], myUser);
-
-            expect(result.length).to.be;
-        });
-    });
-
-    describe('Testsing getOutdatedRoomsWithSender', () => {
-        it('Expect getOutdatedRoomsWithSender to be ', () => {
-            logger.debug('newRoom', newRoom);
-            const parsedRoom = parseRoom([], newRoom);
-            logger.debug('parsedRoom', parsedRoom);
-            const result = getOutdatedRoomsWithSender(myUser)(parsedRoom);
-
-            expect(result).to.be.false;
-        });
-    });
-});

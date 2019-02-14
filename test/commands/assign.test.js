@@ -13,7 +13,7 @@ chai.use(sinonChai);
 const proxyquire = require('proxyquire');
 const searchUserStub = stub();
 
-const assign = proxyquire('../../src/timeline-handler/commands/assign.js', {
+const assign = proxyquire('../../src/bot/timeline-handler/commands/assign.js', {
     './helper.js': {
         searchUser: searchUserStub,
     },

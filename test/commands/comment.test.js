@@ -8,7 +8,7 @@ const translate = require('../../src/locales');
 
 const utils = require('../../src/lib/utils');
 const schemas = require('../../src/lib/schemas.js');
-const {comment} = require('../../src/timeline-handler/commands');
+const {comment} = require('../../src/bot/timeline-handler/commands');
 const messages = require('../../src/lib/messages');
 
 describe('comment test', () => {

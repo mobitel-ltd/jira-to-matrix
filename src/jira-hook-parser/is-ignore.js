@@ -1,5 +1,5 @@
 const logger = require('../modules/log.js')(module);
-const {getIgnoreInfo} = require('../bot/helper.js');
+const {getIgnoreInfo} = require('../bot/actions/helper');
 const messages = require('../lib/messages');
 
 module.exports = async body => {

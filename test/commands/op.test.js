@@ -2,8 +2,8 @@ const faker = require('faker');
 const utils = require('../../src/lib/utils.js');
 const translate = require('../../src/locales');
 const messages = require('../../src/lib/messages');
-const {admins} = require('../../src/config').matrix;
-const op = require('../../src/timeline-handler/commands/op');
+const {admins} = require('../../src/config').messenger;
+const op = require('../../src/bot/timeline-handler/commands/op');
 
 const chai = require('chai');
 const {stub} = require('sinon');

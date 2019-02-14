@@ -31,7 +31,7 @@ const {
     handleRedisData,
     handleRedisRooms,
 } = proxyquire('../../src/queue/redis-data-handle.js', {
-    '../bot': {
+    '../bot/actions': {
         createRoom: createRoomStub,
         postEpicUpdates: postEpicUpdatesStub,
     },

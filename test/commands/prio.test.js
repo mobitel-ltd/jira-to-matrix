@@ -4,7 +4,7 @@ const schemas = require('../../src/lib/schemas.js');
 const translate = require('../../src/locales');
 const messages = require('../../src/lib/messages');
 const edimetaJSON = require('../fixtures/jira-api-requests/editmeta.json');
-const {prio} = require('../../src/timeline-handler/commands');
+const {prio} = require('../../src/bot/timeline-handler/commands');
 
 const chai = require('chai');
 const {stub} = require('sinon');

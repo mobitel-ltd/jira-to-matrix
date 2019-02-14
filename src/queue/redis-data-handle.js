@@ -1,7 +1,7 @@
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
-const bot = require('../bot');
+const bot = require('../bot/actions');
 const {prefix} = require('../config').redis;
 const {REDIS_ROOM_KEY, isIgnoreKey} = require('../lib/utils.js');
 

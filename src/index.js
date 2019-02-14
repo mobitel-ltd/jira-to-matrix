@@ -1,5 +1,7 @@
 const conf = require('./config');
-const Matrix = require('matrix-sdk-fasade');
+const getMessengerApi = require('./messengers');
 const service = require('./service');
 
-service(Matrix, conf.matrix, conf.port);
+const MessengerApi = getMessengerApi(conf.messenger.name);
+
+service(MessengerApi, conf.messenger, conf.port);

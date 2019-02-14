@@ -1,6 +1,6 @@
 const nock = require('nock');
 const schemas = require('../../src/lib/schemas');
-const {move} = require('../../src/timeline-handler/commands');
+const {move} = require('../../src/bot/timeline-handler/commands');
 const transitionsJSON = require('../fixtures/jira-api-requests/transitions.json');
 const translate = require('../../src/locales');
 const messages = require('../../src/lib/messages');

@@ -15,7 +15,7 @@ const {cleanRedis} = require('../test-utils');
 const createRoomStub = stub();
 
 const {getRedisRooms, handleRedisRooms, handleRedisData, getDataFromRedis} = proxyquire('../../src/queue/redis-data-handle.js', {
-    '../bot': {
+    '../bot/actions': {
         createRoom: createRoomStub,
     },
 });

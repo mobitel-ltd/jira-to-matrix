@@ -1,4 +1,4 @@
-const {invite} = require('../../src/timeline-handler/commands');
+const {invite} = require('../../src/bot/timeline-handler/commands');
 const translate = require('../../src/locales');
 const utils = require('../../src/lib/utils');
 

@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 const Joi = require('joi');
 const logger = require('../modules/log.js')(module);
 
@@ -8,6 +7,18 @@ const boolean = Joi.boolean().required();
 const address = [string.uri(), string.ip()];
 const obj = fields => Joi.object(fields).required();
 const array = itemsType => Joi.array().items(itemsType);
+
+const matrix = obj({
+    name: 'matrix',
+    admins: array(Joi.string()),
+    domain: string,
+    user: string,
+    password: string,
+});
+
+const slack = obj({
+
+});
 
 const schema = obj({
     port: int,
@@ -46,13 +57,7 @@ const schema = obj({
         port: int,
         prefix: string,
     }),
-    matrix: obj({
-        admins: array(Joi.string()),
-        domain: string,
-        user: string,
-        password: string,
-        pollTimeout: int,
-    }),
+    messenger: [matrix, slack],
     log: {
         type: string,
         filePath: string,
