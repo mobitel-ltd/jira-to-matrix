@@ -1,14 +1,14 @@
 {
   "name": "jira-matrix-bot",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "main": "src/app.js",
   "license": "WTFPL",
   "engines": {
-    "node": ">=7.10"
+    "node": ">=10"
   },
   "scripts": {
     "lint": "eslint .",
-    "start": "node src/app.js",
+    "start": "node src/index.js",
     "start-dev": "NODE_ENV=development node src/app.js",
     "test-single": "NODE_ENV=test nyc mocha",
     "test": "NODE_ENV=test nyc mocha test/* --exit",
@@ -27,7 +27,7 @@
       "src/redis-client.js",
       "src/modules/log.js",
       "src/config",
-      "src/matrix/timeline-handler/commands/help.js",
+      "src/timeline-handler/commands/help.js",
       "test"
     ]
   },
@@ -53,7 +53,7 @@
     "javascript-state-machine": "^3.1.0",
     "joi": "^14.3.1",
     "marked": "^0.6.0",
-    "matrix-js-sdk": "mobitel-ltd/matrix-js-sdk",
+    "matrix-sdk-fasade": "github:grigori-gru/matrix-sdk-fasade",
     "node-polyglot": "^2.3.0",
     "ramda": "^0.26.1",
     "redis": "^2.8.0",

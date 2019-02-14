@@ -15,7 +15,7 @@ const {cleanRedis} = require('../test-utils');
 const createRoomStub = stub();
 
 const {getRedisRooms, handleRedisRooms, handleRedisData, getDataFromRedis} = proxyquire('../../src/queue/redis-data-handle.js', {
-    '../bot': {
+    '../bot/actions': {
         createRoom: createRoomStub,
     },
 });
@@ -31,7 +31,7 @@ describe('Queue handler test', () => {
     const {sourceIssueId} = deletedLinkBody.issueLink;
     const {destinationIssueId} = deletedLinkBody.issueLink;
 
-    const mclient = {
+    const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub(),
     };
@@ -62,7 +62,7 @@ describe('Queue handler test', () => {
         expect(roomsKeys).to.be.an('array').that.has.length(1);
 
         createRoomStub.throws('Incorrect room data');
-        await handleRedisRooms(mclient, roomsKeys);
+        await handleRedisRooms(chatApi, roomsKeys);
         const newRoomsKeys = await getRedisRooms();
 
         expect(newRoomsKeys).to.be.an('array').that.has.length(1);
@@ -72,7 +72,7 @@ describe('Queue handler test', () => {
     it('Expect deleteLink to be handled', async () => {
         await getParsedAndSaveToRedis(deletedLinkBody);
         const data = await getDataFromRedis();
-        await handleRedisData(mclient, data);
+        await handleRedisData(chatApi, data);
 
         const resKeys = await getDataFromRedis();
         expect(resKeys).to.be.null;

@@ -31,7 +31,7 @@ const {
     handleRedisData,
     handleRedisRooms,
 } = proxyquire('../../src/queue/redis-data-handle.js', {
-    '../bot': {
+    '../bot/actions': {
         createRoom: createRoomStub,
         postEpicUpdates: postEpicUpdatesStub,
     },
@@ -129,7 +129,7 @@ describe('redis-data-handle test', () => {
         },
     };
 
-    const mclient = {};
+    const chatApi = {};
 
     beforeEach(async () => {
         nock(jiraUrl)
@@ -210,7 +210,7 @@ describe('redis-data-handle test', () => {
         });
         const roomsData = await getRedisRooms();
         expect(roomsData).to.have.deep.equal([...expectedRoom, ...createRoomData]);
-        await handleRedisRooms(mclient, roomsData);
+        await handleRedisRooms(chatApi, roomsData);
         expect(loggerSpy.error).to.have.been.calledWith('Error in handle room data\n', 'createRoomStub');
         expect(loggerSpy.warn).to.have.been.calledWith('Rooms which not created', createRoomData);
 
@@ -220,19 +220,19 @@ describe('redis-data-handle test', () => {
 
     it('test correct handleRedisRooms', async () => {
         const roomsKeysBefore = await getRedisRooms();
-        await handleRedisRooms(mclient, roomsKeysBefore);
+        await handleRedisRooms(chatApi, roomsKeysBefore);
         expect(createRoomStub).to.be.called;
         const roomsKeysAfter = await getRedisRooms();
         expect(roomsKeysAfter).to.be.null;
     });
 
     it('test null handleRedisRooms', async () => {
-        await handleRedisRooms(mclient, null);
+        await handleRedisRooms(chatApi, null);
         expect(createRoomStub).not.to.be.called;
     });
 
     it('test incorrect handleRedisRooms', async () => {
-        await handleRedisRooms(mclient, 'rooms');
+        await handleRedisRooms(chatApi, 'rooms');
         expect(createRoomStub).not.to.be.called;
         const expected = 'handleRedisRooms error';
         expect(loggerSpy.error).to.have.been.calledWith(expected);

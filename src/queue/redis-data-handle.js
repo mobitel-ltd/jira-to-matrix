@@ -1,7 +1,7 @@
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
-const bot = require('../bot');
+const bot = require('../bot/actions');
 const {prefix} = require('../config').redis;
 const {REDIS_ROOM_KEY, isIgnoreKey} = require('../lib/utils.js');
 
@@ -54,9 +54,9 @@ const handleRedisData = async (client, dataFromRedis) => {
         }
         const result = await Promise.all(dataFromRedis.map(async ({redisKey, funcName, data}) => {
             try {
-                const mclient = await client;
+                const chatApi = await client;
 
-                await bot[funcName]({...data, mclient});
+                await bot[funcName]({...data, chatApi});
                 await redis.delAsync(redisKey);
 
                 return `${redisKey} --- true`;
@@ -101,8 +101,8 @@ const rewriteRooms = async createRoomData => {
 const handleRedisRooms = async (client, roomsData) => {
     const roomHandle = async data => {
         try {
-            const mclient = await client;
-            await bot.createRoom({...data, mclient});
+            const chatApi = await client;
+            await bot.createRoom({...data, chatApi});
 
             return null;
         } catch (err) {

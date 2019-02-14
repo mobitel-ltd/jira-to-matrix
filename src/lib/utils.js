@@ -1,12 +1,11 @@
 const translate = require('../locales');
 const Ramda = require('ramda');
-const {jira, features, matrix} = require('../config');
+const {jira, features, messenger} = require('../config');
 const {epicUpdates, postChangesToLinks} = features;
 const messages = require('./messages');
 
 const {field: epicField} = epicUpdates;
 const {url: jiraUrl} = jira;
-const {userId: botId} = matrix;
 
 const REDIS_ROOM_KEY = 'newrooms';
 // TODO: change until start correct bot work
@@ -16,7 +15,7 @@ const REDIS_EPIC_PREFIX = 'epic';
 
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
-const [COMMON_NAME] = matrix.domain.split('.').slice(1, 2);
+const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
 const INDENT = '&nbsp;&nbsp;&nbsp;&nbsp;';
@@ -72,6 +71,7 @@ const hooks = {
         }),
     },
     issuelink: {
+        getCreator: body => false,
         // getIssueKey: () => false,
         // getIssueId: () => false,
         getLinks: body => [Ramda.path(['issueLink'], body)],
@@ -270,23 +270,20 @@ const utils = {
 
     // * --------------------------------- Matrix utils ------------------------------- *
 
-    isAdmin: user => matrix.admins.includes(user),
+    isAdmin: user => messenger.admins.includes(user),
 
 
-    isMatrixRoomName: room => ~room.indexOf(matrix.domain),
+    isMatrixRoomName: room => ~room.indexOf(messenger.domain),
 
-    getMatrixRoomAlias: alias => `#${alias}:${matrix.domain}`,
+    getMatrixRoomAlias: alias => `#${alias}:${messenger.domain}`,
 
-    getMatrixUserID: shortName => `@${shortName}:${matrix.domain}`,
+    getMatrixUserID: shortName => `@${shortName}:${messenger.domain}`,
 
     getNameFromMatrixId: id => {
         const [name] = id.split(':').slice(0, 1);
 
         return name.slice(1);
     },
-    getMembersExceptBot: joinedMembers =>
-        joinedMembers.reduce((acc, {userId}) =>
-            (userId === botId ? acc : [...acc, userId]), []),
 
     // * --------------------------------- Other utils ------------------------------- *
 

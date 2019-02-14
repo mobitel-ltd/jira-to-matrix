@@ -1,6 +1,8 @@
+const faker = require('faker');
+
 module.exports = Object.freeze({
-    port: 4100, // where to listen JIRA webhooks
-    lang: 'en', // a language bot talks to users in
+    port: 4100,
+    lang: faker.random.arrayElement(['ru', 'en']),
     jira: {
         url: 'https://jira.test-example.ru/jira',
         user: 'jira_test_bot',
@@ -35,12 +37,12 @@ module.exports = Object.freeze({
         port: 6379,
         prefix: 'test-jira-hooks:',
     },
-    matrix: {
+    messenger: {
+        name: 'matrix',
         admins: ['jira_test'],
         domain: 'matrix.test-example.ru',
-        user: 'jira_test_bot', // short name, before colon, without @
+        user: 'jira_test_bot',
         password: 'fakepasswprd',
-        pollTimeout: 30000,
     },
     log: {
         type: 'console',
@@ -48,4 +50,4 @@ module.exports = Object.freeze({
         fileLevel: 'silly',
         consoleLevel: 'debug',
     },
-})
+});

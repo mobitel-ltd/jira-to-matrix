@@ -1,4 +1,3 @@
-const Ramda = require('ramda');
 const path = require('path');
 const validate = require('./validate-config.js');
 
@@ -13,20 +12,18 @@ const composeConfig = config => {
         process.exit(1);
     }
 
-    const matrix = {
-        ...config.matrix,
-        baseUrl: `https://${config.matrix.domain}`,
-        userId: `@${config.matrix.user}:${config.matrix.domain}`,
+    const messenger = {
+        ...config.messenger,
+        baseUrl: `https://${config.messenger.domain}`,
+        userId: `@${config.messenger.user}:${config.messenger.domain}`,
     };
-
-    const version = process.env.npm_package_version;
 
     config.features.epicUpdates.on = () => (
         config.features.epicUpdates.newIssuesInEpic === 'on'
         || config.features.epicUpdates.issuesStatusChanged === 'on'
     );
 
-    return {...config, matrix, version};
+    return {...config, messenger};
 };
 
 module.exports = composeConfig(configData);
