@@ -1,8 +1,9 @@
-const MatrixApi = require('matrix-sdk-fasade');
+const SlackApi = require('./slack-api');
+const MatrixApi = require('./matrix-api');
 
 const messengers = {
     matrix: MatrixApi,
-    // slack: SlackApi,
+    slack: SlackApi,
 };
 
 module.exports = type => messengers[type];

@@ -8,18 +8,6 @@ const address = [string.uri(), string.ip()];
 const obj = fields => Joi.object(fields).required();
 const array = itemsType => Joi.array().items(itemsType);
 
-const matrix = obj({
-    name: 'matrix',
-    admins: array(Joi.string()),
-    domain: string,
-    user: string,
-    password: string,
-});
-
-const slack = obj({
-
-});
-
 const schema = obj({
     port: int,
     lang: ['en', 'ru'],
@@ -57,7 +45,15 @@ const schema = obj({
         port: int,
         prefix: string,
     }),
-    messenger: [matrix, slack],
+    messenger: obj({
+        name: ['matrix', 'slack'],
+        admins: array(Joi.string()),
+        domain: string,
+        user: string,
+        password: string,
+        eventPassword: Joi.string().optional(),
+        eventPort: Joi.number().optional(),
+    }),
     log: {
         type: string,
         filePath: string,
