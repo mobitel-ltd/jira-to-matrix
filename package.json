@@ -1,7 +1,7 @@
 {
   "name": "jira-matrix-bot",
   "version": "0.3.0",
-  "main": "src/app.js",
+  "main": "index.js",
   "license": "WTFPL",
   "engines": {
     "node": ">=10"
@@ -46,6 +46,8 @@
     "sinon-chai": "^3.3.0"
   },
   "dependencies": {
+    "@slack/client": "^4.9.0",
+    "@slack/events-api": "^2.1.1",
     "body-parser": "^1.18.3",
     "david": "^11.0.0",
     "express": "^4.16.4",
@@ -53,7 +55,7 @@
     "javascript-state-machine": "^3.1.0",
     "joi": "^14.3.1",
     "marked": "^0.6.0",
-    "matrix-sdk-fasade": "github:grigori-gru/matrix-sdk-fasade",
+    "matrix-js-sdk": "mobitel-ltd/matrix-js-sdk",
     "node-polyglot": "^2.3.0",
     "ramda": "^0.26.1",
     "redis": "^2.8.0",

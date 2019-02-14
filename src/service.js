@@ -55,7 +55,7 @@ module.exports = async (ChatApi, chatConfig, port) => {
         logger.info(`Server is listening on port ${port}`);
     });
 
-    const chatApi = new ChatApi({config: chatConfig, timelineHandler, logger: getLogger});
+    const chatApi = new ChatApi({config: chatConfig, timelineHandler, logger: getLogger('matrix-api')});
 
     queuePush.on('startQueueHandler', async () => {
         if (chatApi.isConnected()) {
