@@ -57,6 +57,7 @@ const hooks = {
     },
     comment: {
         // getIssueKey: () => false,
+        getProjectKey: () => false,
         getComment: body => Ramda.path(['comment'], body),
         getFullName: body => Ramda.path(['comment', 'author', 'displayName'], body),
         getAuthor: body => Ramda.path(['comment', 'author', 'name'], body),
@@ -71,9 +72,10 @@ const hooks = {
         }),
     },
     issuelink: {
+        getProjectKey: () => false,
         getCreator: body => false,
-        // getIssueKey: () => false,
-        // getIssueId: () => false,
+        getIssueKey: () => false,
+        getIssueId: () => false,
         getLinks: body => [Ramda.path(['issueLink'], body)],
         getBodyName: body => Ramda.path(['issueLink', 'id'], body),
         getIssueLinkSourceId: body => Ramda.path(['issueLink', 'sourceIssueId'], body),
@@ -103,7 +105,7 @@ const utils = {
 
     getBodyIssueName: body => hooks[utils.getHookType(body)].getBodyName(body),
 
-    getCreator: body => hooks[utils.getHookType(body)].getCreator(body),
+    getCreator: body => hooks[utils.getHookType(body)] && hooks[utils.getHookType(body)].getCreator(body),
 
     getTypeEvent: body => Ramda.path(['issue_event_type_name'], body),
 
