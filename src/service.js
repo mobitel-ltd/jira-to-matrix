@@ -4,7 +4,7 @@ const logger = getLogger(module);
 const EventEmitter = require('events');
 const timelineHandler = require('./bot/timeline-handler');
 const queueHandler = require('../src/queue');
-const getApp = require('./app');
+const getApp = require('./express-app');
 const StateMachine = require('javascript-state-machine');
 const StateMachineHistory = require('javascript-state-machine/lib/history');
 
