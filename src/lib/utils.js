@@ -93,18 +93,21 @@ const utils = {
         if (eventType) {
             return 'issue';
         }
+        const event = utils.getBodyWebhookEvent(body);
 
-        const [type] = utils.getBodyWebhookEvent(body).split('_');
-
-        return type;
+        return event && event.split('_')[0];
     },
 
-    getHandler: body => handlers[utils.getHookType(body)],
+    getHandler: body => {
+        const type = utils.getHookType(body);
+
+        return type && handlers[type];
+    },
 
     runMethod: (body, method) => {
         const handler = utils.getHandler(body);
 
-        return handler[method] && handler[method](body);
+        return handler && handler[method] && handler[method](body);
     },
 
     getMembers: body => utils.runMethod(body, 'getMembers'),

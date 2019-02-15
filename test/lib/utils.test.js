@@ -131,4 +131,10 @@ describe('Utils testing', () => {
 
         expect(limit).to.be.equal(expected);
     });
+
+    it('Expect runMethod don\'t throw with unknown type', () => {
+        const res = utils.runMethod({}, 'getCreator');
+
+        expect(res).to.be.undefined;
+    });
 });
