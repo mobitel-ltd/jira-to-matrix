@@ -2,6 +2,7 @@ const nock = require('nock');
 const {expect} = require('chai');
 const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
 const issueCommentedHook = require('../fixtures/webhooks/issue/updated/commented.json');
+// const issueGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const redis = require('../../src/redis-client.js');
 const utils = require('../../src/lib/utils');
@@ -57,9 +58,7 @@ describe('get-parsed-save to redis', () => {
     });
 
     it('test correct commentCreatedHook parse', async () => {
-        const parsedForQueue = await getParsedAndSaveToRedis(commentCreatedHook);
-
-        expect(parsedForQueue).to.be;
+        await getParsedAndSaveToRedis(commentCreatedHook);
 
         const redisValue = await redis.getAsync(redisKey);
 
@@ -105,4 +104,10 @@ describe('get-parsed-save to redis', () => {
         expect(res).to.be.false;
         expect(saveIncoming).not.to.be.called;
     });
+
+    // it('Expect hook to be handled and new room creation added if room is not exists in matrix', async () => {
+    //     await getParsedAndSaveToRedis(commentCreatedHook);
+    //     const
+    //     expect()
+    // });
 });

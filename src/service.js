@@ -14,7 +14,7 @@ const queuePush = new EventEmitter();
 
 
 const checkQueueInterval = setInterval(() => {
-    queuePush.emitOnce('startQueueHandler');
+    queuePush.emit('startQueueHandler');
 }, CHECK_QUEUE_DELAY);
 
 const queueFsm = new StateMachine({
