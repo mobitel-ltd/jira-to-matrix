@@ -82,6 +82,12 @@ const helper = {
         },
     },
 
+    getIgnoreStatus: body => {
+        const type = utils.getHookType(body);
+
+        return type && helper.privateByType[type](body);
+    },
+
     getIgnoreBodyData: body => {
         const username = utils.getHookUserName(body);
         const creator = utils.getCreator(body);
@@ -97,12 +103,11 @@ const helper = {
 
     getIgnoreProject: async body => {
         await jiraRequests.testJiraRequest();
-        const action = helper.privateByType[utils.getHookType(body)];
 
-        const ignoreStatus = action && await action(body);
+        const ignoreStatus = await helper.getIgnoreStatus(body);
         const webhookEvent = utils.getBodyWebhookEvent(body);
         const timestamp = utils.getBodyTimestamp(body);
-        const issueName = utils.getBodyIssueName(body);
+        const issueName = utils.getIssueName(body);
 
         return {timestamp, webhookEvent, ignoreStatus, issueName};
     },
