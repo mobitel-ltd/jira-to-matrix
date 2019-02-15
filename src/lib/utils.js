@@ -28,14 +28,14 @@ const getIdFromUrl = url => {
     return res;
 };
 
-const hooks = {
+const handlers = {
     project: {
         getIssueKey: () => false,
         getIssueId: () => false,
         getProjectKey: body => Ramda.path(['project', 'key'], body),
         getCreator: body => Ramda.path(['project', 'projectLead', 'name'], body),
-        getBodyName: body => hooks.project.getProjectKey(body),
-        getMembers: body => [hooks.project.getCreator(body)],
+        getIssueName: body => handlers.project.getProjectKey(body),
+        getMembers: body => [handlers.project.getCreator(body)],
     },
     issue: {
         getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body),
@@ -47,12 +47,12 @@ const hooks = {
         getCreator: body => Ramda.path(['issue', 'fields', 'creator', 'name'], body),
         getReporter: body => Ramda.path(['issue', 'fields', 'reporter', 'name'], body),
         getAssignee: body => Ramda.path(['issue', 'fields', 'assignee', 'name'], body),
-        getMembers: body => ['getReporter', 'getCreator', 'getAssignee'].map(func => hooks.issue[func](body)),
+        getMembers: body => ['getReporter', 'getCreator', 'getAssignee'].map(func => handlers.issue[func](body)),
         getChangelog: body => Ramda.path(['issue', 'changelog'], body),
         getHookChangelog: body => Ramda.path(['changelog'], body),
         getProject: body => Ramda.path(['issue', 'fields', 'project'], body),
-        getProjectKey: body => Ramda.path(['key'], hooks.issue.getProject(body)),
-        getBodyName: body => hooks.issue.getIssueKey(body),
+        getProjectKey: body => Ramda.path(['key'], handlers.issue.getProject(body)),
+        getIssueName: body => handlers.issue.getIssueKey(body),
         getLinks: body => Ramda.path(['issue', 'fields', 'issuelinks'], body),
     },
     comment: {
@@ -62,10 +62,10 @@ const hooks = {
         getFullName: body => Ramda.path(['comment', 'author', 'displayName'], body),
         getAuthor: body => Ramda.path(['comment', 'author', 'name'], body),
         getUpdateAuthor: body => Ramda.path(['comment', 'updateAuthor', 'name'], body),
-        getCreator: body => hooks.comment.getUpdateAuthor(body) || hooks.comment.getAuthor(body),
+        getCreator: body => handlers.comment.getUpdateAuthor(body) || handlers.comment.getAuthor(body),
         getUrl: body => Ramda.path(['comment', 'self'], body),
-        getIssueId: body => getIdFromUrl(hooks.comment.getUrl(body)),
-        getBodyName: body => hooks.comment.getIssueId(body),
+        getIssueId: body => getIdFromUrl(handlers.comment.getUrl(body)),
+        getIssueName: body => handlers.comment.getIssueId(body),
         getCommentBody: body => ({
             body: Ramda.path(['comment', 'body'], body),
             id: Ramda.path(['comment', 'id'], body),
@@ -73,11 +73,11 @@ const hooks = {
     },
     issuelink: {
         getProjectKey: () => false,
-        getCreator: body => false,
+        getCreator: () => false,
         getIssueKey: () => false,
         getIssueId: () => false,
         getLinks: body => [Ramda.path(['issueLink'], body)],
-        getBodyName: body => Ramda.path(['issueLink', 'id'], body),
+        getIssueName: body => Ramda.path(['issueLink', 'id'], body),
         getIssueLinkSourceId: body => Ramda.path(['issueLink', 'sourceIssueId'], body),
         getIssueLinkDestinationId: body => Ramda.path(['issueLink', 'destinationIssueId'], body),
         getSourceRelation: body => Ramda.path(['issueLink', 'issueLinkType', 'outwardName'], body),
@@ -99,47 +99,57 @@ const utils = {
         return type;
     },
 
-    getIssueId: body => hooks[utils.getHookType(body)].getIssueId(body),
+    getHandler: body => handlers[utils.getHookType(body)],
 
-    getIssueKey: body => hooks[utils.getHookType(body)].getIssueKey(body),
+    runMethod: (body, method) => {
+        const handler = utils.getHandler(body);
 
-    getBodyIssueName: body => hooks[utils.getHookType(body)].getBodyName(body),
+        return handler[method] && handler[method](body);
+    },
 
-    getCreator: body => hooks[utils.getHookType(body)] && hooks[utils.getHookType(body)].getCreator(body),
+    getMembers: body => utils.runMethod(body, 'getMembers'),
+
+    getIssueId: body => utils.runMethod(body, 'getIssueId'),
+
+    getIssueKey: body => utils.runMethod(body, 'getIssueKey'),
+
+    getIssueName: body => utils.runMethod(body, 'getIssueName'),
+
+    getCreator: body => utils.runMethod(body, 'getCreator'),
+
+    getProjectKey: body => utils.runMethod(body, 'getProjectKey'),
 
     getTypeEvent: body => Ramda.path(['issue_event_type_name'], body),
 
-    getProjectKey: body => hooks[utils.getHookType(body)].getProjectKey(body),
-
     getChangelog: body => {
-        const type = hooks[utils.getHookType(body)];
+        const type = utils.getHandler(body);
 
         return type.getChangelog(body) || type.getHookChangelog(body);
     },
 
-    getCommentAuthor: body => hooks.comment.getAuthor(body),
+    getCommentAuthor: body => handlers.comment.getAuthor(body),
 
-    getComment: body => hooks.comment.getComment(body),
+    getComment: body => handlers.comment.getComment(body),
 
-    getCommentBody: body => hooks.comment.getCommentBody(body),
+    getCommentBody: body => handlers.comment.getCommentBody(body),
 
-    getUserName: body => hooks.issue.getUserName(body),
+    getUserName: body => handlers.issue.getUserName(body),
 
-    getEpicKey: body => hooks.issue.getEpicKey(body),
+    getEpicKey: body => handlers.issue.getEpicKey(body),
 
-    getKey: body => hooks.issue.getIssueKey(body) || Ramda.path(['key'], body),
+    getKey: body => handlers.issue.getIssueKey(body) || Ramda.path(['key'], body),
 
-    getLinks: body => hooks[utils.getHookType(body)].getLinks(body),
+    getLinks: body => utils.getHandler(body).getLinks(body),
 
-    getIssueLinkSourceId: body => hooks.issuelink.getIssueLinkSourceId(body),
+    getIssueLinkSourceId: body => handlers.issuelink.getIssueLinkSourceId(body),
 
-    getIssueLinkDestinationId: body => hooks.issuelink.getIssueLinkDestinationId(body),
+    getIssueLinkDestinationId: body => handlers.issuelink.getIssueLinkDestinationId(body),
 
-    getSourceRelation: body => hooks.issuelink.getSourceRelation(body),
+    getSourceRelation: body => handlers.issuelink.getSourceRelation(body),
 
-    getDestinationRelation: body => hooks.issuelink.getDestinationRelation(body),
+    getDestinationRelation: body => handlers.issuelink.getDestinationRelation(body),
 
-    getSummary: body => hooks.issue.getSummary(body) || utils.getResponcedSummary(body),
+    getSummary: body => handlers.issue.getSummary(body) || utils.getResponcedSummary(body),
 
     getBodyTimestamp: body => Ramda.path(['timestamp'], body),
 
@@ -151,7 +161,7 @@ const utils = {
 
     isCorrectWebhook: (body, hookName) => utils.getBodyWebhookEvent(body) === hookName,
 
-    isEpic: body => hooks.issue.getType(body) === 'Epic',
+    isEpic: body => handlers.issue.getType(body) === 'Epic',
 
     isCommentEvent: body =>
         utils.getHookType(body) === 'comment' && !utils.getBodyWebhookEvent(body).includes('deleted'),
@@ -186,14 +196,14 @@ const utils = {
     }),
 
     getHeaderText: body => {
-        const name = hooks.comment.getFullName(body);
+        const name = handlers.comment.getFullName(body);
         const eventName = utils.getBodyWebhookEvent(body);
 
         return translate(eventName, {name});
     },
 
     getIssueMembers: body =>
-        [...new Set(hooks[utils.getHookType(body)].getMembers(body))].filter(Boolean),
+        [...new Set(utils.getMembers(body))].filter(Boolean),
 
     getTextIssue: (body, path) => {
         const params = path.split('.');
