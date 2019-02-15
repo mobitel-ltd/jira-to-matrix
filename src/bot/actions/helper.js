@@ -56,36 +56,41 @@ const helper = {
         return !utils.isIgnoreProject(projectBody) || jiraRequests.getIssueSafety(issueKey);
     },
 
-    privateByType: {
-        issue: async body => {
-            const key = utils.getIssueKey(body);
-            const status = await helper.isAvailabledIssue(key);
+    getHookHandler: type => {
+        const handlers = {
+            issue: async body => {
+                const key = utils.getIssueKey(body);
+                const status = await helper.isAvailabledIssue(key);
 
-            return !status;
-        },
-        issuelink: async body => {
-            const allId = [utils.getIssueLinkSourceId(body), utils.getIssueLinkDestinationId(body)];
-            const issues = await Promise.all(allId.map(jiraRequests.getIssueSafety));
+                return !status;
+            },
+            issuelink: async body => {
+                const allId = [utils.getIssueLinkSourceId(body), utils.getIssueLinkDestinationId(body)];
+                const issues = await Promise.all(allId.map(jiraRequests.getIssueSafety));
 
-            return !issues.some(Boolean);
-        },
-        project: async body => {
-            const key = utils.getProjectKey(body);
-            const projectBody = await jiraRequests.getProject(key);
-            return utils.isIgnoreProject(projectBody);
-        },
-        comment: async body => {
-            const id = utils.getIssueId(body);
-            const status = await jiraRequests.getIssueSafety(id);
+                return !issues.some(Boolean);
+            },
+            project: async body => {
+                const key = utils.getProjectKey(body);
+                const projectBody = await jiraRequests.getProject(key);
+                return utils.isIgnoreProject(projectBody);
+            },
+            comment: async body => {
+                const id = utils.getIssueId(body);
+                const status = await jiraRequests.getIssueSafety(id);
 
-            return !status;
-        },
+                return !status;
+            },
+        };
+
+        return handlers[type];
     },
 
     getIgnoreStatus: body => {
         const type = utils.getHookType(body);
+        const handler = helper.getHookHandler(type);
 
-        return type && helper.privateByType[type](body);
+        return handler && handler(body);
     },
 
     getIgnoreBodyData: body => {
