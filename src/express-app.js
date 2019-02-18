@@ -1,12 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('./jira-hook-parser');
 
 const app = express();
 
-module.exports = handle => {
+module.exports = handleFunc => {
     app
         .use(bodyParser.json({
             strict: false,
@@ -19,7 +18,7 @@ module.exports = handle => {
             const saveStatus = await getParsedAndSaveToRedis(req.body);
 
             if (saveStatus) {
-                await handle();
+                await handleFunc();
             }
 
             next();

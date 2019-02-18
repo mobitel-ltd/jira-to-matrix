@@ -8,15 +8,15 @@ const getJiraFsm = parseHook => new StateMachine({
     transitions: [
         {name: 'hookResponsed', from: '*', to: states.hookResponsed},
         {name: 'handlingInProgress', from: '*', to: states.handlingInProgress},
-        {name: 'handled', from: states.handlingInProgress, to: states.init},
+        {name: 'handled', from: '*', to: states.init},
     ],
     methods: {
-        onHookResponsed: () => logger.debug('Jira hook ready to handle'),
-        onHandlingInProgress: () => logger.debug('Data start handling'),
-        onHandled: () => logger.debug('All data is handled!!!'),
-        onPendingTransition(transition, from, to) {
-            logger.error('FSM error', transition, from, to);
+        onEnterState() {
+            logger.debug('Now jira fsm state is "%s"', this.state);
         },
+        // onPendingTransition(transition, from, to) {
+        //     logger.error('FSM error', transition, from, to);
+        // },
     },
 });
 
@@ -24,27 +24,31 @@ const getMatrixFsm = (chatApi, handler) => {
     const fsm = new StateMachine({
         init: states.init,
         transitions: [
-            {name: 'connect', from: states.init, to: states.connected},
-            {name: 'handleQueue', from: [states.waiting, states.connected], to: states.ready},
+            {name: 'connect', from: states.init, to: states.startConnection},
+            {name: 'finishConnection', from: states.startConnection, to: states.ready},
+            {name: 'handleQueue', from: states.ready, to: states.startHandling},
+            {name: 'finishHandle', from: states.startHandling, to: states.ready},
         ],
         methods: {
-
             async onConnect() {
                 await chatApi.connect();
             },
+            onFinishConnection() {
+                logger.debug('Chat connected');
+            },
             async onHandleQueue() {
                 logger.debug('Start queue handling');
-                // this.startQueueHandling;
                 await handler(chatApi);
+            },
+            onFinishHandle() {
                 logger.debug('Finish queue handling');
-                // console.log('onHandleQueue', this.state);
             },
-            onAfterTransition() {
-                logger.debug('State "%s" is finished', this.state);
+            onEnterState() {
+                logger.debug('Now matrix fsm state is "%s"', this.state);
             },
-            onPendingTransition(transition, from, to) {
-                logger.error('FSM error', transition, from, to);
-            },
+            // onPendingTransition(transition, from, to) {
+            //     logger.error('FSM error', transition, from, to);
+            // },
         },
         plugins: [
             new StateMachineHistory({max: 10}),
@@ -55,31 +59,62 @@ const getMatrixFsm = (chatApi, handler) => {
 };
 
 module.exports = class {
+    /**
+     * @param {Object} chatApi instance of messenger Api, matrix or slack for example
+     * @param {function} queueHandler redis queue handle function
+     */
     constructor(chatApi, queueHandler) {
         this.matrixFsm = getMatrixFsm(chatApi, queueHandler);
         this.jiraFsm = getJiraFsm();
     }
 
-    async handle() {
+    /**
+     * Handling Jira hook
+     */
+    async handleHook() {
         this.jiraFsm.hookResponsed();
-        console.log('matrixFsm.can(handleQueu)', this.jiraFsm.state);
+        await this.handle();
+    }
+
+    /**
+     * Handling redis data
+     */
+    async handle() {
         if (this.matrixFsm.can('handleQueue')) {
+            this.jiraFsm.handled();
             await this.matrixFsm.handleQueue();
-            this.jiraFsm.is('hookResponsed') ? await this.handle() : this.jiraFsm.handled();
+            this.matrixFsm.finishHandle();
+
+            this.jiraFsm.is('hookResponsed') && await this.handle();
         }
     }
 
+    /**
+     * Start service with matrix connection and first handling redis data
+     */
     async start() {
         await this.matrixFsm.connect();
+        this.matrixFsm.finishConnection();
         this.jiraFsm.handlingInProgress();
         await this.matrixFsm.handleQueue();
-        console.log('start handle', this.jiraFsm.state);
-        this.jiraFsm.is('hookResponsed') ? await handle() : this.jiraFsm.handled();
+        this.matrixFsm.finishHandle();
+
+        this.jiraFsm.is('hookResponsed') ? await this.handle() : this.jiraFsm.handled();
     }
-    history() {
-        return this.matrixFsm.history;
+
+    /**
+     * @param  {String} fsmName='matrixFsm'
+     * @returns {Array} fsm states history
+     */
+    history(fsmName = 'matrixFsm') {
+        return this[fsmName].history;
     }
-    state() {
-        return this.matrixFsm.state;
+
+    /**
+     * @param  {String} fsmName='matrixFsm'
+     * @returns {String} fsm current state
+     */
+    state(fsmName = 'matrixFsm') {
+        return this[fsmName].state;
     }
 };

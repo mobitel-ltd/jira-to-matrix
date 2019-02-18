@@ -7,7 +7,17 @@ const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
-describe.only('Fsm test', () => {
+describe('Fsm test', () => {
+    const expectedData = [
+        states.init,
+        states.startConnection,
+        states.ready,
+        states.startHandling,
+        states.ready,
+        states.startHandling,
+        states.ready,
+    ];
+
     const chatApi = {
         connect: async () => {
             await delay(100);
@@ -28,26 +38,22 @@ describe.only('Fsm test', () => {
     });
 
     it('Expect fsm state is "ready" after start connection and call handle during connection', async () => {
-        const expectedData = [states.init, states.connected, states.ready];
         const fsm = new Fsm(chatApi, handler);
-        fsm.start();
-        await fsm.handle();
+        await fsm.start();
+        await fsm.handleHook();
         await delay(150);
 
-        expect(handler).to.be.calledOnce;
+        expect(handler).to.be.calledTwice;
         expect(fsm.state()).to.be.eq(states.ready);
         expect(fsm.history()).to.be.deep.eq(expectedData);
     });
 
-    it.skip('Expect fsm wait until handling is finished but new hook we get', async () => {
-        const expectedData = [states.init, states.connected, states.ready];
+    it('Expect fsm wait until handling is finished but new hook we get', async () => {
         const longTimeHandler = stub().callsFake(() => delay(100)).resolves();
         const fsm = new Fsm(chatApi, longTimeHandler);
         await fsm.start();
-        await delay(150);
-        await fsm.handle();
-        await fsm.handle();
-        await delay(1000);
+        await delay(50);
+        await fsm.handleHook();
 
         expect(longTimeHandler).to.be.calledTwice;
         expect(fsm.state()).to.be.eq(states.ready);

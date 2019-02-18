@@ -3,6 +3,8 @@ const states = {
     init: 'empty',
     // all is connected
     connected: 'connected',
+    // start connection
+    startConnection: 'startConnection',
     // got hook from jira
     hookResponsed: 'hookResponsed',
     // start queue handling
