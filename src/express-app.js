@@ -6,7 +6,7 @@ const getParsedAndSaveToRedis = require('./jira-hook-parser');
 
 const app = express();
 
-module.exports = queueFsm => {
+module.exports = handle => {
     app
         .use(bodyParser.json({
             strict: false,
@@ -19,7 +19,7 @@ module.exports = queueFsm => {
             const saveStatus = await getParsedAndSaveToRedis(req.body);
 
             if (saveStatus) {
-                queueFsm.is('empty') ? queueFsm.queueHandler() : queueFsm.wait();
+                await handle();
             }
 
             next();
