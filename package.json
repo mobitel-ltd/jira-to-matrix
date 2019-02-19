@@ -1,6 +1,6 @@
 {
   "name": "jira-matrix-bot",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "main": "index.js",
   "license": "WTFPL",
   "engines": {
@@ -44,7 +44,8 @@
     "pre-commit": "^1.2.2",
     "proxyquire": "^2.1.0",
     "sinon": "^7.2.3",
-    "sinon-chai": "^3.3.0"
+    "sinon-chai": "^3.3.0",
+    "supertest": "^3.4.2"
   },
   "dependencies": {
     "@slack/client": "^4.9.0",

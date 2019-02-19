@@ -26,11 +26,9 @@ module.exports = handleFunc => {
         .get('/', (req, res) => {
             res.end(`Version ${process.env.npm_package_version}`);
         })
-
         .use((req, res) => {
             res.end();
         })
-
         .use((err, req, res, next) => {
             if (err) {
                 logger.error(err);

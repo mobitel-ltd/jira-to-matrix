@@ -1,3 +1,4 @@
+const app = require('../src/jira-app');
 const delay = require('delay');
 const Fsm = require('../src/fsm');
 const {states} = require('../src/fsm/states');
@@ -8,6 +9,7 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Fsm test', () => {
+    const port = 3000;
     const expectedData = [
         states.init,
         states.startConnection,
@@ -17,28 +19,30 @@ describe('Fsm test', () => {
         states.startHandling,
         states.ready,
     ];
-
+    let fsm;
     const chatApi = {
         connect: async () => {
             await delay(100);
         },
+        disconnect: stub(),
     };
     const handler = stub().resolves();
 
     afterEach(() => {
         handler.resetHistory();
+        fsm.stop();
     });
 
     it('Expect fsm state is "ready" after queue is handled', async () => {
-        const fsm = new Fsm(chatApi, handler);
+        fsm = new Fsm(chatApi, handler, app, port);
         await fsm.start();
-        await fsm.handle();
+        await fsm._handle();
 
         expect(fsm.state()).to.be.eq(states.ready);
     });
 
     it('Expect fsm state is "ready" after start connection and call handle during connection', async () => {
-        const fsm = new Fsm(chatApi, handler);
+        fsm = new Fsm(chatApi, handler, app, port);
         await fsm.start();
         await fsm.handleHook();
         await delay(150);
@@ -50,7 +54,7 @@ describe('Fsm test', () => {
 
     it('Expect fsm wait until handling is finished but new hook we get', async () => {
         const longTimeHandler = stub().callsFake(() => delay(100)).resolves();
-        const fsm = new Fsm(chatApi, longTimeHandler);
+        fsm = new Fsm(chatApi, longTimeHandler, app, port);
         await fsm.start();
         await delay(50);
         await fsm.handleHook();

@@ -13,8 +13,6 @@ const states = {
     handlingInProgress: 'handlingInProgress',
     // all data is handled and app is waiting for hooks
     ready: 'ready',
-    // queue is ready to be handled and wait for connection to matrix or finish current queue handling
-    waiting: 'waiting',
 };
 
 // const notReadyStates = [states.init, states.handlingInProgress, states.waiting];
