@@ -1,12 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('./jira-hook-parser');
 
 const app = express();
 
-module.exports = queueFsm => {
+module.exports = handleFunc => {
     app
         .use(bodyParser.json({
             strict: false,
@@ -19,7 +18,7 @@ module.exports = queueFsm => {
             const saveStatus = await getParsedAndSaveToRedis(req.body);
 
             if (saveStatus) {
-                queueFsm.is('empty') ? queueFsm.queueHandler() : queueFsm.wait();
+                await handleFunc();
             }
 
             next();
@@ -27,11 +26,9 @@ module.exports = queueFsm => {
         .get('/', (req, res) => {
             res.end(`Version ${process.env.npm_package_version}`);
         })
-
         .use((req, res) => {
             res.end();
         })
-
         .use((err, req, res, next) => {
             if (err) {
                 logger.error(err);
