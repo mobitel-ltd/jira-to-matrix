@@ -1,5 +1,5 @@
-const {getIssueWatchers, getProject} = require('../../lib/jira-request.js');
-const {composeRoomName, getViewUrl, errorTracing, getMatrixUserID} = require('../../lib/utils.js');
+const jiraRequest = require('../../lib/jira-request.js');
+const {composeRoomName, getViewUrl, errorTracing, getChatUserId} = require('../../lib/utils.js');
 const logger = require('../../modules/log.js')(module);
 const {getDescription} = require('./helper');
 const {infoBody} = require('../../lib/messages');
@@ -17,8 +17,8 @@ const getRoomId = async (chatApi, key) => {
 
 const createIssueRoom = async (chatApi, issue) => {
     try {
-        const roomMembers = await getIssueWatchers(issue);
-        const invite = roomMembers.map(getMatrixUserID);
+        const roomMembers = await jiraRequest.getIssueWatchers(issue);
+        const invite = roomMembers.map(getChatUserId);
 
         const {key} = issue;
         const name = composeRoomName(issue);
@@ -45,8 +45,8 @@ const createIssueRoom = async (chatApi, issue) => {
 
 const createProjectRoom = async (chatApi, projectKey) => {
     try {
-        const {lead, name} = await getProject(projectKey);
-        const invite = [getMatrixUserID(lead.key)];
+        const {lead, name} = await jiraRequest.getProject(projectKey);
+        const invite = [getChatUserId(lead.key)];
         const topic = getViewUrl(projectKey);
 
         const options = {
@@ -63,10 +63,17 @@ const createProjectRoom = async (chatApi, projectKey) => {
     }
 };
 
+const getKey = async id => {
+    const issue = await jiraRequest.getIssueSafety(id);
+
+    return issue && issue.key;
+};
+
 module.exports = async ({chatApi, issue, projectKey}) => {
     try {
-        if (issue.key) {
-            await getRoomId(chatApi, issue.key) || await createIssueRoom(chatApi, issue);
+        const key = issue.key || await getKey(issue.id);
+        if (key) {
+            await getRoomId(chatApi, key) || await createIssueRoom(chatApi, {...issue, key});
         }
         if (projectKey) {
             await getRoomId(chatApi, projectKey) || await createProjectRoom(chatApi, projectKey);

@@ -12,7 +12,7 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('inviteNewMembers test', () => {
-    const expectedWatchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));
+    const expectedWatchers = watchersBody.watchers.map(({name}) => utils.getChatUserId(name));
     const chatApi = {
         getRoomByAlias: stub(),
         invite: stub(),

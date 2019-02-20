@@ -85,6 +85,25 @@ const handlers = {
     },
 };
 
+const matrixMethods = {
+    composeRoomName: ({key, summary}) => `${key} ${summary}`,
+    getChatUserId: shortName => `@${shortName}:${messenger.domain}`,
+};
+
+const slackMethods = {
+    composeRoomName: ({key}) => `${key.toLowerCase()}`,
+    getChatUserId: shortName => `${shortName}@${messenger.domain}`,
+};
+
+const getMethodByType = name => {
+    const obj = {
+        matrix: matrixMethods,
+        slack: slackMethods,
+    };
+
+    return obj[messenger.name][name];
+};
+
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
 
@@ -292,7 +311,7 @@ const utils = {
 
     getMatrixRoomAlias: alias => `#${alias}:${messenger.domain}`,
 
-    getMatrixUserID: shortName => `@${shortName}:${messenger.domain}`,
+    getChatUserId: getMethodByType('getChatUserId'),
 
     getNameFromMatrixId: id => {
         const [name] = id.split(':').slice(0, 1);
@@ -329,7 +348,7 @@ const utils = {
         Ramda.complement(Ramda.isEmpty)
     ),
 
-    composeRoomName: ({key, summary}) => `${key} ${summary}`,
+    composeRoomName: getMethodByType('composeRoomName'),
 
     getClosedDescriptionBlock: data => [utils.getOpenedDescriptionBlock(data), LINE_BREAKE_TAG].join(''),
 

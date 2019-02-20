@@ -21,7 +21,7 @@ const getBody = async (roomName, sender, chatApi) => {
         return translate('notFoundRoom', {roomName});
     }
 
-    const userId = utils.getMatrixUserID(sender);
+    const userId = utils.getChatUserId(sender);
     await chatApi.invite(roomId, userId);
 
     return translate('successMatrixInvite', {sender, roomName});

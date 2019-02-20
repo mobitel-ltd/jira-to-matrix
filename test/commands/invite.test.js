@@ -20,7 +20,7 @@ describe('invite test', () => {
 
     const bodyText = 'BBCOM-123';
     const sender = 'jira_test';
-    const senderMatrixId = utils.getMatrixUserID(sender);
+    const senderMatrixId = utils.getChatUserId(sender);
     const alias = utils.getMatrixRoomAlias(bodyText.toUpperCase());
 
     beforeEach(() => {

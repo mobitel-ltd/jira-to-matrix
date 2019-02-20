@@ -3,7 +3,7 @@ const utils = require('../../../lib/utils.js');
 
 const helper = {
     getInviteUser: (name, room) => {
-        const user = utils.getMatrixUserID(name);
+        const user = utils.getChatUserId(name);
 
         return helper.isMember(room, user) ? false : user;
     },

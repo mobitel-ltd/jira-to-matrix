@@ -7,7 +7,7 @@ const FSM = require('./fsm');
 const app = require('./jira-app');
 const queueHandler = require('../src/queue');
 
-const messengerApi = new MessengerApi({config: conf.messenger, timelineHandler, logger: getLogger('matrix-api')});
+const messengerApi = new MessengerApi({config: conf.messenger, timelineHandler, logger: getLogger('messenger-api')});
 
 const fsm = new FSM(messengerApi, queueHandler, app, conf.port);
 

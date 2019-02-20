@@ -27,8 +27,8 @@ const getJiraFsm = (app, port) => new StateMachine({
             logger.debug('Now jira fsm state is "%s"', this.state);
         },
         onStop() {
-            this.is('init') || this.server.close();
             logger.info('Jira server close');
+            return this.is('init') || this.server.close();
         },
         // onPendingTransition(transition, from, to) {
         //     logger.error('FSM error', transition, from, to);
@@ -64,8 +64,8 @@ const getMatrixFsm = (chatApi, handler) => {
                 logger.debug('Now matrix fsm state is "%s"', this.state);
             },
             onStop() {
-                this.is('init') || chatApi.disconnect();
                 logger.info('Matrix disconnected');
+                return this.is('init') || chatApi.disconnect();
             },
             // onPendingTransition(transition, from, to) {
             //     logger.error('FSM error', transition, from, to);

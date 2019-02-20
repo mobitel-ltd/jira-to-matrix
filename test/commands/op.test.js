@@ -23,10 +23,10 @@ describe('op test', () => {
         roomId: 12345,
         members: [
             {
-                userId: utils.getMatrixUserID(userB.name),
+                userId: utils.getChatUserId(userB.name),
             },
             {
-                userId: utils.getMatrixUserID(sender),
+                userId: utils.getChatUserId(sender),
             },
         ],
         getJoinedMembers: () => room.members,
@@ -53,18 +53,18 @@ describe('op test', () => {
     it('Expect power level of sender to be put ("!op" command)', async () => {
         const res = await op({sender, room, roomName, chatApi});
 
-        expect(res).to.be.eq(messages.getModeratorAddLog(utils.getMatrixUserID(sender), roomName));
+        expect(res).to.be.eq(messages.getModeratorAddLog(utils.getChatUserId(sender), roomName));
         expect(chatApi.sendHtmlMessage).not.to.be.called;
-        expect(chatApi.setPower).to.be.calledWithExactly(room.roomId, utils.getMatrixUserID(sender));
+        expect(chatApi.setPower).to.be.calledWithExactly(room.roomId, utils.getChatUserId(sender));
     });
 
     it('Expect power level of adding user to be put if he is a room member ("!op is_b")', async () => {
         const newBody = userB.name;
         const res = await op({bodyText: newBody, sender, room, roomName, chatApi});
 
-        expect(res).to.be.eq(messages.getModeratorAddLog(utils.getMatrixUserID(userB.name), roomName));
+        expect(res).to.be.eq(messages.getModeratorAddLog(utils.getChatUserId(userB.name), roomName));
         expect(chatApi.sendHtmlMessage).not.to.be.called;
-        expect(chatApi.setPower).to.be.calledWithExactly(room.roomId, utils.getMatrixUserID(userB.name));
+        expect(chatApi.setPower).to.be.calledWithExactly(room.roomId, utils.getChatUserId(userB.name));
     });
 
     it('Expect power level of adding user NOT to be put if he is NOT a room member ("!op fake")', async () => {

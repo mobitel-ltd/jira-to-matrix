@@ -16,7 +16,7 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Create room test', () => {
-    const watchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));
+    const watchers = watchersBody.watchers.map(({name}) => utils.getChatUserId(name));
     const errorMsg = 'some error';
 
     const createRoomData = getCreateRoomData(JSONbody);
@@ -25,28 +25,28 @@ describe('Create room test', () => {
 
     const expectedEpicRoomOptions = {
         'room_alias_name': epicJSON.issue.key,
-        'invite': [utils.getMatrixUserID(epicJSON.user.name), ...watchers],
+        'invite': [utils.getChatUserId(epicJSON.user.name), ...watchers],
         'name': utils.composeRoomName({key: epicJSON.issue.key, summary: epicJSON.issue.fields.summary}),
         'topic': utils.getViewUrl(epicJSON.issue.key),
     };
 
     const expectedIssueRoomOptions = {
         'room_alias_name': createRoomData.issue.key,
-        'invite': [utils.getMatrixUserID(JSONbody.user.name), ...watchers],
+        'invite': [utils.getChatUserId(JSONbody.user.name), ...watchers],
         'name': utils.composeRoomName(createRoomData.issue),
         'topic': utils.getViewUrl(createRoomData.issue.key),
     };
 
     const expectedEpicProjectOptions = {
         'room_alias_name': projectKey,
-        'invite': [utils.getMatrixUserID(projectData.lead.key)],
+        'invite': [utils.getChatUserId(projectData.lead.key)],
         'name': projectData.name,
         'topic': utils.getViewUrl(projectKey),
     };
 
     const expectedCreateProjectOptions = {
         'room_alias_name': projectJSON.project.key,
-        'invite': [utils.getMatrixUserID(projectData.lead.key)],
+        'invite': [utils.getChatUserId(projectData.lead.key)],
         'name': projectData.name,
         'topic': utils.getViewUrl(projectJSON.project.key),
     };

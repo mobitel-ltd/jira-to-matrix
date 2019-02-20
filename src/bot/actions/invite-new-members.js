@@ -1,5 +1,5 @@
 const Ramda = require('ramda');
-const {getMatrixUserID, errorTracing} = require('../../lib/utils.js');
+const {getChatUserId, errorTracing} = require('../../lib/utils.js');
 const {getIssueWatchers} = require('../../lib/jira-request.js');
 const {getMembersUserId} = require('./helper.js');
 const logger = require('../../modules/log.js')(module);
@@ -13,7 +13,7 @@ module.exports = async ({chatApi, issue}) => {
         }
 
         const issueWatchers = await getIssueWatchers(issue);
-        const issueWatchersMatrixIds = issueWatchers.map(getMatrixUserID);
+        const issueWatchersMatrixIds = issueWatchers.map(getChatUserId);
 
         const matrixRoomMembers = getMembersUserId(room.getJoinedMembers());
 
