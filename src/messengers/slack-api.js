@@ -2,9 +2,10 @@
 const Ramda = require('ramda');
 const {createEventAdapter: defaultEventApi} = require('@slack/events-api');
 const {WebClient} = require('@slack/client');
+const htmlToText = require('html-to-text').fromString;
 
 // const tets = new WebClient();
-// tets
+// tets.conversations.invite()
 const defaultLogger = {
     info: () => {},
     error: () => {},
@@ -111,17 +112,17 @@ module.exports = class SlackApi {
     /**
      * Send message to Slack room
      * @param  {string} channel slack room id
-     * @param  {string} attachments info message body
-     * @param  {string} text markdown message body
+     * @param  {string} infoMessage info message body
+     * @param  {string} textBody markdown message body
      */
-    async sendHtmlMessage(channel, attachments, text) {
+    async sendHtmlMessage(channel, infoMessage, textBody) {
         try {
-            await this.client.chat.postMessage({token: this.token, channel, text, attachments});
+            const text = htmlToText(textBody);
+            await this.client.chat.postMessage({token: this.token, channel, text});
         } catch (err) {
             throw ['Error in sendHtmlMessage', err].join('\n');
         }
     }
-
 
     /**
      * @param  {string} email user mail
@@ -146,6 +147,7 @@ module.exports = class SlackApi {
      * @returns {string} Slack channel id
      */
     async createRoom({name, topic, invite}) {
+		console.log('TCL: createRoom -> name', name)
         try {
             const ids = await Promise.all(invite.map(this._getUserIdByEmail.bind(this)));
             const {channel} = await this.client.conversations.create({'token': this.token, 'is_private': true, name, 'user_ids': ids.filter(Boolean)});
@@ -154,6 +156,7 @@ module.exports = class SlackApi {
 
             return roomId;
         } catch (err) {
+            this.logger.error(err);
             throw ['Error while creating room', err].join('\n');
         }
     }
@@ -165,13 +168,36 @@ module.exports = class SlackApi {
     */
     async getRoomId(name) {
         try {
+            // ? Limit of channels is only 1000 now
             const {channels} = await this.slackSdkClient.users.conversations({token: this.token, limit: 1000, types: 'private_channel'});
             const channel = channels.find(item => item.name === name.toLowerCase());
 
-            return Ramda.path(['id'], channel);
+            const roomId = Ramda.path(['id'], channel);
+            if (!roomId) {
+                throw `No channel for ${name}`;
+            }
+
+            return roomId;
         } catch (err) {
             this.logger.error(err);
             throw [`Error getting channel id by name "${name}" from Slack`, err].join('\n');
+        }
+    }
+
+    /**
+     * Invite user to slack channel
+     * @param  {string} channel slack channel id
+     * @param  {string} email slack user email
+     */
+    async invite(channel, email) {
+        try {
+            const userId = await this._getUserIdByEmail(email);
+            const response = await this.client.conversations.invite({token: this.token, channel, users: userId});
+
+            return response.ok;
+        } catch (err) {
+            this.logger.error(err);
+            throw [`Error while inviting user ${email} to a channel ${channel}`, err].join('\n');
         }
     }
 };

@@ -3,6 +3,7 @@ const faker = require('faker');
 const {WebClient} = require('@slack/client');
 const EventEmitter = require('events');
 
+const conversationsInviteJSON = require('../fixtures/slack-requests/conversations/invite.json');
 const usersConversationsJSON = require('../fixtures/slack-requests/users/conversations.json');
 const postMessageJSON = require('../fixtures/slack-requests/chat/post-message.json');
 const userJSON = require('../fixtures/slack-requests/user.json');
@@ -27,8 +28,9 @@ const testConfig = {
 };
 
 const testTopic = 'My topic';
-
-const options = {name: 'my_room', topic: testTopic, invite: ['user@example.com', 'user@example.com']};
+const trueUserMail = 'user@example.com';
+const correctSlackUserId = userJSON.correct.user.id;
+const options = {name: 'my_room', topic: testTopic, invite: ['user@example.com', 'user1@example.com']};
 
 describe('Slack api testing', () => {
     const auth = {
@@ -39,6 +41,8 @@ describe('Slack api testing', () => {
         create: stub().resolves(conversationJSON.correct),
         // https://api.slack.com/methods/conversations.setTopic
         setTopic: stub().resolves({ok: true, topic: testTopic}),
+        // https://api.slack.com/methods/conversations.invite
+        invite: stub().resolves(conversationsInviteJSON.correct),
     };
     const users = {
         // https://api.slack.com/methods/users.lookupByEmail
@@ -103,7 +107,6 @@ describe('Slack api testing', () => {
             token: testConfig.password,
             channel,
             text,
-            attachments,
         };
         expect(slackSdkClient.chat.postMessage).to.be.calledWithExactly(expectedData);
     });
@@ -115,9 +118,33 @@ describe('Slack api testing', () => {
         expect(roomId).to.be.eq(channel.id);
     });
 
-    it('Expect getRoomId returns undefined if id is not exists', async () => {
-        const roomId = await slackApi.getRoomId(faker.name.firstName());
+    it('Expect getRoomId throws error if id is not exists', async () => {
+        let err;
+        try {
+            await slackApi.getRoomId(faker.name.firstName());
+        } catch (error) {
+            err = error;
+        }
+        expect(err).not.to.be.undefined;
+    });
 
-        expect(roomId).to.be.undefined;
+    it('Expect getRoomId returns correct id if it exists and put to method in upperCase', async () => {
+        const [channel] = usersConversationsJSON.correct.channels;
+        const roomId = await slackApi.getRoomId(channel.name.toUpperCase());
+
+        expect(roomId).to.be.eq(channel.id);
+    });
+
+    it('Expect invite room returns true if user invited', async () => {
+        const channel = conversationsInviteJSON.correct.channel.id;
+        const res = await slackApi.invite(channel, trueUserMail);
+
+        expect(res).to.be.true;
+        const expectedData = {
+            token: testConfig.password,
+            channel,
+            users: correctSlackUserId,
+        };
+        expect(conversations.invite).to.be.calledWithExactly(expectedData);
     });
 });

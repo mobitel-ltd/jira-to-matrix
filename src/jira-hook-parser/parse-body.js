@@ -84,7 +84,7 @@ module.exports = {
         const key = utils.getKey(body);
         const issueKey = fieldKey ? fieldKey.fromString : key;
         const summary = utils.getSummary(body);
-        const roomName = summary && utils.composeRoomName({...issue, summary});
+        const roomName = summary && utils.composeRoomName(issue.key, summary);
 
         return {issueKey, fieldKey, summary, roomName, changelog, user, key};
     },

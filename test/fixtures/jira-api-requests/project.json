@@ -1,7 +1,7 @@
 {
-  "self": "http://jira.test-example.ru/jira/rest/api/2/project/BBCOM",
+  "self": "http://jira.test-example.ru/jira/rest/api/2/project/DTP",
   "id": "10305",
-  "key": "BBCOM",
+  "key": "DTP",
   "description": "This project was created as an example for REST.",
   "lead": {
     "self": "http://jira.test-example.ru/jira/rest/api/2/user?username=fred",
@@ -92,13 +92,13 @@
       "avatarId": 10002
     }
   ],
-  "url": "http://jira.test-example.ru/jira/browse/BBCOM",
+  "url": "http://jira.test-example.ru/jira/browse/DTP",
   "email": "from-jira@example.com",
   "assigneeType": "PROJECT_LEAD",
   "versions": [],
   "name": "Example",
   "roles": {
-    "Developers": "http://jira.test-example.ru/jira/rest/api/2/project/BBCOM/role/10305"
+    "Developers": "http://jira.test-example.ru/jira/rest/api/2/project/DTP/role/10305"
   },
   "avatarUrls": {
     "48x48": "http://jira.test-example.ru/jira/secure/projectavatar?size=large&pid=10305",

@@ -1,7 +1,7 @@
 const faker = require('faker');
 
 module.exports = Object.freeze({
-    port: 4100,
+    port: 4300,
     lang: faker.random.arrayElement(['ru', 'en']),
     jira: {
         url: 'https://jira.test-example.ru/jira',
@@ -43,6 +43,13 @@ module.exports = Object.freeze({
         domain: 'matrix.test-example.ru',
         user: 'jira_test_bot',
         password: 'fakepasswprd',
+        // name: 'slack',
+        // admins: ['test_user'],
+        // user: 'jirabot',
+        // domain: faker.internet.domainName(),
+        // password: faker.random.uuid(),
+        // eventPassword: faker.internet.password(22),
+        // eventPort: 3001,
     },
     log: {
         type: 'console',

@@ -86,12 +86,12 @@ const handlers = {
 };
 
 const matrixMethods = {
-    composeRoomName: ({key, summary}) => `${key} ${summary}`,
+    composeRoomName: (key, summary) => `${key} ${summary}`,
     getChatUserId: shortName => `@${shortName}:${messenger.domain}`,
 };
 
 const slackMethods = {
-    composeRoomName: ({key}) => `${key.toLowerCase()}`,
+    composeRoomName: key => `${key.toLowerCase()}`,
     getChatUserId: shortName => `${shortName}@${messenger.domain}`,
 };
 

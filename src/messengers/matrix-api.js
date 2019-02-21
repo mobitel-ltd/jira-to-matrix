@@ -278,6 +278,7 @@ module.exports = class Matrix {
             return null;
         }
     }
+
     /**
      * Invite user to matrix room
      * @param  {string} roomId matrix room id
