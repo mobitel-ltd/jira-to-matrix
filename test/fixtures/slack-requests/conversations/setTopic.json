@@ -1,0 +1,10 @@
+{
+    "correct": {
+        "ok": true,
+        "topic": "Apply topically for best effects"
+    },
+    "invalid": {
+        "ok": false,
+        "topic": "channel_not_found"
+    }
+}

@@ -33,7 +33,6 @@ module.exports = class SlackApi {
         this.slackEvents = eventApi(config.eventPassword);
     }
 
-
     /**
      * Handler to add timeline handler to watch events in a room
      * @returns {Object} slack client
@@ -44,17 +43,6 @@ module.exports = class SlackApi {
             return;
         }
 
-        // Attach listeners to events by Slack Event "type". See: https://api.slack.com/events/message.im
-        // this.slackEvents.on('message', event => {
-        //     this.logger.debug(event);
-        //     const msg = `Received a message event: user ${event.user} in channel ${event.channel} says ${event.text}`;
-        //     this.logger.debug(msg);
-        // });
-
-        // // Handle errors (see `errorCodes` export)
-        // this.slackEvents.on('error', this.logger.error);
-
-        // Start a basic HTTP server
         await this.slackEvents.start(this.config.eventPort);
         this.logger.debug(`Slack event server listening on port ${this.config.eventPort}`);
 
@@ -139,20 +127,61 @@ module.exports = class SlackApi {
     }
 
     /**
+     * Set topic to channel
+     * @param  {string} channel channel id
+     * @param  {string} topic new topic
+     * @returns {Boolean} request result
+     */
+    async setRoomTopic(channel, topic) {
+        try {
+            const res = await this.client.conversations.setTopic({token: this.token, channel, topic});
+
+            return res.ok;
+        } catch (err) {
+            this.logger.error(err);
+            throw ['Error while setting channel topic', err].join('\n');
+        }
+    }
+
+    /**
+     * Set purpose to channel
+     * @param  {string} channel channel id
+     * @param  {string} purpose new topic
+     * @returns {Boolean} request result
+     */
+    async setPurpose(channel, purpose) {
+        try {
+            const res = await this.client.conversations.setPurpose({token: this.token, channel, purpose});
+
+            return res.ok;
+        } catch (err) {
+            this.logger.error(err);
+            throw ['Error while setting channel purpose', err].join('\n');
+        }
+    }
+
+    /**
      * Create Slack channel
      * @param  {Object} options create channel options
      * @param  {String} options.name name for channel, less than 21 sign, lowerCase, no space
      * @param  {String} options.topic slack channel topic
      * @param  {Array} options.invite user emails to invite
+     * @param  {Array} options.summary issue summary
      * @returns {string} Slack channel id
      */
-    async createRoom({name, topic, invite}) {
-		console.log('TCL: createRoom -> name', name)
+    async createRoom({name, topic, invite, purpose}) {
         try {
             const ids = await Promise.all(invite.map(this._getUserIdByEmail.bind(this)));
-            const {channel} = await this.client.conversations.create({'token': this.token, 'is_private': true, name, 'user_ids': ids.filter(Boolean)});
+            const options = {
+                'token': this.token,
+                'is_private': true,
+                'name': name.toLowerCase(),
+                'user_ids': ids.filter(Boolean),
+            };
+            const {channel} = await this.client.conversations.create(options);
             const roomId = channel.id;
-            await this.client.conversations.setTopic({channel: roomId, topic});
+            await this.setRoomTopic(roomId, topic);
+            await this.setPurpose(roomId, purpose);
 
             return roomId;
         } catch (err) {
@@ -167,20 +196,20 @@ module.exports = class SlackApi {
     * @returns {string|undefined} channel id if exists
     */
     async getRoomId(name) {
+        const searchingName = name.toLowerCase();
         try {
             // ? Limit of channels is only 1000 now
             const {channels} = await this.slackSdkClient.users.conversations({token: this.token, limit: 1000, types: 'private_channel'});
-            const channel = channels.find(item => item.name === name.toLowerCase());
+            const channel = channels.find(item => item.name === searchingName);
 
             const roomId = Ramda.path(['id'], channel);
             if (!roomId) {
-                throw `No channel for ${name}`;
+                throw `No channel for ${searchingName}`;
             }
 
             return roomId;
         } catch (err) {
-            this.logger.error(err);
-            throw [`Error getting channel id by name "${name}" from Slack`, err].join('\n');
+            throw [`Error getting channel id by name "${searchingName}" from Slack`, err].join('\n');
         }
     }
 
@@ -198,6 +227,47 @@ module.exports = class SlackApi {
         } catch (err) {
             this.logger.error(err);
             throw [`Error while inviting user ${email} to a channel ${channel}`, err].join('\n');
+        }
+    }
+
+    /**
+     * get channel members
+     * @param {String} name channel name
+     * @returns {Array} channel members
+     */
+    async getRoomMembers(name) {
+        try {
+            const channel = await this.getRoomId(name);
+            const {members} = await this.client.conversations.members({token: this.token, channel});
+
+            return members;
+        } catch (err) {
+            throw [`Error while getting slack members from channel ${name}`, err].join('\n');
+        }
+    }
+
+    /**
+     * Empty method to avoid error with create alias in matrix
+     *  @returns {Boolean} always true
+     */
+    createAlias() {
+        return true;
+    }
+
+    /**
+     * Set new name to the channel
+     * @param  {string} channel channel id
+     * @param  {string} name new topic
+     * @returns {Boolean} request result
+     */
+    async setRoomName(channel, name) {
+        try {
+            const res = await this.client.conversations.rename({token: this.token, channel, name});
+
+            return res.ok;
+        } catch (err) {
+            this.logger.error(err);
+            throw ['Error while setting channel topic', err].join('\n');
         }
     }
 };

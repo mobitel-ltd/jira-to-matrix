@@ -1,0 +1,10 @@
+{
+    "correct": {
+        "ok": true,
+        "purpose": "I didn't set this purpose on purpose!"
+    },
+    "invalid": {
+        "ok": false,
+        "error": "invalid_cursor"
+    }
+}

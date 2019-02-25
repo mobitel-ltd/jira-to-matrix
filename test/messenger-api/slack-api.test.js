@@ -3,6 +3,9 @@ const faker = require('faker');
 const {WebClient} = require('@slack/client');
 const EventEmitter = require('events');
 
+const conversationRenameJSON = require('../fixtures/slack-requests/conversations/rename.json');
+const conversationPurposeJSON = require('../fixtures/slack-requests/conversations/setPurpose.json');
+const conversationMembersJSON = require('../fixtures/slack-requests/conversations/mamebers.json');
 const conversationsInviteJSON = require('../fixtures/slack-requests/conversations/invite.json');
 const usersConversationsJSON = require('../fixtures/slack-requests/users/conversations.json');
 const postMessageJSON = require('../fixtures/slack-requests/chat/post-message.json');
@@ -30,7 +33,12 @@ const testConfig = {
 const testTopic = 'My topic';
 const trueUserMail = 'user@example.com';
 const correctSlackUserId = userJSON.correct.user.id;
-const options = {name: 'my_room', topic: testTopic, invite: ['user@example.com', 'user1@example.com']};
+const options = {
+    name: 'MY_ROOM',
+    topic: testTopic,
+    invite: ['user@example.com', 'user1@example.com'],
+    purpose: conversationPurposeJSON.correct.purpose,
+};
 
 describe('Slack api testing', () => {
     const auth = {
@@ -43,6 +51,12 @@ describe('Slack api testing', () => {
         setTopic: stub().resolves({ok: true, topic: testTopic}),
         // https://api.slack.com/methods/conversations.invite
         invite: stub().resolves(conversationsInviteJSON.correct),
+        // https://api.slack.com/methods/conversations.members
+        members: stub().resolves(conversationMembersJSON.correct),
+        // https://api.slack.com/methods/conversations.setPurpose
+        setPurpose: stub().resolves(conversationPurposeJSON.correct),
+        // https://api.slack.com/methods/conversations.rename
+        rename: stub().resolves(conversationRenameJSON.correct),
     };
     const users = {
         // https://api.slack.com/methods/users.lookupByEmail
@@ -88,12 +102,17 @@ describe('Slack api testing', () => {
         const roomId = await slackApi.createRoom(options);
 
         expect(roomId).to.be.eq(conversationJSON.correct.channel.id);
-        const expectedData = {
+        expect(slackSdkClient.conversations.create).to.be.calledWithExactly({
             'token': testConfig.password,
             'is_private': true,
-            'name': options.name,
-            'user_ids': [userJSON.correct.user.id, userJSON.correct.user.id]};
-        expect(slackSdkClient.conversations.create).to.be.calledWithExactly(expectedData);
+            'name': options.name.toLowerCase(),
+            'user_ids': [userJSON.correct.user.id, userJSON.correct.user.id],
+        });
+        expect(slackSdkClient.conversations.setPurpose).to.be.calledWithExactly({
+            token: testConfig.password,
+            channel: roomId,
+            purpose: options.purpose,
+        });
     });
 
     it('Expect send message work correct', async () => {
@@ -146,5 +165,24 @@ describe('Slack api testing', () => {
             users: correctSlackUserId,
         };
         expect(conversations.invite).to.be.calledWithExactly(expectedData);
+    });
+
+    it('Expect getJoinedMembers return array of members', async () => {
+        const [channel] = usersConversationsJSON.correct.channels;
+        const members = await slackApi.getRoomMembers(channel.name);
+
+        expect(members).to.be.an('array');
+    });
+
+    it('Expect setRoomName works well array of members', async () => {
+        const {name} = conversationRenameJSON.correct.channel;
+        const status = await slackApi.setRoomName(conversationJSON.correct.channel.id, name);
+
+        expect(status).to.be.true;
+        expect(conversations.rename).to.be.calledWithExactly({
+            token: testConfig.password,
+            channel: conversationJSON.correct.channel.id,
+            name,
+        });
     });
 });

@@ -1,26 +1,20 @@
 const Ramda = require('ramda');
 const {getChatUserId, errorTracing} = require('../../lib/utils.js');
 const {getIssueWatchers} = require('../../lib/jira-request.js');
-const {getMembersUserId} = require('./helper.js');
 const logger = require('../../modules/log.js')(module);
-const {getNoRoomByAliasLog} = require('../../lib/messages');
 
 module.exports = async ({chatApi, issue}) => {
     try {
-        const room = await chatApi.getRoomByAlias(issue.key);
-        if (!room) {
-            throw getNoRoomByAliasLog(issue.key);
-        }
+        const roomId = await chatApi.getRoomId(issue.key);
+        const chatRoomMembers = await chatApi.getRoomMembers(issue.key);
 
         const issueWatchers = await getIssueWatchers(issue);
-        const issueWatchersMatrixIds = issueWatchers.map(getChatUserId);
+        const issueWatchersChatIds = issueWatchers.map(getChatUserId);
 
-        const matrixRoomMembers = getMembersUserId(room.getJoinedMembers());
-
-        const newMembers = Ramda.difference(issueWatchersMatrixIds, matrixRoomMembers);
+        const newMembers = Ramda.difference(issueWatchersChatIds, chatRoomMembers);
 
         await Promise.all(newMembers.map(async userID => {
-            await chatApi.invite(room.roomId, userID);
+            await chatApi.invite(roomId, userID);
             logger.debug(`New member ${userID} invited to ${issue.key}`);
         }));
 

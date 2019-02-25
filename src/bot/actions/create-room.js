@@ -29,6 +29,7 @@ const createIssueRoom = async (chatApi, issue) => {
             invite,
             name,
             topic,
+            'purpose': issue.summary,
         };
 
         const roomId = await chatApi.createRoom(options);

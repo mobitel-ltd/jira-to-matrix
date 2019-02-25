@@ -28,6 +28,7 @@ describe('Create room test', () => {
         'invite': [utils.getChatUserId(epicJSON.user.name), ...watchers],
         'name': utils.composeRoomName(epicJSON.issue.key, epicJSON.issue.fields.summary),
         'topic': utils.getViewUrl(epicJSON.issue.key),
+        'purpose': utils.getSummary(epicJSON),
     };
 
     const expectedIssueRoomOptions = {
@@ -35,6 +36,7 @@ describe('Create room test', () => {
         'invite': [utils.getChatUserId(JSONbody.user.name), ...watchers],
         'name': utils.composeRoomName(createRoomData.issue.key, createRoomData.issue.summary),
         'topic': utils.getViewUrl(createRoomData.issue.key),
+        'purpose': createRoomData.issue.summary,
     };
 
     const expectedEpicProjectOptions = {
@@ -73,11 +75,11 @@ describe('Create room test', () => {
             .reply(200, projectData)
             .get(`/project/${projectJSON.project.key}`)
             .reply(200, projectData)
-            .get(`/issue/${createRoomData.issue.id}`)
+            .get(`/issue/${createRoomData.issue.key}`)
             .query(utils.expandParams)
             .times(5)
             .reply(200, renderedIssueJSON)
-            .get(`/issue/${epicJSON.issue.id}`)
+            .get(`/issue/${epicJSON.issue.key}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON);
     });

@@ -128,13 +128,13 @@ const jiraRequests = {
 
     /**
      * Make request to jira by issueID adding renderedFields and filter by fields
-     * @param {string} issueID issue ID in jira
+     * @param {string} key issue key in jira
      * @param {object} fields fields for filtering
      * @return {object} data from fields
      */
-    getRenderedValues: async (issueID, fields) => {
+    getRenderedValues: async (key, fields) => {
         try {
-            const issue = await jiraRequests.getIssueFormatted(issueID);
+            const issue = await jiraRequests.getIssueFormatted(key);
 
             const renderedValues = Ramda.pipe(
                 Ramda.pick(fields),
