@@ -23,12 +23,12 @@ const getJiraFsm = (app, port) => new StateMachine({
                 logger.info(`Jira hooks are listening on port ${port}`);
             });
         },
-        onEnterState() {
-            logger.debug('Now jira fsm state is "%s"', this.state);
-        },
+        // onEnterState() {
+        //     logger.debug('Now jira fsm state is "%s"', this.state);
+        // },
         onStop() {
-            this.is('init') || this.server.close();
             logger.info('Jira server close');
+            return this.is('init') || this.server.close();
         },
         // onPendingTransition(transition, from, to) {
         //     logger.error('FSM error', transition, from, to);
@@ -36,7 +36,7 @@ const getJiraFsm = (app, port) => new StateMachine({
     },
 });
 
-const getMatrixFsm = (chatApi, handler) => {
+const getChatFsm = (chatApi, handler) => {
     const fsm = new StateMachine({
         init: states.init,
         transitions: [
@@ -60,12 +60,12 @@ const getMatrixFsm = (chatApi, handler) => {
             onFinishHandle() {
                 logger.debug('Finish queue handling');
             },
-            onEnterState() {
-                logger.debug('Now matrix fsm state is "%s"', this.state);
-            },
+            // onEnterState() {
+            //     logger.debug('Now matrix fsm state is "%s"', this.state);
+            // },
             onStop() {
-                this.is('init') || chatApi.disconnect();
-                logger.info('Matrix disconnected');
+                logger.info('Messenger disconnected');
+                return this.is('init') || chatApi.disconnect();
             },
             // onPendingTransition(transition, from, to) {
             //     logger.error('FSM error', transition, from, to);
@@ -87,7 +87,7 @@ module.exports = class {
      * @param {integer} port jira server port
      */
     constructor(chatApi, queueHandler, app, port) {
-        this.matrixFsm = getMatrixFsm(chatApi, queueHandler);
+        this.matrixFsm = getChatFsm(chatApi, queueHandler);
         this.jiraFsm = getJiraFsm(app(this.handleHook.bind(this)), port);
     }
 

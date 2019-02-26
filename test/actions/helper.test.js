@@ -21,7 +21,6 @@ const chai = require('chai');
 const {expect} = chai;
 
 const {
-    getMembersUserId,
     getPostStatusData,
     getIgnoreBodyData,
     getIgnoreInfo,
@@ -50,17 +49,6 @@ describe('Helper tests', () => {
         const {body, htmlBody} = getPostStatusData(data);
         assert.equal(body, null);
         assert.equal(htmlBody, null);
-    });
-
-    it('getMembersUserId test', () => {
-        const data = [
-            {userId: 'one', other: 'a'},
-            {userId: 'two', other: 'b'},
-            {userId: 'three', other: 'c'},
-        ];
-
-        const result = getMembersUserId(data);
-        expect(result).to.deep.equal(['one', 'two', 'three']);
     });
 
     describe('Test getIgnoreBodyData', () => {
@@ -139,7 +127,7 @@ describe('Helper tests', () => {
 
         before(() => {
             nock(utils.getRestUrl())
-                .get(`/issue/${issueCreatedJSON.issue.id}`)
+                .get(`/issue/${issueCreatedJSON.issue.key}`)
                 .query(utils.expandParams)
                 .reply(200, renderedIssueJSON);
         });

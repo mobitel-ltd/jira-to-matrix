@@ -90,7 +90,7 @@ describe('Post issue updates test', () => {
     });
 
     it('Get error with empty issueID', async () => {
-        const newBody = {...postIssueUpdatesData, issueKey: null};
+        const newBody = {...postIssueUpdatesData, oldKey: null};
         let result;
         try {
             result = await postIssueUpdates({chatApi, ...newBody});
@@ -100,16 +100,8 @@ describe('Post issue updates test', () => {
         expect(result).to.be.string;
     });
 
-    it('Get true with empty fieldkey', async () => {
-        const newBody = {...postIssueUpdatesData, fieldKey: null};
-
-        const result = await postIssueUpdates({chatApi, ...newBody});
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
-        expect(result).to.be.true;
-    });
-
-    it('Get true with empty summary', async () => {
-        const newBody = {...postIssueUpdatesData, summary: null};
+    it('Get true with empty newKey', async () => {
+        const newBody = {...postIssueUpdatesData, newKey: null};
 
         const result = await postIssueUpdates({chatApi, ...newBody});
         expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
@@ -121,7 +113,6 @@ describe('Post issue updates test', () => {
         chatApi.sendHtmlMessage.throws('Error!!!');
         const expected = [
             'Error in postIssueUpdates',
-            'Error in postUpdateInfo',
             'Error!!!',
         ].join('\n');
 
@@ -140,7 +131,6 @@ describe('Post issue updates test', () => {
         chatApi.createAlias.throws('Error!!!');
         const expected = [
             'Error in postIssueUpdates',
-            'Error in move issue',
             'Error!!!',
         ].join('\n');
         let res;

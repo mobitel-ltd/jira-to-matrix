@@ -12,9 +12,9 @@ module.exports = handleFunc => {
             limit: '20mb',
         }))
         .post('/', async (req, res, next) => {
+            logger.info('Webhook received! Start getting ignore status');
             logger.silly('Jira body', req.body);
 
-            // return false if user in body is ignored
             const saveStatus = await getParsedAndSaveToRedis(req.body);
 
             if (saveStatus) {

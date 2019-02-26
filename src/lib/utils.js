@@ -30,14 +30,13 @@ const getIdFromUrl = url => {
 
 const handlers = {
     project: {
-        getIssueKey: () => false,
-        getIssueId: () => false,
         getProjectKey: body => Ramda.path(['project', 'key'], body),
         getCreator: body => Ramda.path(['project', 'projectLead', 'name'], body),
         getIssueName: body => handlers.project.getProjectKey(body),
         getMembers: body => [handlers.project.getCreator(body)],
     },
     issue: {
+        getDisplayName: body => Ramda.path(['user', 'displayName'], body),
         getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body),
         getUserName: body => Ramda.path(['user', 'name'], body),
         getEpicKey: body => Ramda.path(['issue', 'fields', epicField], body),
@@ -56,10 +55,8 @@ const handlers = {
         getLinks: body => Ramda.path(['issue', 'fields', 'issuelinks'], body),
     },
     comment: {
-        // getIssueKey: () => false,
-        getProjectKey: () => false,
         getComment: body => Ramda.path(['comment'], body),
-        getFullName: body => Ramda.path(['comment', 'author', 'displayName'], body),
+        getDisplayName: body => Ramda.path(['comment', 'author', 'displayName'], body),
         getAuthor: body => Ramda.path(['comment', 'author', 'name'], body),
         getUpdateAuthor: body => Ramda.path(['comment', 'updateAuthor', 'name'], body),
         getCreator: body => handlers.comment.getUpdateAuthor(body) || handlers.comment.getAuthor(body),
@@ -72,10 +69,6 @@ const handlers = {
         }),
     },
     issuelink: {
-        getProjectKey: () => false,
-        getCreator: () => false,
-        getIssueKey: () => false,
-        getIssueId: () => false,
         getLinks: body => [Ramda.path(['issueLink'], body)],
         getIssueName: body => Ramda.path(['issueLink', 'id'], body),
         getIssueLinkSourceId: body => Ramda.path(['issueLink', 'sourceIssueId'], body),
@@ -83,6 +76,25 @@ const handlers = {
         getSourceRelation: body => Ramda.path(['issueLink', 'issueLinkType', 'outwardName'], body),
         getDestinationRelation: body => Ramda.path(['issueLink', 'issueLinkType', 'inwardName'], body),
     },
+};
+
+const matrixMethods = {
+    composeRoomName: (key, summary) => `${key} ${summary}`,
+    getChatUserId: shortName => `@${shortName}:${messenger.domain}`,
+};
+
+const slackMethods = {
+    composeRoomName: key => `${key.toLowerCase()}`,
+    getChatUserId: shortName => `${shortName}@${messenger.domain}`,
+};
+
+const getMethodByType = (name, chatType = messenger.name) => {
+    const obj = {
+        matrix: matrixMethods,
+        slack: slackMethods,
+    };
+
+    return obj[chatType][name];
 };
 
 const utils = {
@@ -110,6 +122,8 @@ const utils = {
         return handler && handler[method] && handler[method](body);
     },
 
+    getDisplayName: body => utils.runMethod(body, 'getDisplayName'),
+
     getMembers: body => utils.runMethod(body, 'getMembers'),
 
     getIssueId: body => utils.runMethod(body, 'getIssueId'),
@@ -121,6 +135,8 @@ const utils = {
     getCreator: body => utils.runMethod(body, 'getCreator'),
 
     getProjectKey: body => utils.runMethod(body, 'getProjectKey'),
+
+    getLinks: body => utils.runMethod(body, 'getLinks'),
 
     getTypeEvent: body => Ramda.path(['issue_event_type_name'], body),
 
@@ -142,7 +158,6 @@ const utils = {
 
     getKey: body => handlers.issue.getIssueKey(body) || Ramda.path(['key'], body),
 
-    getLinks: body => utils.getHandler(body).getLinks(body),
 
     getIssueLinkSourceId: body => handlers.issuelink.getIssueLinkSourceId(body),
 
@@ -152,7 +167,7 @@ const utils = {
 
     getDestinationRelation: body => handlers.issuelink.getDestinationRelation(body),
 
-    getSummary: body => handlers.issue.getSummary(body) || utils.getResponcedSummary(body),
+    getSummary: body => utils.runMethod(body, 'getSummary') || utils.getResponcedSummary(body),
 
     getBodyTimestamp: body => Ramda.path(['timestamp'], body),
 
@@ -181,6 +196,8 @@ const utils = {
 
     getNewStatus: body => Ramda.path(['toString'], utils.getChangelogField('status', body)),
 
+    getNewKey: body => Ramda.path(['toString'], utils.getChangelogField('Key', body)),
+
     getRelations: issueLinkBody => ({
         inward: {relation: Ramda.path(['type', 'inward'], issueLinkBody), related: issueLinkBody.inwardIssue},
         outward: {relation: Ramda.path(['type', 'outward'], issueLinkBody), related: issueLinkBody.outwardIssue},
@@ -199,7 +216,7 @@ const utils = {
     }),
 
     getHeaderText: body => {
-        const name = handlers.comment.getFullName(body);
+        const name = handlers.comment.getDisplayName(body);
         const eventName = utils.getBodyWebhookEvent(body);
 
         return translate(eventName, {name});
@@ -292,7 +309,7 @@ const utils = {
 
     getMatrixRoomAlias: alias => `#${alias}:${messenger.domain}`,
 
-    getMatrixUserID: shortName => `@${shortName}:${messenger.domain}`,
+    getChatUserId: getMethodByType('getChatUserId'),
 
     getNameFromMatrixId: id => {
         const [name] = id.split(':').slice(0, 1);
@@ -329,7 +346,7 @@ const utils = {
         Ramda.complement(Ramda.isEmpty)
     ),
 
-    composeRoomName: ({key, summary}) => `${key} ${summary}`,
+    composeRoomName: getMethodByType('composeRoomName'),
 
     getClosedDescriptionBlock: data => [utils.getOpenedDescriptionBlock(data), LINE_BREAKE_TAG].join(''),
 

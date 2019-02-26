@@ -45,7 +45,7 @@ describe('spec test', () => {
         roomId: 12345,
         members: [
             {
-                userId: utils.getMatrixUserID(userB.name),
+                userId: utils.getChatUserId(userB.name),
             },
         ],
         getJoinedMembers: () => room.members,

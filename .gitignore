@@ -89,3 +89,6 @@ dump.rdb
 
 # start local requests
 /test/start.js
+
+#Makefile
+Makefile

@@ -35,8 +35,7 @@ describe('Jira request test', () => {
         id: 26313,
         key: 'ABC',
     };
-    const fakeId = 1000;
-    const fakeEndPoint = '1000';
+    const fakeKey = 'NANANAN';
     const roomMembers = ['testName1', 'testName2'];
 
     const params = {
@@ -49,12 +48,9 @@ describe('Jira request test', () => {
 
     before(() => {
         nock(utils.getRestUrl())
-            .get(`/issue/${issue.id}`)
+            .get(`/issue/${issue.key}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
-            .get(`/issue/${fakeEndPoint}`)
-            .query(utils.expandParams)
-            .reply(404, 'Error!!!')
             .get(`/issue/${issue.key}/watchers`)
             .times(4)
             .reply(200, watchersJSON)
@@ -74,20 +70,20 @@ describe('Jira request test', () => {
     });
 
     it('getRenderedValues test', async () => {
-        const getRenderedValuesData = await getRenderedValues(issue.id, ['description']);
+        const getRenderedValuesData = await getRenderedValues(issue.key, ['description']);
         expect(getRenderedValuesData).to.be.deep.equal({description: renderedIssueJSON.renderedFields.description});
     });
 
     it('getRenderedValues error test', async () => {
-        const fakeUrl = utils.getRestUrl('issue', fakeEndPoint);
+        const fakeUrl = utils.getRestUrl('issue', fakeKey);
         const expectedData = [
             'getRenderedValues error',
             'getIssueFormatted Error',
             'Error in get issue',
-            getRequestErrorLog(fakeUrl, 404),
+            getRequestErrorLog(fakeUrl),
         ];
         try {
-            await getRenderedValues(fakeId, ['description']);
+            await getRenderedValues(fakeKey, ['description']);
         } catch (error) {
             expect(error).to.be.deep.equal(expectedData.join('\n'));
         }

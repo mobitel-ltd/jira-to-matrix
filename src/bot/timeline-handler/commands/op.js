@@ -12,7 +12,7 @@ module.exports = async ({bodyText, sender, room, roomName, chatApi}) => {
             return post;
         }
 
-        const userId = utils.getMatrixUserID(bodyText || sender);
+        const userId = utils.getChatUserId(bodyText || sender);
 
         if (helper.isMember(room, userId)) {
             await chatApi.setPower(room.roomId, userId);

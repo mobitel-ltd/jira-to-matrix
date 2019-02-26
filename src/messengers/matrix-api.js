@@ -266,18 +266,20 @@ module.exports = class Matrix {
     /**
      * Get matrix room by alias
      * @param  {string} alias matrix room alias
+     * @returns {Array} matrix room members
      */
-    async getRoomByAlias(alias) {
+    async getRoomMembers(alias) {
         try {
             const roomId = await this.getRoomId(alias);
             const room = await this.client.getRoom(roomId);
-            return room;
-        } catch (err) {
-            this.logger.warn(`No room for alias ${alias} from Matrix\n`, err);
+            const joinedMembers = room.getJoinedMembers();
 
-            return null;
+            return joinedMembers.map(({userId}) => userId);
+        } catch (err) {
+            throw [`Error while getting matrix members from room ${name}`, err].join('\n');
         }
     }
+
     /**
      * Invite user to matrix room
      * @param  {string} roomId matrix room id

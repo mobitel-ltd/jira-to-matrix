@@ -78,15 +78,13 @@ module.exports = {
     },
 
     getPostIssueUpdatesData: body => {
-        const {user, issue} = body;
+        const author = utils.getDisplayName(body);
         const changelog = utils.getChangelog(body);
-        const fieldKey = utils.getChangelogField('Key', body);
-        const key = utils.getKey(body);
-        const issueKey = fieldKey ? fieldKey.fromString : key;
-        const summary = utils.getSummary(body);
-        const roomName = summary && utils.composeRoomName({...issue, summary});
+        const newKey = utils.getNewKey(body);
+        const oldKey = utils.getKey(body);
+        const newName = newKey && utils.composeRoomName(newKey, utils.getSummary(body));
 
-        return {issueKey, fieldKey, summary, roomName, changelog, user, key};
+        return {oldKey, newKey, newName, changelog, author};
     },
 
     getPostLinksDeletedData: body => ({

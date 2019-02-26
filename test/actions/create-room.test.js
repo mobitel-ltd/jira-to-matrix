@@ -16,7 +16,7 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Create room test', () => {
-    const watchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));
+    const watchers = watchersBody.watchers.map(({name}) => utils.getChatUserId(name));
     const errorMsg = 'some error';
 
     const createRoomData = getCreateRoomData(JSONbody);
@@ -25,29 +25,31 @@ describe('Create room test', () => {
 
     const expectedEpicRoomOptions = {
         'room_alias_name': epicJSON.issue.key,
-        'invite': [utils.getMatrixUserID(epicJSON.user.name), ...watchers],
-        'name': utils.composeRoomName({key: epicJSON.issue.key, summary: epicJSON.issue.fields.summary}),
+        'invite': [utils.getChatUserId(epicJSON.user.name), ...watchers],
+        'name': utils.composeRoomName(epicJSON.issue.key, epicJSON.issue.fields.summary),
         'topic': utils.getViewUrl(epicJSON.issue.key),
+        'purpose': utils.getSummary(epicJSON),
     };
 
     const expectedIssueRoomOptions = {
         'room_alias_name': createRoomData.issue.key,
-        'invite': [utils.getMatrixUserID(JSONbody.user.name), ...watchers],
-        'name': utils.composeRoomName(createRoomData.issue),
+        'invite': [utils.getChatUserId(JSONbody.user.name), ...watchers],
+        'name': utils.composeRoomName(createRoomData.issue.key, createRoomData.issue.summary),
         'topic': utils.getViewUrl(createRoomData.issue.key),
+        'purpose': createRoomData.issue.summary,
     };
 
     const expectedEpicProjectOptions = {
         'room_alias_name': projectKey,
-        'invite': [utils.getMatrixUserID(projectData.lead.key)],
-        'name': projectData.name,
+        'invite': [utils.getChatUserId(projectData.lead.key)],
+        'name': utils.composeRoomName(projectData.key, projectData.name),
         'topic': utils.getViewUrl(projectKey),
     };
 
     const expectedCreateProjectOptions = {
         'room_alias_name': projectJSON.project.key,
-        'invite': [utils.getMatrixUserID(projectData.lead.key)],
-        'name': projectData.name,
+        'invite': [utils.getChatUserId(projectData.lead.key)],
+        'name': utils.composeRoomName(projectData.key, projectData.name),
         'topic': utils.getViewUrl(projectJSON.project.key),
     };
 
@@ -73,11 +75,11 @@ describe('Create room test', () => {
             .reply(200, projectData)
             .get(`/project/${projectJSON.project.key}`)
             .reply(200, projectData)
-            .get(`/issue/${createRoomData.issue.id}`)
+            .get(`/issue/${createRoomData.issue.key}`)
             .query(utils.expandParams)
             .times(5)
             .reply(200, renderedIssueJSON)
-            .get(`/issue/${epicJSON.issue.id}`)
+            .get(`/issue/${epicJSON.issue.key}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON);
     });

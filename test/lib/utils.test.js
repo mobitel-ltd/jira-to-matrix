@@ -118,9 +118,9 @@ describe('Utils testing', () => {
         expect(body).to.be.undefined;
     });
 
-    it('getMatrixUserID test', () => {
+    it('getChatUserId test', () => {
         const name = 'BBCOM';
-        const result = utils.getMatrixUserID(name);
+        const result = utils.getChatUserId(name);
 
         expect(result).to.equal('@BBCOM:matrix.test-example.ru');
     });

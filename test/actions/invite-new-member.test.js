@@ -12,9 +12,10 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('inviteNewMembers test', () => {
-    const expectedWatchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));
+    const expectedWatchers = watchersBody.watchers.map(({name}) => utils.getChatUserId(name));
     const chatApi = {
-        getRoomByAlias: stub(),
+        getRoomId: stub(),
+        getRoomMembers: stub(),
         invite: stub(),
     };
 
@@ -23,14 +24,12 @@ describe('inviteNewMembers test', () => {
     before(() => {
         nock(utils.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}/watchers`)
-            .times(3)
+            .times(4)
             .reply(200, watchersBody);
     });
 
     beforeEach(() => {
-        chatApi.getRoomByAlias.resolves({
-            getJoinedMembers: () => [{userId: '@jira_test:matrix.test-example.ru'}],
-        });
+        chatApi.getRoomMembers.resolves(['@jira_test:matrix.test-example.ru']);
     });
 
     afterEach(() => {
@@ -42,7 +41,7 @@ describe('inviteNewMembers test', () => {
     });
 
     it('Expect inviteNewMembers to be trown with no room for key', async () => {
-        chatApi.getRoomByAlias.resolves(null);
+        chatApi.getRoomMembers.resolves(null);
 
         let result;
         try {
@@ -77,12 +76,7 @@ describe('inviteNewMembers test', () => {
 
     it('Expect inviteNewMembers works correct if some members are in room already', async () => {
         const [userToadd, ...otherUsers] = expectedWatchers;
-        chatApi.getRoomByAlias.resolves({
-            getJoinedMembers: () => [
-                {userId: '@jira_test:matrix.test-example.ru'},
-                {userId: userToadd},
-            ],
-        });
+        chatApi.getRoomMembers.resolves(['@jira_test:matrix.test-example.ru', userToadd]);
 
         const result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
         expect(result).to.deep.equal(otherUsers);

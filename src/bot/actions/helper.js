@@ -39,7 +39,7 @@ const getPost = description => {
 const helper = {
     getDescription: async issue => {
         try {
-            const {description} = await jiraRequests.getRenderedValues(issue.id, ['description']);
+            const {description} = await jiraRequests.getRenderedValues(issue.key, ['description']);
             const htmlBody = getPost({...issue.descriptionFields, description});
             const body = htmlToText(htmlBody);
 
@@ -125,8 +125,6 @@ const helper = {
         return {userStatus, projectStatus, status};
     },
 
-    getMembersUserId: members => members.map(({userId}) => userId),
-
     getEpicChangedMessageBody: ({summary, key, status, name}) => {
         const viewUrl = utils.getViewUrl(key);
         const values = {name, key, summary, status, viewUrl};
@@ -191,10 +189,9 @@ const helper = {
         return [message, ...changesDescription].join('<br>');
     },
 
-    getIssueUpdateInfoMessageBody: async ({changelog, key, user}) => {
-        const author = user.displayName;
+    getIssueUpdateInfoMessageBody: async ({changelog, oldKey, author}) => {
         const fields = helper.fieldNames(changelog.items);
-        const renderedValues = await jiraRequests.getRenderedValues(key, fields);
+        const renderedValues = await jiraRequests.getRenderedValues(oldKey, fields);
 
         const changelogItemsTostring = helper.itemsToString(changelog.items);
         const formattedValues = {...changelogItemsTostring, ...renderedValues};
