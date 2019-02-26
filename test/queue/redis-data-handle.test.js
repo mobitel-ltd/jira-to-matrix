@@ -1,6 +1,6 @@
 const nock = require('nock');
 const {jira: {url: jiraUrl}} = require('../../src/config');
-const {auth, getRestUrl, expandParams} = require('../../src/lib/utils.js');
+const {getRestUrl, expandParams} = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const projectBody = require('../fixtures/jira-api-requests/project.json');
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
@@ -137,12 +137,8 @@ describe('redis-data-handle test', () => {
             .times(2)
             .reply(200, '<HTML>');
 
-        nock(getRestUrl(), {
-            reqheaders: {
-                Authorization: auth(),
-            },
-        })
-            .get(`/project/${JSONbody.issue.fields.project.key}`)
+        nock(getRestUrl())
+            .get(`/issue/${JSONbody.issue.key}`)
             .reply(200, projectBody)
             .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, {...responce, id: 28516})
