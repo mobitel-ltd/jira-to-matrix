@@ -6,7 +6,6 @@ const body = require('../fixtures/webhooks/issue/updated/generic.json');
 const {getPostLinkedChangesData} = require('../../src/jira-hook-parser/parse-body.js');
 const postLinkedChanges = require('../../src/bot/actions/post-linked-changes.js');
 const {isPostLinkedChanges} = require('../../src/jira-hook-parser/bot-handler.js');
-const projectJSON = require('../fixtures/jira-api-requests/project.json');
 const issueJson = require('../fixtures/jira-api-requests/issue.json');
 
 const chai = require('chai');
@@ -16,10 +15,8 @@ const {expect} = chai;
 chai.use(sinonChai);
 
 describe('post New Links test', () => {
-    const ignoredProject = 'IGNORE';
-    const ignoredProjectIssue = `${ignoredProject}-123`;
-    const availableProject = 'AVAILABLE';
-    const availableProjectIssue = `${availableProject}-123`;
+    const ignoredIssue = 'IGNORE-123';
+    const availableIssue = 'AVAILABLE-123';
 
     const roomId = 'roomId';
     const key = utils.getKey(body);
@@ -37,14 +34,8 @@ describe('post New Links test', () => {
 
     before(() => {
         nock(utils.getRestUrl())
-            .get(`/project/${ignoredProject}`)
-            .times(2)
-            .reply(200, {...projectJSON, isPrivate: true})
-            .get(`/project/${availableProject}`)
-            .times(2)
-            .reply(200, projectJSON)
-            .get(`/issue/${availableProjectIssue}`)
-            .times(2)
+            .get(`/issue/${availableIssue}`)
+            .times(3)
             .reply(200, issueJson);
     });
 
@@ -63,9 +54,9 @@ describe('post New Links test', () => {
         expect(isLink).to.be.false;
     });
 
-    it('Expect all linked issues in projects if they are not available to be ignored and no error to be thrown', async () => {
+    it('Expect error not to be thrown and no message to be sent if issuelinks are not available', async () => {
         const data = getPostLinkedChangesData(body);
-        const res = await postLinkedChanges({chatApi, ...data, linksKeys: [ignoredProjectIssue]});
+        const res = await postLinkedChanges({chatApi, ...data, linksKeys: [ignoredIssue]});
 
         expect(res).to.be.true;
         expect(chatApi.getRoomId).not.to.be.called;
@@ -74,12 +65,7 @@ describe('post New Links test', () => {
 
     it('Expect all linked issues in projects which are available to be handled other to be ignored', async () => {
         const data = getPostLinkedChangesData(body);
-        let res;
-        try {
-            res = await postLinkedChanges({chatApi, ...data, linksKeys: [ignoredProjectIssue, availableProjectIssue]});
-        } catch (error) {
-            res = error;
-        }
+        const res = await postLinkedChanges({chatApi, ...data, linksKeys: [ignoredIssue, availableIssue]});
 
         expect(res).to.be.true;
         expect(chatApi.getRoomId).to.be.calledOnce;
@@ -87,16 +73,19 @@ describe('post New Links test', () => {
     });
 
     it('Expect send status not to be sent if at least one of room is not found', async () => {
-        chatApi.getRoomId.rejects();
+        chatApi.getRoomId.onSecondCall().rejects();
         const data = getPostLinkedChangesData(body);
         let res;
         try {
-            res = await postLinkedChanges({chatApi, ...data, linksKeys: [availableProjectIssue]});
+            res = await postLinkedChanges({
+                chatApi, ...data,
+                linksKeys: Array.from({length: 10}, () => availableIssue),
+            });
         } catch (err) {
             res = err;
         }
 
-        expect(res).to.include('Error in postLinkedChanges');
         expect(chatApi.sendHtmlMessage).not.to.be.called;
+        expect(res).to.include('Error in postLinkedChanges');
     });
 });

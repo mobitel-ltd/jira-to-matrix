@@ -49,18 +49,11 @@ const helper = {
         }
     },
 
-    isAvailabledIssue: async issueKey => {
-        const projectKey = utils.getProjectKeyFromIssueKey(issueKey);
-        const projectBody = await jiraRequests.getProject(projectKey);
-
-        return !utils.isIgnoreProject(projectBody) || jiraRequests.getIssueSafety(issueKey);
-    },
-
     getHookHandler: type => {
         const handlers = {
             issue: async body => {
                 const key = utils.getIssueKey(body);
-                const status = await helper.isAvailabledIssue(key);
+                const status = await jiraRequests.getIssueSafety(key);
 
                 return !status;
             },
@@ -89,8 +82,12 @@ const helper = {
     getIgnoreStatus: body => {
         const type = utils.getHookType(body);
         const handler = helper.getHookHandler(type);
+        if (!handler) {
+            logger.warn('Unknown hook type, should be ignored!');
+            return true;
+        }
 
-        return handler && handler(body);
+        return handler(body);
     },
 
     getIgnoreBodyData: body => {
@@ -115,14 +112,6 @@ const helper = {
         const issueName = utils.getIssueName(body);
 
         return {timestamp, webhookEvent, ignoreStatus, issueName};
-    },
-
-    getIgnoreInfo: async body => {
-        const userStatus = helper.getIgnoreBodyData(body);
-        const projectStatus = await helper.getIgnoreProject(body);
-        const status = userStatus.ignoreStatus || projectStatus.ignoreStatus;
-
-        return {userStatus, projectStatus, status};
     },
 
     getEpicChangedMessageBody: ({summary, key, status, name}) => {

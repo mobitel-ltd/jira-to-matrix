@@ -77,7 +77,6 @@ const getRedisRooms = async () => {
     try {
         const roomsKeyValue = await redis.getAsync(REDIS_ROOM_KEY);
         const createRoomData = JSON.parse(roomsKeyValue);
-        logger.debug('Redis rooms data:', createRoomData);
 
         return createRoomData;
     } catch (err) {

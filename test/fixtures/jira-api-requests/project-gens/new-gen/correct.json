@@ -1,0 +1,61 @@
+{
+    "expand": "description,lead,issueTypes,url,projectKeys",
+    "self": "https://jira.test-example.ru/rest/api/2/project/10181",
+    "id": "10181",
+    "key": "DTP",
+    "description": "",
+    "lead": {
+        "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
+        "key": "jira_test",
+        "accountId": "5b912e21fa38ae2c896099ae",
+        "name": "jira_test",
+        "avatarUrls": {
+            "16x16": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+            "24x24": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+            "32x32": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue",
+            "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue"
+        },
+        "displayName": "Иванов Иван Иванович",
+        "active": true
+    },
+    "components": [],
+    "issueTypes": [
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10349",
+            "id": "10349",
+            "description": "",
+            "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10315&avatarType=issuetype",
+            "name": "История",
+            "subtask": false,
+            "avatarId": 10315
+        },
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10350",
+            "id": "10350",
+            "description": "Создано через Jira Software — не редактировать и не удалять. Это тип задачи нужен для большой пользовательской истории, которая требует упорядочивания.",
+            "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10307&avatarType=issuetype",
+            "name": "Эпик",
+            "subtask": false,
+            "avatarId": 10307
+        }
+    ],
+    "assigneeType": "UNASSIGNED",
+    "versions": [],
+    "name": "Dev Test Project",
+    "roles": {
+        "atlassian-addons-project-access": "https://jira.test-example.ru/rest/api/2/project/10181/role/10621",
+        "Administrator": "https://jira.test-example.ru/rest/api/2/project/10181/role/10618",
+        "Viewer": "https://jira.test-example.ru/rest/api/2/project/10181/role/10620",
+        "Member": "https://jira.test-example.ru/rest/api/2/project/10181/role/10619"
+    },
+    "avatarUrls": {
+        "48x48": "https://jira.test-example.ru/secure/projectavatar?avatarId=10324",
+        "24x24": "https://jira.test-example.ru/secure/projectavatar?size=small&avatarId=10324",
+        "16x16": "https://jira.test-example.ru/secure/projectavatar?size=xsmall&avatarId=10324",
+        "32x32": "https://jira.test-example.ru/secure/projectavatar?size=medium&avatarId=10324"
+    },
+    "projectTypeKey": "software",
+    "simplified": true,
+    "style": "next-gen",
+    "isPrivate": false
+}

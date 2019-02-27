@@ -8,9 +8,11 @@ const newLinksbody = require('../fixtures/webhooks/issuelink/created.json');
 const linksDeletedBody = require('../fixtures/webhooks/issuelink/deleted.json');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const assert = require('assert');
-const projectBody = require('../fixtures/jira-api-requests/project.json');
+
+const newGenNotIgnoreProject = require('../fixtures/jira-api-requests/project-gens/new-gen/correct.json');
 const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
-const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
+const notIgnoredIssueHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
+const ignoredIssueHook = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueBody = require('../fixtures/jira-api-requests/issue.json');
 const utils = require('../../src/lib/utils');
 const messages = require('../../src/lib/messages');
@@ -23,7 +25,6 @@ const {expect} = chai;
 const {
     getPostStatusData,
     getIgnoreBodyData,
-    getIgnoreInfo,
     getIgnoreProject,
     getDescription,
 } = require('../../src/bot/actions/helper.js');
@@ -65,7 +66,7 @@ describe('Helper tests', () => {
                 },
             };
             const changelog = {};
-            const newBody = {...issueChangedHook, issue, user, changelog};
+            const newBody = {...notIgnoredIssueHook, issue, user, changelog};
             const {username, creator, ignoreStatus} = getIgnoreBodyData(newBody);
 
             expect(username).to.equal('bot');
@@ -76,7 +77,7 @@ describe('Helper tests', () => {
 
     describe('Test getIgnoreBodyData in mode production (not test)', () => {
         it('test mode false with no changelog', () => {
-            const newBody = {...issueChangedHook, changelog: {}};
+            const newBody = {...notIgnoredIssueHook, changelog: {}};
             const {username, creator, ignoreStatus} = isIgnoreStub(newBody);
 
             expect(username).to.equal('jira_test');
@@ -88,7 +89,7 @@ describe('Helper tests', () => {
             const user = {
                 name: 'ivan_prod',
             };
-            const newBody = {...issueChangedHook, changelog: {}, user};
+            const newBody = {...notIgnoredIssueHook, changelog: {}, user};
             const {username, creator, ignoreStatus} = isIgnoreStub(newBody);
 
             expect(username).to.equal('ivan_prod');
@@ -155,30 +156,16 @@ describe('Helper tests', () => {
     });
 
     describe('Test getIgnoreInfo', () => {
-        const privateKey = 'KEY';
-        const privateId = 12345;
-        const commentUrl = utils.getRestUrl('issue', privateId, 'comment', commentCreatedHook.comment.id);
-        const privateCommentHook = {...commentCreatedHook, comment: {...commentCreatedHook.comment, self: commentUrl}};
-        const privateHook = {
-            ...issueChangedHook,
-            issue: {...issueChangedHook.issue, key: `${privateKey}-1`, fields: {project: {key: privateKey}}},
-        };
-
         beforeEach(() => {
             nock(jiraUrl)
                 .get('')
-                .times(2)
                 .reply(200, '<HTML>');
 
             nock(utils.getRestUrl())
+                .get(`/issue/${notIgnoredIssueHook.issue.key}`)
+                .reply(200, issueBody)
                 .get(`/project/${projectCreatedJSON.project.key}`)
-                .reply(200, projectBody)
-                .get(`/project/${issueChangedHook.issue.fields.project.key}`)
-                .times(4)
-                .reply(200, projectBody)
-                .get(`/project/${privateKey}`)
-                .times(3)
-                .reply(200, {...projectBody, isPrivate: true})
+                .reply(200, newGenNotIgnoreProject)
                 .get(`/issue/${utils.getIssueId(commentCreatedHook)}`)
                 .times(2)
                 .reply(200, issueBody)
@@ -189,61 +176,32 @@ describe('Helper tests', () => {
                 .get(`/issue/${newLinksbody.issueLink.sourceIssueId}`)
                 .reply(200, issueBody)
                 .get(`/issue/${newLinksbody.issueLink.destinationIssueId}`)
-                .reply(200, issueBody)
-                .get(`/issue/${privateId}`)
-                .reply(404);
+                .reply(200, issueBody);
         });
 
         afterEach(() => {
             nock.cleanAll();
         });
 
-        it('Expect getIgnoreInfo return correct body', async () => {
-            const result = await getIgnoreInfo(issueChangedHook);
+        it('Expect NOT ignore issue hook if issue is available', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(notIgnoredIssueHook);
 
-            const userStatus = getIgnoreBodyData(issueChangedHook);
-            const projectStatus = await getIgnoreProject(issueChangedHook);
-            const status = userStatus.ignoreStatus || projectStatus.ignoreStatus;
-
-            expect(result).to.be.deep.eq({userStatus, projectStatus, status});
-        });
-
-        it('Expect getIgnoreProject handle hook correct if project is new-gen', async () => {
-            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(issueChangedHook);
-
-            expect(timestamp).to.be.eq(issueChangedHook.timestamp);
-            expect(webhookEvent).to.be.eq(issueChangedHook.webhookEvent);
-            expect(issueName).to.be.eq(issueChangedHook.issue.key);
+            expect(timestamp).to.be.eq(notIgnoredIssueHook.timestamp);
+            expect(webhookEvent).to.be.eq(notIgnoredIssueHook.webhookEvent);
+            expect(issueName).to.be.eq(notIgnoredIssueHook.issue.key);
             expect(ignoreStatus).to.be.false;
         });
 
-        it('Expect getIgnoreProject handle hook correct if project is classic', async () => {
-            nock.cleanAll();
-            nock(jiraUrl).get('').reply(200, '<HTML>');
-            nock(utils.getRestUrl(), {reqheaders: {Authorization: utils.auth()}})
-                .get(`/project/${issueChangedHook.issue.fields.project.key}`)
-                .reply(200, {...projectBody, style: 'classic'})
-                .get(`/issue/${issueChangedHook.issue.key}`)
-                .reply(200, issueBody);
+        it('Expect IGNORE issue hook if issue is not available', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(ignoredIssueHook);
 
-            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(issueChangedHook);
-
-            expect(timestamp).to.be.eq(issueChangedHook.timestamp);
-            expect(webhookEvent).to.be.eq(issueChangedHook.webhookEvent);
-            expect(issueName).to.be.eq(issueChangedHook.issue.key);
-            expect(ignoreStatus).to.be.false;
-        });
-
-        it('Expect hook to be handled and to be ignored if project is private and new-gen', async () => {
-            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(privateHook);
-
-            expect(timestamp).to.be.eq(privateHook.timestamp);
-            expect(webhookEvent).to.be.eq(privateHook.webhookEvent);
-            expect(issueName).to.be.eq(privateHook.issue.key);
+            expect(timestamp).to.be.eq(ignoredIssueHook.timestamp);
+            expect(webhookEvent).to.be.eq(ignoredIssueHook.webhookEvent);
+            expect(issueName).to.be.eq(ignoredIssueHook.issue.key);
             expect(ignoreStatus).to.be.true;
         });
 
-        it('Expect comment create hook to be handled', async () => {
+        it('Expect NOT ignore comment create hook if issue with comment is available', async () => {
             const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(commentCreatedHook);
 
             expect(timestamp).to.be.eq(commentCreatedHook.timestamp);
@@ -252,12 +210,15 @@ describe('Helper tests', () => {
             expect(ignoreStatus).to.be.false;
         });
 
-        it('Expect createRoom hook to be handled and should be ignored if private issue', async () => {
-            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(privateCommentHook);
+        it('Expect IGNORE comment create hook if issue with comment is not available', async () => {
+            nock.cleanAll();
+            nock(jiraUrl).get('').reply(200, '<HTML>');
+
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(commentCreatedHook);
 
             expect(timestamp).to.be.eq(commentCreatedHook.timestamp);
             expect(webhookEvent).to.be.eq(commentCreatedHook.webhookEvent);
-            expect(issueName).to.be.eq(String(privateId));
+            expect(issueName).to.be.eq(utils.getIssueId(commentCreatedHook));
             expect(ignoreStatus).to.be.true;
         });
 
@@ -276,7 +237,7 @@ describe('Helper tests', () => {
             expect(result).to.be.eq(messages.noJiraConnection);
         });
 
-        it('Expect getIgnoreProject to have "true" status with issuelink deleted/created if both id are not available', async () => {
+        it('Expect IGNORE issuelink deleted/created hook if both id are not available', async () => {
             nock.cleanAll();
             nock(jiraUrl).get('').reply(200, '<HTML>');
             const body = faker.random.arrayElement([linksDeletedBody, newLinksbody]);
@@ -289,7 +250,7 @@ describe('Helper tests', () => {
             expect(ignoreStatus).to.be.true;
         });
 
-        it('Expect getIgnoreProject to have "false" status with issuelink deleted/created if one of links is available', async () => {
+        it('Expect NOT ignore issuelink deleted/created hook if at least one of links is available', async () => {
             const [status1, status2] = faker.random.arrayElement([[404, 200], [200, 404]]);
             const body = faker.random.arrayElement([linksDeletedBody, newLinksbody]);
             nock.cleanAll();
@@ -305,7 +266,6 @@ describe('Helper tests', () => {
 
             expect(timestamp).to.be.eq(body.timestamp);
             expect(webhookEvent).to.be.eq(body.webhookEvent);
-            // TODO add issue id
             expect(issueName).to.be.eq(body.issueLink.id);
             expect(ignoreStatus).to.be.false;
         });
@@ -317,6 +277,12 @@ describe('Helper tests', () => {
             expect(webhookEvent).to.be.eq(projectCreatedJSON.webhookEvent);
             expect(issueName).to.be.eq(projectCreatedJSON.project.key);
             expect(ignoreStatus).to.be.false;
+        });
+
+        it('Expect getIgnoreProject ignore unknown hook type', async () => {
+            const {ignoreStatus} = await getIgnoreProject({...projectCreatedJSON, webhookEvent: 'unknown_type'});
+
+            expect(ignoreStatus).to.be.true;
         });
     });
 });

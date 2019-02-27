@@ -31,7 +31,7 @@ describe('Test postLinksDeleted', () => {
     chatApi.getRoomId.withArgs(utils.getKey(issueBody)).onFirstCall().resolves(roomIDIn);
     chatApi.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
 
-    before(() => {
+    beforeEach(() => {
         nock(utils.getRestUrl())
             .get(`/issue/${sourceIssueId}`)
             .reply(200, issueBody)
@@ -42,9 +42,6 @@ describe('Test postLinksDeleted', () => {
     afterEach(async () => {
         Object.values(chatApi).map(val => val.resetHistory());
         await cleanRedis();
-    });
-
-    after(() => {
         nock.cleanAll();
     });
 
@@ -82,19 +79,6 @@ describe('Test postLinksDeleted', () => {
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
     });
 
-    it('Expect postlink throws error with expected data if smth wrong', async () => {
-        let res;
-        const data = getPostLinksDeletedData(linkDeletedHook);
-
-        try {
-            res = await postLinksDeleted({...data, chatApi});
-        } catch (err) {
-            res = err;
-        }
-
-        expect(res).includes(utils.errorTracing('post delete link'));
-    });
-
     it('Expect postlink correct works if one of issue id in link is not available', async () => {
         nock.cleanAll();
         const issueId = faker.random.arrayElement([sourceIssueId, destinationIssueId]);
@@ -108,5 +92,19 @@ describe('Test postLinksDeleted', () => {
 
         expect(res).to.be.true;
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, expectedPost, marked(expectedPost));
+    });
+
+    it('Expect send status not to be sent if at least one of room is not found', async () => {
+        chatApi.getRoomId.onSecondCall().rejects();
+        const data = getPostLinksDeletedData(linkDeletedHook);
+        let res;
+        try {
+            res = await postLinksDeleted({...data, chatApi});
+        } catch (err) {
+            res = err;
+        }
+
+        expect(chatApi.sendHtmlMessage).not.to.be.called;
+        expect(res).to.include('Error in post delete link');
     });
 });
