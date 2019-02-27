@@ -81,7 +81,7 @@ module.exports = {
         const author = utils.getDisplayName(body);
         const changelog = utils.getChangelog(body);
         const newKey = utils.getNewKey(body);
-        const oldKey = utils.getOldKey(body);
+        const oldKey = utils.getOldKey(body) || utils.getKey(body);
         const newName = newKey && utils.composeRoomName(newKey, utils.getSummary(body));
 
         return {oldKey, newKey, newName, changelog, author};
