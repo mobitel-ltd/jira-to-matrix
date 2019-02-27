@@ -46,7 +46,13 @@ const handlers = {
         getCreator: body => Ramda.path(['issue', 'fields', 'creator', 'name'], body),
         getReporter: body => Ramda.path(['issue', 'fields', 'reporter', 'name'], body),
         getAssignee: body => Ramda.path(['issue', 'fields', 'assignee', 'name'], body),
-        getMembers: body => ['getReporter', 'getCreator', 'getAssignee'].map(func => handlers.issue[func](body)),
+        getMembers: body => {
+            const possibleMembers = ['getReporter', 'getCreator', 'getAssignee']
+                .map(func => handlers.issue[func](body))
+                .filter(Boolean);
+
+            return [...new Set(possibleMembers)];
+        },
         getChangelog: body => Ramda.path(['issue', 'changelog'], body),
         getHookChangelog: body => Ramda.path(['changelog'], body),
         getProject: body => Ramda.path(['issue', 'fields', 'project'], body),
@@ -198,6 +204,8 @@ const utils = {
 
     getNewKey: body => Ramda.path(['toString'], utils.getChangelogField('Key', body)),
 
+    getOldKey: body => Ramda.path(['fromString'], utils.getChangelogField('Key', body)),
+
     getRelations: issueLinkBody => ({
         inward: {relation: Ramda.path(['type', 'inward'], issueLinkBody), related: issueLinkBody.inwardIssue},
         outward: {relation: Ramda.path(['type', 'outward'], issueLinkBody), related: issueLinkBody.outwardIssue},
@@ -221,9 +229,6 @@ const utils = {
 
         return translate(eventName, {name});
     },
-
-    getIssueMembers: body =>
-        [...new Set(utils.getMembers(body))].filter(Boolean),
 
     getTextIssue: (body, path) => {
         const params = path.split('.');

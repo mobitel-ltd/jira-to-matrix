@@ -12,7 +12,7 @@ module.exports = {
 
     getCreateRoomData: body => {
         const projectKey = utils.getProjectKey(body);
-        const roomMembers = utils.getIssueMembers(body);
+        const roomMembers = utils.getMembers(body);
         const summary = utils.getSummary(body);
         const key = utils.getIssueKey(body);
         const id = utils.getIssueId(body);
@@ -24,7 +24,7 @@ module.exports = {
     },
 
     getInviteNewMembersData: body => {
-        const roomMembers = utils.getIssueMembers(body);
+        const roomMembers = utils.getMembers(body);
         const key = utils.getKey(body);
 
         return {issue: {key, roomMembers}};
@@ -81,7 +81,7 @@ module.exports = {
         const author = utils.getDisplayName(body);
         const changelog = utils.getChangelog(body);
         const newKey = utils.getNewKey(body);
-        const oldKey = utils.getKey(body);
+        const oldKey = utils.getOldKey(body);
         const newName = newKey && utils.composeRoomName(newKey, utils.getSummary(body));
 
         return {oldKey, newKey, newName, changelog, author};

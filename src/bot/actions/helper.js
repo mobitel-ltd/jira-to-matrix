@@ -49,13 +49,6 @@ const helper = {
         }
     },
 
-    isAvailabledIssue: async issueKey => {
-        const projectKey = utils.getProjectKeyFromIssueKey(issueKey);
-        const projectBody = await jiraRequests.getProject(projectKey);
-
-        return !utils.isIgnoreProject(projectBody) || jiraRequests.getIssueSafety(issueKey);
-    },
-
     getHookHandler: type => {
         const handlers = {
             issue: async body => {

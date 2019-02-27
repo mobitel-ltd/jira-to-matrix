@@ -2,7 +2,7 @@ const nock = require('nock');
 const chai = require('chai');
 const translate = require('../../src/locales');
 const utils = require('../../src/lib/utils.js');
-const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
+const issueMovedJSON = require('../fixtures/webhooks/issue/updated/generic.json');
 const {getPostIssueUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostIssueUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const {postIssueUpdates} = require('../../src/bot/actions');
@@ -23,8 +23,8 @@ describe('Post issue updates test', () => {
         setRoomTopic: stub(),
     };
 
-    const postIssueUpdatesData = getPostIssueUpdatesData(JSONbody);
-    const {name: userName} = JSONbody.user;
+    const postIssueUpdatesData = getPostIssueUpdatesData(issueMovedJSON);
+    const {name: userName} = issueMovedJSON.user;
     const newKey = postIssueUpdatesData.changelog.items.find(({field}) => field === 'Key').toString;
     const newStatus = postIssueUpdatesData.changelog.items.find(({field}) => field === 'status').toString;
     const expectedData = [
@@ -34,13 +34,9 @@ describe('Post issue updates test', () => {
     ];
 
     before(() => {
-        nock(utils.getRestUrl(), {
-            reqheaders: {
-                Authorization: utils.auth(),
-            },
-        })
-            .get(`/issue/${JSONbody.issue.key}`)
-            .times(6)
+        nock(utils.getRestUrl())
+            .get(`/issue/${utils.getOldKey(issueMovedJSON)}`)
+            .times(4)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON);
     });
@@ -85,7 +81,7 @@ describe('Post issue updates test', () => {
 
 
     it('test isPostIssueUpdates', () => {
-        const result = isPostIssueUpdates(JSONbody);
+        const result = isPostIssueUpdates(issueMovedJSON);
         expect(result).to.be.ok;
     });
 
