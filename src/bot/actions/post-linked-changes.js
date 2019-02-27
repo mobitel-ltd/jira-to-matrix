@@ -10,7 +10,11 @@ const handler = (chatApi, data) => roomID => {
 
 module.exports = async ({chatApi, linksKeys, data}) => {
     try {
-        const checkedIssues = await Promise.all(linksKeys.map(jiraRequests.getIssueSafety));
+        const checkedIssues = await Promise.all(linksKeys.map(async key => {
+            const issue = await jiraRequests.getIssueSafety(key);
+
+            return issue && key;
+        }));
         const availableIssues = checkedIssues.filter(Boolean);
         const roomIDs = await Promise.all(availableIssues.map(chatApi.getRoomId));
         await Promise.all(roomIDs.map(handler(chatApi, data)));
