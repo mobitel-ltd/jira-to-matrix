@@ -2,7 +2,8 @@ const nock = require('nock');
 const chai = require('chai');
 const translate = require('../../src/locales');
 const utils = require('../../src/lib/utils.js');
-const issueMovedJSON = require('../fixtures/webhooks/issue/updated/generic.json');
+const issueMovedJSON = require('../fixtures/webhooks/issue/updated/move-issue.json');
+const descriptionUpdateJSON = require('../fixtures/webhooks/issue/updated/description-update.json');
 const {getPostIssueUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
 const {isPostIssueUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const {postIssueUpdates} = require('../../src/bot/actions');
@@ -14,7 +15,6 @@ chai.use(sinonChai);
 
 describe('Post issue updates test', () => {
     const matrixRoomId = 'roomId';
-    const {description} = renderedIssueJSON.renderedFields;
     const chatApi = {
         sendHtmlMessage: stub(),
         getRoomId: stub(),
@@ -25,16 +25,22 @@ describe('Post issue updates test', () => {
 
     const postIssueUpdatesData = getPostIssueUpdatesData(issueMovedJSON);
     const {name: userName} = issueMovedJSON.user;
-    const newKey = postIssueUpdatesData.changelog.items.find(({field}) => field === 'Key').toString;
-    const newStatus = postIssueUpdatesData.changelog.items.find(({field}) => field === 'status').toString;
+    // const newKey = postIssueUpdatesData.changelog.items.find(({field}) => field === 'Key').toString;
+    // const newStatus = postIssueUpdatesData.changelog.items.find(({field}) => field === 'status').toString;
+    const changes =
+        '<br>issuetype: Story<br>project: Internal Development<br>status: To Do<br>Workflow: Software Simplified Workflow for Project INDEV<br>Key: INDEV-130';
     const expectedData = [
         matrixRoomId,
         translate('issueHasChanged'),
-        `${translate('issue_updated', {name: userName})}<br>status: ${newStatus}<br>description: ${description}<br>Key: ${newKey}`,
+        `${translate('issue_updated', {name: userName})}${changes}`,
     ];
 
     before(() => {
         nock(utils.getRestUrl())
+            .get(`/issue/${utils.getKey(descriptionUpdateJSON)}`)
+            .times(4)
+            .query(utils.expandParams)
+            .reply(200, renderedIssueJSON)
             .get(`/issue/${utils.getOldKey(issueMovedJSON)}`)
             .times(4)
             .query(utils.expandParams)
@@ -48,8 +54,7 @@ describe('Post issue updates test', () => {
     });
 
     afterEach(() => {
-        chatApi.getRoomId.reset();
-        chatApi.createAlias.reset();
+        Object.values(chatApi).map(val => val.reset());
     });
 
     after(() => {
@@ -137,5 +142,12 @@ describe('Post issue updates test', () => {
             res = err;
         }
         expect(res).to.deep.equal(expected);
+    });
+
+    it('Expect no error with description changed and no new name includes', async () => {
+        const data = getPostIssueUpdatesData(descriptionUpdateJSON);
+        const res = await postIssueUpdates({chatApi, ...data});
+
+        expect(res).to.be.true;
     });
 });
