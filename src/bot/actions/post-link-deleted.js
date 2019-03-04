@@ -4,9 +4,11 @@ const utils = require('../../lib/utils');
 const {getNoIssueLinkLog} = require('../../lib/messages');
 
 const postLink = (roomID, related, relation, chatApi) => {
-    const {body, htmlBody} = getPostLinkMessageBody({relation, related}, 'deleteLink');
+    if (roomID) {
+        const {body, htmlBody} = getPostLinkMessageBody({relation, related}, 'deleteLink');
 
-    return chatApi.sendHtmlMessage(roomID, body, htmlBody);
+        return chatApi.sendHtmlMessage(roomID, body, htmlBody);
+    }
 };
 
 module.exports = async ({chatApi, sourceIssueId, destinationIssueId, sourceRelation, destinationRelation}) => {
