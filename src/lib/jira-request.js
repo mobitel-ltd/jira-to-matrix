@@ -41,7 +41,7 @@ const jiraRequests = {
     updateIssuePriority: (roomName, id) => {
         const url = utils.getRestUrl('issue', roomName);
 
-        return requestPost(url, schemas.fields(id));
+        return requestPut(url, schemas.fields(id));
     },
 
     testJiraRequest: async () => {
