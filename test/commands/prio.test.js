@@ -28,7 +28,7 @@ describe('Prio command test', () => {
             .get(`/issue/${roomName}/editmeta`)
             .times(5)
             .reply(200, edimetaJSON)
-            .post(`/issue/${roomName}`, schemas.fields(priority.id))
+            .put(`/issue/${roomName}`, schemas.fields(priority.id))
             .times(2)
             .reply(201);
     });
