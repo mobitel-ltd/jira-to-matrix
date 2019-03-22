@@ -86,7 +86,7 @@ const handlers = {
 
 const matrixMethods = {
     composeRoomName: (key, summary) => `${key} ${summary}`,
-    getChatUserId: shortName => `@${shortName}:${messenger.domain}`,
+    getChatUserId: shortName => `@${shortName.toLowerCase()}:${messenger.domain}`,
 };
 
 const slackMethods = {
@@ -310,7 +310,7 @@ const utils = {
     isAdmin: user => messenger.admins.includes(user),
 
 
-    isMatrixRoomName: room => ~room.indexOf(messenger.domain),
+    isRoomName: room => ~room.indexOf(messenger.domain),
 
     getMatrixRoomAlias: alias => `#${alias}:${messenger.domain}`,
 

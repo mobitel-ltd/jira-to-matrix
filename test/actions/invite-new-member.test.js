@@ -19,13 +19,26 @@ describe('inviteNewMembers test', () => {
         invite: stub(),
     };
 
+    const upperWatchersBody = {
+        ...watchersBody,
+        watchers: watchersBody.watchers.map(item => ({...item, name: item.name.toUpperCase()})),
+    };
+
     const inviteNewMembersData = getInviteNewMembersData(JSONbody);
+    const inviteUpperCase = {
+        issue: {
+            key: 'someKey',
+            roomMembers: inviteNewMembersData.issue.roomMembers.map(name => name.toUpperCase()),
+        },
+    };
 
     before(() => {
         nock(utils.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}/watchers`)
             .times(4)
-            .reply(200, watchersBody);
+            .reply(200, watchersBody)
+            .get(`/issue/${inviteUpperCase.issue.key}/watchers`)
+            .reply(200, upperWatchersBody);
     });
 
     beforeEach(() => {
@@ -40,7 +53,7 @@ describe('inviteNewMembers test', () => {
         nock.cleanAll();
     });
 
-    it('Expect inviteNewMembers to be trown with no room for key', async () => {
+    it('Expect inviteNewMembers to be thrown with no room for key', async () => {
         chatApi.getRoomMembers.resolves(null);
 
         let result;
@@ -61,7 +74,7 @@ describe('inviteNewMembers test', () => {
     it('Expect inviteNewMembers to be trown if 404 in invite', async () => {
         chatApi.invite.throws('Error in inviteStub!!!');
         let result;
-        const expectedWatchers = [
+        const expected = [
             'Error in inviteNewMembers',
             'Error in inviteStub!!!',
         ].join('\n');
@@ -71,7 +84,7 @@ describe('inviteNewMembers test', () => {
         } catch (err) {
             result = err;
         }
-        expect(result).to.deep.equal(expectedWatchers);
+        expect(result).to.deep.equal(expected);
     });
 
     it('Expect inviteNewMembers works correct if some members are in room already', async () => {
@@ -80,5 +93,10 @@ describe('inviteNewMembers test', () => {
 
         const result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
         expect(result).to.deep.equal(otherUsers);
+    });
+
+    it('Expect inviteNewMembers works correct if some Jira users in upperCase', async () => {
+        const result = await inviteNewMembers({chatApi, ...inviteUpperCase});
+        expect(result).to.deep.equal(expectedWatchers);
     });
 });

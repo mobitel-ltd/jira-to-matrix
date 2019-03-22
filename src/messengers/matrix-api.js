@@ -238,12 +238,22 @@ module.exports = class Matrix {
 
     /**
      * Create matrix room
-     * @param  {Object} options create room options
+     * @param {Object} options create room options
+     * @param {string}  options.room_alias_name alias for room
+     * @param {string[]} options.invite array of users to invite
+     * @param {string} options.name room name
+     * @param {string} options.topic room topic
      * @returns {string} matrix room id
      */
-    async createRoom(options) {
+    async createRoom({invite, ...options}) {
         try {
-            const {room_id: roomId} = await this.client.createRoom({visibility: 'private', ...options});
+            const lowerNameList = invite.map(name => name.toLowerCase());
+            const createRoomOptions = {
+                ...options,
+                visibility: 'private',
+                invite: lowerNameList,
+            };
+            const {room_id: roomId} = await this.client.createRoom(createRoomOptions);
             return roomId;
         } catch (err) {
             throw ['Error while creating room', err].join('\n');
@@ -287,7 +297,7 @@ module.exports = class Matrix {
      */
     async invite(roomId, userId) {
         try {
-            const response = await this.client.invite(roomId, userId);
+            const response = await this.client.invite(roomId, userId.toLowerCase());
 
             return response;
         } catch (err) {

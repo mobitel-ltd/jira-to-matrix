@@ -56,13 +56,13 @@ describe('invite test', () => {
         const body = translate('notFoundRoom', {roomName: bodyText});
         await invite({bodyText, sender, room, chatApi});
 
-        expect(chatApi.getRoomId).have.to.been.thrown;
+        expect(chatApi.getRoomId).to.have.been.thrown;
         expect(chatApi.invite).not.to.have.been.called;
         expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
     });
 
     it('Expect invite not admin user return no permission warn', async () => {
-        const noAdminUser = 'Fedor';
+        const noAdminUser = 'fedor';
         const body = translate('notAdmin', {sender: noAdminUser});
         await invite({bodyText, sender: noAdminUser, room, chatApi});
 
