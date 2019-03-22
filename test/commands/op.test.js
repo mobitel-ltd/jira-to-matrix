@@ -71,7 +71,7 @@ describe('op test', () => {
         const newBody = fakeSender;
         const res = await op({bodyText: newBody, sender, room, roomName, chatApi});
 
-        const post = translate('notFoundUser', {user: fakeSender});
+        const post = translate('notFoundUser', {user: newBody.toLowerCase()});
         expect(res).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(room.roomId, post, post);
         expect(chatApi.setPower).not.to.be.called;

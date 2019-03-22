@@ -119,10 +119,10 @@ describe('Utils testing', () => {
     });
 
     it('getChatUserId test', () => {
-        const name = 'BBCOM';
+        const name = 'SOMENAME';
         const result = utils.getChatUserId(name);
 
-        expect(result).to.equal('@BBCOM:matrix.test-example.ru');
+        expect(result).to.equal(`@${name.toLowerCase()}:matrix.test-example.ru`);
     });
 
     it('Expect getLimit to be timestamp of 01.01.2018', () => {
