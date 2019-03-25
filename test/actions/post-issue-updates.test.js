@@ -25,8 +25,6 @@ describe('Post issue updates test', () => {
 
     const postIssueUpdatesData = getPostIssueUpdatesData(issueMovedJSON);
     const {name: userName} = issueMovedJSON.user;
-    // const newKey = postIssueUpdatesData.changelog.items.find(({field}) => field === 'Key').toString;
-    // const newStatus = postIssueUpdatesData.changelog.items.find(({field}) => field === 'status').toString;
     const changes =
         '<br>issuetype: Story<br>project: Internal Development<br>status: To Do<br>Workflow: Software Simplified Workflow for Project INDEV<br>Key: INDEV-130';
     const expectedData = [
@@ -50,7 +48,8 @@ describe('Post issue updates test', () => {
     beforeEach(() => {
         chatApi.getRoomId
             .resolves(matrixRoomId)
-            .withArgs(null).throws('Error');
+            .withArgs(null)
+            .throws('Error');
     });
 
     afterEach(() => {
@@ -64,9 +63,15 @@ describe('Post issue updates test', () => {
     it('Expect createAlias to be with error but postIssueUpdates should work', async () => {
         chatApi.createAlias.callsFake((alias, roomId) => {
             try {
-                throw new Error('M_UNKNOWN: Room alias #BAO-193:matrix.test-example.ru already exists');
+                throw new Error(
+                    'M_UNKNOWN: Room alias #BAO-193:matrix.test-example.ru already exists'
+                );
             } catch (err) {
-                if (err.message.includes(`Room alias #BAO-193:matrix.test-example.ru already exists`)) {
+                if (
+                    err.message.includes(
+                        `Room alias #BAO-193:matrix.test-example.ru already exists`
+                    )
+                ) {
                     return null;
                 }
                 throw ['Error while creating alias for a room', err].join('\n');
@@ -74,16 +79,19 @@ describe('Post issue updates test', () => {
         });
 
         const result = await postIssueUpdates({chatApi, ...postIssueUpdatesData});
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(
+            ...expectedData
+        );
         expect(result).to.be.true;
     });
 
     it('Is correct postIssueUpdatesData', async () => {
         const result = await postIssueUpdates({chatApi, ...postIssueUpdatesData});
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(
+            ...expectedData
+        );
         expect(result).to.be.true;
     });
-
 
     it('test isPostIssueUpdates', () => {
         const result = isPostIssueUpdates(issueMovedJSON);
@@ -112,10 +120,7 @@ describe('Post issue updates test', () => {
     it('Get error in postUpdateInfo', async () => {
         chatApi.sendHtmlMessage.reset();
         chatApi.sendHtmlMessage.throws('Error!!!');
-        const expected = [
-            'Error in postIssueUpdates',
-            'Error!!!',
-        ].join('\n');
+        const expected = ['Error in postIssueUpdates', 'Error!!!'].join('\n');
 
         let res;
 
@@ -130,10 +135,7 @@ describe('Post issue updates test', () => {
 
     it('Get error in move with createAlias', async () => {
         chatApi.createAlias.throws('Error!!!');
-        const expected = [
-            'Error in postIssueUpdates',
-            'Error!!!',
-        ].join('\n');
+        const expected = ['Error in postIssueUpdates', 'Error!!!'].join('\n');
         let res;
 
         try {
@@ -150,4 +152,8 @@ describe('Post issue updates test', () => {
 
         expect(res).to.be.true;
     });
+
+    // it('Expect name to be changed if only summary updated', async () => {
+
+    // });
 });

@@ -2,7 +2,6 @@ const utils = require('../../lib/utils');
 const logger = require('../../modules/log.js')(module);
 const {getIssueUpdateInfoMessageBody} = require('./helper.js');
 
-
 /**
  * post issue update
  * @param  {object} options options
@@ -23,7 +22,9 @@ module.exports = async ({chatApi, ...body}) => {
 
             await chatApi.setRoomTopic(roomID, utils.getViewUrl(body.newKey));
             logger.debug(`Added new topic ${body.newKey} for room ${body.oldKey}`);
+        }
 
+        if (body.newName) {
             await chatApi.setRoomName(roomID, body.newName);
             logger.debug(`Renamed room ${body.oldKey}`);
         }
