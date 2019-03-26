@@ -144,7 +144,7 @@ const utils = {
 
     getDisplayName: body => utils.runMethod(body, 'getDisplayName'),
 
-    getMembers: body => utils.runMethod(body, 'getMembers'),
+    getMembers: body => utils.runMethod(body, 'getMembers') || handlers.issue.getMembers({issue: body}),
 
     getIssueId: body => utils.runMethod(body, 'getIssueId'),
 

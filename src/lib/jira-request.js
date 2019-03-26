@@ -62,7 +62,7 @@ const jiraRequests = {
      * @param {array} roomMembers array of users linked to current issue
      * @return {array} jira response with issue
      */
-    getIssueWatchers: async ({key, roomMembers}) => {
+    getIssueWatchers: async ({key, roomMembers = []}) => {
         const url = utils.getRestUrl('issue', key, 'watchers');
         const body = await request(url);
         const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];

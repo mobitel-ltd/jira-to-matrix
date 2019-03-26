@@ -7,8 +7,8 @@ const {getIssueUpdateInfoMessageBody} = require('./helper.js');
  * @param  {object} options options
  * @param  {object} options.chatApi messenger client instance
  * @param  {string} options.oldKey old key of issue
- * @param  {string} options.newKey new key of issue
- * @param  {string} options.newName new name of room
+ * @param  {string?} options.newKey new key of issue
+ * @param  {string?} options.newName new name of room
  * @param  {object} options.changelog changes object
  * @param  {string} options.author changes author
  */

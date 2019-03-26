@@ -5,6 +5,8 @@ const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-c
 const {expect} = require('chai');
 const body = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueUpdatedGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
+const issueBody = require('../fixtures/jira-api-requests/issue.json');
+
 describe('Utils testing', () => {
     const expectedFuncKeys = [
         'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
@@ -136,5 +138,11 @@ describe('Utils testing', () => {
         const res = utils.runMethod({}, 'getCreator');
 
         expect(res).to.be.undefined;
+    });
+
+    it('Expect get roommembers works with issue from request', () => {
+        const data = utils.getMembers(issueBody);
+
+        expect(data).to.be.not.empty;
     });
 });

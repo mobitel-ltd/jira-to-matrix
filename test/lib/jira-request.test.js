@@ -52,7 +52,7 @@ describe('Jira request test', () => {
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
             .get(`/issue/${issue.key}/watchers`)
-            .times(4)
+            .times(5)
             .reply(200, watchersJSON)
             .get('/user/search')
             .query(errorParams)
@@ -100,6 +100,11 @@ describe('Jira request test', () => {
     it('expect getIssueWatchers works correct', async () => {
         const result = await getIssueWatchers({key: issue.key, roomMembers});
         expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
+    });
+
+    it('expect getIssueWatchers works correct with empty roomMembers', async () => {
+        const result = await getIssueWatchers({key: issue.key});
+        expect(result).to.be.deep.eq(watchersUsers);
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list', async () => {
