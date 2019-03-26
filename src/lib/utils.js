@@ -24,7 +24,10 @@ const LINE_BREAKE_TAG = '<br>';
 const NEW_YEAR_2018 = new Date(Date.UTC(2018, 0, 1, 3));
 
 const getIdFromUrl = url => {
-    const [res] = url.split('/').reverse().slice(2, 3);
+    const [res] = url
+        .split('/')
+        .reverse()
+        .slice(2, 3);
     return res;
 };
 
@@ -43,9 +46,12 @@ const handlers = {
         getType: body => Ramda.path(['issue', 'fields', 'issuetype', 'name'], body),
         getIssueId: body => Ramda.path(['issue', 'id'], body),
         getIssueKey: body => Ramda.path(['issue', 'key'], body),
-        getCreator: body => Ramda.path(['issue', 'fields', 'creator', 'name'], body),
-        getReporter: body => Ramda.path(['issue', 'fields', 'reporter', 'name'], body),
-        getAssignee: body => Ramda.path(['issue', 'fields', 'assignee', 'name'], body),
+        getCreator: body =>
+            Ramda.path(['issue', 'fields', 'creator', 'name'], body),
+        getReporter: body =>
+            Ramda.path(['issue', 'fields', 'reporter', 'name'], body),
+        getAssignee: body =>
+            Ramda.path(['issue', 'fields', 'assignee', 'name'], body),
         getMembers: body => {
             const possibleMembers = ['getReporter', 'getCreator', 'getAssignee']
                 .map(func => handlers.issue[func](body))
@@ -62,10 +68,14 @@ const handlers = {
     },
     comment: {
         getComment: body => Ramda.path(['comment'], body),
-        getDisplayName: body => Ramda.path(['comment', 'author', 'displayName'], body),
+        getDisplayName: body =>
+            Ramda.path(['comment', 'author', 'displayName'], body),
         getAuthor: body => Ramda.path(['comment', 'author', 'name'], body),
-        getUpdateAuthor: body => Ramda.path(['comment', 'updateAuthor', 'name'], body),
-        getCreator: body => handlers.comment.getUpdateAuthor(body) || handlers.comment.getAuthor(body),
+        getUpdateAuthor: body =>
+            Ramda.path(['comment', 'updateAuthor', 'name'], body),
+        getCreator: body =>
+            handlers.comment.getUpdateAuthor(body) ||
+      handlers.comment.getAuthor(body),
         getUrl: body => Ramda.path(['comment', 'self'], body),
         getIssueId: body => getIdFromUrl(handlers.comment.getUrl(body)),
         getIssueName: body => handlers.comment.getIssueId(body),
@@ -77,10 +87,14 @@ const handlers = {
     issuelink: {
         getLinks: body => [Ramda.path(['issueLink'], body)],
         getIssueName: body => Ramda.path(['issueLink', 'id'], body),
-        getIssueLinkSourceId: body => Ramda.path(['issueLink', 'sourceIssueId'], body),
-        getIssueLinkDestinationId: body => Ramda.path(['issueLink', 'destinationIssueId'], body),
-        getSourceRelation: body => Ramda.path(['issueLink', 'issueLinkType', 'outwardName'], body),
-        getDestinationRelation: body => Ramda.path(['issueLink', 'issueLinkType', 'inwardName'], body),
+        getIssueLinkSourceId: body =>
+            Ramda.path(['issueLink', 'sourceIssueId'], body),
+        getIssueLinkDestinationId: body =>
+            Ramda.path(['issueLink', 'destinationIssueId'], body),
+        getSourceRelation: body =>
+            Ramda.path(['issueLink', 'issueLinkType', 'outwardName'], body),
+        getDestinationRelation: body =>
+            Ramda.path(['issueLink', 'issueLinkType', 'inwardName'], body),
     },
 };
 
@@ -164,51 +178,68 @@ const utils = {
 
     getKey: body => handlers.issue.getIssueKey(body) || Ramda.path(['key'], body),
 
-
     getIssueLinkSourceId: body => handlers.issuelink.getIssueLinkSourceId(body),
 
-    getIssueLinkDestinationId: body => handlers.issuelink.getIssueLinkDestinationId(body),
+    getIssueLinkDestinationId: body =>
+        handlers.issuelink.getIssueLinkDestinationId(body),
 
     getSourceRelation: body => handlers.issuelink.getSourceRelation(body),
 
-    getDestinationRelation: body => handlers.issuelink.getDestinationRelation(body),
+    getDestinationRelation: body =>
+        handlers.issuelink.getDestinationRelation(body),
 
-    getSummary: body => utils.runMethod(body, 'getSummary') || utils.getResponcedSummary(body),
+    getSummary: body =>
+        utils.runMethod(body, 'getSummary') || utils.getResponcedSummary(body),
 
     getBodyTimestamp: body => Ramda.path(['timestamp'], body),
 
     getBodyWebhookEvent: body => Ramda.path(['webhookEvent'], body),
 
-    getHookUserName: body => utils.getCommentAuthor(body) || utils.getUserName(body),
+    getHookUserName: body =>
+        utils.getCommentAuthor(body) || utils.getUserName(body),
 
-    getChangelogItems: body => Ramda.pathOr([], ['items'], utils.getChangelog(body)),
+    getChangelogItems: body =>
+        Ramda.pathOr([], ['items'], utils.getChangelog(body)),
 
-    isCorrectWebhook: (body, hookName) => utils.getBodyWebhookEvent(body) === hookName,
+    isCorrectWebhook: (body, hookName) =>
+        utils.getBodyWebhookEvent(body) === hookName,
 
     isEpic: body => handlers.issue.getType(body) === 'Epic',
 
     isCommentEvent: body =>
-        utils.getHookType(body) === 'comment' && !utils.getBodyWebhookEvent(body).includes('deleted'),
+        utils.getHookType(body) === 'comment' &&
+    !utils.getBodyWebhookEvent(body).includes('deleted'),
 
     /**
-     * Get changelog field body from webhook from jira
-     * @param {string} fieldName key of changelog field
-     * @param {object} body webhook body
-     * @return {object} changelog field
-     */
-    getChangelogField: (fieldName, body) => utils
-        .getChangelogItems(body)
-        .find(item => item.field === fieldName),
+   * Get changelog field body from webhook from jira
+   * @param {string} fieldName key of changelog field
+   * @param {object} body webhook body
+   * @return {object} changelog field
+   */
+    getChangelogField: (fieldName, body) =>
+        utils.getChangelogItems(body).find(item => item.field === fieldName),
 
-    getNewStatus: body => Ramda.path(['toString'], utils.getChangelogField('status', body)),
+    getNewSummary: body =>
+        Ramda.path(['toString'], utils.getChangelogField('summary', body)),
 
-    getNewKey: body => Ramda.path(['toString'], utils.getChangelogField('Key', body)),
+    getNewStatus: body =>
+        Ramda.path(['toString'], utils.getChangelogField('status', body)),
 
-    getOldKey: body => Ramda.path(['fromString'], utils.getChangelogField('Key', body)),
+    getNewKey: body =>
+        Ramda.path(['toString'], utils.getChangelogField('Key', body)),
+
+    getOldKey: body =>
+        Ramda.path(['fromString'], utils.getChangelogField('Key', body)),
 
     getRelations: issueLinkBody => ({
-        inward: {relation: Ramda.path(['type', 'inward'], issueLinkBody), related: issueLinkBody.inwardIssue},
-        outward: {relation: Ramda.path(['type', 'outward'], issueLinkBody), related: issueLinkBody.outwardIssue},
+        inward: {
+            relation: Ramda.path(['type', 'inward'], issueLinkBody),
+            related: issueLinkBody.inwardIssue,
+        },
+        outward: {
+            relation: Ramda.path(['type', 'outward'], issueLinkBody),
+            related: issueLinkBody.outwardIssue,
+        },
     }),
 
     getDescriptionFields: body => ({
@@ -248,7 +279,10 @@ const utils = {
                 Ramda.prop('inwardIssue')
             )(link);
 
-            const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
+            const destStatusCat = Ramda.path(
+                ['fields', 'status', 'statusCategory', 'id'],
+                destIssue
+            );
             if (postChangesToLinks.ignoreDestStatusCat.includes(destStatusCat)) {
                 return acc;
             }
@@ -264,7 +298,8 @@ const utils = {
 
     isNewGenProjectStyle: body => utils.getProjectStyle(body) === 'new-gen',
 
-    isIgnoreProject: body => utils.isNewGenProjectStyle(body) && utils.getProjectPrivateStatus(body),
+    isIgnoreProject: body =>
+        utils.isNewGenProjectStyle(body) && utils.getProjectPrivateStatus(body),
 
     getResponcedSummary: body => Ramda.path(['fields', 'summary'], body),
 
@@ -278,7 +313,8 @@ const utils = {
 
     getRedisEpicKey: id => [REDIS_EPIC_PREFIX, DELIMITER, id].join(''),
 
-    getRedisKey: (funcName, body) => [funcName, utils.getBodyTimestamp(body)].join('_'),
+    getRedisKey: (funcName, body) =>
+        [funcName, utils.getBodyTimestamp(body)].join('_'),
 
     isIgnoreKey: key => !KEYS_TO_IGNORE.some(val => key.includes(val)),
 
@@ -309,7 +345,6 @@ const utils = {
 
     isAdmin: user => messenger.admins.includes(user),
 
-
     isRoomName: room => ~room.indexOf(messenger.domain),
 
     getMatrixRoomAlias: alias => `#${alias}:${messenger.domain}`,
@@ -326,34 +361,37 @@ const utils = {
 
     getProjectKeyFromIssueKey: issueKey => issueKey.split('-').slice(0, 1),
     getCommandAction: (val, collection) =>
-        collection.find(({id, name}) => id === val || name.toLowerCase() === val.toLowerCase()),
+        collection.find(
+            ({id, name}) => id === val || name.toLowerCase() === val.toLowerCase()
+        ),
 
     getLimit: () => NEW_YEAR_2018.getTime(),
 
+    getListToHTML: list =>
+        list.reduce(
+            (acc, {name, displayName}) =>
+                `${acc}<strong>${name}</strong> - ${displayName}<br>`,
+            `${translate('listUsers')}:<br>`
+        ),
 
-    getListToHTML: list => list.reduce((acc, {name, displayName}) =>
-        `${acc}<strong>${name}</strong> - ${displayName}<br>`,
-    `${translate('listUsers')}:<br>`),
-
-    getCommandList: list => list.reduce((acc, {name, id}) =>
-        `${acc}<strong>${id})</strong> - ${name}<br>`,
-    `${translate('listJiraCommand')}:<br>`),
+    getCommandList: list =>
+        list.reduce(
+            (acc, {name, id}) => `${acc}<strong>${id})</strong> - ${name}<br>`,
+            `${translate('listJiraCommand')}:<br>`
+        ),
 
     expandParams: {expand: 'renderedFields'},
 
     propIn: Ramda.curry((prop, arr, obj) =>
-        Ramda.or(arr, [])
-            .includes(Ramda.or(obj, {})[prop])
+        Ramda.or(arr, []).includes(Ramda.or(obj, {})[prop])
     ),
 
-    nonEmptyString: Ramda.both(
-        Ramda.is(String),
-        Ramda.complement(Ramda.isEmpty)
-    ),
+    nonEmptyString: Ramda.both(Ramda.is(String), Ramda.complement(Ramda.isEmpty)),
 
     composeRoomName: getMethodByType('composeRoomName'),
 
-    getClosedDescriptionBlock: data => [utils.getOpenedDescriptionBlock(data), LINE_BREAKE_TAG].join(''),
+    getClosedDescriptionBlock: data =>
+        [utils.getOpenedDescriptionBlock(data), LINE_BREAKE_TAG].join(''),
 
     getOpenedDescriptionBlock: data => [LINE_BREAKE_TAG, INDENT, data].join(''),
 };
