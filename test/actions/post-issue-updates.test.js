@@ -153,7 +153,25 @@ describe('Post issue updates test', () => {
         expect(res).to.be.true;
     });
 
-    // it('Expect name to be changed if only summary updated', async () => {
+    it('Expect name to be changed if only summary updated', async () => {
+        const changelog = {
+            'id': '52267',
+            'items': [{
+                'field': 'summary',
+                'fieldtype': 'jira',
+                'fieldId': 'summary',
+                'from': null,
+                'fromString': 'Тестовая задача',
+                'to': null,
+                'toString': 'Моя тестовая задача',
+            }],
+        };
 
-    // });
+        const onlySummaryUpdateJSON = {...descriptionUpdateJSON, changelog};
+        const data = getPostIssueUpdatesData(onlySummaryUpdateJSON);
+        const res = await postIssueUpdates({chatApi, ...data});
+
+        expect(chatApi.setRoomName).to.be.calledWithExactly(matrixRoomId, data.newName);
+        expect(res).to.be.true;
+    });
 });
