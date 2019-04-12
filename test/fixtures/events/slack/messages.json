@@ -1,0 +1,15 @@
+{
+    "help": {
+        "token": "token",
+        "team_id": "AAAA12345",
+        "team_domain": "test-bot",
+        "channel_id": "BBBB1234",
+        "channel_name": "general",
+        "user_id": "UUUU1234",
+        "user_name": "tt_testoviy1234",
+        "command": "/!help",
+        "text": "",
+        "response_url": "https://hooks.slack.com/commands/test",
+        "trigger_id": "102030405060708090"
+    }
+}

@@ -1,4 +1,4 @@
-module.exports = async ({room, chatApi}) => {
+module.exports = async ({roomId, chatApi}) => {
     const indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
 
     const post = `
@@ -49,5 +49,5 @@ module.exports = async ({room, chatApi}) => {
     If you have administrator status, you can invite the bot into the room and he will not be denied:)
     `;
 
-    await chatApi.sendHtmlMessage(room.roomId, 'Help info', post);
+    await chatApi.sendHtmlMessage(roomId, 'Help info', post);
 };

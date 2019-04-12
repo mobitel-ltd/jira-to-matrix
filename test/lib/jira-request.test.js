@@ -4,7 +4,7 @@ const proxyquire = require('proxyquire');
 
 const utils = require('../../src/lib/utils.js');
 const {expect} = require('chai');
-const {getRenderedValues, getIssueWatchers, getUsers} = require('../../src/lib/jira-request');
+const {getRenderedValues, getIssueWatchers, getUsers, checkUser} = require('../../src/lib/jira-request');
 const {getRequestErrorLog} = require('../../src/lib/messages');
 const {url} = require('../../src/config').jira;
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
@@ -154,5 +154,20 @@ describe('Jira request test', () => {
 
         expect(allUsers).to.be.undefined;
         expect(res).to.be.deep.equal(expected);
+    });
+
+    it('checkUser test', () => {
+        const user = {
+            'name': 'test_name',
+            'displayName': 'My Test User',
+        };
+        const result = [
+            checkUser(user, 'My'),
+            checkUser(user, 'MY TEST'),
+            checkUser(user, 'test'),
+            checkUser(user, '_NAMe'),
+            checkUser(user, '_NMe'),
+        ];
+        expect(result).to.deep.equal([true, true, true, true, false]);
     });
 });

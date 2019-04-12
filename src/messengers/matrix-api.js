@@ -1,4 +1,5 @@
 const matrixSdk = require('matrix-js-sdk');
+const utils = require('../lib/utils');
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -10,12 +11,12 @@ module.exports = class Matrix {
      * Matrix-sdk fasade for bot building
      * @param  {Object} {config config object
      * @param  {Object} sdk=matrixSdk} matrix sdk lib, by default - https://github.com/matrix-org/matrix-js-sdk
-     * @param  {function} timelineHandler handler for timeline events
+     * @param  {Object} commandsHandler matrix event commands
     //  * @param  {Boolean} loggerOn turn on logger, by default is true
      * @param  {function|undefined} logger custom logger
      */
-    constructor({config, sdk = matrixSdk, timelineHandler, logger}) {
-        this.timelineHandler = timelineHandler;
+    constructor({config, sdk = matrixSdk, commandsHandler, logger}) {
+        this.commandsHandler = commandsHandler;
         this.config = config;
         this.sdk = sdk;
         // TODO: delete EVENT_EXCEPTION check in errors after resolving 'no-event' bug
@@ -26,6 +27,41 @@ module.exports = class Matrix {
         this.postfix = `:${config.domain}`.length;
         this.logger = logger;
     }
+
+    /**
+     * Matrix events handler
+     * @param {Object} event from matrix
+     * @param {Object} room matrix room
+     * @param {Boolean} toStartOfTimeline true if skip event
+     */
+    async timelineHandler(event, room, toStartOfTimeline) {
+        if (event.getType() !== 'm.room.message' || toStartOfTimeline) {
+            return;
+        }
+
+        const sender = utils.getNameFromMatrixId(event.getSender());
+
+        const {body} = event.getContent();
+
+        const {commandName, bodyText} = utils.parseEventBody(body);
+
+        if (!commandName) {
+            return;
+        }
+
+        const roomName = utils.getNameFromMatrixId(room.getCanonicalAlias());
+        const options = {
+            chatApi: this,
+            sender,
+            roomName,
+            roomId: room.roomId,
+            commandName,
+            bodyText,
+        };
+
+        await this.commandsHandler(options);
+    }
+
 
     /**
      * Convert string with alias to matrix form
@@ -275,13 +311,14 @@ module.exports = class Matrix {
 
     /**
      * Get matrix room by alias
-     * @param  {string} alias matrix room alias
-     * @returns {Array} matrix room members
+     * @param  {string?} name matrix room alias
+     * @param  {string?} roomId matrix roomId
+     * @returns {Promise<String[]>} matrix room members
      */
-    async getRoomMembers(alias) {
+    async getRoomMembers({name, roomId}) {
         try {
-            const roomId = await this.getRoomId(alias);
-            const room = await this.client.getRoom(roomId);
+            const id = roomId || await this.getRoomId(name);
+            const room = await this.client.getRoom(id);
             const joinedMembers = room.getJoinedMembers();
 
             return joinedMembers.map(({userId}) => userId);
@@ -291,12 +328,28 @@ module.exports = class Matrix {
     }
 
     /**
+     * Check if user is in matrix room
+     * @param {String} roomId matrix room id
+     * @param {String} user matrix user id
+     * @returns {Promise<Boolean>} return true if user in room
+     */
+    async isRoomMember(roomId, user) {
+        const roomMembers = await this.getRoomMembers({roomId});
+        return roomMembers.some(user);
+    }
+
+    /**
      * Invite user to matrix room
      * @param  {string} roomId matrix room id
      * @param  {string} userId matrix user id
      */
     async invite(roomId, userId) {
         try {
+            const user = userId.toLowerCase();
+            if (await this.isRoomMember(roomId, user)) {
+                this.logger.warn(`Room ${roomId} already has user ${userId}`);
+                return;
+            }
             const response = await this.client.invite(roomId, userId.toLowerCase());
 
             return response;
@@ -385,6 +438,39 @@ module.exports = class Matrix {
             }
 
             throw [`Error while setting room's topic`, err].join('\n');
+        }
+    }
+
+    /**
+     * Chack if it's room name
+     * @param {String} room room full or short name
+     * @returns {Boolean} return true if it's matrix room name
+     */
+    isRoomAlias(room) {
+        return room.includes(this.config.domain) && room[0] === '#';
+    }
+
+    /**
+     * Get matrix room
+     * @param {String} name matrix room name like INDEV-1
+     * @returns {String} matrix room alias like #INDEV-1:example.matrix.com
+     */
+    getMatrixRoomAlias(name) {
+        return `#${name}:${this.config.domain}`;
+    }
+
+    /**
+     * Get room id by name
+     * @param {String} text roomname or alias
+     * @returns {Promise<String|false>} returns roomId or false if not exisits
+     */
+    async getRoomIdByName(text) {
+        try {
+            const alias = this.isRoomName(text) ? text : this.getMatrixRoomAlias(text.toUpperCase());
+
+            return await this.getRoomId(alias);
+        } catch (err) {
+            return false;
         }
     }
 };

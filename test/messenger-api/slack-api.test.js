@@ -3,6 +3,7 @@ const faker = require('faker');
 const {WebClient} = require('@slack/client');
 const EventEmitter = require('events');
 
+const messages = require('../fixtures/events/slack/messages.json');
 const conversationRenameJSON = require('../fixtures/slack-requests/conversations/rename.json');
 const conversationPurposeJSON = require('../fixtures/slack-requests/conversations/setPurpose.json');
 const conversationMembersJSON = require('../fixtures/slack-requests/conversations/mamebers.json');
@@ -81,15 +82,25 @@ describe('Slack api testing', () => {
         .withArgs(testConfig.eventPassword)
         .returns(slackEventListener);
 
-    const timelineHandler = stub().resolves();
+    const commands = {
+        comment: stub(),
+        assign: stub(),
+        move: stub(),
+        spec: stub(),
+        prio: stub(),
+        op: stub(),
+        invite: stub(),
+        help: stub(),
+    };
 
-    const slackApi = new SlackApi({config: testConfig, slackSdkClient, timelineHandler, eventApi, logger});
+    const slackApi = new SlackApi({config: testConfig, slackSdkClient, commands, eventApi, logger});
     beforeEach(async () => {
         await slackApi.connect();
     });
 
     afterEach(() => {
         slackApi.disconnect();
+        Object.values(commands).map(com => com.resetHistory());
     });
 
     it('Expect api connect works correct', () => {
@@ -184,5 +195,15 @@ describe('Slack api testing', () => {
             channel: conversationJSON.correct.channel.id,
             name,
         });
+    });
+
+    it('Expect slack api handle correct and not call command if body is simple message "123"', async () => {
+        await slackApi.handleChatEvent(messages.notCommandMessage);
+        Object.values(commands).map(command => expect(command).not.to.be.called);
+    });
+
+    it('Expect slack api handle correct and call if body is "!help"', async () => {
+        await slackApi.handleChatEvent(messages.help);
+        expect(commands.help).to.be.called;
     });
 });

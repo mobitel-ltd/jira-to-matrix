@@ -343,19 +343,40 @@ const utils = {
 
     // * --------------------------------- Matrix utils ------------------------------- *
 
-    isAdmin: user => messenger.admins.includes(user),
+    // Parse body of event from Matrix
+    parseEventBody: body => {
+        try {
+            const trimedBody = body.trim();
 
-    isRoomName: room => ~room.indexOf(messenger.domain),
+            const commandName = trimedBody
+                .split(' ')[0]
+                .match(/^!\w+$/g)[0]
+                .substring(1);
 
-    getMatrixRoomAlias: alias => `#${alias}:${messenger.domain}`,
+            if (`!${commandName}` === trimedBody) {
+                return {commandName};
+            }
 
-    getChatUserId: getMethodByType('getChatUserId'),
+            const bodyText = trimedBody
+                .replace(`!${commandName}`, '')
+                .trim();
+
+            return {commandName, bodyText};
+        } catch (err) {
+            return {};
+        }
+    },
 
     getNameFromMatrixId: id => {
         const [name] = id.split(':').slice(0, 1);
 
         return name.slice(1);
     },
+
+
+    isAdmin: user => messenger.admins.includes(user),
+
+    getChatUserId: getMethodByType('getChatUserId'),
 
     // * --------------------------------- Other utils ------------------------------- *
 

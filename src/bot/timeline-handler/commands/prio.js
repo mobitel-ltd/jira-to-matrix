@@ -3,13 +3,13 @@ const translate = require('../../../locales');
 const messages = require('../../../lib/messages');
 const utils = require('../../../lib/utils');
 
-module.exports = async ({bodyText, room, roomName, chatApi}) => {
+module.exports = async ({bodyText, roomId, roomName, chatApi}) => {
     try {
         const allPriorities = await jiraRequests.getIssuePriorities(roomName);
 
         if (!bodyText) {
             const listPrio = utils.getCommandList(allPriorities);
-            await chatApi.sendHtmlMessage(room.roomId, listPrio, listPrio);
+            await chatApi.sendHtmlMessage(roomId, listPrio, listPrio);
 
             return;
         }
@@ -18,7 +18,7 @@ module.exports = async ({bodyText, room, roomName, chatApi}) => {
 
         if (!priority) {
             const post = translate('notFoundPrio', {bodyText});
-            await chatApi.sendHtmlMessage(room.roomId, post, post);
+            await chatApi.sendHtmlMessage(roomId, post, post);
 
             return messages.getNotFoundPrioCommandLog(roomName, bodyText);
         }
@@ -26,7 +26,7 @@ module.exports = async ({bodyText, room, roomName, chatApi}) => {
         await jiraRequests.updateIssuePriority(roomName, priority.id);
 
         const post = translate('setPriority', priority);
-        await chatApi.sendHtmlMessage(room.roomId, post, post);
+        await chatApi.sendHtmlMessage(roomId, post, post);
 
         return messages.getUpdatedIssuePriorityLog(roomName, priority.name);
     } catch (err) {

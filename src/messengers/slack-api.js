@@ -1,8 +1,10 @@
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
+const http = require('http');
 const Ramda = require('ramda');
-const {createEventAdapter: defaultEventApi} = require('@slack/events-api');
 const {WebClient} = require('@slack/client');
 const htmlToText = require('html-to-text').fromString;
+const express = require('express');
+const bodyParser = require('body-parser');
 
 // const tets = new WebClient();
 // tets.conversations.invite()
@@ -19,34 +21,56 @@ module.exports = class SlackApi {
      * @param  {Object} options api options
      * @param  {Object} options.config config for slack
      * @param  {Object} options.slackSdkClient slack sdk client, if not exists - instance of WebClient from https://github.com/slackapi/node-slack-sdk
-     * @param  {function} options.timelineHandler handler for timeline events
+     * @param  {function} options.commands matrix event commands
      * @param  {Object} options.logger logger, winstone type, if no logger is set logger is off
      * @param  {Object} options.eventApi slack events api, by default - https://github.com/slackapi/node-slack-events-api
      * @param  {function|undefined} logger custom logger
      */
-    constructor({config, slackSdkClient, timelineHandler, logger = defaultLogger, eventApi = defaultEventApi}) {
-        this.timelineHandler = timelineHandler;
+    constructor({config, slackSdkClient, commandsHandler, logger = defaultLogger}) {
+        this.commandsHandler = commandsHandler;
         this.config = config;
         this.token = config.password;
         this.slackSdkClient = slackSdkClient || new WebClient(this.token);
         this.logger = logger;
-        this.slackEvents = eventApi(config.eventPassword);
     }
 
     /**
-     * Handler to add timeline handler to watch events in a room
-     * @returns {Object} slack client
+     * Slack event handler
+     * @param {Object} eventBody slack event
      */
-    async _startEventListener() {
-        if (!this.client) {
-            this.logger.error('slackclient is undefined');
-            return;
-        }
+    async _eventHandler(eventBody) {
+        const info = await this.getRoomInfo(eventBody.channel_id);
 
-        await this.slackEvents.start(this.config.eventPort);
-        this.logger.debug(`Slack event server listening on port ${this.config.eventPort}`);
+        const options = {
+            chatApi: this,
+            sender: eventBody.user_name.replace(/[0-9]/g, ''),
+            roomName: info.name.toUpperCase(),
+            roomId: eventBody.channel_id,
+            commandName: eventBody.command.slice(2),
+            bodyText: eventBody.text,
+        };
+        await this.commandsHandler(options);
+    }
 
-        return this;
+    /**
+     * Slack slash command listener
+     */
+    _slashCommandsListener() {
+        const app = express();
+
+        app
+            .use(bodyParser.urlencoded({
+                strict: false,
+            }))
+            .post('/commands', async (req, res, next) => {
+                await this._eventHandler(req.body);
+                next();
+            });
+
+        const server = http.createServer(app);
+        server.listen(this.config.eventPort, () => {
+            this.logger.info(`Slack commands are listening on port ${this.config.eventPort}`);
+        });
     }
 
     /**
@@ -69,7 +93,8 @@ module.exports = class SlackApi {
     async connect() {
         try {
             await this._startClient();
-            return this._startEventListener();
+            await this._slashCommandsListener();
+            return this;
         } catch (err) {
             throw ['Error in slack connection', err].join('\n');
         }
@@ -166,7 +191,7 @@ module.exports = class SlackApi {
      * @param  {String} options.name name for channel, less than 21 sign, lowerCase, no space
      * @param  {String} options.topic slack channel topic
      * @param  {Array} options.invite user emails to invite
-     * @param  {Array} options.summary issue summary
+     * @param  {Array} options.purpose issue summary
      * @returns {string} Slack channel id
      */
     async createRoom({name, topic, invite, purpose}) {
@@ -214,11 +239,26 @@ module.exports = class SlackApi {
     }
 
     /**
+     * Check if user is in matrix room
+     * @param {String} roomId matrix room id
+     * @param {String} name slack user name like ii_ivanov
+     * @returns {Promise<Boolean>} return true if user in room
+     */
+    async isRoomMember(roomId, name) {
+        const email = this._getEmail(name);
+        const slackId = await this._getUserIdByEmail(email);
+        const roomMembers = await this.getRoomMembers({roomId});
+
+        return roomMembers.some(slackId);
+    }
+
+    /**
      * Invite user to slack channel
      * @param  {string} channel slack channel id
-     * @param  {string} email slack user email
+     * @param  {string} name slack user name or email
      */
-    async invite(channel, email) {
+    async invite(channel, name) {
+        const email = this._getEmail(name);
         try {
             const userId = await this._getUserIdByEmail(email);
             const response = await this.client.conversations.invite({token: this.token, channel, users: userId});
@@ -233,11 +273,12 @@ module.exports = class SlackApi {
     /**
      * get channel members
      * @param {String} name channel name
-     * @returns {Array} channel members
+     * @param {String} slack channel id
+     * @returns {String[]} channel members like [nfakjgba, fabfaif]
      */
-    async getRoomMembers(name) {
+    async getRoomMembers({name, roomId}) {
         try {
-            const channel = await this.getRoomId(name);
+            const channel = roomId || await this.getRoomId(name);
             const {members} = await this.client.conversations.members({token: this.token, channel});
 
             return members;
@@ -269,5 +310,52 @@ module.exports = class SlackApi {
             this.logger.error(err);
             throw ['Error while setting channel topic', err].join('\n');
         }
+    }
+
+    /**
+     * Get Conversation Info by id
+     * @param {String} channel conversation Id
+     */
+    async getRoomInfo(channel) {
+        try {
+            const roomInfo = await this.client.conversations.info({token: this.token, channel});
+
+            return roomInfo.channel;
+        } catch (err) {
+            this.logger.error(err);
+            throw [`Error while getting info by channel ${channel}`, err].join('\n');
+        }
+    }
+
+    /**
+     * Transform name to email or just return email
+     * @param {String} name name or email
+     * @returns {String} email
+     */
+    _getEmail(name) {
+        return name.includes('@') ? name : `${name}@${this.config.domain}`;
+    }
+
+    /**
+     * Get room id by name
+     * @param {String} name roomname
+     * @returns {Promise<String|false>} returns roomId or false if not exisits
+     */
+    async getRoomIdByName(name) {
+        try {
+            const roomId = await this.getRoomId(name);
+            return roomId;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @param {String} roomId conversation id
+     * @param {String} userId user id
+     */
+    setPower(roomId, userId) {
+        this.logger.log('Set power command is not available now');
     }
 };

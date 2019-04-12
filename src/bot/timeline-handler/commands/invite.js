@@ -1,39 +1,21 @@
 const translate = require('../../../locales');
 const utils = require('../../../lib/utils');
 
-const getRoomId = (text, chatApi) => {
-    try {
-        const alias = utils.isRoomName(text) ? text : utils.getMatrixRoomAlias(text.toUpperCase());
-
-        return chatApi.getRoomId(alias);
-    } catch (err) {
-        return false;
-    }
-};
-
-module.exports = async ({bodyText: roomName, sender, room, chatApi}) => {
+module.exports = async ({bodyText: roomName, sender, roomId, chatApi}) => {
     try {
         if (!utils.isAdmin(sender)) {
-            const message = translate('notAdmin', {sender});
-            await chatApi.sendHtmlMessage(room.roomId, message, message);
-
-            return message;
+            return translate('notAdmin', {sender});
         }
 
-        const roomId = await getRoomId(roomName, chatApi);
-        if (!roomId) {
-            const message = translate('notFoundRoom', {roomName});
-            await chatApi.sendHtmlMessage(room.roomId, message, message);
-
-            return message;
+        const targetRoomId = await chatApi.getRoomIdByName(roomName);
+        if (!targetRoomId) {
+            return translate('notFoundRoom', {roomName});
         }
 
         const userId = utils.getChatUserId(sender);
-        await chatApi.invite(roomId, userId);
-        const message = translate('successMatrixInvite', {sender, roomName});
-        await chatApi.sendHtmlMessage(room.roomId, message, message);
+        await chatApi.invite(targetRoomId, userId);
 
-        return message;
+        return translate('successMatrixInvite', {sender, roomName});
     } catch (err) {
         throw utils.errorTracing('Matrix Invite command', err);
     }

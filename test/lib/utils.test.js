@@ -145,4 +145,40 @@ describe('Utils testing', () => {
 
         expect(data).to.be.not.empty;
     });
+
+    describe('command handler test', () => {
+        it('correct command name', () => {
+            const body = '!help';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('help');
+            expect(bodyText).to.be.undefined;
+        });
+
+        it('correct command name', () => {
+            const body = '!help   ';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('help');
+            expect(bodyText).to.be.undefined;
+        });
+
+        it('correct command name', () => {
+            const body = '!op gogogogo';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('op');
+            expect(bodyText).to.be.equal('gogogogo');
+        });
+
+        it('false command name', () => {
+            const body = 'help';
+            const {commandName} = utils.parseEventBody(body);
+            expect(commandName).not.to.be;
+        });
+
+        it('false command name', () => {
+            const body = '!!help';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).not.to.be;
+            expect(bodyText).not.to.be;
+        });
+    });
 });

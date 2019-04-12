@@ -3,7 +3,7 @@ const messages = require('../../../lib/messages');
 const utils = require('../../../lib/utils');
 const translate = require('../../../locales');
 
-module.exports = async ({bodyText, sender, room, roomName, chatApi}) => {
+module.exports = async ({bodyText, sender, roomId, roomName, chatApi}) => {
     try {
         if (bodyText) {
             await jiraRequests.postComment(roomName, sender, bodyText);
@@ -12,7 +12,7 @@ module.exports = async ({bodyText, sender, room, roomName, chatApi}) => {
         }
 
         const body = translate('emptyMatrixComment');
-        await chatApi.sendHtmlMessage(room.roomId, body, body);
+        await chatApi.sendHtmlMessage(roomId, body, body);
 
         return messages.getCommentFailSentLog(sender, roomName);
     } catch (err) {

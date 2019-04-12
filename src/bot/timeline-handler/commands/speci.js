@@ -1,50 +1,52 @@
 const translate = require('../../../locales');
-const {searchUser, addToWatchers} = require('./helper.js');
 const utils = require('../../../lib/utils');
-const messages = require('../../../lib/messages');
+// const messages = require('../../../lib/messages');
+const jiraRequests = require('../../../lib/jira-request');
 
-module.exports = async ({bodyText, room, roomName, chatApi}) => {
+module.exports = async ({bodyText, roomId, roomName, chatApi}) => {
     try {
-        const users = await searchUser(bodyText);
+        const users = await jiraRequests.searchUser(bodyText);
         switch (users.length) {
             case 0: {
-                const post = translate('errorWatcherJira');
-                await chatApi.sendHtmlMessage(room.roomId, post, post);
+                return translate('errorWatcherJira');
+                // await chatApi.sendHtmlMessage(roomId, post, post);
 
-                return messages.getWatcherNotAddedLog(bodyText);
+                // return messages.getWatcherNotAddedLog(bodyText);
             }
             case 1: {
-                const [{name, displayName}] = users;
+                const [{name}] = users;
 
-                await addToWatchers(room, roomName, name, chatApi);
+                await jiraRequests.addWatcher(name, roomName);
+                await chatApi.invite(roomId, name);
 
-                const post = translate('successWatcherJira');
-                await chatApi.sendHtmlMessage(room.roomId, post, post);
 
-                return messages.getWatcherAddedLog(displayName, roomName);
+                return translate('successWatcherJira');
+                // await chatApi.sendHtmlMessage(roomId, post, post);
+
+                // return messages.getWatcherAddedLog(displayName, roomName);
             }
             default: {
-                const post = utils.getListToHTML(users);
-                await chatApi.sendHtmlMessage(room.roomId, post, post);
+                return utils.getListToHTML(users);
+                // await chatApi.sendHtmlMessage(roomId, post, post);
 
-                return;
+                // return;
             }
         }
     } catch (err) {
         if (err.includes('status is 403')) {
             const projectKey = utils.getProjectKeyFromIssueKey(roomName);
             const viewUrl = utils.getViewUrl(projectKey);
-            const post = translate('setBotToAdmin', {projectKey, viewUrl});
-            await chatApi.sendHtmlMessage(room.roomId, post, post);
+            return translate('setBotToAdmin', {projectKey, viewUrl});
+            // await chatApi.sendHtmlMessage(roomId, post, post);
 
-            return post;
+            // return post;
         }
 
         if (err.includes('status is 404')) {
-            const post = translate('noRulesToWatchIssue');
-            await chatApi.sendHtmlMessage(room.roomId, post, post);
+            return translate('noRulesToWatchIssue');
+            // await chatApi.sendHtmlMessage(roomId, post, post);
 
-            return post;
+            // return post;
         }
 
         throw utils.errorTracing('Spec command', err);

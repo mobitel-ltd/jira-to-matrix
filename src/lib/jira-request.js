@@ -11,6 +11,12 @@ const {url: jiraUrl} = jira;
 
 const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
 
+// Checking occurrences of current name
+const checkUser = ({name, displayName}, expectedName) =>
+    name.toLowerCase().includes(expectedName.toLowerCase())
+        || displayName.toLowerCase().includes(expectedName.toLowerCase());
+
+
 const jiraRequests = {
     postComment: (roomName, sender, bodyText) => {
         const url = utils.getRestUrl('issue', roomName, 'comment');
@@ -152,6 +158,18 @@ const jiraRequests = {
         const url = utils.getRestUrl('user', `search?${queryPararms}`);
 
         return request(url);
+    },
+
+    // Search users by part of name
+    searchUser: async name => {
+        if (!name) {
+            return [];
+        }
+        const allUsers = await jiraRequests.getUsersByParam(name);
+
+        return allUsers.reduce((prev, cur) =>
+            (checkUser(cur, name) ? [...prev, cur] : prev),
+        []);
     },
 
     // recursive function to get users by num and startAt (start position in jira list of users)
