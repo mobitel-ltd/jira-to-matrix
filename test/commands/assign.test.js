@@ -81,7 +81,7 @@ describe('assign test', () => {
         const result = await commandHandler(baseOptions);
 
         expect(result).to.be.eq(post);
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('Expect not assign sender ("!assign fake")', async () => {
@@ -90,7 +90,7 @@ describe('assign test', () => {
         const result = await commandHandler({bodyText, ...baseOptions});
 
         expect(result).to.be.eq(post);
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('Expect assign list of senders ("!assign Ivan")', async () => {
@@ -98,7 +98,7 @@ describe('assign test', () => {
         const result = await commandHandler({bodyText: 'Ivan', ...baseOptions});
 
         expect(result).to.be.eq(post);
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('Expect be error (invite throw)', async () => {
@@ -106,7 +106,7 @@ describe('assign test', () => {
         const post = translate('errorMatrixCommands');
 
         const result = await commandHandler(baseOptions);
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
         expect(result).to.be.undefined;
     });
 
@@ -115,7 +115,7 @@ describe('assign test', () => {
         const result = await commandHandler({bodyText: noPermissionUser.displayName, ...baseOptions});
 
         expect(result).to.be.eq(post);
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('Expect be sent msg about no access to project if 404 error got in request', async () => {
@@ -123,6 +123,6 @@ describe('assign test', () => {
         const result = await commandHandler({bodyText: noRulesUser.displayName, ...baseOptions});
 
         expect(result).to.be.eq(post);
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 });

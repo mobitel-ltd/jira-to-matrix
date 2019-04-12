@@ -1,9 +1,10 @@
 const logger = require('../../src/modules/log')('slack-api');
 const faker = require('faker');
 const {WebClient} = require('@slack/client');
-const EventEmitter = require('events');
+const htmlToText = require('html-to-text').fromString;
 
 const messages = require('../fixtures/events/slack/messages.json');
+const conversationInfoJSON = require('../fixtures/slack-requests/conversations/rename.json');
 const conversationRenameJSON = require('../fixtures/slack-requests/conversations/rename.json');
 const conversationPurposeJSON = require('../fixtures/slack-requests/conversations/setPurpose.json');
 const conversationMembersJSON = require('../fixtures/slack-requests/conversations/mamebers.json');
@@ -14,12 +15,16 @@ const userJSON = require('../fixtures/slack-requests/user.json');
 const testJSON = require('../fixtures/slack-requests/auth-test.json');
 const conversationJSON = require('../fixtures/slack-requests/conversation.json');
 const SlackApi = require('../../src/messengers/slack-api');
+const commandsHandler = require('../../src/bot/timeline-handler');
+const utils = require('../../src/lib/utils');
 
+const supertest = require('supertest');
 const chai = require('chai');
 const {stub, createStubInstance} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
+
 
 const testConfig = {
     name: 'slack',
@@ -30,6 +35,8 @@ const testConfig = {
     eventPassword: faker.internet.password(22),
     eventPort: 3000,
 };
+
+const request = supertest(`http://localhost:${testConfig.eventPort}`);
 
 const testTopic = 'My topic';
 const trueUserMail = 'user@example.com';
@@ -58,6 +65,8 @@ describe('Slack api testing', () => {
         setPurpose: stub().resolves(conversationPurposeJSON.correct),
         // https://api.slack.com/methods/conversations.rename
         rename: stub().resolves(conversationRenameJSON.correct),
+        // https://api.slack.com/methods/conversations.info
+        info: stub().resolves(conversationInfoJSON.correct),
     };
     const users = {
         // https://api.slack.com/methods/users.lookupByEmail
@@ -72,35 +81,17 @@ describe('Slack api testing', () => {
 
     const slackSdkClient = {...createStubInstance(WebClient), auth, conversations, users, chat};
 
-    const slackEventListener = {
-        ...createStubInstance(EventEmitter),
-        start: stub().resolves(),
-        stop: stub(),
-    };
+    // const commandsHandler = stub();
 
-    const eventApi = stub()
-        .withArgs(testConfig.eventPassword)
-        .returns(slackEventListener);
+    const slackApi = new SlackApi({config: testConfig, slackSdkClient, commandsHandler, logger});
 
-    const commands = {
-        comment: stub(),
-        assign: stub(),
-        move: stub(),
-        spec: stub(),
-        prio: stub(),
-        op: stub(),
-        invite: stub(),
-        help: stub(),
-    };
-
-    const slackApi = new SlackApi({config: testConfig, slackSdkClient, commands, eventApi, logger});
     beforeEach(async () => {
         await slackApi.connect();
     });
 
-    afterEach(() => {
-        slackApi.disconnect();
-        Object.values(commands).map(com => com.resetHistory());
+    afterEach(async () => {
+        // commandsHandler.resetHistory();
+        await slackApi.disconnect();
     });
 
     it('Expect api connect works correct', () => {
@@ -109,7 +100,7 @@ describe('Slack api testing', () => {
     });
 
     it('Expect create room run setTopic, setPurpose and create conversaton with correct data', async () => {
-        await slackApi.connect();
+        // await slackApi.connect();
         const roomId = await slackApi.createRoom(options);
 
         expect(roomId).to.be.eq(conversationJSON.correct.channel.id);
@@ -136,7 +127,10 @@ describe('Slack api testing', () => {
         const expectedData = {
             token: testConfig.password,
             channel,
-            text,
+            attachments: [{
+                text,
+                'mrkdwn_in': ['text'],
+            }],
         };
         expect(slackSdkClient.chat.postMessage).to.be.calledWithExactly(expectedData);
     });
@@ -180,7 +174,7 @@ describe('Slack api testing', () => {
 
     it('Expect getJoinedMembers return array of members', async () => {
         const [channel] = usersConversationsJSON.correct.channels;
-        const members = await slackApi.getRoomMembers(channel.name);
+        const members = await slackApi.getRoomMembers({name: channel.name});
 
         expect(members).to.be.an('array');
     });
@@ -197,13 +191,19 @@ describe('Slack api testing', () => {
         });
     });
 
-    it('Expect slack api handle correct and not call command if body is simple message "123"', async () => {
-        await slackApi.handleChatEvent(messages.notCommandMessage);
-        Object.values(commands).map(command => expect(command).not.to.be.called);
-    });
-
     it('Expect slack api handle correct and call if body is "!help"', async () => {
-        await slackApi.handleChatEvent(messages.help);
-        expect(commands.help).to.be.called;
+        await request
+            .post('/commands')
+            .send(messages.help)
+            .set('Content-Type', 'application/x-www-form-urlencoded');
+
+        expect(slackSdkClient.chat.postMessage).to.be.calledWithExactly({
+            token: testConfig.password,
+            channel: messages.help.channel_id,
+            attachments: [{
+                'text': htmlToText(utils.helpPost),
+                'mrkdwn_in': ['text'],
+            }],
+        });
     });
 });

@@ -27,17 +27,11 @@ module.exports = async ({bodyText, sender, roomName, chatApi, roomId}) => {
     } catch (err) {
         if (typeof err === 'string') {
             if (err.includes('status is 403')) {
-                const post = translate('setBotToAdmin');
-                await chatApi.sendHtmlMessage(roomId, post, post);
-
-                return post;
+                return translate('setBotToAdmin');
             }
 
             if (err.includes('status is 404')) {
-                const post = translate('noRulesToWatchIssue');
-                await chatApi.sendHtmlMessage(roomId, post, post);
-
-                return post;
+                return translate('noRulesToWatchIssue');
             }
 
             throw utils.errorTracing('Assign command', err);

@@ -32,6 +32,7 @@ module.exports = class SlackApi {
         this.token = config.password;
         this.slackSdkClient = slackSdkClient || new WebClient(this.token);
         this.logger = logger;
+        this.commandServer;
     }
 
     /**
@@ -39,17 +40,21 @@ module.exports = class SlackApi {
      * @param {Object} eventBody slack event
      */
     async _eventHandler(eventBody) {
-        const info = await this.getRoomInfo(eventBody.channel_id);
+        try {
+            const info = await this.getRoomInfo(eventBody.channel_id);
 
-        const options = {
-            chatApi: this,
-            sender: eventBody.user_name.replace(/[0-9]/g, ''),
-            roomName: info.name.toUpperCase(),
-            roomId: eventBody.channel_id,
-            commandName: eventBody.command.slice(2),
-            bodyText: eventBody.text,
-        };
-        await this.commandsHandler(options);
+            const options = {
+                chatApi: this,
+                sender: eventBody.user_name.replace(/[0-9]/g, ''),
+                roomName: info.name.toUpperCase(),
+                roomId: eventBody.channel_id,
+                commandName: eventBody.command.slice(2),
+                bodyText: eventBody.text,
+            };
+            await this.commandsHandler(options);
+        } catch (error) {
+            this.logger.error('Error while handling slash command from Slack', error, eventBody);
+        }
     }
 
     /**
@@ -67,8 +72,8 @@ module.exports = class SlackApi {
                 next();
             });
 
-        const server = http.createServer(app);
-        server.listen(this.config.eventPort, () => {
+        this.commandServer = http.createServer(app);
+        this.commandServer.listen(this.config.eventPort, () => {
             this.logger.info(`Slack commands are listening on port ${this.config.eventPort}`);
         });
     }
@@ -91,6 +96,9 @@ module.exports = class SlackApi {
      * @returns {Object} connected slackClient with api for Jira
      */
     async connect() {
+        if (this.isConnected()) {
+            return;
+        }
         try {
             await this._startClient();
             await this._slashCommandsListener();
@@ -104,20 +112,15 @@ module.exports = class SlackApi {
      * @returns {Boolean} connect status
      */
     isConnected() {
-        if (this.slackEvents) {
-            return true;
-        }
-        this.logger.error('slack client is not initialized');
-
-        return false;
+        return this.commandServer && this.commandServer.listening;
     }
 
     /**
      * disconnected slackClient
      */
     disconnect() {
-        if (this.isConnected()) {
-            this.slackEvents.stop();
+        if (this.commandServer) {
+            this.commandServer.close();
             this.logger.info('Disconnected from Slack');
         }
     }
@@ -131,7 +134,11 @@ module.exports = class SlackApi {
     async sendHtmlMessage(channel, infoMessage, textBody) {
         try {
             const text = htmlToText(textBody);
-            await this.client.chat.postMessage({token: this.token, channel, text});
+            const attachments = [{
+                text,
+                'mrkdwn_in': ['text'],
+            }];
+            await this.client.chat.postMessage({token: this.token, channel, attachments});
         } catch (err) {
             throw ['Error in sendHtmlMessage', err].join('\n');
         }
@@ -196,7 +203,7 @@ module.exports = class SlackApi {
      */
     async createRoom({name, topic, invite, purpose}) {
         try {
-            const ids = await Promise.all(invite.map(this._getUserIdByEmail.bind(this)));
+            const ids = await Promise.all(invite.map(user => this._getUserIdByEmail(user)));
             const options = {
                 'token': this.token,
                 'is_private': true,
@@ -356,6 +363,6 @@ module.exports = class SlackApi {
      * @param {String} userId user id
      */
     setPower(roomId, userId) {
-        this.logger.log('Set power command is not available now');
+        this.logger.warn('Set power command is not available now');
     }
 };

@@ -1,10 +1,9 @@
 const nock = require('nock');
 const schemas = require('../../src/lib/schemas');
-const {move} = require('../../src/bot/timeline-handler/commands');
 const transitionsJSON = require('../fixtures/jira-api-requests/transitions.json');
 const translate = require('../../src/locales');
-const messages = require('../../src/lib/messages');
 const utils = require('../../src/lib/utils');
+const commandHandler = require('../../src/bot/timeline-handler');
 
 const chai = require('chai');
 const {stub} = require('sinon');
@@ -15,11 +14,15 @@ chai.use(sinonChai);
 describe('move test', () => {
     const sender = 'jira_test';
     const roomName = 'BBCOM-123';
-    const room = {roomId: 12345};
+    const roomId = 12345;
     const {transitions} = transitionsJSON;
     const [newStatus] = transitions;
 
     const chatApi = {sendHtmlMessage: stub()};
+
+    const commandName = 'move';
+
+    const baseOptions = {roomId, roomName, commandName, chatApi, sender};
 
     before(() => {
         nock(utils.getRestUrl())
@@ -43,45 +46,34 @@ describe('move test', () => {
 
     it('Expect commands with empty body will list statuses ("!move")', async () => {
         const body = utils.getCommandList(transitions);
-        const result = await move({room, roomName, chatApi});
+        const result = await commandHandler(baseOptions);
 
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
-        expect(result).to.be.undefined;
+        expect(result).to.be.eq(body);
+        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(roomId, body, body);
     });
 
     it('Expect correct !move command', async () => {
         const body = translate('successMoveJira', {...newStatus, sender});
-        const result = await move({bodyText: newStatus.id, room, roomName, sender, chatApi});
+        const result = await commandHandler({...baseOptions, bodyText: newStatus.id});
 
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, body, body);
-        expect(result).to.be.equal(messages.getMoveSuccessLog(roomName));
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, body, body);
+        expect(result).to.be.eq(body);
     });
 
     it('Expect correct !move command with upper case body', async () => {
         const body = translate('successMoveJira', {...newStatus, sender});
-        const result = await move({bodyText: newStatus.name.toUpperCase(), room, sender, roomName, chatApi});
+        const result = await commandHandler({...baseOptions, bodyText: newStatus.name.toUpperCase()});
 
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, body, body);
-        expect(result).to.be.equal(messages.getMoveSuccessLog(roomName));
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, body, body);
+        expect(result).to.be.equal(body);
     });
 
     it('Expect move command send message about not found command ("!move fake")', async () => {
         const bodyText = 'fake';
         const post = translate('notFoundMove', {bodyText});
-        const result = await move({bodyText, room, roomName, chatApi});
+        const result = await commandHandler({...baseOptions, bodyText});
 
-        expect(result).to.be.eq(messages.getNotFoundMoveCommandLog(roomName, bodyText));
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
-    });
-
-    it('Expect error to be thrown with tag', async () => {
-        let res;
-        try {
-            await move({bodyText: '1', room, roomName: 'fakeRoom', chatApi});
-        } catch (err) {
-            res = err;
-        }
-
-        expect(res).to.be.include('Matrix Move command');
+        expect(result).to.be.eq(post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, post, post);
     });
 });
