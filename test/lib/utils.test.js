@@ -120,13 +120,6 @@ describe('Utils testing', () => {
         expect(body).to.be.undefined;
     });
 
-    it('getChatUserId test', () => {
-        const name = 'SOMENAME';
-        const result = utils.getChatUserId(name);
-
-        expect(result).to.equal(`@${name.toLowerCase()}:matrix.test-example.ru`);
-    });
-
     it('Expect getLimit to be timestamp of 01.01.2018', () => {
         const limit = utils.getLimit();
         const expected = 1514775600000;

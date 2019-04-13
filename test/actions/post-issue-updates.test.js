@@ -8,27 +8,21 @@ const {getPostIssueUpdatesData} = require('../../src/jira-hook-parser/parse-body
 const {isPostIssueUpdates} = require('../../src/jira-hook-parser/bot-handler.js');
 const {postIssueUpdates} = require('../../src/bot/actions');
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
+const testUtils = require('../test-utils');
 chai.use(sinonChai);
 
 describe('Post issue updates test', () => {
-    const matrixRoomId = 'roomId';
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        getRoomId: stub(),
-        setRoomName: stub(),
-        createAlias: stub(),
-        setRoomTopic: stub(),
-    };
+    const roomId = 'roomId';
+    let chatApi;
 
     const postIssueUpdatesData = getPostIssueUpdatesData(issueMovedJSON);
     const {name: userName} = issueMovedJSON.user;
     const changes =
         '<br>issuetype: Story<br>project: Internal Development<br>status: To Do<br>Workflow: Software Simplified Workflow for Project INDEV<br>Key: INDEV-130';
     const expectedData = [
-        matrixRoomId,
+        roomId,
         translate('issueHasChanged'),
         `${translate('issue_updated', {name: userName})}${changes}`,
     ];
@@ -46,43 +40,15 @@ describe('Post issue updates test', () => {
     });
 
     beforeEach(() => {
+        chatApi = testUtils.getChatApi();
         chatApi.getRoomId
-            .resolves(matrixRoomId)
+            .resolves(roomId)
             .withArgs(null)
             .throws('Error');
     });
 
-    afterEach(() => {
-        Object.values(chatApi).map(val => val.reset());
-    });
-
     after(() => {
         nock.cleanAll();
-    });
-
-    it('Expect createAlias to be with error but postIssueUpdates should work', async () => {
-        chatApi.createAlias.callsFake((alias, roomId) => {
-            try {
-                throw new Error(
-                    'M_UNKNOWN: Room alias #BAO-193:matrix.test-example.ru already exists'
-                );
-            } catch (err) {
-                if (
-                    err.message.includes(
-                        `Room alias #BAO-193:matrix.test-example.ru already exists`
-                    )
-                ) {
-                    return null;
-                }
-                throw ['Error while creating alias for a room', err].join('\n');
-            }
-        });
-
-        const result = await postIssueUpdates({chatApi, ...postIssueUpdatesData});
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(
-            ...expectedData
-        );
-        expect(result).to.be.true;
     });
 
     it('Is correct postIssueUpdatesData', async () => {
@@ -171,7 +137,7 @@ describe('Post issue updates test', () => {
         const data = getPostIssueUpdatesData(onlySummaryUpdateJSON);
         const res = await postIssueUpdates({chatApi, ...data});
 
-        expect(chatApi.setRoomName).to.be.calledWithExactly(matrixRoomId, data.newName);
+        expect(chatApi.setRoomName).to.be.calledWithExactly(roomId, data.newName);
         expect(res).to.be.true;
     });
 });

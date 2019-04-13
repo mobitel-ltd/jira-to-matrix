@@ -2,16 +2,17 @@ const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const schemas = require('../../src/lib/schemas.js');
 const translate = require('../../src/locales');
-// const messages = require('../../src/lib/messages');
+const testUtils = require('../test-utils');
 const commandHandler = require('../../src/bot/timeline-handler');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('assign test', () => {
+    let chatApi;
+    let baseOptions;
     const commandName = 'assign';
 
     const noPermissionUser = {
@@ -31,18 +32,13 @@ describe('assign test', () => {
 
     const userSender = {displayName: senderDisplayName, name: sender};
 
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        invite: stub(),
-    };
-
     const roomName = 'BBCOM-123';
 
-    const roomId = 12345;
-
-    const baseOptions = {roomId, roomName, commandName, sender, chatApi};
+    const roomId = testUtils.getRoomId();
 
     beforeEach(() => {
+        chatApi = testUtils.getChatApi();
+        baseOptions = {roomId, roomName, commandName, sender, chatApi};
         nock(utils.getRestUrl())
             .put(`/issue/${roomName}/assignee`, schemas.assignee(sender))
             .reply(204)
@@ -72,7 +68,6 @@ describe('assign test', () => {
     });
 
     afterEach(() => {
-        Object.values(chatApi).map(val => val.reset());
         nock.cleanAll();
     });
 

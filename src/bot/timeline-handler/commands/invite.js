@@ -11,7 +11,7 @@ module.exports = async ({bodyText: roomName, sender, chatApi}) => {
         return translate('notFoundRoom', {roomName});
     }
 
-    const userId = utils.getChatUserId(sender);
+    const userId = chatApi.getChatUserId(sender);
     await chatApi.invite(targetRoomId, userId);
 
     return translate('successMatrixInvite', {sender, roomName});

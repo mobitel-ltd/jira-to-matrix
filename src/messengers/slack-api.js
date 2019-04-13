@@ -6,8 +6,6 @@ const htmlToText = require('html-to-text').fromString;
 const express = require('express');
 const bodyParser = require('body-parser');
 
-// const tets = new WebClient();
-// tets.conversations.invite()
 const defaultLogger = {
     info: () => {},
     error: () => {},
@@ -20,19 +18,26 @@ module.exports = class SlackApi {
      * slack api for bot
      * @param  {Object} options api options
      * @param  {Object} options.config config for slack
-     * @param  {Object} options.slackSdkClient slack sdk client, if not exists - instance of WebClient from https://github.com/slackapi/node-slack-sdk
-     * @param  {function} options.commands matrix event commands
+     * @param  {Object} options.sdk slack sdk client, if not exists - instance of WebClient from https://github.com/slackapi/node-slack-sdk
+     * @param  {function} options.commandsHandler matrix event commands
      * @param  {Object} options.logger logger, winstone type, if no logger is set logger is off
-     * @param  {Object} options.eventApi slack events api, by default - https://github.com/slackapi/node-slack-events-api
-     * @param  {function|undefined} logger custom logger
      */
-    constructor({config, slackSdkClient, commandsHandler, logger = defaultLogger}) {
+    constructor({config, sdk, commandsHandler, logger = defaultLogger}) {
         this.commandsHandler = commandsHandler;
         this.config = config;
         this.token = config.password;
-        this.slackSdkClient = slackSdkClient || new WebClient(this.token);
+        this.sdk = sdk || new WebClient(this.token);
         this.logger = logger;
         this.commandServer;
+    }
+
+    /**
+     * Transform ldap user name to Slack user id
+     * @param {String} shortName shortName of user from ldap
+     * @returns {String} user email like ii_ivanov@ example.com
+     */
+    getChatUserId(shortName) {
+        return `${shortName}@${this.config.domain}`;
     }
 
     /**
@@ -84,9 +89,9 @@ module.exports = class SlackApi {
      */
     async _startClient() {
         try {
-            await this.slackSdkClient.auth.test();
+            await this.sdk.auth.test();
             this.logger.info('Slack client started!');
-            this.client = this.slackSdkClient;
+            this.client = this.sdk;
         } catch (err) {
             throw ['Error in slack connection', err].join('\n');
         }
@@ -231,7 +236,7 @@ module.exports = class SlackApi {
         const searchingName = name.toLowerCase();
         try {
             // ? Limit of channels is only 1000 now
-            const {channels} = await this.slackSdkClient.users.conversations({token: this.token, limit: 1000, types: 'private_channel'});
+            const {channels} = await this.sdk.users.conversations({token: this.token, limit: 1000, types: 'private_channel'});
             const channel = channels.find(item => item.name === searchingName);
 
             const roomId = Ramda.path(['id'], channel);
@@ -256,7 +261,7 @@ module.exports = class SlackApi {
         const slackId = await this._getUserIdByEmail(email);
         const roomMembers = await this.getRoomMembers({roomId});
 
-        return roomMembers.some(slackId);
+        return roomMembers.includes(slackId);
     }
 
     /**

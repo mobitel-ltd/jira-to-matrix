@@ -7,7 +7,7 @@ module.exports = async ({bodyText, sender, roomId, roomName, chatApi}) => {
         return translate('notAdmin', {sender});
     }
 
-    const userId = utils.getChatUserId(targetUser);
+    const userId = chatApi.getChatUserId(targetUser);
     const isMember = await chatApi.isRoomMember(roomId, userId);
     if (isMember) {
         await chatApi.setPower(roomId, userId);

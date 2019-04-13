@@ -1,3 +1,4 @@
+/* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
 
@@ -6,26 +7,42 @@ const getEvent = content => ({
     getContent: () => content,
 });
 
+const defaultLogger = {
+    info: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
+};
+
 module.exports = class Matrix {
     /**
      * Matrix-sdk fasade for bot building
-     * @param  {Object} {config config object
-     * @param  {Object} sdk=matrixSdk} matrix sdk lib, by default - https://github.com/matrix-org/matrix-js-sdk
-     * @param  {Object} commandsHandler matrix event commands
-    //  * @param  {Boolean} loggerOn turn on logger, by default is true
-     * @param  {function|undefined} logger custom logger
+     * @param  {Object} options api options
+     * @param  {Object} options.config config object
+     * @param  {Object} options.sdk=matrixSdk} matrix sdk lib, by default - https://github.com/matrix-org/matrix-js-sdk
+     * @param  {Object} options.commandsHandler matrix event commands
+     * @param  {Object} options.logger logger, winstone type, if no logger is set logger is off
      */
-    constructor({config, sdk = matrixSdk, commandsHandler, logger}) {
+    constructor({config, sdk = matrixSdk, commandsHandler, logger = defaultLogger}) {
         this.commandsHandler = commandsHandler;
         this.config = config;
         this.sdk = sdk;
         // TODO: delete EVENT_EXCEPTION check in errors after resolving 'no-event' bug
-        this.BOT_OUT_OF_ROOM_EXEPTION = `User ${this.config.userId} not in room`;
         this.EVENT_EXCEPTION = 'Could not find event';
         this.baseUrl = `https://${config.domain}`;
         this.userId = `@${config.user}:${config.domain}`;
+        this.BOT_OUT_OF_ROOM_EXEPTION = `User ${this.userId} not in room`;
         this.postfix = `:${config.domain}`.length;
         this.logger = logger;
+    }
+
+    /**
+     * Transform ldap user name to matrix user id
+     * @param {String} shortName shortName of user from ldap
+     * @returns {String} matrix user id like @ii_ivanov:matrix.example.com
+     */
+    getChatUserId(shortName) {
+        return `@${shortName.toLowerCase()}:${this.config.domain}`;
     }
 
     /**
@@ -35,31 +52,35 @@ module.exports = class Matrix {
      * @param {Boolean} toStartOfTimeline true if skip event
      */
     async timelineHandler(event, room, toStartOfTimeline) {
-        if (event.getType() !== 'm.room.message' || toStartOfTimeline) {
-            return;
+        try {
+            if (event.getType() !== 'm.room.message' || toStartOfTimeline) {
+                return;
+            }
+
+            const sender = utils.getNameFromMatrixId(event.getSender());
+
+            const {body} = event.getContent();
+
+            const {commandName, bodyText} = utils.parseEventBody(body);
+
+            if (!commandName) {
+                return;
+            }
+
+            const roomName = utils.getNameFromMatrixId(room.getCanonicalAlias());
+            const options = {
+                chatApi: this,
+                sender,
+                roomName,
+                roomId: room.roomId,
+                commandName,
+                bodyText,
+            };
+
+            await this.commandsHandler(options);
+        } catch (err) {
+            this.logger.error('Error while handling event from Matrix', err, event, room);
         }
-
-        const sender = utils.getNameFromMatrixId(event.getSender());
-
-        const {body} = event.getContent();
-
-        const {commandName, bodyText} = utils.parseEventBody(body);
-
-        if (!commandName) {
-            return;
-        }
-
-        const roomName = utils.getNameFromMatrixId(room.getCanonicalAlias());
-        const options = {
-            chatApi: this,
-            sender,
-            roomName,
-            roomId: room.roomId,
-            commandName,
-            bodyText,
-        };
-
-        await this.commandsHandler(options);
     }
 
 
@@ -188,7 +209,7 @@ module.exports = class Matrix {
             return;
         }
 
-        this.client.on('Room.timeline', this.timelineHandler);
+        this.client.on('Room.timeline', this.timelineHandler.bind(this));
 
         this.client.on('sync', (state, prevState, data) => {
             this._removeListener('Room.timeline', this.timelineHandler, this.client);
@@ -335,7 +356,7 @@ module.exports = class Matrix {
      */
     async isRoomMember(roomId, user) {
         const roomMembers = await this.getRoomMembers({roomId});
-        return roomMembers.some(user);
+        return roomMembers.includes(user);
     }
 
     /**
@@ -347,12 +368,10 @@ module.exports = class Matrix {
         try {
             const user = userId.toLowerCase();
             if (await this.isRoomMember(roomId, user)) {
-                this.logger.warn(`Room ${roomId} already has user ${userId}`);
+                this.logger.warn(`Room ${roomId} already has user ${user}`);
                 return;
             }
-            const response = await this.client.invite(roomId, userId.toLowerCase());
-
-            return response;
+            await this.client.invite(roomId, user);
         } catch (err) {
             if (this._isEventExeptionError(err)) {
                 return null;
@@ -466,10 +485,13 @@ module.exports = class Matrix {
      */
     async getRoomIdByName(text) {
         try {
-            const alias = this.isRoomName(text) ? text : this.getMatrixRoomAlias(text.toUpperCase());
+            const alias = this.isRoomAlias(text) ? text : this.getMatrixRoomAlias(text.toUpperCase());
+            const {room_id: roomId} = await this.client.getRoomIdForAlias(alias);
 
-            return await this.getRoomId(alias);
+            return roomId;
         } catch (err) {
+            this.logger.warn(err);
+            this.logger.warn('No room id by alias ', text);
             return false;
         }
     }

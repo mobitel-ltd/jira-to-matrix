@@ -4,21 +4,10 @@ const logger = require('../../modules/log.js')(module);
 const {getDescription} = require('./helper');
 const {infoBody} = require('../../lib/messages');
 
-const getRoomId = async (chatApi, key) => {
-    try {
-        const id = await chatApi.getRoomId(key);
-        logger.debug(`Room should not be created, roomId is ${id} for room ${key}`);
-
-        return id;
-    } catch (err) {
-        return false;
-    }
-};
-
 const createIssueRoom = async (chatApi, issue) => {
     try {
         const roomMembers = await jiraRequest.getIssueWatchers(issue);
-        const invite = roomMembers.map(utils.getChatUserId);
+        const invite = roomMembers.map(user => chatApi.getChatUserId(user));
 
         const {key} = issue;
         const name = utils.composeRoomName(issue.key, issue.summary);
@@ -48,7 +37,7 @@ const createProjectRoom = async (chatApi, projectKey) => {
     try {
         const {lead, name: projectName} = await jiraRequest.getProject(projectKey);
         const name = utils.composeRoomName(projectKey, projectName);
-        const invite = [utils.getChatUserId(lead.key)];
+        const invite = [chatApi.getChatUserId(lead.key)];
         const topic = utils.getViewUrl(projectKey);
 
         const options = {
@@ -99,10 +88,10 @@ module.exports = async ({chatApi, issue, projectKey}) => {
         const checkedIssue = issue.key ? issue : await getCheckedIssue(issue);
 
         if (checkedIssue.key) {
-            await getRoomId(chatApi, checkedIssue.key) || await createIssueRoom(chatApi, checkedIssue);
+            await chatApi.getRoomIdByName(checkedIssue.key) || await createIssueRoom(chatApi, checkedIssue);
         }
         if (projectKey) {
-            await getRoomId(chatApi, projectKey) || await createProjectRoom(chatApi, projectKey);
+            await chatApi.getRoomIdByName(projectKey) || await createProjectRoom(chatApi, projectKey);
         }
 
         return true;

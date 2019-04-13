@@ -1,5 +1,4 @@
 const faker = require('faker');
-const utils = require('../../src/lib/utils.js');
 const translate = require('../../src/locales');
 const {admins} = require('../../src/config').messenger;
 const commandHandler = require('../../src/bot/timeline-handler');
@@ -24,11 +23,13 @@ describe('op test', () => {
         isRoomMember: stub().resolves(false),
         sendHtmlMessage: stub(),
         setPower: stub(),
+        getChatUserId: stub().callsFake(name => name),
     };
+
     chatApi.isRoomMember
-        .withArgs(roomId, utils.getChatUserId(sender))
+        .withArgs(roomId, chatApi.getChatUserId(sender))
         .resolves(true)
-        .withArgs(roomId, utils.getChatUserId(userToAdd))
+        .withArgs(roomId, chatApi.getChatUserId(userToAdd))
         .resolves(true);
 
 
@@ -46,7 +47,7 @@ describe('op test', () => {
 
         expect(res).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.be.calledOnceWithExactly(roomId, post, post);
-        expect(chatApi.setPower).to.be.calledWithExactly(roomId, utils.getChatUserId(sender));
+        expect(chatApi.setPower).to.be.calledWithExactly(roomId, chatApi.getChatUserId(sender));
     });
 
     it('Expect message about admin rules to be sent if user is not admin', async () => {
@@ -64,7 +65,7 @@ describe('op test', () => {
 
         expect(res).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.be.calledOnceWithExactly(roomId, post, post);
-        expect(chatApi.setPower).to.be.calledWithExactly(roomId, utils.getChatUserId(userToAdd));
+        expect(chatApi.setPower).to.be.calledWithExactly(roomId, chatApi.getChatUserId(userToAdd));
     });
 
     it('Expect power level of adding user NOT to be put if he is NOT a room member ("!op fake")', async () => {

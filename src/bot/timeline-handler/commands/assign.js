@@ -16,7 +16,8 @@ module.exports = async ({bodyText, sender, roomName, chatApi, roomId}) => {
                 const [{displayName, name}] = users;
 
                 await jiraRequests.addAssignee(name, roomName);
-                await chatApi.invite(roomId, name);
+                const userId = chatApi.getChatUserId(name);
+                await chatApi.invite(roomId, userId);
 
                 return translate('successMatrixAssign', {displayName});
             }

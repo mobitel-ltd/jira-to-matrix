@@ -13,7 +13,8 @@ module.exports = async ({bodyText, roomId, roomName, chatApi}) => {
                 const [{name}] = users;
 
                 await jiraRequests.addWatcher(name, roomName);
-                await chatApi.invite(roomId, name);
+                const userId = chatApi.getChatUserId(name);
+                await chatApi.invite(roomId, userId);
 
 
                 return translate('successWatcherJira');

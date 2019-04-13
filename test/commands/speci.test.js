@@ -3,14 +3,16 @@ const utils = require('../../src/lib/utils.js');
 const schemas = require('../../src/lib/schemas');
 const translate = require('../../src/locales');
 const commandHandler = require('../../src/bot/timeline-handler');
+const testUtils = require('../test-utils');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('spec test', () => {
+    let chatApi;
+    let baseOptions;
     const noRulesUser = {
         displayName: 'No Rules User',
         name: 'noRules',
@@ -26,16 +28,9 @@ describe('spec test', () => {
 
     const users = [userA, userB];
 
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        invite: stub(),
-    };
-
     const roomName = 'BBCOM-123';
     const roomId = 12345;
     const commandName = 'spec';
-
-    const baseOptions = {roomId, roomName, commandName, chatApi};
 
     before(() => {
         nock(utils.getRestUrl(), {
@@ -70,6 +65,12 @@ describe('spec test', () => {
             .reply(200, []);
     });
 
+    beforeEach(() => {
+        chatApi = testUtils.getChatApi();
+        baseOptions = {roomId, roomName, commandName, chatApi};
+    });
+
+
     afterEach(() => {
         Object.values(chatApi).map(val => val.reset());
     });
@@ -95,7 +96,6 @@ describe('spec test', () => {
     });
 
     it('should show list of users ("!spec Ivan")', async () => {
-        // searchUserStub.resolves(users);
         const post = utils.getListToHTML(users);
         const result = await commandHandler({bodyText: 'Ivan', ...baseOptions});
 

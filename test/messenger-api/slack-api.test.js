@@ -79,11 +79,11 @@ describe('Slack api testing', () => {
         postMessage: stub().resolves(postMessageJSON.correct),
     };
 
-    const slackSdkClient = {...createStubInstance(WebClient), auth, conversations, users, chat};
+    const sdk = {...createStubInstance(WebClient), auth, conversations, users, chat};
 
     // const commandsHandler = stub();
 
-    const slackApi = new SlackApi({config: testConfig, slackSdkClient, commandsHandler, logger});
+    const slackApi = new SlackApi({config: testConfig, sdk, commandsHandler, logger});
 
     beforeEach(async () => {
         await slackApi.connect();
@@ -104,13 +104,13 @@ describe('Slack api testing', () => {
         const roomId = await slackApi.createRoom(options);
 
         expect(roomId).to.be.eq(conversationJSON.correct.channel.id);
-        expect(slackSdkClient.conversations.create).to.be.calledWithExactly({
+        expect(sdk.conversations.create).to.be.calledWithExactly({
             'token': testConfig.password,
             'is_private': true,
             'name': options.name.toLowerCase(),
             'user_ids': [userJSON.correct.user.id, userJSON.correct.user.id],
         });
-        expect(slackSdkClient.conversations.setPurpose).to.be.calledWithExactly({
+        expect(sdk.conversations.setPurpose).to.be.calledWithExactly({
             token: testConfig.password,
             channel: roomId,
             purpose: options.purpose,
@@ -132,7 +132,7 @@ describe('Slack api testing', () => {
                 'mrkdwn_in': ['text'],
             }],
         };
-        expect(slackSdkClient.chat.postMessage).to.be.calledWithExactly(expectedData);
+        expect(sdk.chat.postMessage).to.be.calledWithExactly(expectedData);
     });
 
     it('Expect getRoomId returns correct id if it exists', async () => {
@@ -197,7 +197,7 @@ describe('Slack api testing', () => {
             .send(messages.help)
             .set('Content-Type', 'application/x-www-form-urlencoded');
 
-        expect(slackSdkClient.chat.postMessage).to.be.calledWithExactly({
+        expect(sdk.chat.postMessage).to.be.calledWithExactly({
             token: testConfig.password,
             channel: messages.help.channel_id,
             attachments: [{

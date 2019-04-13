@@ -1,31 +1,26 @@
 const commandHandler = require('../../src/bot/timeline-handler');
+const testUtils = require('../test-utils');
 const translate = require('../../src/locales');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('invite test', () => {
-    const inviteRoomId = 'someID';
+    let chatApi;
+    let baseOptions;
+    // const inviteRoomId = testUtils.getRoomId();
     const roomId = 12345;
-
-    const chatApi = {
-        invite: stub(),
-        getRoomIdByName: stub(),
-        sendHtmlMessage: stub(),
-    };
 
     const bodyText = 'BBCOM-123';
     const sender = 'jira_test';
     const alias = `#${bodyText.toUpperCase()}@matrix.test-example.ru`;
     const commandName = 'invite';
 
-    const baseOptions = {roomId, bodyText, commandName, sender, chatApi};
-
     beforeEach(() => {
-        chatApi.getRoomIdByName.resolves(inviteRoomId);
+        chatApi = testUtils.getChatApi({alias: [bodyText, alias]});
+        baseOptions = {roomId, bodyText, commandName, sender, chatApi};
     });
 
     afterEach(() => {
@@ -47,9 +42,9 @@ describe('invite test', () => {
     });
 
     it('Expect invite to not found room return no found warn', async () => {
-        chatApi.getRoomIdByName.resolves(false);
-        const body = translate('notFoundRoom', {roomName: bodyText});
-        const result = await commandHandler(baseOptions);
+        const notFoundRoomName = 'notFoundRoom';
+        const body = translate('notFoundRoom', {roomName: notFoundRoomName});
+        const result = await commandHandler({...baseOptions, bodyText: notFoundRoomName});
 
         expect(result).to.be.eq(body);
     });

@@ -7,31 +7,27 @@ const {getPostLinksDeletedData} = require('../../src/jira-hook-parser/parse-body
 const postLinksDeleted = require('../../src/bot/actions/post-link-deleted');
 const {isDeleteLinks} = require('../../src/jira-hook-parser/bot-handler.js');
 const {getPostLinkMessageBody} = require('../../src/bot/actions/helper');
-const {cleanRedis} = require('../test-utils');
+const {cleanRedis, getChatApi} = require('../test-utils');
 const translate = require('../../src/locales');
 const marked = require('marked');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Test postLinksDeleted', () => {
+    let chatApi;
     const {sourceIssueId} = linkDeletedHook.issueLink;
     const {destinationIssueId} = linkDeletedHook.issueLink;
 
     const roomIDIn = 'inId';
     const roomIDOut = 'outId';
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        getRoomId: stub(),
-    };
-
-    chatApi.getRoomId.withArgs(utils.getKey(issueBody)).onFirstCall().resolves(roomIDIn);
-    chatApi.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
 
     beforeEach(() => {
+        chatApi = getChatApi();
+        chatApi.getRoomId.withArgs(utils.getKey(issueBody)).onFirstCall().resolves(roomIDIn);
+        chatApi.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
         nock(utils.getRestUrl())
             .get(`/issue/${sourceIssueId}`)
             .reply(200, issueBody)
@@ -40,7 +36,6 @@ describe('Test postLinksDeleted', () => {
     });
 
     afterEach(async () => {
-        Object.values(chatApi).map(val => val.resetHistory());
         await cleanRedis();
         nock.cleanAll();
     });

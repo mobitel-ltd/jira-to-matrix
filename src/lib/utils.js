@@ -100,12 +100,10 @@ const handlers = {
 
 const matrixMethods = {
     composeRoomName: (key, summary) => `${key} ${summary}`,
-    getChatUserId: shortName => `@${shortName.toLowerCase()}:${messenger.domain}`,
 };
 
 const slackMethods = {
     composeRoomName: key => `${key.toLowerCase()}`,
-    getChatUserId: shortName => `${shortName}@${messenger.domain}`,
 };
 
 const getMethodByType = (name, chatType = messenger.name) => {
@@ -373,10 +371,7 @@ const utils = {
         return name.slice(1);
     },
 
-
     isAdmin: user => messenger.admins.includes(user),
-
-    getChatUserId: getMethodByType('getChatUserId'),
 
     // * --------------------------------- Other utils ------------------------------- *
 
