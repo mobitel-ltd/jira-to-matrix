@@ -43,7 +43,10 @@ describe('get-bot-data', () => {
                 data: {
                     oldKey: 'TCP-2',
                     newKey: 'INDEV-130',
-                    newName: utils.composeRoomName(utils.getKey(issueMovedJSON), utils.getSummary(issueMovedJSON)),
+                    newNameData: {
+                        key: 'INDEV-130',
+                        summary: 'test Task 2',
+                    },
                     changelog: utils.getChangelog(issueMovedJSON),
                     author: 'jira_test',
                 },

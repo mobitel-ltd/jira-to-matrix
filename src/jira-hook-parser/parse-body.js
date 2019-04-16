@@ -82,12 +82,12 @@ module.exports = {
         const changelog = utils.getChangelog(body);
         const newKey = utils.getNewKey(body);
         const oldKey = utils.getOldKey(body) || utils.getKey(body);
-        const newName = newKey
-            ? utils.composeRoomName(newKey, utils.getSummary(body))
+        const newNameData = newKey
+            ? {key: newKey, summary: utils.getSummary(body)}
             : utils.getNewSummary(body) &&
-        utils.composeRoomName(oldKey, utils.getNewSummary(body));
+        {key: oldKey, summary: utils.getNewSummary(body)};
 
-        return {oldKey, newKey, newName, changelog, author};
+        return {oldKey, newKey, newNameData, changelog, author};
     },
 
     getPostLinksDeletedData: body => ({

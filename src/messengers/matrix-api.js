@@ -8,10 +8,10 @@ const getEvent = content => ({
 });
 
 const defaultLogger = {
-    info: () => {},
-    error: () => {},
-    warn: () => {},
-    debug: () => {},
+    info: () => { },
+    error: () => { },
+    warn: () => { },
+    debug: () => { },
 };
 
 module.exports = class Matrix {
@@ -494,5 +494,15 @@ module.exports = class Matrix {
             this.logger.warn('No room id by alias ', text);
             return false;
         }
+    }
+
+    /**
+     * compose room name for matrix
+     * @param {String} key Jira issue key
+     * @param {String} summary Jira issue summary
+     * @returns {String} room name for jira issue in matrix
+     */
+    composeRoomName(key, summary) {
+        return `${key} ${summary}`;
     }
 };

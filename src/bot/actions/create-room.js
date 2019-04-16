@@ -10,7 +10,7 @@ const createIssueRoom = async (chatApi, issue) => {
         const invite = roomMembers.map(user => chatApi.getChatUserId(user));
 
         const {key} = issue;
-        const name = utils.composeRoomName(issue.key, issue.summary);
+        const name = chatApi.composeRoomName(issue.key, issue.summary);
         const topic = utils.getViewUrl(key);
 
         const options = {
@@ -36,7 +36,7 @@ const createIssueRoom = async (chatApi, issue) => {
 const createProjectRoom = async (chatApi, projectKey) => {
     try {
         const {lead, name: projectName} = await jiraRequest.getProject(projectKey);
-        const name = utils.composeRoomName(projectKey, projectName);
+        const name = chatApi.composeRoomName(projectKey, projectName);
         const invite = [chatApi.getChatUserId(lead.key)];
         const topic = utils.getViewUrl(projectKey);
 
