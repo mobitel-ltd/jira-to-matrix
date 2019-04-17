@@ -5,18 +5,14 @@ const commands = require('./commands');
 module.exports = async ({chatApi, sender, roomName, roomId, commandName, bodyText}) => {
     try {
         const command = commands[commandName];
-        if (command) {
-            const message = await command({bodyText, roomId, roomName, sender, chatApi});
+        const message = await command({bodyText, roomId, roomName, sender, chatApi});
 
-            if (message) {
-                await chatApi.sendHtmlMessage(roomId, message, message);
-            }
-            logger.debug(`${commandName} successfully executed by ${sender} in room ${roomName}`);
-
-            return message;
+        if (message) {
+            await chatApi.sendHtmlMessage(roomId, message, message);
         }
+        logger.debug(`${commandName} successfully executed by ${sender} in room ${roomName}`);
 
-        logger.warn(`Command ${commandName} not found`);
+        return message;
     } catch (err) {
         const post = translate('errorMatrixCommands');
         await chatApi.sendHtmlMessage(roomId, post, post);

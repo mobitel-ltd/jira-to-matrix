@@ -5,6 +5,7 @@ const {WebClient} = require('@slack/web-api');
 const htmlToText = require('html-to-text').fromString;
 const express = require('express');
 const bodyParser = require('body-parser');
+const MessengerAbstract = require('./messenger-abstract');
 
 const defaultLogger = {
     info: () => { },
@@ -13,7 +14,7 @@ const defaultLogger = {
     debug: () => { },
 };
 
-module.exports = class SlackApi {
+module.exports = class SlackApi extends MessengerAbstract {
     /**
      * slack api for bot
      * @param  {Object} options api options
@@ -23,6 +24,7 @@ module.exports = class SlackApi {
      * @param  {Object} options.logger logger, winstone type, if no logger is set logger is off
      */
     constructor({config, sdk, commandsHandler, logger = defaultLogger}) {
+        super();
         this.commandsHandler = commandsHandler;
         this.config = config;
         this.token = config.password;
@@ -37,7 +39,7 @@ module.exports = class SlackApi {
      * @returns {String} user email like ii_ivanov@ example.com
      */
     getChatUserId(shortName) {
-        return `${shortName}@${this.config.domain}`;
+        return `${shortName.toLocaleLowerCase()}@${this.config.domain}`;
     }
 
     /**

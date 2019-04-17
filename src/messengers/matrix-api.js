@@ -1,6 +1,7 @@
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
+const MessengerAbstract = require('./messenger-abstract');
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -14,7 +15,7 @@ const defaultLogger = {
     debug: () => { },
 };
 
-module.exports = class Matrix {
+module.exports = class Matrix extends MessengerAbstract {
     /**
      * Matrix-sdk fasade for bot building
      * @param  {Object} options api options
@@ -24,6 +25,7 @@ module.exports = class Matrix {
      * @param  {Object} options.logger logger, winstone type, if no logger is set logger is off
      */
     constructor({config, sdk = matrixSdk, commandsHandler, logger = defaultLogger}) {
+        super();
         this.commandsHandler = commandsHandler;
         this.config = config;
         this.sdk = sdk;
@@ -92,6 +94,7 @@ module.exports = class Matrix {
     _getMatrixRoomAlias(alias) {
         return `#${alias}:${this.config.domain}`;
     }
+
     /**
      * Check if err should be ignored
      * @param  {Object} err catching error body
@@ -280,6 +283,7 @@ module.exports = class Matrix {
             const event = getEvent(content);
 
             await this.client.setPowerLevel(roomId, userId, 50, event);
+            return true;
         } catch (err) {
             throw [`Error setting power level for user ${userId} in room ${roomId}`, err].join('\n');
         }
@@ -369,12 +373,15 @@ module.exports = class Matrix {
             const user = userId.toLowerCase();
             if (await this.isRoomMember(roomId, user)) {
                 this.logger.warn(`Room ${roomId} already has user ${user}`);
-                return;
+
+                return false;
             }
             await this.client.invite(roomId, user);
+
+            return true;
         } catch (err) {
             if (this._isEventExeptionError(err)) {
-                return null;
+                return false;
             }
 
             throw ['Error while inviting a new member to a room:', err].join('\n');
@@ -394,7 +401,7 @@ module.exports = class Matrix {
             if (this._isEventExeptionError(err)) {
                 this.logger.warn(err.message);
 
-                return null;
+                return;
             }
 
             throw ['Error in sendHtmlMessage', err].join('\n');
@@ -403,18 +410,20 @@ module.exports = class Matrix {
 
     /**
      * Create alias for the room
-     * @param  {string} alias matrix room alias
+     * @param  {string} name matrix room name
      * @param  {string} roomId matrix room id
      */
-    async createAlias(alias, roomId) {
-        const newAlias = this._getMatrixRoomAlias(alias);
+    async createAlias(name, roomId) {
+        const newAlias = this._getMatrixRoomAlias(name);
         try {
             await this.client.createAlias(newAlias, roomId);
+
+            return newAlias;
         } catch (err) {
             if (err.message.includes(`Room alias ${newAlias} already exists`)) {
                 this.logger.warn(err.message);
 
-                return null;
+                return false;
             }
             this.logger.error(err);
             throw ['Error while creating alias for a room', err].join('\n');
@@ -434,7 +443,7 @@ module.exports = class Matrix {
             if (this._isEventExeptionError(err)) {
                 this.logger.warn(err.message);
 
-                return null;
+                return false;
             }
 
             throw ['Error while setting room name', err].join('\n');
@@ -465,17 +474,8 @@ module.exports = class Matrix {
      * @param {String} room room full or short name
      * @returns {Boolean} return true if it's matrix room name
      */
-    isRoomAlias(room) {
+    _isRoomAlias(room) {
         return room.includes(this.config.domain) && room[0] === '#';
-    }
-
-    /**
-     * Get matrix room
-     * @param {String} name matrix room name like INDEV-1
-     * @returns {String} matrix room alias like #INDEV-1:example.matrix.com
-     */
-    getMatrixRoomAlias(name) {
-        return `#${name}:${this.config.domain}`;
     }
 
     /**
@@ -485,7 +485,7 @@ module.exports = class Matrix {
      */
     async getRoomIdByName(text) {
         try {
-            const alias = this.isRoomAlias(text) ? text : this.getMatrixRoomAlias(text.toUpperCase());
+            const alias = this._isRoomAlias(text) ? text : this._getMatrixRoomAlias(text.toUpperCase());
             const {room_id: roomId} = await this.client.getRoomIdForAlias(alias);
 
             return roomId;

@@ -87,7 +87,7 @@ module.exports = class {
      * @param {integer} port jira server port
      */
     constructor(chatApi, queueHandler, app, port) {
-        this.matrixFsm = getChatFsm(chatApi, queueHandler);
+        this.chatFSM = getChatFsm(chatApi, queueHandler);
         this.jiraFsm = getJiraFsm(app(this.handleHook.bind(this)), port);
     }
 
@@ -103,10 +103,10 @@ module.exports = class {
      * Handling redis data
      */
     async _handle() {
-        if (this.matrixFsm.can('handleQueue')) {
+        if (this.chatFSM.can('handleQueue')) {
             this.jiraFsm.handlingInProgress();
-            await this.matrixFsm.handleQueue();
-            this.matrixFsm.finishHandle();
+            await this.chatFSM.handleQueue();
+            this.chatFSM.finishHandle();
 
             this.jiraFsm.is('hookResponsed') && await this._handle();
         }
@@ -117,30 +117,30 @@ module.exports = class {
      */
     async start() {
         this.jiraFsm.start();
-        await this.matrixFsm.connect();
-        this.matrixFsm.finishConnection();
+        await this.chatFSM.connect();
+        this.chatFSM.finishConnection();
         this.jiraFsm.handlingInProgress();
-        await this.matrixFsm.handleQueue();
-        this.matrixFsm.finishHandle();
+        await this.chatFSM.handleQueue();
+        this.chatFSM.finishHandle();
 
         this.jiraFsm.is('hookResponsed') ? await this._handle() : this.jiraFsm.finishHandle();
     }
 
     /**
      * Test only
-     * @param  {String} fsmName='matrixFsm'
+     * @param  {String} fsmName='chatFSM'
      * @returns {Array} fsm states history
      */
-    history(fsmName = 'matrixFsm') {
+    history(fsmName = 'chatFSM') {
         return this[fsmName].history;
     }
 
     /**
      * Test only
-     * @param  {String} fsmName='matrixFsm'
+     * @param  {String} fsmName='chatFSM'
      * @returns {String} fsm current state
      */
-    state(fsmName = 'matrixFsm') {
+    state(fsmName = 'chatFSM') {
         return this[fsmName].state;
     }
 
@@ -149,6 +149,6 @@ module.exports = class {
      */
     stop() {
         this.jiraFsm.stop();
-        this.matrixFsm.stop();
+        this.chatFSM.stop();
     }
 };

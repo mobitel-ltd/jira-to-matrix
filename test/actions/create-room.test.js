@@ -93,7 +93,7 @@ describe('Create room test', () => {
         nock.cleanAll();
     });
 
-    it('Expect issue room and project room should not be created if we run simple issue_created and chat room exists', async () => {
+    it('Expect both issue room and project room not to be created if we run simple issue_created and both chat room exists in chat', async () => {
         const result = await createRoom({chatApi, ...createRoomData});
         expect(result).to.be.true;
         expect(chatApi.createRoom).not.to.be.called;
@@ -123,7 +123,6 @@ describe('Create room test', () => {
     });
 
     it('Expect error in room create throws error', async () => {
-        chatApi.getRoomId.throws();
         chatApi.createRoom.throws(errorMsg);
         let res;
         const expectedError = [

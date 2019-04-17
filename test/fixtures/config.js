@@ -1,14 +1,14 @@
 const faker = require('faker');
 
-// const slack = {
-//     name: 'slack',
-//     admins: ['test_user'],
-//     user: 'jirabot',
-//     domain: faker.internet.domainName(),
-//     password: faker.random.uuid(),
-//     eventPassword: faker.internet.password(22),
-//     eventPort: 3001,
-// };
+const slack = {
+    name: 'slack',
+    admins: ['jira_test'],
+    user: 'jirabot',
+    domain: faker.internet.domainName(),
+    password: faker.random.uuid(),
+    eventPassword: faker.internet.password(22),
+    eventPort: 3001,
+};
 
 const matrix = {
     name: 'matrix',
@@ -55,8 +55,7 @@ module.exports = Object.freeze({
         port: 6379,
         prefix: 'test-jira-hooks:',
     },
-    // messenger: faker.random.arrayElement([slack, matrix]),
-    messenger: matrix,
+    messenger: faker.random.arrayElement([slack, matrix]),
     log: {
         type: 'console',
         filePath: 'logs/service',

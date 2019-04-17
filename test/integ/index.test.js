@@ -11,7 +11,6 @@ const queueHandler = require('../../src/queue');
 const utils = require('../../src/lib/utils.js');
 const {cleanRedis} = require('../test-utils');
 const redisUtils = require('../../src/queue/redis-data-handle.js');
-// const translate = require('../../src/locales');
 
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
 const jiraCommentCreatedJSON = require('../fixtures/webhooks/comment/created.json');
@@ -212,7 +211,6 @@ describe('Integ tests', () => {
             .set('Content-Type', 'application/json');
 
         const expectedData = {
-            token: messengerConfig.password,
             channel: slackExpectedChannelId,
             attachments: [{
                 'text': `${utils.getHeaderText(jiraCommentCreatedJSON)}: \n${jiraCommentCreatedJSON.comment.body}`,
@@ -230,16 +228,14 @@ describe('Integ tests', () => {
             .set('Content-Type', 'application/json');
 
         const expectedCreateRoomData = {
-            'token': messengerConfig.password,
             'is_private': true,
             'name': jiraIssueCreatedJSON.issue.key.toLowerCase(),
-            'user_ids': Array.from({length: 4}, () => userJSON.correct.user.id),
+            // 'user_ids': Array.from({length: 4}, () => userJSON.correct.user.id),
         };
         const expectedProjectRoomData = {
-            'token': messengerConfig.password,
             'is_private': true,
             'name': jiraIssueCreatedJSON.issue.fields.project.key.toLowerCase(),
-            'user_ids': [userJSON.correct.user.id],
+            // 'user_ids': [userJSON.correct.user.id],
         };
 
         const dataKeys = await redisUtils.getDataFromRedis();

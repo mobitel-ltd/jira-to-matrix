@@ -1,5 +1,5 @@
 const conf = require('./config');
-const MessengerApi = require('./messengers')(conf.messenger.name);
+const getChatApi = require('./messengers');
 const getLogger = require('./modules/log');
 const logger = getLogger(module);
 const commandsHandler = require('./bot/timeline-handler');
@@ -7,9 +7,10 @@ const FSM = require('./fsm');
 const app = require('./jira-app');
 const queueHandler = require('../src/queue');
 
-const messengerApi = new MessengerApi({config: conf.messenger, commandsHandler, logger: getLogger('messenger-api')});
+const ChatApi = getChatApi(conf.messenger.name);
+const chatApi = new ChatApi({config: conf.messenger, commandsHandler, logger: getLogger('messenger-api')});
 
-const fsm = new FSM(messengerApi, queueHandler, app, conf.port);
+const fsm = new FSM(chatApi, queueHandler, app, conf.port);
 
 fsm.start();
 
