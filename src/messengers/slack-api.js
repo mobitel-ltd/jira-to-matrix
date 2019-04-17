@@ -1,7 +1,7 @@
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 const http = require('http');
 const Ramda = require('ramda');
-const {WebClient} = require('@slack/client');
+const {WebClient} = require('@slack/web-api');
 const htmlToText = require('html-to-text').fromString;
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -143,7 +143,7 @@ module.exports = class SlackApi {
                 text,
                 'mrkdwn_in': ['text'],
             }];
-            await this.client.chat.postMessage({token: this.token, channel, attachments});
+            await this.client.chat.postMessage({channel, attachments});
         } catch (err) {
             throw ['Error in sendHtmlMessage', err].join('\n');
         }
@@ -155,11 +155,11 @@ module.exports = class SlackApi {
      */
     async _getUserIdByEmail(email) {
         try {
-            const userInfo = await this.client.users.lookupByEmail({token: this.token, email});
+            const userInfo = await this.client.users.lookupByEmail({email});
 
             return Ramda.path(['user', 'id'], userInfo);
         } catch (error) {
-            this.logger.error(`Error getting user for slack by ${email}`, error);
+            this.logger.error(`Error getting user from slack by email "${email}"`, error);
         }
     }
 
@@ -171,7 +171,7 @@ module.exports = class SlackApi {
      */
     async setRoomTopic(channel, topic) {
         try {
-            const res = await this.client.conversations.setTopic({token: this.token, channel, topic});
+            const res = await this.client.conversations.setTopic({channel, topic});
 
             return res.ok;
         } catch (err) {
@@ -188,7 +188,7 @@ module.exports = class SlackApi {
      */
     async setPurpose(channel, purpose) {
         try {
-            const res = await this.client.conversations.setPurpose({token: this.token, channel, purpose});
+            const res = await this.client.conversations.setPurpose({channel, purpose});
 
             return res.ok;
         } catch (err) {
@@ -203,20 +203,25 @@ module.exports = class SlackApi {
      * @param  {String} options.name name for channel, less than 21 sign, lowerCase, no space
      * @param  {String} options.topic slack channel topic
      * @param  {Array} options.invite user emails to invite
-     * @param  {Array} options.purpose issue summary
+     * @param  {String[]} options.purpose issue summary
      * @returns {string} Slack channel id
      */
     async createRoom({name, topic, invite, purpose}) {
         try {
-            const ids = await Promise.all(invite.map(user => this._getUserIdByEmail(user)));
             const options = {
-                'token': this.token,
                 'is_private': true,
                 'name': name.toLowerCase(),
-                'user_ids': ids.filter(Boolean),
             };
             const {channel} = await this.client.conversations.create(options);
             const roomId = channel.id;
+            await Promise.all(invite.map(async name => {
+                try {
+                    await this.invite(roomId, name);
+                } catch (error) {
+                    // eslint-disable-next-line
+                    this.logger.warn(`User ${name} is not in slack, try to add him. Room for jira issue ${name} will be without him.`);
+                }
+            }));
             await this.setRoomTopic(roomId, topic);
             await this.setPurpose(roomId, purpose);
 
@@ -236,7 +241,7 @@ module.exports = class SlackApi {
         const searchingName = name.toLowerCase();
         try {
             // ? Limit of channels is only 1000 now
-            const {channels} = await this.sdk.users.conversations({token: this.token, limit: 1000, types: 'private_channel'});
+            const {channels} = await this.client.users.conversations({limit: 1000, types: 'private_channel'});
             const channel = channels.find(item => item.name === searchingName);
 
             const roomId = Ramda.path(['id'], channel);
@@ -273,7 +278,7 @@ module.exports = class SlackApi {
         const email = this._getEmail(name);
         try {
             const userId = await this._getUserIdByEmail(email);
-            const response = await this.client.conversations.invite({token: this.token, channel, users: userId});
+            const response = await this.client.conversations.invite({channel, users: userId});
 
             return response.ok;
         } catch (err) {
@@ -291,7 +296,7 @@ module.exports = class SlackApi {
     async getRoomMembers({name, roomId}) {
         try {
             const channel = roomId || await this.getRoomId(name);
-            const {members} = await this.client.conversations.members({token: this.token, channel});
+            const {members} = await this.client.conversations.members({channel});
 
             return members;
         } catch (err) {
@@ -315,7 +320,7 @@ module.exports = class SlackApi {
      */
     async setRoomName(channel, name) {
         try {
-            const res = await this.client.conversations.rename({token: this.token, channel, name});
+            const res = await this.client.conversations.rename({channel, name});
 
             return res.ok;
         } catch (err) {
@@ -330,7 +335,7 @@ module.exports = class SlackApi {
      */
     async getRoomInfo(channel) {
         try {
-            const roomInfo = await this.client.conversations.info({token: this.token, channel});
+            const roomInfo = await this.client.conversations.info({channel});
 
             return roomInfo.channel;
         } catch (err) {

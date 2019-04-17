@@ -1,4 +1,4 @@
-const {WebClient} = require('@slack/client');
+const {WebClient} = require('@slack/web-api');
 const nock = require('nock');
 const supertest = require('supertest');
 const faker = require('faker');

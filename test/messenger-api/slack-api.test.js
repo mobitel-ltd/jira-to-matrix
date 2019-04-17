@@ -1,6 +1,6 @@
 const logger = require('../../src/modules/log')('slack-api');
 const faker = require('faker');
-const {WebClient} = require('@slack/client');
+const {WebClient} = require('@slack/web-api');
 const htmlToText = require('html-to-text').fromString;
 
 const messages = require('../fixtures/events/slack/messages.json');
@@ -81,8 +81,6 @@ describe('Slack api testing', () => {
 
     const sdk = {...createStubInstance(WebClient), auth, conversations, users, chat};
 
-    // const commandsHandler = stub();
-
     const slackApi = new SlackApi({config: testConfig, sdk, commandsHandler, logger});
 
     beforeEach(async () => {
@@ -90,7 +88,6 @@ describe('Slack api testing', () => {
     });
 
     afterEach(async () => {
-        // commandsHandler.resetHistory();
         await slackApi.disconnect();
     });
 
@@ -100,18 +97,15 @@ describe('Slack api testing', () => {
     });
 
     it('Expect create room run setTopic, setPurpose and create conversaton with correct data', async () => {
-        // await slackApi.connect();
         const roomId = await slackApi.createRoom(options);
 
         expect(roomId).to.be.eq(conversationJSON.correct.channel.id);
         expect(sdk.conversations.create).to.be.calledWithExactly({
-            'token': testConfig.password,
             'is_private': true,
             'name': options.name.toLowerCase(),
-            'user_ids': [userJSON.correct.user.id, userJSON.correct.user.id],
         });
+        expect(sdk.conversations.invite).to.be.calledTwice;
         expect(sdk.conversations.setPurpose).to.be.calledWithExactly({
-            token: testConfig.password,
             channel: roomId,
             purpose: options.purpose,
         });
@@ -125,7 +119,6 @@ describe('Slack api testing', () => {
         await slackApi.sendHtmlMessage(channel, attachments, text);
 
         const expectedData = {
-            token: testConfig.password,
             channel,
             attachments: [{
                 text,
@@ -165,7 +158,6 @@ describe('Slack api testing', () => {
 
         expect(res).to.be.true;
         const expectedData = {
-            token: testConfig.password,
             channel,
             users: correctSlackUserId,
         };
@@ -185,7 +177,6 @@ describe('Slack api testing', () => {
 
         expect(status).to.be.true;
         expect(conversations.rename).to.be.calledWithExactly({
-            token: testConfig.password,
             channel: conversationJSON.correct.channel.id,
             name,
         });
@@ -198,7 +189,6 @@ describe('Slack api testing', () => {
             .set('Content-Type', 'application/x-www-form-urlencoded');
 
         expect(sdk.chat.postMessage).to.be.calledWithExactly({
-            token: testConfig.password,
             channel: messages.help.channel_id,
             attachments: [{
                 'text': htmlToText(utils.helpPost),
