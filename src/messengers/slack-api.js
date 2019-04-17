@@ -7,10 +7,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const defaultLogger = {
-    info: () => {},
-    error: () => {},
-    warn: () => {},
-    debug: () => {},
+    info: () => { },
+    error: () => { },
+    warn: () => { },
+    debug: () => { },
 };
 
 module.exports = class SlackApi {
@@ -374,5 +374,14 @@ module.exports = class SlackApi {
      */
     setPower(roomId, userId) {
         this.logger.warn('Set power command is not available now');
+    }
+
+    /**
+     * compose room name for slack chat
+     * @param {String} key Jira issue key
+     * @returns {String} room name for jira issue in slack
+     */
+    composeRoomName(key) {
+        return `${key.toLowerCase()}`;
     }
 };

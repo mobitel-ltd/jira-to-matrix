@@ -137,7 +137,10 @@ describe('Post issue updates test', () => {
         const data = getPostIssueUpdatesData(onlySummaryUpdateJSON);
         const res = await postIssueUpdates({chatApi, ...data});
 
-        expect(chatApi.setRoomName).to.be.calledWithExactly(roomId, data.newName);
+        expect(chatApi.setRoomName).to.be.calledWithExactly(
+            roomId,
+            chatApi.composeRoomName(data.oldKey, changelog.items[0].toString),
+        );
         expect(res).to.be.true;
     });
 });

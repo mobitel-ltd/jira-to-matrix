@@ -42,6 +42,7 @@ module.exports = {
             createAlias: stub(),
             setRoomTopic: stub(),
             getRoomIdByName: stub().resolves(false),
+            composeRoomName: stub().callsFake(realChatApi.composeRoomName.bind(realChatApi)),
         };
         if (Array.isArray(alias)) {
             alias.forEach(item => {
