@@ -17,17 +17,14 @@ module.exports = async ({chatApi, ...body}) => {
         const roomID = await chatApi.getRoomId(body.oldKey);
 
         if (body.newKey) {
-            await chatApi.createAlias(body.newKey, roomID);
-            logger.debug(`Added alias ${body.newKey} for room ${body.oldKey}`);
-
-            await chatApi.setRoomTopic(roomID, utils.getViewUrl(body.newKey));
+            const topic = utils.getViewUrl(body.newKey);
+            await chatApi.updateRoomData(roomID, topic, body.newKey);
             logger.debug(`Added new topic ${body.newKey} for room ${body.oldKey}`);
         }
 
         if (body.newNameData) {
-            const newName = chatApi.composeRoomName(body.newNameData.key, body.newNameData.summary);
-            await chatApi.setRoomName(roomID, newName);
-            logger.debug(`Renamed room ${body.oldKey}`);
+            await chatApi.updateRoomName(roomID, body.newNameData);
+            logger.debug(`Room ${body.oldKey} name updated`);
         }
 
         const info = await getIssueUpdateInfoMessageBody(body);

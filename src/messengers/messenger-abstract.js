@@ -131,12 +131,25 @@ module.exports = class {
     async sendHtmlMessage(roomId, body, htmlBody) {}
 
     /**
-     * Create name for the room, matrix only
+     * Update room name
      * @abstract
      * @async
-     * @param  {string} name matrix room name
-     * @param  {string} roomId matrix room id
-     * @returns {Promise<String|false>} return new alias if succedded created or return false if alias is already exists
+     * @param  {String} roomId room id
+     * @param  {Object} roomData room name
+     * @param  {String} roomData.key jira issue key
+     * @param  {String} roomData.summary jira issue summary
+     * @returns {Promise<void>} void
      */
-    async createAlias(name, roomId) {}
+    async updateRoomName(roomId, roomData) {}
+
+    /**
+     * Update room info data
+     * @abstract
+     * @async
+     * @param  {string} roomId room id
+     * @param  {String} topic new room topic
+     * @param  {String} key new room key
+     * @returns {Promise<void>} void
+     */
+    async updateRoomData(roomId, topic, key) {}
 };

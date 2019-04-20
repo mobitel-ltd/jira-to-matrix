@@ -27,8 +27,7 @@ module.exports = class SlackApi extends MessengerAbstract {
         super();
         this.commandsHandler = commandsHandler;
         this.config = config;
-        this.token = config.password;
-        this.sdk = sdk || new WebClient(this.token);
+        this.sdk = sdk || new WebClient(config.password);
         this.logger = logger;
         this.commandServer;
     }
@@ -76,7 +75,7 @@ module.exports = class SlackApi extends MessengerAbstract {
             }))
             .post('/commands', async (req, res, next) => {
                 await this._eventHandler(req.body);
-                next();
+                res.send(200);
             });
 
         this.commandServer = http.createServer(app);
@@ -307,14 +306,6 @@ module.exports = class SlackApi extends MessengerAbstract {
     }
 
     /**
-     * Empty method to avoid error with create alias in matrix
-     *  @returns {Boolean} always true
-     */
-    createAlias() {
-        return true;
-    }
-
-    /**
      * Set new name to the channel
      * @param  {string} channel channel id
      * @param  {string} name new topic
@@ -385,5 +376,29 @@ module.exports = class SlackApi extends MessengerAbstract {
      */
     composeRoomName(key) {
         return `${key.toLowerCase()}`;
+    }
+
+    /**
+     * Update room name
+     * @param  {string} roomId channel id
+     * @param  {Object} roomData issue data
+     * @param  {String} roomData.key jira issue key
+     * @param  {String} roomData.summary jira issue summary
+     * @returns {Promise<void>} update room data
+     */
+    async updateRoomName(roomId, roomData) {
+        const newName = this.composeRoomName(roomData.key);
+        await this.setRoomName(roomId, newName);
+        await this.setPurpose(roomId, roomData.summary);
+    }
+
+    /**
+     * Update room info data
+     * @param  {string} roomId room id
+     * @param  {String} topic new room topic
+     * @returns {Promise<void>} void
+     */
+    async updateRoomData(roomId, topic) {
+        await this.setRoomTopic(roomId, topic);
     }
 };

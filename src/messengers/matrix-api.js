@@ -505,4 +505,29 @@ module.exports = class Matrix extends MessengerAbstract {
     composeRoomName(key, summary) {
         return `${key} ${summary}`;
     }
+
+    /**
+     * Update room name
+     * @param  {string} roomId matrix room id
+     * @param  {Object} roomData issue data
+     * @param  {String} roomData.key jira issue key
+     * @param  {String} roomData.summary jira issue summary
+     * @returns {Promise<void>} update room data
+     */
+    async updateRoomName(roomId, roomData) {
+        const newName = this.composeRoomName(roomData.key, roomData.summary);
+        await this.setRoomName(roomId, newName);
+    }
+
+    /**
+     * Update room info data
+     * @param  {string} roomId room id
+     * @param  {String} topic new room topic
+     * @param  {String} key new issue key
+     * @returns {Promise<void>} void
+     */
+    async updateRoomData(roomId, topic, key) {
+        await this.createAlias(key, roomId);
+        await this.setRoomTopic(roomId, topic);
+    }
 };

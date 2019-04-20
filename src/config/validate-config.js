@@ -51,7 +51,6 @@ const schema = obj({
         domain: string,
         user: string,
         password: string,
-        eventPassword: Joi.string().optional(),
         eventPort: Joi.number().optional(),
     }),
     log: {

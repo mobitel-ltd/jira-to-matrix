@@ -99,8 +99,8 @@ describe('Post issue updates test', () => {
         expect(res).to.deep.equal(expected);
     });
 
-    it('Get error in move with createAlias', async () => {
-        chatApi.createAlias.throws('Error!!!');
+    it('Get error in move with updateRoomData', async () => {
+        chatApi.updateRoomData.throws('Error!!!');
         const expected = ['Error in postIssueUpdates', 'Error!!!'].join('\n');
         let res;
 
@@ -137,9 +137,9 @@ describe('Post issue updates test', () => {
         const data = getPostIssueUpdatesData(onlySummaryUpdateJSON);
         const res = await postIssueUpdates({chatApi, ...data});
 
-        expect(chatApi.setRoomName).to.be.calledWithExactly(
+        expect(chatApi.updateRoomName).to.be.calledWithExactly(
             roomId,
-            chatApi.composeRoomName(data.oldKey, changelog.items[0].toString),
+            {key: data.oldKey, summary: changelog.items[0].toString},
         );
         expect(res).to.be.true;
     });

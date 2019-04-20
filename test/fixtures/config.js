@@ -6,7 +6,6 @@ const slack = {
     user: 'jirabot',
     domain: faker.internet.domainName(),
     password: faker.random.uuid(),
-    eventPassword: faker.internet.password(22),
     eventPort: 3001,
 };
 
