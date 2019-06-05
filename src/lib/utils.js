@@ -20,6 +20,7 @@ const JIRA_REST = 'rest/api/2';
 
 const INDENT = '&nbsp;&nbsp;&nbsp;&nbsp;';
 const LINE_BREAKE_TAG = '<br>';
+const startPattern = 'No roomId for ';
 
 const NEW_YEAR_2018 = new Date(Date.UTC(2018, 0, 1, 3));
 
@@ -125,7 +126,9 @@ const utils = {
 
     getDisplayName: body => utils.runMethod(body, 'getDisplayName'),
 
-    getMembers: body => utils.runMethod(body, 'getMembers') || handlers.issue.getMembers({issue: body}),
+    getMembers: body =>
+        utils.runMethod(body, 'getMembers') ||
+    handlers.issue.getMembers({issue: body}),
 
     getIssueId: body => utils.runMethod(body, 'getIssueId'),
 
@@ -338,9 +341,7 @@ const utils = {
                 return {commandName};
             }
 
-            const bodyText = trimedBody
-                .replace(`!${commandName}`, '')
-                .trim();
+            const bodyText = trimedBody.replace(`!${commandName}`, '').trim();
 
             return {commandName, bodyText};
         } catch (err) {
@@ -353,6 +354,14 @@ const utils = {
 
         return name.slice(1);
     },
+
+    getKeyFromError: str => {
+        const start = str.indexOf(startPattern) + startPattern.length;
+        const end = str.indexOf(' from Matrix');
+        return str.slice(start, end);
+    },
+
+    isNoRoomError: errStr => errStr.includes(startPattern),
 
     isAdmin: user => messenger.admins.includes(user),
 

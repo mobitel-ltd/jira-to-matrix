@@ -63,17 +63,26 @@ describe('Utils testing', () => {
 
     it('Extract username from JIRA webhook', () => {
         const samples = [
-            [{
-                comment: {author: {name: 'user1'}},
-                user: {name: 'user2'},
-            }, 'user1'],
-            [{
-                user: {name: 'user2'},
-            }, 'user2'],
-            [{
-                comment: {author1: {name: 'user1'}},
-                user: {name1: 'user2'},
-            }, undefined],
+            [
+                {
+                    comment: {author: {name: 'user1'}},
+                    user: {name: 'user2'},
+                },
+                'user1',
+            ],
+            [
+                {
+                    user: {name: 'user2'},
+                },
+                'user2',
+            ],
+            [
+                {
+                    comment: {author1: {name: 'user1'}},
+                    user: {name1: 'user2'},
+                },
+                undefined,
+            ],
             [{comment: {}}, undefined],
             [{}, undefined],
         ];
@@ -92,7 +101,9 @@ describe('Utils testing', () => {
     it('Test correct auth', () => {
         const currentAuth = utils.auth();
 
-        expect(currentAuth).to.be.equal('Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ=');
+        expect(currentAuth).to.be.equal(
+            'Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ='
+        );
     });
 
     it('Test correct getChangelogField', () => {
@@ -137,6 +148,17 @@ describe('Utils testing', () => {
         const data = utils.getMembers(issueBody);
 
         expect(data).to.be.not.empty;
+    });
+
+    it('Expect getKeyFromError return correct key', () => {
+        const key = 'BOPB-19';
+        const str = `Error in postComment_1555586889467
+                    Error in Post comment
+                    No roomId for ${key} from Matrix
+                    M_NOT_FOUND: Room alias #BOPB-19:matrix.bingo-boom.ru not found`;
+        const data = utils.getKeyFromError(str);
+
+        expect(data).to.be.eq(key);
     });
 
     describe('command handler test', () => {
