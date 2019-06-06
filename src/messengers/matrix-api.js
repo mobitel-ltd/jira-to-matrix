@@ -330,7 +330,7 @@ module.exports = class Matrix extends MessengerAbstract {
             const {room_id: roomId} = await this.client.getRoomIdForAlias(this._getMatrixRoomAlias(alias));
             return roomId;
         } catch (err) {
-            throw [`No roomId for ${alias} from Matrix`, err].join('\n');
+            throw [`${utils.NO_ROOM_PATTERN}${alias}${utils.END_NO_ROOM_PATTERN}`, err].join('\n');
         }
     }
 

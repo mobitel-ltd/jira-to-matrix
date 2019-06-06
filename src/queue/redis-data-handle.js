@@ -96,9 +96,11 @@ const handleRedisData = async (client, dataFromRedis) => {
 
                     return `${redisKey} --- true`;
                 } catch (err) {
+                    const errBody = typeof err === 'string' ? err : err.message;
                     logger.error(`Error in ${redisKey}\n`, err);
-                    if (utils.isNoRoomError(err)) {
-                        const key = utils.getKeyFromError(err);
+                    if (utils.isNoRoomError(errBody)) {
+                        const key = utils.getKeyFromError(errBody);
+                        logger.warn(`Room with key ${key} is not found, trying to create it again`);
                         const newRoomRecord = key.includes('-')
                             ? {issue: {key}}
                             : {projectKey: key};

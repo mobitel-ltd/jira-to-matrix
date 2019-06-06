@@ -5,6 +5,7 @@ const watchersBody = require('../fixtures/jira-api-requests/watchers.json');
 const {getInviteNewMembersData} = require('../../src/jira-hook-parser/parse-body.js');
 const inviteNewMembers = require('../../src/bot/actions/invite-new-members.js');
 const testUtils = require('../test-utils');
+const issueBodyJSON = require('../fixtures/jira-api-requests/issue.json');
 
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
@@ -13,7 +14,13 @@ chai.use(sinonChai);
 
 describe('inviteNewMembers test', () => {
     let chatApi = testUtils.getChatApi();
-    const expectedWatchers = watchersBody.watchers.map(({name}) => chatApi.getChatUserId(name));
+    const members = [
+        issueBodyJSON.fields.reporter.name,
+        issueBodyJSON.fields.creator.name,
+        issueBodyJSON.fields.assignee.name,
+    ].map(name => chatApi.getChatUserId(name));
+    const watchers = watchersBody.watchers.map(({name}) => chatApi.getChatUserId(name));
+    const expectedWatchers = [...new Set([...members, ...watchers])];
 
     const upperWatchersBody = {
         ...watchersBody,
@@ -30,11 +37,16 @@ describe('inviteNewMembers test', () => {
 
     before(() => {
         nock(utils.getRestUrl())
+            .get(`/issue/${JSONbody.issue.key}`)
+            .times(4)
+            .reply(200, issueBodyJSON)
             .get(`/issue/${JSONbody.issue.key}/watchers`)
             .times(4)
             .reply(200, watchersBody)
             .get(`/issue/${inviteUpperCase.issue.key}/watchers`)
-            .reply(200, upperWatchersBody);
+            .reply(200, upperWatchersBody)
+            .get(`/issue/${inviteUpperCase.issue.key}`)
+            .reply(200, issueBodyJSON);
     });
 
     beforeEach(() => {

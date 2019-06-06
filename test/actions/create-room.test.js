@@ -20,6 +20,11 @@ chai.use(sinonChai);
 
 describe('Create room test', () => {
     let chatApi = testUtils.getChatApi();
+    const members = [
+        issueBodyJSON.fields.reporter.name,
+        issueBodyJSON.fields.creator.name,
+        issueBodyJSON.fields.assignee.name,
+    ].map(name => chatApi.getChatUserId(name));
 
     const watchers = watchersBody.watchers.map(({name}) => chatApi.getChatUserId(name));
     const errorMsg = 'some error';
@@ -30,7 +35,7 @@ describe('Create room test', () => {
 
     const expectedEpicRoomOptions = {
         'room_alias_name': epicJSON.issue.key,
-        'invite': [chatApi.getChatUserId(epicJSON.user.name), ...watchers],
+        'invite': [...new Set([...members, ...watchers])],
         'name': chatApi.composeRoomName(epicJSON.issue.key, epicJSON.issue.fields.summary),
         'topic': utils.getViewUrl(epicJSON.issue.key),
         'purpose': utils.getSummary(epicJSON),
@@ -38,7 +43,7 @@ describe('Create room test', () => {
 
     const expectedIssueRoomOptions = {
         'room_alias_name': createRoomData.issue.key,
-        'invite': [chatApi.getChatUserId(JSONbody.user.name), ...watchers],
+        'invite': [...new Set([...members, ...watchers])],
         'name': chatApi.composeRoomName(createRoomData.issue.key, createRoomData.issue.summary),
         'topic': utils.getViewUrl(createRoomData.issue.key),
         'purpose': createRoomData.issue.summary,
@@ -65,6 +70,11 @@ describe('Create room test', () => {
             // comment created hook
             .get(`/issue/${utils.getIssueId(commentCreatedJSON)}`)
             .reply(200, issueBodyJSON)
+            .get(`/issue/${issueBodyJSON.key}`)
+            .reply(200, issueBodyJSON)
+            .get(`/issue/${createRoomData.issue.key}`)
+            .times(2)
+            .reply(200, issueBodyJSON)
             .get(`/issue/${issueBodyJSON.key}/watchers`)
             .reply(200, watchersBody)
             .get(`/issue/${issueBodyJSON.key}`)
@@ -84,6 +94,9 @@ describe('Create room test', () => {
             .get(`/issue/${createRoomData.issue.key}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
+            .get(`/issue/${epicJSON.issue.key}`)
+            .times(2)
+            .reply(200, issueBodyJSON)
             .get(`/issue/${epicJSON.issue.key}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON);
@@ -166,7 +179,7 @@ describe('Create room test', () => {
         expect(chatApi.createRoom).to.be.calledWithExactly({
             'room_alias_name': issueBodyJSON.key,
             // beacause watchers are includes issue assigne in this case
-            'invite': watchers,
+            'invite': [...new Set([...members, ...watchers])],
             'name': chatApi.composeRoomName(issueBodyJSON.key, issueBodyJSON.fields.summary),
             'topic': utils.getViewUrl(issueBodyJSON.key),
             'purpose': issueBodyJSON.fields.summary,

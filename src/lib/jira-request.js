@@ -17,7 +17,7 @@ const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
 const jiraRequests = {
     checkUser: ({name, displayName}, expectedName) =>
         name.toLowerCase().includes(expectedName.toLowerCase())
-            || displayName.toLowerCase().includes(expectedName.toLowerCase()),
+        || displayName.toLowerCase().includes(expectedName.toLowerCase()),
 
     postComment: (roomName, sender, bodyText) => {
         const url = utils.getRestUrl('issue', roomName, 'comment');
@@ -69,10 +69,13 @@ const jiraRequests = {
      * @param {array} roomMembers array of users linked to current issue
      * @return {array} jira response with issue
      */
-    getIssueWatchers: async ({key, roomMembers = []}) => {
+    getIssueWatchers: async ({key}) => {
         const url = utils.getRestUrl('issue', key, 'watchers');
         const body = await request(url);
         const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];
+
+        const issue = await jiraRequests.getIssue(key);
+        const roomMembers = utils.handleIssueAsHook.getMembers({issue});
 
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 

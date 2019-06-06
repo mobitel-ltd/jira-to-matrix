@@ -9,8 +9,17 @@ const {getRequestErrorLog} = require('../../src/lib/messages');
 const {url} = require('../../src/config').jira;
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
 const watchersJSON = require('../fixtures/jira-api-requests/watchers.json');
+const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 
-const watchersUsers = watchersJSON.watchers.map(({name}) => name);
+// ii_ivanov pp_petrov bb_borisov
+const watchers = watchersJSON.watchers.map(({name}) => name);
+// ii_ivanov ao_fedorov oo_orlov
+const members = [
+    issueJSON.fields.reporter.name,
+    issueJSON.fields.creator.name,
+    issueJSON.fields.assignee.name,
+];
+const expectedWatchersUsers = [...new Set([...watchers, ...members])].sort();
 describe('Jira request test', () => {
     const users = [
         {
@@ -36,7 +45,6 @@ describe('Jira request test', () => {
         key: 'ABC',
     };
     const fakeKey = 'NANANAN';
-    const roomMembers = ['testName1', 'testName2'];
 
     const params = {
         username: utils.COMMON_NAME,
@@ -48,6 +56,9 @@ describe('Jira request test', () => {
 
     before(() => {
         nock(utils.getRestUrl())
+            .get(`/issue/${issue.key}`)
+            .times(5)
+            .reply(200, issueJSON)
             .get(`/issue/${issue.key}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
@@ -98,33 +109,33 @@ describe('Jira request test', () => {
     });
 
     it('expect getIssueWatchers works correct', async () => {
-        const result = await getIssueWatchers({key: issue.key, roomMembers});
-        expect(result).to.be.deep.eq([...roomMembers, ...watchersUsers]);
+        const result = await getIssueWatchers({key: issue.key});
+        expect(result.sort()).to.be.deep.eq([...expectedWatchersUsers]);
     });
 
     it('expect getIssueWatchers works correct with empty roomMembers', async () => {
         const result = await getIssueWatchers({key: issue.key});
-        expect(result).to.be.deep.eq(watchersUsers);
+        expect(result.sort()).to.be.deep.eq(expectedWatchersUsers);
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list', async () => {
         const {getIssueWatchers: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
             '../config': {
-                inviteIgnoreUsers: roomMembers,
+                inviteIgnoreUsers: ['pp_petrov', 'bb_borisov'],
             },
         });
-        const result = await getCollectParticipantsProxy({key: issue.key, roomMembers});
-        expect(result).to.be.deep.eq(watchersUsers);
+        const result = await getCollectParticipantsProxy({key: issue.key});
+        expect(result.sort()).to.be.deep.eq(members.sort());
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list2', async () => {
         const {getIssueWatchers: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
             '../config': {
-                inviteIgnoreUsers: watchersUsers,
+                inviteIgnoreUsers: expectedWatchersUsers,
             },
         });
-        const result = await getCollectParticipantsProxy({key: issue.key, roomMembers});
-        expect(result).to.be.deep.eq(roomMembers);
+        const result = await getCollectParticipantsProxy({key: issue.key});
+        expect(result.sort()).to.be.deep.eq([]);
     });
 
     it('Expect getUsers returns correct users witn right length', async () => {

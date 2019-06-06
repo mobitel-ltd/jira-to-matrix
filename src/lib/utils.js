@@ -20,7 +20,8 @@ const JIRA_REST = 'rest/api/2';
 
 const INDENT = '&nbsp;&nbsp;&nbsp;&nbsp;';
 const LINE_BREAKE_TAG = '<br>';
-const startPattern = 'No roomId for ';
+const NO_ROOM_PATTERN = 'No roomId for ';
+const END_NO_ROOM_PATTERN = ' from Matrix';
 
 const NEW_YEAR_2018 = new Date(Date.UTC(2018, 0, 1, 3));
 
@@ -76,7 +77,7 @@ const handlers = {
             Ramda.path(['comment', 'updateAuthor', 'name'], body),
         getCreator: body =>
             handlers.comment.getUpdateAuthor(body) ||
-      handlers.comment.getAuthor(body),
+            handlers.comment.getAuthor(body),
         getUrl: body => Ramda.path(['comment', 'self'], body),
         getIssueId: body => getIdFromUrl(handlers.comment.getUrl(body)),
         getIssueName: body => handlers.comment.getIssueId(body),
@@ -101,6 +102,8 @@ const handlers = {
 
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
+
+    handleIssueAsHook: handlers.issue,
 
     getHookType: body => {
         const eventType = utils.getTypeEvent(body);
@@ -128,7 +131,7 @@ const utils = {
 
     getMembers: body =>
         utils.runMethod(body, 'getMembers') ||
-    handlers.issue.getMembers({issue: body}),
+        handlers.issue.getMembers({issue: body}),
 
     getIssueId: body => utils.runMethod(body, 'getIssueId'),
 
@@ -192,7 +195,7 @@ const utils = {
 
     isCommentEvent: body =>
         utils.getHookType(body) === 'comment' &&
-    !utils.getBodyWebhookEvent(body).includes('deleted'),
+        !utils.getBodyWebhookEvent(body).includes('deleted'),
 
     /**
    * Get changelog field body from webhook from jira
@@ -356,12 +359,12 @@ const utils = {
     },
 
     getKeyFromError: str => {
-        const start = str.indexOf(startPattern) + startPattern.length;
-        const end = str.indexOf(' from Matrix');
+        const start = str.indexOf(NO_ROOM_PATTERN) + NO_ROOM_PATTERN.length;
+        const end = str.indexOf(END_NO_ROOM_PATTERN);
         return str.slice(start, end);
     },
 
-    isNoRoomError: errStr => errStr.includes(startPattern),
+    isNoRoomError: errStr => errStr.includes(NO_ROOM_PATTERN),
 
     isAdmin: user => messenger.admins.includes(user),
 
@@ -454,5 +457,7 @@ module.exports = {
     INDENT,
     REDIS_ROOM_KEY,
     COMMON_NAME,
+    NO_ROOM_PATTERN,
+    END_NO_ROOM_PATTERN,
     ...utils,
 };
