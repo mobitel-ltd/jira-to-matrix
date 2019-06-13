@@ -7,23 +7,20 @@ const commentUpdatedHook = require('../fixtures/webhooks/comment/updated.json');
 const issueRenderedBody = require('../fixtures/jira-api-requests/issue-rendered.json');
 const parser = require('../../src/jira-hook-parser/parse-body.js');
 const {postComment} = require('../../src/bot/actions');
+const testUtils = require('../test-utils');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Post comments test', () => {
+    let chatApi;
+
     const someError = 'Error!!!';
-    const matrixRoomId = 'matrixRoomId';
+    const roomId = 'roomId';
     const postCommentData = parser.getPostCommentData(commentCreatedHook);
     const postCommentUpdatedData = parser.getPostCommentData(commentUpdatedHook);
-
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        getRoomId: stub().withArgs(issueRenderedBody.key).resolves(matrixRoomId),
-    };
 
     before(() => {
         nock(utils.getRestUrl(), {
@@ -38,8 +35,9 @@ describe('Post comments test', () => {
             .reply(200, issueRenderedBody);
     });
 
-    afterEach(() => {
-        Object.values(chatApi).map(val => val.resetHistory());
+    beforeEach(() => {
+        chatApi = testUtils.getChatApi();
+        chatApi.getRoomId.withArgs(issueRenderedBody.key).resolves(roomId);
     });
 
     after(() => {
@@ -54,7 +52,7 @@ describe('Post comments test', () => {
         const result = await postComment({chatApi, ...postCommentData});
 
         expect(result).to.be.true;
-        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(matrixRoomId, htmlToString(htmlBody), htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, htmlToString(htmlBody), htmlBody);
     });
 
     it('Expect postComment works correct with comment-updated hook', async () => {
@@ -64,7 +62,7 @@ describe('Post comments test', () => {
         const result = await postComment({chatApi, ...postCommentUpdatedData});
 
         expect(result).to.be.true;
-        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(matrixRoomId, htmlToString(htmlBody), htmlBody);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, htmlToString(htmlBody), htmlBody);
     });
 
     it('Expect return with empty issueID. No way to handle issue', async () => {
@@ -73,13 +71,11 @@ describe('Post comments test', () => {
     });
 
     it('Expect postComment throw error if room is not exists', async () => {
-        chatApi.getRoomId.throws(someError);
-        let res;
+        chatApi.getRoomId.withArgs(issueRenderedBody.key).throws(someError);
         try {
             await postComment({chatApi, ...postCommentData});
         } catch (err) {
-            res = err;
+            expect(err).to.include(someError);
         }
-        expect(res).to.include(someError);
     });
 });

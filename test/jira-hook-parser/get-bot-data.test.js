@@ -43,7 +43,10 @@ describe('get-bot-data', () => {
                 data: {
                     oldKey: 'TCP-2',
                     newKey: 'INDEV-130',
-                    newName: utils.composeRoomName(utils.getKey(issueMovedJSON), utils.getSummary(issueMovedJSON)),
+                    newNameData: {
+                        key: 'INDEV-130',
+                        summary: 'test Task 2',
+                    },
                     changelog: utils.getChangelog(issueMovedJSON),
                     author: 'jira_test',
                 },
@@ -54,7 +57,6 @@ describe('get-bot-data', () => {
                 data: {
                     issue: {
                         key: 'INDEV-130',
-                        roomMembers: utils.getMembers(issueMovedJSON),
                     },
                 },
             },
@@ -92,9 +94,6 @@ describe('get-bot-data', () => {
                 redisKey: 'newrooms',
                 createRoomData: {
                     'issue': {
-                        'roomMembers': [
-                            'jira_test',
-                        ],
                         'descriptionFields': {
                             'assigneeEmail': 'jira_test@test-example.ru',
                             'assigneeName': 'jira_test',
@@ -118,9 +117,6 @@ describe('get-bot-data', () => {
                 funcName: 'inviteNewMembers',
                 data: {
                     'issue': {
-                        'roomMembers': [
-                            'jira_test',
-                        ],
                         'key': 'BBCOM-956',
                     },
                 },

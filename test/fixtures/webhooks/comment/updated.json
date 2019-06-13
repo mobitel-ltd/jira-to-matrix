@@ -6,8 +6,6 @@
         "id": "10757",
         "author": {
             "self": "https://bingoboom.atlassian.net/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-            "name": "gv_grudinin",
-            "key": "gv_grudinin",
             "accountId": "5b912e21fa38ae2c896099ae",
             "avatarUrls": {
                 "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
@@ -22,8 +20,6 @@
         "body": "12345",
         "updateAuthor": {
             "self": "https://bingoboom.atlassian.net/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-            "name": "gv_grudinin",
-            "key": "gv_grudinin",
             "accountId": "5b912e21fa38ae2c896099ae",
             "avatarUrls": {
                 "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",

@@ -4,20 +4,23 @@ const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
 const watchersBody = require('../fixtures/jira-api-requests/watchers.json');
 const {getInviteNewMembersData} = require('../../src/jira-hook-parser/parse-body.js');
 const inviteNewMembers = require('../../src/bot/actions/invite-new-members.js');
+const testUtils = require('../test-utils');
+const issueBodyJSON = require('../fixtures/jira-api-requests/issue.json');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('inviteNewMembers test', () => {
-    const expectedWatchers = watchersBody.watchers.map(({name}) => utils.getChatUserId(name));
-    const chatApi = {
-        getRoomId: stub(),
-        getRoomMembers: stub(),
-        invite: stub(),
-    };
+    let chatApi = testUtils.getChatApi();
+    const members = [
+        issueBodyJSON.fields.reporter.name,
+        issueBodyJSON.fields.creator.name,
+        issueBodyJSON.fields.assignee.name,
+    ].map(name => chatApi.getChatUserId(name));
+    const watchers = watchersBody.watchers.map(({name}) => chatApi.getChatUserId(name));
+    const expectedWatchers = [...new Set([...members, ...watchers])];
 
     const upperWatchersBody = {
         ...watchersBody,
@@ -28,25 +31,27 @@ describe('inviteNewMembers test', () => {
     const inviteUpperCase = {
         issue: {
             key: 'someKey',
-            roomMembers: inviteNewMembersData.issue.roomMembers.map(name => name.toUpperCase()),
+            roomMembers: members.map(name => name.toUpperCase()),
         },
     };
 
     before(() => {
         nock(utils.getRestUrl())
+            .get(`/issue/${JSONbody.issue.key}`)
+            .times(4)
+            .reply(200, issueBodyJSON)
             .get(`/issue/${JSONbody.issue.key}/watchers`)
             .times(4)
             .reply(200, watchersBody)
             .get(`/issue/${inviteUpperCase.issue.key}/watchers`)
-            .reply(200, upperWatchersBody);
+            .reply(200, upperWatchersBody)
+            .get(`/issue/${inviteUpperCase.issue.key}`)
+            .reply(200, issueBodyJSON);
     });
 
     beforeEach(() => {
-        chatApi.getRoomMembers.resolves(['@jira_test:matrix.test-example.ru']);
-    });
-
-    afterEach(() => {
-        Object.values(chatApi).map(val => val.reset());
+        chatApi = testUtils.getChatApi({alias: [inviteNewMembersData.issue.key, inviteUpperCase.issue.key]});
+        chatApi.getRoomMembers.resolves([chatApi.getChatUserId('jira_test')]);
     });
 
     after(() => {
@@ -89,7 +94,7 @@ describe('inviteNewMembers test', () => {
 
     it('Expect inviteNewMembers works correct if some members are in room already', async () => {
         const [userToadd, ...otherUsers] = expectedWatchers;
-        chatApi.getRoomMembers.resolves(['@jira_test:matrix.test-example.ru', userToadd]);
+        chatApi.getRoomMembers.resolves([chatApi.getChatUserId('jira_test'), userToadd]);
 
         const result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
         expect(result).to.deep.equal(otherUsers);

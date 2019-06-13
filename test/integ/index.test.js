@@ -1,8 +1,7 @@
-const {WebClient} = require('@slack/client');
+const {WebClient} = require('@slack/web-api');
 const nock = require('nock');
 const supertest = require('supertest');
 const faker = require('faker');
-const EventEmitter = require('events');
 const conf = require('../../src/config');
 const SlackApi = require('../../src/messengers/slack-api');
 const logger = require('../../src/modules/log')('slack-api');
@@ -12,7 +11,6 @@ const queueHandler = require('../../src/queue');
 const utils = require('../../src/lib/utils.js');
 const {cleanRedis} = require('../test-utils');
 const redisUtils = require('../../src/queue/redis-data-handle.js');
-// const translate = require('../../src/locales');
 
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
 const jiraCommentCreatedJSON = require('../fixtures/webhooks/comment/created.json');
@@ -31,6 +29,7 @@ const postMessageJSON = require('../fixtures/slack-requests/chat/post-message.js
 const userJSON = require('../fixtures/slack-requests/user.json');
 const testJSON = require('../fixtures/slack-requests/auth-test.json');
 const slackConversationJSON = require('../fixtures/slack-requests/conversation.json');
+const conversationPurposeJSON = require('../fixtures/slack-requests/conversations/setPurpose.json');
 
 const chai = require('chai');
 const {stub, createStubInstance} = require('sinon');
@@ -40,7 +39,15 @@ chai.use(sinonChai);
 
 const request = supertest(`http://localhost:${conf.port}`);
 
-const messengerConfig = conf.messenger;
+// const messengerConfig = conf.messenger;
+const messengerConfig = {
+    name: 'slack',
+    admins: ['test_user'],
+    user: 'jirabot',
+    domain: faker.internet.domainName(),
+    password: faker.random.uuid(),
+    eventPort: 3001,
+};
 
 const auth = {
     test: stub().resolves(testJSON.user),
@@ -88,6 +95,12 @@ const slackChannelsAfterRoomCreating = {
             name: linkKey.toLowerCase(),
             id: faker.random.alphaNumeric(9).toUpperCase(),
         },
+        {
+            ...expectedChannel,
+            // old issue key before moving
+            name: 'rn-83',
+            id: faker.random.alphaNumeric(9).toUpperCase(),
+        },
     ],
 
 };
@@ -121,34 +134,25 @@ const conversations = {
     setTopic: stub().resolves(conversationSetTopicJSON),
     // https://api.slack.com/methods/conversations.rename
     rename: stub().resolves(conversationRenameJSON),
+    // https://api.slack.com/methods/conversations.setPurpose
+    setPurpose: stub().resolves(conversationPurposeJSON.correct),
 };
 
-const slackSdkClient = {...createStubInstance(WebClient), auth, conversations, users, chat};
+const sdk = {...createStubInstance(WebClient), auth, conversations, users, chat};
 
-const slackEventListener = {
-    ...createStubInstance(EventEmitter),
-    start: stub().resolves(),
-    stop: stub(),
-};
+const commandsHandler = stub().resolves();
 
-const eventApi = stub()
-    .withArgs(messengerConfig.eventPassword)
-    .returns(slackEventListener);
-
-const timelineHandler = stub().resolves();
+// const methodName = conf.messenger.name === 'slack' ? 'only' : 'skip';
+// describe[methodName]('Integ tests', () => {
 
 
-const methodName = conf.messenger.name === 'slack' ? 'only' : 'skip';
-describe[methodName]('Integ tests', () => {
-    const slackApi = new SlackApi({config: messengerConfig, slackSdkClient, timelineHandler, eventApi, logger});
+describe('Integ tests', () => {
+    const slackApi = new SlackApi({config: messengerConfig, sdk, commandsHandler, logger});
 
     const fsm = new FSM(slackApi, queueHandler, app, conf.port);
 
-    before(() => {
-        fsm.start();
-    });
-
     beforeEach(() => {
+        fsm.start();
         nock(conf.jira.url)
             .get('')
             .times(2)
@@ -161,14 +165,21 @@ describe[methodName]('Integ tests', () => {
             .times(2)
             .query(utils.expandParams)
             .reply(200, jiraRenderedIssueJSON)
+            .get(`/issue/${jiraIssueCreatedJSON.issue.key}`)
+            .times(3)
+            .reply(200, issueBody)
+            .get(`/issue/${utils.getOldKey(jiraIssueCreatedJSON)}`)
+            .query(utils.expandParams)
+            .reply(200, jiraRenderedIssueJSON)
             .get(`/issue/${jiraIssueCreatedJSON.issue.key}/watchers`)
+            .times(2)
             .reply(200, jiraWatchersBody)
             .get(`/issue/${utils.getIssueId(jiraCommentCreatedJSON)}`)
             .reply(200, issueBody)
             .get(`/issue/${utils.getEpicKey(jiraIssueCreatedJSON)}`)
             .reply(200, issueBody)
             .get(`/project/${jiraIssueCreatedJSON.issue.fields.project.key}`)
-            .times(2)
+            .times(3)
             .reply(200, jiraProjectData)
             .get(`/issue/${utils.getIssueId(jiraCommentCreatedJSON)}`)
             .query(utils.expandParams)
@@ -181,11 +192,8 @@ describe[methodName]('Integ tests', () => {
 
     afterEach(async () => {
         await cleanRedis();
-    });
-
-    after(() => {
-        fsm.stop();
         nock.cleanAll();
+        fsm.stop();
     });
 
     it('Expect all works', async () => {
@@ -203,12 +211,14 @@ describe[methodName]('Integ tests', () => {
             .set('Content-Type', 'application/json');
 
         const expectedData = {
-            token: conf.messenger.password,
             channel: slackExpectedChannelId,
-            text: `${utils.getHeaderText(jiraCommentCreatedJSON)}: \n${jiraCommentCreatedJSON.comment.body}`,
+            attachments: [{
+                'text': `${utils.getHeaderText(jiraCommentCreatedJSON)}: \n${jiraCommentCreatedJSON.comment.body}`,
+                'mrkdwn_in': ['text'],
+            }],
         };
 
-        expect(slackSdkClient.chat.postMessage).to.be.calledWithExactly(expectedData);
+        expect(sdk.chat.postMessage).to.be.calledWithExactly(expectedData);
     });
 
     it('Expect issue_generic hook to be handled and all keys should be handled', async () => {
@@ -218,16 +228,14 @@ describe[methodName]('Integ tests', () => {
             .set('Content-Type', 'application/json');
 
         const expectedCreateRoomData = {
-            'token': conf.messenger.password,
             'is_private': true,
             'name': jiraIssueCreatedJSON.issue.key.toLowerCase(),
-            'user_ids': Array.from({length: 4}, () => userJSON.correct.user.id),
+            // 'user_ids': Array.from({length: 4}, () => userJSON.correct.user.id),
         };
         const expectedProjectRoomData = {
-            'token': conf.messenger.password,
             'is_private': true,
             'name': jiraIssueCreatedJSON.issue.fields.project.key.toLowerCase(),
-            'user_ids': [userJSON.correct.user.id],
+            // 'user_ids': [userJSON.correct.user.id],
         };
 
         const dataKeys = await redisUtils.getDataFromRedis();
@@ -235,7 +243,7 @@ describe[methodName]('Integ tests', () => {
 
         expect(dataKeys).to.be.null;
         expect(roomKeys).to.be.null;
-        expect(slackSdkClient.conversations.create).to.be.calledWithExactly(expectedCreateRoomData);
-        expect(slackSdkClient.conversations.create).to.be.calledWithExactly(expectedProjectRoomData);
+        expect(sdk.conversations.create).to.be.calledWithExactly(expectedCreateRoomData);
+        expect(sdk.conversations.create).to.be.calledWithExactly(expectedProjectRoomData);
     });
 });

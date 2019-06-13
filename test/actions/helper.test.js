@@ -9,6 +9,7 @@ const linksDeletedBody = require('../fixtures/webhooks/issuelink/deleted.json');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const assert = require('assert');
 
+const testNewUserAssignBody = require('../fixtures/webhooks/issue/updated/issue-assigned.json');
 const newGenNotIgnoreProject = require('../fixtures/jira-api-requests/project-gens/new-gen/correct.json');
 const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
 const notIgnoredIssueHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
@@ -61,7 +62,7 @@ describe('Helper tests', () => {
                 fields: {
                     comment: '',
                     creator: {
-                        name: '',
+                        emailAddress: '123',
                     },
                 },
             };
@@ -70,8 +71,16 @@ describe('Helper tests', () => {
             const {username, creator, ignoreStatus} = getIgnoreBodyData(newBody);
 
             expect(username).to.equal('bot');
-            expect(creator).to.equal('');
+            expect(creator).to.equal('123');
             expect(ignoreStatus).to.be.true;
+        });
+
+        it('expect issue_update not to be ignore', () => {
+            const {username, creator, ignoreStatus} = getIgnoreBodyData(testNewUserAssignBody);
+
+            expect(username).to.equal('jira_test');
+            expect(creator).to.equal('jira_test');
+            expect(ignoreStatus).to.be.false;
         });
     });
 

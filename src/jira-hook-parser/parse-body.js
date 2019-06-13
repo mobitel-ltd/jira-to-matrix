@@ -3,7 +3,7 @@ const utils = require('../lib/utils.js');
 module.exports = {
     getPostCommentData: body => {
         const headerText = utils.getHeaderText(body);
-        const author = utils.getCommentAuthor(body);
+        const author = utils.getDisplayName(body);
         const issueID = utils.getIssueId(body);
         const comment = utils.getCommentBody(body);
 
@@ -12,22 +12,20 @@ module.exports = {
 
     getCreateRoomData: body => {
         const projectKey = utils.getProjectKey(body);
-        const roomMembers = utils.getMembers(body);
         const summary = utils.getSummary(body);
         const key = utils.getIssueKey(body);
         const id = utils.getIssueId(body);
         const descriptionFields = utils.getDescriptionFields(body);
 
-        const parsedIssue = {key, id, roomMembers, summary, descriptionFields};
+        const parsedIssue = {key, id, summary, descriptionFields};
 
         return {issue: parsedIssue, projectKey};
     },
 
     getInviteNewMembersData: body => {
-        const roomMembers = utils.getMembers(body);
         const key = utils.getKey(body);
 
-        return {issue: {key, roomMembers}};
+        return {issue: {key}};
     },
 
     getPostNewLinksData: body => {
@@ -42,8 +40,8 @@ module.exports = {
         const id = utils.getIssueId(body);
         const key = utils.getKey(body);
         const summary = utils.getSummary(body);
-        const name = utils.getUserName(body);
         const status = utils.getNewStatus(body);
+        const name = utils.getDisplayName(body);
 
         const data = {key, summary, id, name, status};
 
@@ -56,7 +54,7 @@ module.exports = {
         const key = utils.getKey(body);
         const status = utils.getNewStatus(body);
         const summary = utils.getSummary(body);
-        const name = utils.getUserName(body);
+        const name = utils.getDisplayName(body);
         const linksKeys = utils.getLinkKeys(body);
 
         const data = {status, key, summary, id, changelog, name};
@@ -67,7 +65,7 @@ module.exports = {
     getPostProjectUpdatesData: body => {
         const typeEvent = utils.getTypeEvent(body);
         const projectKey = utils.getProjectKey(body);
-        const name = utils.getUserName(body);
+        const name = utils.getDisplayName(body);
         const summary = utils.getSummary(body);
         const status = utils.getNewStatus(body);
         const key = utils.getKey(body);
@@ -82,12 +80,12 @@ module.exports = {
         const changelog = utils.getChangelog(body);
         const newKey = utils.getNewKey(body);
         const oldKey = utils.getOldKey(body) || utils.getKey(body);
-        const newName = newKey
-            ? utils.composeRoomName(newKey, utils.getSummary(body))
+        const newNameData = newKey
+            ? {key: newKey, summary: utils.getSummary(body)}
             : utils.getNewSummary(body) &&
-        utils.composeRoomName(oldKey, utils.getNewSummary(body));
+            {key: oldKey, summary: utils.getNewSummary(body)};
 
-        return {oldKey, newKey, newName, changelog, author};
+        return {oldKey, newKey, newNameData, changelog, author};
     },
 
     getPostLinksDeletedData: body => ({

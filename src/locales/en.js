@@ -39,6 +39,7 @@ const dict = Object.freeze({
     successUserKick: 'User %{user} is kicked from room %{roomName}',
     errorUserKick: 'Error kicking user %{user} from room %{roomName}',
     kickInfo: 'User %{sender} has kicked next members from rooms:',
+    powerUp: 'User %{targetUser} became a moderator for room %{roomName}',
 });
 
 module.exports.dict = dict;

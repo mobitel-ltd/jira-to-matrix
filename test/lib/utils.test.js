@@ -5,6 +5,8 @@ const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-c
 const {expect} = require('chai');
 const body = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueUpdatedGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
+const issueBody = require('../fixtures/jira-api-requests/issue.json');
+
 describe('Utils testing', () => {
     const expectedFuncKeys = [
         'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
@@ -61,17 +63,26 @@ describe('Utils testing', () => {
 
     it('Extract username from JIRA webhook', () => {
         const samples = [
-            [{
-                comment: {author: {name: 'user1'}},
-                user: {name: 'user2'},
-            }, 'user1'],
-            [{
-                user: {name: 'user2'},
-            }, 'user2'],
-            [{
-                comment: {author1: {name: 'user1'}},
-                user: {name1: 'user2'},
-            }, undefined],
+            [
+                {
+                    comment: {author: {name: 'user1'}},
+                    user: {name: 'user2'},
+                },
+                'user1',
+            ],
+            [
+                {
+                    user: {name: 'user2'},
+                },
+                'user2',
+            ],
+            [
+                {
+                    comment: {author1: {name: 'user1'}},
+                    user: {name1: 'user2'},
+                },
+                undefined,
+            ],
             [{comment: {}}, undefined],
             [{}, undefined],
         ];
@@ -81,16 +92,12 @@ describe('Utils testing', () => {
         });
     });
 
-    it('Extract creator name from JIRA webhook', () => {
-        const creator = utils.getCreator(body);
-
-        expect(creator).to.be.equal('jira_test');
-    });
-
     it('Test correct auth', () => {
         const currentAuth = utils.auth();
 
-        expect(currentAuth).to.be.equal('Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ=');
+        expect(currentAuth).to.be.equal(
+            'Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ='
+        );
     });
 
     it('Test correct getChangelogField', () => {
@@ -118,13 +125,6 @@ describe('Utils testing', () => {
         expect(body).to.be.undefined;
     });
 
-    it('getChatUserId test', () => {
-        const name = 'SOMENAME';
-        const result = utils.getChatUserId(name);
-
-        expect(result).to.equal(`@${name.toLowerCase()}:matrix.test-example.ru`);
-    });
-
     it('Expect getLimit to be timestamp of 01.01.2018', () => {
         const limit = utils.getLimit();
         const expected = 1514775600000;
@@ -136,5 +136,58 @@ describe('Utils testing', () => {
         const res = utils.runMethod({}, 'getCreator');
 
         expect(res).to.be.undefined;
+    });
+
+    it('Expect get roommembers works with issue from request', () => {
+        const data = utils.getMembers(issueBody);
+
+        expect(data).to.be.not.empty;
+    });
+
+    it('Expect getKeyFromError return correct key', () => {
+        const key = 'BOPB-19';
+        const str = `Error in postComment_1555586889467
+                    Error in Post comment
+                    No roomId for ${key} from Matrix
+                    M_NOT_FOUND: Room alias #BOPB-19:matrix.bingo-boom.ru not found`;
+        const data = utils.getKeyFromError(str);
+
+        expect(data).to.be.eq(key);
+    });
+
+    describe('command handler test', () => {
+        it('correct command name', () => {
+            const body = '!help';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('help');
+            expect(bodyText).to.be.undefined;
+        });
+
+        it('correct command name', () => {
+            const body = '!help   ';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('help');
+            expect(bodyText).to.be.undefined;
+        });
+
+        it('correct command name', () => {
+            const body = '!op gogogogo';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('op');
+            expect(bodyText).to.be.equal('gogogogo');
+        });
+
+        it('false command name', () => {
+            const body = 'help';
+            const {commandName} = utils.parseEventBody(body);
+            expect(commandName).not.to.be;
+        });
+
+        it('false command name', () => {
+            const body = '!!help';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).not.to.be;
+            expect(bodyText).not.to.be;
+        });
     });
 });

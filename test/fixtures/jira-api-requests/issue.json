@@ -168,10 +168,10 @@
         "summary": "Prueba de creación de tareas en un proyecto público",
         "creator": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-            "name": "ii_ivanov",
-            "key": "ii_ivanov",
+            "name": "ao_fedorov",
+            "key": "ao_fedorov",
             "accountId": "5b912f5c8a96e82b9549361c",
-            "emailAddress": "ii_ivanov@test-example.ru",
+            "emailAddress": "ao_fedorov@test-example.ru",
             "avatarUrls": {
                 "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                 "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -187,10 +187,10 @@
         "customfield_10041": null,
         "reporter": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-            "name": "ii_ivanov",
-            "key": "ii_ivanov",
+            "name": "oo_orlov",
+            "key": "oo_orlov",
             "accountId": "5b912f5c8a96e82b9549361c",
-            "emailAddress": "ii_ivanov@test-example.ru",
+            "emailAddress": "oo_orlov@test-example.ru",
             "avatarUrls": {
                 "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                 "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",

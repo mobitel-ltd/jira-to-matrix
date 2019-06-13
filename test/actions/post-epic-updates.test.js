@@ -4,18 +4,19 @@ const JSONbody = require('../fixtures/webhooks/issue/updated/status-changed.json
 const noStatusChangedJSON = require('../fixtures/webhooks/issue/updated/commented.json');
 const epicIssueBody = require('../fixtures/jira-api-requests/issue.json');
 const {getPostEpicUpdatesData} = require('../../src/jira-hook-parser/parse-body.js');
-const {cleanRedis} = require('../test-utils');
+const {cleanRedis, getChatApi} = require('../test-utils');
 const translate = require('../../src/locales');
 const redis = require('../../src/redis-client');
 const marked = require('marked');
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 const postEpicUpdates = require('../../src/bot/actions/post-epic-updates.js');
 chai.use(sinonChai);
 
 describe('Post epic updates test', () => {
+    let chatApi;
+
     const someError = 'No roomId for';
     const postEpicUpdatesData = getPostEpicUpdatesData(JSONbody);
     const issueKey = JSONbody.issue.key;
@@ -23,23 +24,16 @@ describe('Post epic updates test', () => {
 
 
     const epicKey = utils.getEpicKey(JSONbody);
-    const matrixRoomId = 'roomId';
-
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        getRoomId: stub(),
-    };
+    const roomId = 'roomId';
 
     const expectedData = [
-        matrixRoomId,
+        roomId,
         translate('newIssueInEpic'),
         marked(translate('issueAddedToEpic', {key: issueKey, summary, viewUrl: utils.getViewUrl(issueKey)})),
     ];
 
     before(() => {
-        nock(utils.getRestUrl(), {
-            reqheaders: {Authorization: utils.auth()},
-        })
+        nock(utils.getRestUrl())
             .get(`/issue/${epicKey}`)
             .times(7)
             .reply(200, epicIssueBody)
@@ -48,16 +42,16 @@ describe('Post epic updates test', () => {
     });
 
     beforeEach(() => {
+        chatApi = getChatApi();
         chatApi.getRoomId
             .withArgs(postEpicUpdatesData.epicKey)
-            .resolves(matrixRoomId)
+            .resolves(roomId)
             .withArgs(null)
             .rejects();
     });
 
     afterEach(async () => {
         await cleanRedis();
-        Object.values(chatApi).map(val => val.resetHistory());
     });
 
     after(() => {

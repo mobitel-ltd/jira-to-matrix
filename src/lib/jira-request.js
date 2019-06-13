@@ -11,7 +11,14 @@ const {url: jiraUrl} = jira;
 
 const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
 
+// Checking occurrences of current name
+
+
 const jiraRequests = {
+    checkUser: ({name, displayName}, expectedName) =>
+        name.toLowerCase().includes(expectedName.toLowerCase())
+        || displayName.toLowerCase().includes(expectedName.toLowerCase()),
+
     postComment: (roomName, sender, bodyText) => {
         const url = utils.getRestUrl('issue', roomName, 'comment');
 
@@ -62,10 +69,13 @@ const jiraRequests = {
      * @param {array} roomMembers array of users linked to current issue
      * @return {array} jira response with issue
      */
-    getIssueWatchers: async ({key, roomMembers}) => {
+    getIssueWatchers: async ({key}) => {
         const url = utils.getRestUrl('issue', key, 'watchers');
         const body = await request(url);
         const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];
+
+        const issue = await jiraRequests.getIssue(key);
+        const roomMembers = utils.handleIssueAsHook.getMembers({issue});
 
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
@@ -152,6 +162,18 @@ const jiraRequests = {
         const url = utils.getRestUrl('user', `search?${queryPararms}`);
 
         return request(url);
+    },
+
+    // Search users by part of name
+    searchUser: async name => {
+        if (!name) {
+            return [];
+        }
+        const allUsers = await jiraRequests.getUsersByParam(name);
+
+        return allUsers.reduce((prev, cur) =>
+            (jiraRequests.checkUser(cur, name) ? [...prev, cur] : prev),
+        []);
     },
 
     // recursive function to get users by num and startAt (start position in jira list of users)

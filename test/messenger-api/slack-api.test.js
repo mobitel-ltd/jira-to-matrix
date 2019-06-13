@@ -1,8 +1,10 @@
 const logger = require('../../src/modules/log')('slack-api');
 const faker = require('faker');
-const {WebClient} = require('@slack/client');
-const EventEmitter = require('events');
+const {WebClient} = require('@slack/web-api');
+const htmlToText = require('html-to-text').fromString;
 
+const messages = require('../fixtures/events/slack/messages.json');
+const conversationInfoJSON = require('../fixtures/slack-requests/conversations/rename.json');
 const conversationRenameJSON = require('../fixtures/slack-requests/conversations/rename.json');
 const conversationPurposeJSON = require('../fixtures/slack-requests/conversations/setPurpose.json');
 const conversationMembersJSON = require('../fixtures/slack-requests/conversations/mamebers.json');
@@ -13,12 +15,16 @@ const userJSON = require('../fixtures/slack-requests/user.json');
 const testJSON = require('../fixtures/slack-requests/auth-test.json');
 const conversationJSON = require('../fixtures/slack-requests/conversation.json');
 const SlackApi = require('../../src/messengers/slack-api');
+const commandsHandler = require('../../src/bot/timeline-handler');
+const utils = require('../../src/lib/utils');
 
+const supertest = require('supertest');
 const chai = require('chai');
 const {stub, createStubInstance} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
+
 
 const testConfig = {
     name: 'slack',
@@ -26,9 +32,10 @@ const testConfig = {
     user: 'jirabot',
     domain: faker.internet.domainName(),
     password: faker.random.uuid(),
-    eventPassword: faker.internet.password(22),
     eventPort: 3000,
 };
+
+const request = supertest(`http://localhost:${testConfig.eventPort}`);
 
 const testTopic = 'My topic';
 const trueUserMail = 'user@example.com';
@@ -57,6 +64,8 @@ describe('Slack api testing', () => {
         setPurpose: stub().resolves(conversationPurposeJSON.correct),
         // https://api.slack.com/methods/conversations.rename
         rename: stub().resolves(conversationRenameJSON.correct),
+        // https://api.slack.com/methods/conversations.info
+        info: stub().resolves(conversationInfoJSON.correct),
     };
     const users = {
         // https://api.slack.com/methods/users.lookupByEmail
@@ -69,27 +78,16 @@ describe('Slack api testing', () => {
         postMessage: stub().resolves(postMessageJSON.correct),
     };
 
-    const slackSdkClient = {...createStubInstance(WebClient), auth, conversations, users, chat};
+    const sdk = {...createStubInstance(WebClient), auth, conversations, users, chat};
 
-    const slackEventListener = {
-        ...createStubInstance(EventEmitter),
-        start: stub().resolves(),
-        stop: stub(),
-    };
+    const slackApi = new SlackApi({config: testConfig, sdk, commandsHandler, logger});
 
-    const eventApi = stub()
-        .withArgs(testConfig.eventPassword)
-        .returns(slackEventListener);
-
-    const timelineHandler = stub().resolves();
-
-    const slackApi = new SlackApi({config: testConfig, slackSdkClient, timelineHandler, eventApi, logger});
     beforeEach(async () => {
         await slackApi.connect();
     });
 
-    afterEach(() => {
-        slackApi.disconnect();
+    afterEach(async () => {
+        await slackApi.disconnect();
     });
 
     it('Expect api connect works correct', () => {
@@ -98,18 +96,15 @@ describe('Slack api testing', () => {
     });
 
     it('Expect create room run setTopic, setPurpose and create conversaton with correct data', async () => {
-        await slackApi.connect();
         const roomId = await slackApi.createRoom(options);
 
         expect(roomId).to.be.eq(conversationJSON.correct.channel.id);
-        expect(slackSdkClient.conversations.create).to.be.calledWithExactly({
-            'token': testConfig.password,
+        expect(sdk.conversations.create).to.be.calledWithExactly({
             'is_private': true,
             'name': options.name.toLowerCase(),
-            'user_ids': [userJSON.correct.user.id, userJSON.correct.user.id],
         });
-        expect(slackSdkClient.conversations.setPurpose).to.be.calledWithExactly({
-            token: testConfig.password,
+        expect(sdk.conversations.invite).to.be.calledTwice;
+        expect(sdk.conversations.setPurpose).to.be.calledWithExactly({
             channel: roomId,
             purpose: options.purpose,
         });
@@ -123,11 +118,13 @@ describe('Slack api testing', () => {
         await slackApi.sendHtmlMessage(channel, attachments, text);
 
         const expectedData = {
-            token: testConfig.password,
             channel,
-            text,
+            attachments: [{
+                text,
+                'mrkdwn_in': ['text'],
+            }],
         };
-        expect(slackSdkClient.chat.postMessage).to.be.calledWithExactly(expectedData);
+        expect(sdk.chat.postMessage).to.be.calledWithExactly(expectedData);
     });
 
     it('Expect getRoomId returns correct id if it exists', async () => {
@@ -160,7 +157,6 @@ describe('Slack api testing', () => {
 
         expect(res).to.be.true;
         const expectedData = {
-            token: testConfig.password,
             channel,
             users: correctSlackUserId,
         };
@@ -169,7 +165,7 @@ describe('Slack api testing', () => {
 
     it('Expect getJoinedMembers return array of members', async () => {
         const [channel] = usersConversationsJSON.correct.channels;
-        const members = await slackApi.getRoomMembers(channel.name);
+        const members = await slackApi.getRoomMembers({name: channel.name});
 
         expect(members).to.be.an('array');
     });
@@ -180,9 +176,23 @@ describe('Slack api testing', () => {
 
         expect(status).to.be.true;
         expect(conversations.rename).to.be.calledWithExactly({
-            token: testConfig.password,
             channel: conversationJSON.correct.channel.id,
             name,
+        });
+    });
+
+    it('Expect slack api handle correct and call if body is "!help"', async () => {
+        await request
+            .post('/commands')
+            .send(messages.help)
+            .set('Content-Type', 'application/x-www-form-urlencoded');
+
+        expect(sdk.chat.postMessage).to.be.calledWithExactly({
+            channel: messages.help.channel_id,
+            attachments: [{
+                'text': htmlToText(utils.helpPost),
+                'mrkdwn_in': ['text'],
+            }],
         });
     });
 });
