@@ -104,7 +104,7 @@ const handleRedisData = async (client, dataFromRedis) => {
                         const newRoomRecord = key.includes('-')
                             ? {issue: {key}}
                             : {projectKey: key};
-                        const redisRoomsData = await getRedisRooms();
+                        const redisRoomsData = await getRedisRooms() || [];
                         const newRoomData = [...redisRoomsData, newRoomRecord];
                         await rewriteRooms(newRoomData);
                     }
