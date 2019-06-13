@@ -18,7 +18,7 @@ describe('Post issue updates test', () => {
     let chatApi;
 
     const postIssueUpdatesData = getPostIssueUpdatesData(issueMovedJSON);
-    const {name: userName} = issueMovedJSON.user;
+    const {displayName: userName} = issueMovedJSON.user;
     const changes =
         '<br>issuetype: Story<br>project: Internal Development<br>status: To Do<br>Workflow: Software Simplified Workflow for Project INDEV<br>Key: INDEV-130';
     const expectedData = [

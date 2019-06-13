@@ -4,8 +4,6 @@
     "issue_event_type_name": "issue_created",
     "user": {
         "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-        "name": "jira_test",
-        "key": "jira_test",
         "emailAddress": "jira_test@test-example.ru",
         "avatarUrls": {
             "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
@@ -76,8 +74,6 @@
             "issuelinks": [],
             "assignee": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                "name": "ii_ivanov",
-                "key": "ii_ivanov",
                 "accountId": "5b912f5c8a96e82b9549361c",
                 "emailAddress": "ii_ivanov@test-example.ru",
                 "avatarUrls": {
@@ -119,8 +115,6 @@
             "customfield_10602": [
                 {
                     "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                    "name": "jira_test",
-                    "key": "jira_test",
                     "emailAddress": "jira_test@test-example.ru",
                     "avatarUrls": {
                         "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
@@ -149,8 +143,6 @@
             "summary": "Test",
             "creator": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                "name": "ao_fedorov",
-                "key": "ao_fedorov",
                 "accountId": "5b912f5c8a96e82b9549361c",
                 "emailAddress": "ao_fedorov@test-example.ru",
                 "avatarUrls": {
@@ -166,8 +158,6 @@
             "subtasks": [],
             "reporter": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                "name": "oo_orlov",
-                "key": "oo_orlov",
                 "accountId": "5b912f5c8a96e82b9549361c",
                 "emailAddress": "oo_orlov@test-example.ru",
                 "avatarUrls": {

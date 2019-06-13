@@ -4,8 +4,6 @@
     "issue_event_type_name": "issue_created",
     "user": {
         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-        "name": "jira_test",
-        "key": "jira_test",
         "accountId": "5b912e21fa38ae2c896099ae",
         "emailAddress": "jira_test@jira.test-example.ru",
         "avatarUrls": {
@@ -80,8 +78,6 @@
             "issuelinks": [],
             "assignee": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                "name": "ii_ivanov",
-                "key": "ii_ivanov",
                 "accountId": "5b912f5c8a96e82b9549361c",
                 "emailAddress": "ii_ivanov@test-example.ru",
                 "avatarUrls": {
@@ -138,8 +134,6 @@
             "summary": "Тестовый эпик",
             "creator": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-                "name": "jira_test",
-                "key": "jira_test",
                 "accountId": "5b912e21fa38ae2c896099ae",
                 "emailAddress": "jira_test@jira.test-example.ru",
                 "avatarUrls": {
@@ -157,8 +151,6 @@
             "customfield_10041": null,
             "reporter": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-                "name": "jira_test",
-                "key": "jira_test",
                 "accountId": "5b912e21fa38ae2c896099ae",
                 "emailAddress": "jira_test@jira.test-example.ru",
                 "avatarUrls": {

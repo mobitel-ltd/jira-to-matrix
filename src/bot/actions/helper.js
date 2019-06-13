@@ -92,15 +92,18 @@ const helper = {
 
     getIgnoreBodyData: body => {
         const username = utils.getHookUserName(body);
-        const creator = utils.getCreator(body);
+        const creator = utils.getCreatorDisplayName(body);
 
         const isInUsersToIgnore = arr =>
             [username, creator].some(user => arr.includes(user));
 
-        const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
-        const ignoreStatus = userIgnoreStatus;
+        if (!username && !creator) {
+            return {username, creator, ignoreStatus: false};
+        }
 
-        return {username, creator, ignoreStatus};
+        const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
+
+        return {username, creator, ignoreStatus: userIgnoreStatus};
     },
 
     getIgnoreProject: async body => {

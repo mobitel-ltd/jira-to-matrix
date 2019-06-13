@@ -57,7 +57,6 @@ describe('get-bot-data', () => {
                 data: {
                     issue: {
                         key: 'INDEV-130',
-                        roomMembers: utils.getMembers(issueMovedJSON),
                     },
                 },
             },
@@ -95,9 +94,6 @@ describe('get-bot-data', () => {
                 redisKey: 'newrooms',
                 createRoomData: {
                     'issue': {
-                        'roomMembers': [
-                            'jira_test',
-                        ],
                         'descriptionFields': {
                             'assigneeEmail': 'jira_test@test-example.ru',
                             'assigneeName': 'jira_test',
@@ -121,9 +117,6 @@ describe('get-bot-data', () => {
                 funcName: 'inviteNewMembers',
                 data: {
                     'issue': {
-                        'roomMembers': [
-                            'jira_test',
-                        ],
                         'key': 'BBCOM-956',
                     },
                 },

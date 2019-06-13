@@ -5,6 +5,9 @@ const commands = require('./commands');
 module.exports = async ({chatApi, sender, roomName, roomId, commandName, bodyText}) => {
     try {
         const command = commands[commandName];
+        if (!command) {
+            return;
+        }
         const message = await command({bodyText, roomId, roomName, sender, chatApi});
 
         if (message) {

@@ -4,8 +4,6 @@
     "issue_event_type_name": "issue_moved",
     "user": {
         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
-        "name": "jira_test",
-        "key": "jira_test",
         "accountId": "5c07f55ba1b46046f530e0f3",
         "emailAddress": "jira_test@example.com",
         "avatarUrls": {
@@ -123,8 +121,6 @@
             "summary": "test Task 2",
             "creator": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                "name": "ii_ivanov",
-                "key": "ii_ivanov",
                 "accountId": "5b912f5c8a96e82b9549361c",
                 "emailAddress": "ii_ivanov@example.com",
                 "avatarUrls": {
@@ -142,8 +138,6 @@
             "customfield_10041": null,
             "reporter": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                "name": "ii_ivanov",
-                "key": "ii_ivanov",
                 "accountId": "5b912f5c8a96e82b9549361c",
                 "emailAddress": "ii_ivanov@example.com",
                 "avatarUrls": {
@@ -181,45 +175,51 @@
     },
     "changelog": {
         "id": "43940",
-        "items": [{
-            "field": "issuetype",
-            "fieldtype": "jira",
-            "fieldId": "issuetype",
-            "from": "10002",
-            "fromString": "Task",
-            "to": "10169",
-            "toString": "Story"
-        }, {
-            "field": "project",
-            "fieldtype": "jira",
-            "fieldId": "project",
-            "from": "10169",
-            "fromString": "Test Classic Project",
-            "to": "10105",
-            "toString": "Internal Development"
-        }, {
-            "field": "status",
-            "fieldtype": "jira",
-            "fieldId": "status",
-            "from": "10029",
-            "fromString": "Backlog",
-            "to": "10257",
-            "toString": "To Do"
-        }, {
-            "field": "Workflow",
-            "fieldtype": "jira",
-            "from": "12552",
-            "fromString": "Software Simplified Workflow for Project TCP",
-            "to": "15190",
-            "toString": "Software Simplified Workflow for Project INDEV"
-        }, {
-            "field": "Key",
-            "fieldtype": "jira",
-            "from": null,
-            "fromString": "TCP-2",
-            "to": null,
-            "toString": "INDEV-130"
-        }]
+        "items": [
+            {
+                "field": "issuetype",
+                "fieldtype": "jira",
+                "fieldId": "issuetype",
+                "from": "10002",
+                "fromString": "Task",
+                "to": "10169",
+                "toString": "Story"
+            },
+            {
+                "field": "project",
+                "fieldtype": "jira",
+                "fieldId": "project",
+                "from": "10169",
+                "fromString": "Test Classic Project",
+                "to": "10105",
+                "toString": "Internal Development"
+            },
+            {
+                "field": "status",
+                "fieldtype": "jira",
+                "fieldId": "status",
+                "from": "10029",
+                "fromString": "Backlog",
+                "to": "10257",
+                "toString": "To Do"
+            },
+            {
+                "field": "Workflow",
+                "fieldtype": "jira",
+                "from": "12552",
+                "fromString": "Software Simplified Workflow for Project TCP",
+                "to": "15190",
+                "toString": "Software Simplified Workflow for Project INDEV"
+            },
+            {
+                "field": "Key",
+                "fieldtype": "jira",
+                "from": null,
+                "fromString": "TCP-2",
+                "to": null,
+                "toString": "INDEV-130"
+            }
+        ]
     },
     "level": "silly",
     "message": "Jira body",

@@ -92,12 +92,6 @@ describe('Utils testing', () => {
         });
     });
 
-    it('Extract creator name from JIRA webhook', () => {
-        const creator = utils.getCreator(body);
-
-        expect(creator).to.be.equal('jira_test');
-    });
-
     it('Test correct auth', () => {
         const currentAuth = utils.auth();
 

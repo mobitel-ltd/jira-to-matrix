@@ -31,7 +31,7 @@ describe('inviteNewMembers test', () => {
     const inviteUpperCase = {
         issue: {
             key: 'someKey',
-            roomMembers: inviteNewMembersData.issue.roomMembers.map(name => name.toUpperCase()),
+            roomMembers: members.map(name => name.toUpperCase()),
         },
     };
 

@@ -86,11 +86,6 @@ describe('redis-data-handle test', () => {
             issue: {
                 key: 'BBCOM-1398',
                 id: '30369',
-                roomMembers: [
-                    JSONbody.issue.fields.reporter.name,
-                    JSONbody.issue.fields.creator.name,
-                    JSONbody.issue.fields.assignee.name,
-                ],
                 summary: 'Test',
                 descriptionFields: {
                     assigneeName: JSONbody.issue.fields.assignee.displayName,

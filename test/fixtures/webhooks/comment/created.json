@@ -6,8 +6,6 @@
         "id": "31039",
         "author": {
             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-            "name": "jira_test",
-            "key": "jira_test",
             "emailAddress": "jira_test@test-example.ru",
             "avatarUrls": {
                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
@@ -22,8 +20,6 @@
         "body": "12345",
         "updateAuthor": {
             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-            "name": "jira_test",
-            "key": "jira_test",
             "emailAddress": "jira_test@test-example.ru",
             "avatarUrls": {
                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",

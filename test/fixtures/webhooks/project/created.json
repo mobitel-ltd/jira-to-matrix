@@ -14,8 +14,6 @@
         },
         "projectLead": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-            "name": "jira_test",
-            "key": "jira_test",
             "emailAddress": "jira_test@jira.test-example.ru",
             "displayName": "Jira Test",
             "accountId": "12345"

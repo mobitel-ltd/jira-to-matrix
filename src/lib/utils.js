@@ -33,9 +33,13 @@ const getIdFromUrl = url => {
     return res;
 };
 
+const getNameFromMail = mail => mail && mail.split('@')[0];
+
+
 const handlers = {
     project: {
         getProjectKey: body => Ramda.path(['project', 'key'], body),
+        getCreatorDisplayName: body => getNameFromMail(Ramda.path(['project', 'projectLead', 'emailAddress'], body)),
         getCreator: body => Ramda.path(['project', 'projectLead', 'name'], body),
         getIssueName: body => handlers.project.getProjectKey(body),
         getMembers: body => [handlers.project.getCreator(body)],
@@ -48,6 +52,8 @@ const handlers = {
         getType: body => Ramda.path(['issue', 'fields', 'issuetype', 'name'], body),
         getIssueId: body => Ramda.path(['issue', 'id'], body),
         getIssueKey: body => Ramda.path(['issue', 'key'], body),
+        getCreatorDisplayName: body =>
+            getNameFromMail(Ramda.path(['issue', 'fields', 'creator', 'emailAddress'], body)),
         getCreator: body =>
             Ramda.path(['issue', 'fields', 'creator', 'name'], body),
         getReporter: body =>
@@ -75,6 +81,9 @@ const handlers = {
         getAuthor: body => Ramda.path(['comment', 'author', 'name'], body),
         getUpdateAuthor: body =>
             Ramda.path(['comment', 'updateAuthor', 'name'], body),
+        getCreatorDisplayName: body =>
+            getNameFromMail(Ramda.path(['comment', 'updateAuthor', 'emailAddress'], body)) ||
+            getNameFromMail(Ramda.path(['comment', 'author', 'emailAddress'], body)),
         getCreator: body =>
             handlers.comment.getUpdateAuthor(body) ||
             handlers.comment.getAuthor(body),
@@ -139,7 +148,7 @@ const utils = {
 
     getIssueName: body => utils.runMethod(body, 'getIssueName'),
 
-    getCreator: body => utils.runMethod(body, 'getCreator'),
+    getCreatorDisplayName: body => utils.runMethod(body, 'getCreatorDisplayName'),
 
     getProjectKey: body => utils.runMethod(body, 'getProjectKey'),
 
@@ -183,7 +192,7 @@ const utils = {
     getBodyWebhookEvent: body => Ramda.path(['webhookEvent'], body),
 
     getHookUserName: body =>
-        utils.getCommentAuthor(body) || utils.getUserName(body),
+        utils.getCommentAuthor(body) || utils.getUserName(body) || utils.getDisplayName(body),
 
     getChangelogItems: body =>
         Ramda.pathOr([], ['items'], utils.getChangelog(body)),
