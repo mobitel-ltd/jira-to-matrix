@@ -191,7 +191,7 @@ const helper = {
         const htmlBody = helper.composeText({author, fields, formattedValues});
         const body = translate('issueHasChanged');
 
-        return {htmlBody, body};
+        return {htmlBody, body, fields};
     },
 
     getCommentHTMLBody: (headerText, commentBody) => `${headerText}: <br>${commentBody}`,
