@@ -106,6 +106,12 @@ const helper = {
         return {username, creator, ignoreStatus: userIgnoreStatus};
     },
 
+    getIgnoreHooks: body => {
+        const fields = utils.getFields(body);
+        const ignoreStatus = fields ? fields.map(({field}) => field).includes('Rank') : false;
+        return {ignoreStatus};
+    },
+
     getIgnoreProject: async body => {
         await jiraRequests.testJiraRequest();
 
@@ -191,7 +197,7 @@ const helper = {
         const htmlBody = helper.composeText({author, fields, formattedValues});
         const body = translate('issueHasChanged');
 
-        return {htmlBody, body, fields};
+        return {htmlBody, body};
     },
 
     getCommentHTMLBody: (headerText, commentBody) => `${headerText}: <br>${commentBody}`,

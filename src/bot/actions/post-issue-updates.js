@@ -28,12 +28,8 @@ module.exports = async ({chatApi, ...body}) => {
         }
 
         const info = await getIssueUpdateInfoMessageBody(body);
-        const {fields} = info;
-
-        if (!fields.includes('Rank')) {
-            await chatApi.sendHtmlMessage(roomID, info.body, info.htmlBody);
-            logger.debug(`Posted updates to ${roomID}`);
-        }
+        await chatApi.sendHtmlMessage(roomID, info.body, info.htmlBody);
+        logger.debug(`Posted updates to ${roomID}`);
 
         return true;
     } catch (err) {
