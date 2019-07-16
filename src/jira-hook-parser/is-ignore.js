@@ -5,11 +5,10 @@ const messages = require('../lib/messages');
 module.exports = async body => {
     const userStatus = helper.getIgnoreBodyData(body);
     const projectStatus = await helper.getIgnoreProject(body);
-    const hookStatus = helper.getIgnoreHooks(body);
 
-    const msg = messages.getWebhookStatusLog({userStatus, projectStatus, hookStatus});
+    const msg = messages.getWebhookStatusLog({userStatus, projectStatus});
     logger.info(msg);
 
-    return userStatus.ignoreStatus || projectStatus.ignoreStatus || hookStatus.ignoreStatus;
+    return userStatus.ignoreStatus || projectStatus.ignoreStatus;
 };
 

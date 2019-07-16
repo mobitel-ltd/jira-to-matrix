@@ -156,8 +156,6 @@ const utils = {
 
     getTypeEvent: body => Ramda.path(['issue_event_type_name'], body),
 
-    getFields: body => Ramda.path(['changelog', 'items'], body),
-
     getChangelog: body => {
         const type = utils.getHandler(body);
 

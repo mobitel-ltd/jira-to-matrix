@@ -55,7 +55,9 @@ const helper = {
                 const key = utils.getIssueKey(body);
                 const status = await jiraRequests.getIssueSafety(key);
 
-                return !status;
+                const rank = utils.getChangelogField('Rank', body);
+
+                return !status || !!rank;
             },
             issuelink: async body => {
                 const allId = [utils.getIssueLinkSourceId(body), utils.getIssueLinkDestinationId(body)];
@@ -104,12 +106,6 @@ const helper = {
         const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
 
         return {username, creator, ignoreStatus: userIgnoreStatus};
-    },
-
-    getIgnoreHooks: body => {
-        const fields = utils.getFields(body);
-        const ignoreStatus = fields ? fields.map(({field}) => field).includes('Rank') : false;
-        return {ignoreStatus};
     },
 
     getIgnoreProject: async body => {
