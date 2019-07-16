@@ -11,3 +11,4 @@ module.exports = async body => {
 
     return userStatus.ignoreStatus || projectStatus.ignoreStatus;
 };
+
