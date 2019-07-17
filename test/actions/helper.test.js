@@ -4,6 +4,7 @@ const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
 const htmlToText = require('html-to-text').fromString;
 const faker = require('faker');
+const marked = require('marked');
 const newLinksbody = require('../fixtures/webhooks/issuelink/created.json');
 const linksDeletedBody = require('../fixtures/webhooks/issuelink/deleted.json');
 const {jira: {url: jiraUrl}} = require('../../src/config');
@@ -114,7 +115,7 @@ describe('Helper tests', () => {
         const epicKey = createRoomData.issue.descriptionFields.epicLink;
 
         const {descriptionFields} = createRoomData.issue;
-        const description = htmlToText(renderedIssueJSON.renderedFields.description);
+        const description = marked(renderedIssueJSON.renderedFields.description);
         const post = `
             Assignee:
                 <br>${utils.INDENT}${descriptionFields.assigneeName}

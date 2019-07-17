@@ -27,7 +27,7 @@ const getPost = description => {
             <br>Estimate time:
                 ${utils.getClosedDescriptionBlock(description.estimateTime)}
             <br>Description:
-                ${utils.getClosedDescriptionBlock(htmlToText(description.description))}
+                ${utils.getClosedDescriptionBlock(marked(description.description))}
             <br>Priority:
                 ${utils.getClosedDescriptionBlock(description.priority)}`;
 
