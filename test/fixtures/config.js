@@ -61,4 +61,8 @@ module.exports = Object.freeze({
         fileLevel: 'silly',
         consoleLevel: 'debug',
     },
+    ping: {
+        interval: 10,
+        count: 10,
+    },
 });

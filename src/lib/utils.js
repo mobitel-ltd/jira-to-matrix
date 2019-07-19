@@ -1,6 +1,6 @@
 const translate = require('../locales');
 const Ramda = require('ramda');
-const {jira, features, messenger} = require('../config');
+const {jira, features, messenger, ping} = require('../config');
 const {epicUpdates, postChangesToLinks} = features;
 const messages = require('./messages');
 const delay = require('delay');
@@ -19,8 +19,8 @@ const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
-const PING_INTERVAL = 100;
-const PING_COUNT = 10;
+const PING_INTERVAL = (ping && ping.interval) || 500;
+const PING_COUNT = (ping && ping.count) || 10;
 
 const INDENT = '&nbsp;&nbsp;&nbsp;&nbsp;';
 const LINE_BREAKE_TAG = '<br>';

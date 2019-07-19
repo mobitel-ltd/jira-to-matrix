@@ -209,7 +209,7 @@ describe('Utils testing', () => {
             func.rejects('Some error');
             const countCall = 10;
             try {
-                await utils.connect(func, 100, countCall);
+                await utils.connect(func, 10, countCall);
             } catch (err) {
                 expect(err).to.be.equal('No connection.');
             }
