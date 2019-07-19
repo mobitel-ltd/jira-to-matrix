@@ -3,6 +3,7 @@ const Ramda = require('ramda');
 const {jira, features, messenger} = require('../config');
 const {epicUpdates, postChangesToLinks} = features;
 const messages = require('./messages');
+const delay = require('delay');
 
 const {field: epicField} = epicUpdates;
 const {url: jiraUrl} = jira;
@@ -17,6 +18,9 @@ const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
+
+const PING_INTERVAL = 100;
+const PING_COUNT = 10;
 
 const INDENT = '&nbsp;&nbsp;&nbsp;&nbsp;';
 const LINE_BREAKE_TAG = '<br>';
@@ -379,6 +383,18 @@ const utils = {
 
     // * --------------------------------- Other utils ------------------------------- *
 
+    connect: async (func, interval, count) => {
+        if (count === 0) {
+            throw 'No connection.';
+        }
+        try {
+            await func();
+        } catch (err) {
+            await delay(interval);
+            await utils.connect(func, interval, count - 1);
+        }
+    },
+
     getProjectKeyFromIssueKey: issueKey => issueKey.split('-').slice(0, 1),
     getCommandAction: (val, collection) =>
         collection.find(
@@ -468,5 +484,7 @@ module.exports = {
     COMMON_NAME,
     NO_ROOM_PATTERN,
     END_NO_ROOM_PATTERN,
+    PING_INTERVAL,
+    PING_COUNT,
     ...utils,
 };

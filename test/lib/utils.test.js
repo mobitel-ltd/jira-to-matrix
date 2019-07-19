@@ -2,10 +2,14 @@
 const utils = require('../../src/lib/utils');
 const assert = require('assert');
 const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
-const {expect} = require('chai');
 const body = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueUpdatedGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueBody = require('../fixtures/jira-api-requests/issue.json');
+const chai = require('chai');
+const {stub} = require('sinon');
+const sinonChai = require('sinon-chai');
+const {expect} = chai;
+chai.use(sinonChai);
 
 describe('Utils testing', () => {
     const expectedFuncKeys = [
@@ -188,6 +192,28 @@ describe('Utils testing', () => {
             const {commandName, bodyText} = utils.parseEventBody(body);
             expect(commandName).not.to.be;
             expect(bodyText).not.to.be;
+        });
+    });
+
+    describe('connect (ping Jira)', () => {
+        it('connect any times (7)', async () => {
+            const func = stub();
+            func.rejects('Some error');
+            func.onCall(7).resolves();
+            await utils.connect(func, 100, 10);
+            expect(func).to.be.callCount(8);
+        });
+
+        it('connect more 10 time and error', async () => {
+            const func = stub();
+            func.rejects('Some error');
+            const countCall = 10;
+            try {
+                await utils.connect(func, 100, countCall);
+            } catch (err) {
+                expect(err).to.be.equal('No connection.');
+            }
+            expect(func).to.be.callCount(countCall);
         });
     });
 });
