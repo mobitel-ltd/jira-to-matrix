@@ -76,4 +76,11 @@ module.exports = Object.freeze({
         // log level in console
         consoleLevel: 'debug',
     },
+    // Optional reconnect data
+    ping: {
+        // interval reconnect by default 500
+        interval: 10,
+        // how many times tring reconnect by default 10
+        count: 10,
+    },
 });
