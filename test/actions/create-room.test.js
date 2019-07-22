@@ -49,6 +49,14 @@ describe('Create room test', () => {
         'purpose': createRoomData.issue.summary,
     };
 
+    const expectedIssueRoomOptionsNoSummary = {
+        'room_alias_name': issueBodyJSON.key,
+        'invite': [...new Set([...members, ...watchers])],
+        'name': chatApi.composeRoomName(issueBodyJSON.key, issueBodyJSON.fields.summary),
+        'topic': utils.getViewUrl(issueBodyJSON.key),
+        'purpose': issueBodyJSON.fields.summary,
+    };
+
     const expectedEpicProjectOptions = {
         'room_alias_name': projectKey,
         'invite': [chatApi.getChatUserId(projectData.lead.key)],
@@ -184,6 +192,14 @@ describe('Create room test', () => {
             'topic': utils.getViewUrl(issueBodyJSON.key),
             'purpose': issueBodyJSON.fields.summary,
         });
+        expect(result).to.be.true;
+    });
+
+    it('Expect room should be created if it\'s not exists and project creates if we run create room with only key', async () => {
+        chatApi.getRoomIdByName.reset();
+        chatApi.getRoomIdByName.resolves(false);
+        const result = await createRoom({chatApi, issue: {key: createRoomData.issue.key}});
+        expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptionsNoSummary);
         expect(result).to.be.true;
     });
 });
