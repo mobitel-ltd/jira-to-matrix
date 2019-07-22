@@ -170,13 +170,16 @@ describe('redis-data-handle test', () => {
 
     it('test error in key handleRedisData', async () => {
         postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
+        const roomsData = await getRedisRooms();
 
         const dataFromRedisBefore = await getDataFromRedis();
         await handleRedisData('client', dataFromRedisBefore);
         const dataFromRedisAfter = await getDataFromRedis();
+        const redisRooms = await getRedisRooms();
 
         expect(dataFromRedisBefore).to.have.deep.members(expectedData);
         expect(dataFromRedisAfter).to.have.deep.members(expectedData);
+        expect(redisRooms).deep.eq([...roomsData, {issue: {key: JSONbody.issue.key}}]);
         expect(postEpicUpdatesStub).to.be.called;
     });
 
