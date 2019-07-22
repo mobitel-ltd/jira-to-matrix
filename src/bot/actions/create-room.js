@@ -55,7 +55,7 @@ const createProjectRoom = async (chatApi, projectKey) => {
 };
 
 const getCheckedIssue = async issueData => {
-    const issueBody = await jiraRequest.getIssueSafety(issueData.id);
+    const issueBody = await jiraRequest.getIssueSafety(issueData.key || issueData.id);
     if (!issueBody) {
         return issueData;
     }
@@ -67,6 +67,8 @@ const getCheckedIssue = async issueData => {
         summary: utils.getSummary(issueBody),
     };
 };
+
+const hasData = issue => issue.key && issue.summary;
 
 /**
  * post issue update
@@ -85,7 +87,7 @@ const getCheckedIssue = async issueData => {
  */
 module.exports = async ({chatApi, issue, projectKey}) => {
     try {
-        const checkedIssue = issue.key ? issue : await getCheckedIssue(issue);
+        const checkedIssue = hasData(issue) ? issue : await getCheckedIssue(issue);
 
         if (checkedIssue.key) {
             await chatApi.getRoomIdByName(checkedIssue.key) || await createIssueRoom(chatApi, checkedIssue);
