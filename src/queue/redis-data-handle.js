@@ -69,14 +69,9 @@ const getRedisRooms = async () => {
  * @returns {Promise<void>} no data
  */
 const rewriteRooms = async createRoomData => {
-    try {
-        const bodyToJSON = JSON.stringify(createRoomData);
-
-        await redis.setAsync(REDIS_ROOM_KEY, bodyToJSON);
-        logger.info('Rooms data rewrited by redis.');
-    } catch (err) {
-        throw ['Error while rewrite rooms in redis:', err].join('\n');
-    }
+    const bodyToJSON = JSON.stringify(createRoomData);
+    await redis.setAsync(REDIS_ROOM_KEY, bodyToJSON);
+    logger.info('Rooms data rewrited by redis.');
 };
 
 const handleRedisData = async (client, dataFromRedis) => {
@@ -94,27 +89,37 @@ const handleRedisData = async (client, dataFromRedis) => {
                     await bot[funcName]({...data, chatApi});
                     await redis.delAsync(redisKey);
 
-                    return `${redisKey} --- true`;
+                    const log = `${redisKey} --- true`;
+
+                    return {log};
                 } catch (err) {
-                    const errBody = typeof err === 'string' ? err : err.message;
+                    const errBody = typeof err === 'string' ? err : err.stack;
                     logger.error(`Error in ${redisKey}\n`, err);
+                    const log = `${redisKey} --- false`;
+
                     if (utils.isNoRoomError(errBody)) {
                         const key = utils.getKeyFromError(errBody);
                         logger.warn(`Room with key ${key} is not found, trying to create it again`);
                         const newRoomRecord = key.includes('-')
                             ? {issue: {key}}
                             : {projectKey: key};
-                        const redisRoomsData = await getRedisRooms() || [];
-                        const newRoomData = [...redisRoomsData, newRoomRecord];
-                        await rewriteRooms(newRoomData);
-                    }
 
-                    return `${redisKey} --- false`;
+                        return {newRoomRecord, log};
+                    }
+                    return {log};
                 }
             })
         );
 
-        logger.info('Result of handling redis key', result);
+        const newRoomRecords = result.map(({newRoomRecord}) => newRoomRecord).filter(Boolean);
+        const logs = result.map(({log}) => log);
+        if (newRoomRecords.length) {
+            logger.info('This room should be created', newRoomRecords);
+            const redisRoomsData = await getRedisRooms() || [];
+            await rewriteRooms([...redisRoomsData, ...newRoomRecords]);
+        }
+
+        logger.info('Result of handling redis key', logs);
     } catch (err) {
         logger.error('handleRedisData error', err);
     }
