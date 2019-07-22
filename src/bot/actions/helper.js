@@ -55,7 +55,7 @@ const helper = {
                 const key = utils.getIssueKey(body);
                 const status = await jiraRequests.getIssueSafety(key);
 
-                return !status;
+                return !status || !!utils.getChangelogField('Rank', body);
             },
             issuelink: async body => {
                 const allId = [utils.getIssueLinkSourceId(body), utils.getIssueLinkDestinationId(body)];

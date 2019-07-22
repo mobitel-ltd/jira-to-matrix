@@ -16,6 +16,7 @@ const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
 const notIgnoredIssueHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
 const ignoredIssueHook = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueBody = require('../fixtures/jira-api-requests/issue.json');
+const rankHook = require('../fixtures/webhooks/issue/updated/rank-changed.json');
 const utils = require('../../src/lib/utils');
 const messages = require('../../src/lib/messages');
 const nock = require('nock');
@@ -172,6 +173,8 @@ describe('Helper tests', () => {
                 .reply(200, '<HTML>');
 
             nock(utils.getRestUrl())
+                .get(`/issue/${rankHook.issue.key}`)
+                .reply(200, issueBody)
                 .get(`/issue/${notIgnoredIssueHook.issue.key}`)
                 .reply(200, issueBody)
                 .get(`/project/${projectCreatedJSON.project.key}`)
@@ -200,6 +203,15 @@ describe('Helper tests', () => {
             expect(webhookEvent).to.be.eq(notIgnoredIssueHook.webhookEvent);
             expect(issueName).to.be.eq(notIgnoredIssueHook.issue.key);
             expect(ignoreStatus).to.be.false;
+        });
+
+        it('Expect rankHook to be ignore', async () => {
+            const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(rankHook);
+
+            expect(timestamp).to.be.eq(rankHook.timestamp);
+            expect(webhookEvent).to.be.eq(rankHook.webhookEvent);
+            expect(issueName).to.be.eq(rankHook.issue.key);
+            expect(ignoreStatus).to.be.true;
         });
 
         it('Expect IGNORE issue hook if issue is not available', async () => {
