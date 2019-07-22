@@ -27,7 +27,7 @@ const getPost = description => {
             <br>Estimate time:
                 ${utils.getClosedDescriptionBlock(description.estimateTime)}
             <br>Description:
-                ${utils.getClosedDescriptionBlock(htmlToText(description.description))}
+                ${utils.getClosedDescriptionBlock(marked(description.description))}
             <br>Priority:
                 ${utils.getClosedDescriptionBlock(description.priority)}`;
 
@@ -55,7 +55,7 @@ const helper = {
                 const key = utils.getIssueKey(body);
                 const status = await jiraRequests.getIssueSafety(key);
 
-                return !status;
+                return !status || !!utils.getChangelogField('Rank', body);
             },
             issuelink: async body => {
                 const allId = [utils.getIssueLinkSourceId(body), utils.getIssueLinkDestinationId(body)];

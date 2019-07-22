@@ -53,7 +53,8 @@ const jiraRequests = {
 
     testJiraRequest: async () => {
         try {
-            const res = await request(jiraUrl);
+            const pingJira = () => request(jiraUrl);
+            const res = await utils.connect(pingJira, utils.PING_INTERVAL, utils.PING_COUNT);
 
             return res;
         } catch (err) {
