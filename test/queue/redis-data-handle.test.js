@@ -2,6 +2,7 @@ const utils = require('../../src/lib/utils');
 const nock = require('nock');
 const {jira: {url: jiraUrl}} = require('../../src/config');
 const {getRestUrl, expandParams} = require('../../src/lib/utils.js');
+const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const projectBody = require('../fixtures/jira-api-requests/project.json');
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
@@ -25,6 +26,7 @@ const {
     getRedisRooms,
     handleRedisData,
     handleRedisRooms,
+    createRoomDataOnlyNew,
 } = proxyquire('../../src/queue/redis-data-handle.js', {
     '../bot/actions': {
         createRoom: createRoomStub,
@@ -170,7 +172,6 @@ describe('redis-data-handle test', () => {
 
     it('test error in key handleRedisData', async () => {
         postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
-        const roomsData = await getRedisRooms();
 
         const dataFromRedisBefore = await getDataFromRedis();
         await handleRedisData('client', dataFromRedisBefore);
@@ -179,7 +180,7 @@ describe('redis-data-handle test', () => {
 
         expect(dataFromRedisBefore).to.have.deep.members(expectedData);
         expect(dataFromRedisAfter).to.have.deep.members(expectedData);
-        expect(redisRooms).deep.eq([...roomsData, {issue: {key: JSONbody.issue.key}}]);
+        expect(redisRooms).deep.eq([{issue: {key: JSONbody.issue.key}}]);
         expect(postEpicUpdatesStub).to.be.called;
     });
 
@@ -221,5 +222,30 @@ describe('redis-data-handle test', () => {
         nock.cleanAll();
         createRoomStub.reset();
         await cleanRedis();
+    });
+});
+
+describe('handle queue for only new task newrooms', () => {
+    it('test createRoomDataOnlyNew shoul be return array only new tasks', () => {
+        const createRoomDataBase = getCreateRoomData(JSONbody);
+        const createRoomDataIssueKeyOnly = {issue: {key: createRoomDataBase.issue.key}};
+        const createRoomDataIssueProjectOnly = {projectKey: createRoomDataBase.projectKey};
+
+        const createRoomDataBase2 = getCreateRoomData(JSONbody);
+        createRoomDataBase2.issue.key = 'another';
+        const createRoomDataBase2changeDescription = {issue: {...createRoomDataBase2.issue, descriptionFields: {...createRoomDataBase2.issue.descriptionFields, description: 'change info'}}, projectKey: createRoomDataBase2.projectKey};
+
+        const result = createRoomDataOnlyNew([
+            createRoomDataBase,
+            createRoomDataIssueProjectOnly,
+            createRoomDataIssueKeyOnly,
+            createRoomDataBase2,
+            createRoomDataBase2changeDescription,
+        ]);
+        expect(result).to.be.deep.equal([
+            createRoomDataIssueKeyOnly,
+            createRoomDataIssueProjectOnly,
+            createRoomDataBase2changeDescription,
+        ]);
     });
 });
