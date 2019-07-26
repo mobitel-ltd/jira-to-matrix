@@ -14,24 +14,24 @@ const getEpicInfo = epicLink =>
                 ${utils.getOpenedDescriptionBlock(epicLink)}
                 ${utils.getClosedDescriptionBlock(utils.getViewUrl(epicLink))}`);
 
-const getPost = description => {
+const getPost = body => {
     const post = `
             Assignee:
-                ${utils.getOpenedDescriptionBlock(description.assigneeName)}
-                ${utils.getClosedDescriptionBlock(description.assigneeEmail)}
+                ${utils.getOpenedDescriptionBlock(body.assigneeName)}
+                ${utils.getClosedDescriptionBlock(body.assigneeEmail)}
             <br>Reporter:
-                ${utils.getOpenedDescriptionBlock(description.reporterName)}
-                ${utils.getClosedDescriptionBlock(description.reporterEmail)}
+                ${utils.getOpenedDescriptionBlock(body.reporterName)}
+                ${utils.getClosedDescriptionBlock(body.reporterEmail)}
             <br>Type:
-                ${utils.getClosedDescriptionBlock(description.typeName)}
+                ${utils.getClosedDescriptionBlock(body.typeName)}
             <br>Estimate time:
-                ${utils.getClosedDescriptionBlock(description.estimateTime)}
+                ${utils.getClosedDescriptionBlock(body.estimateTime)}
             <br>Description:
-                ${utils.getClosedDescriptionBlock(marked(description.description))}
+                ${utils.getClosedDescriptionBlock(marked(body.description))}
             <br>Priority:
-                ${utils.getClosedDescriptionBlock(description.priority)}`;
+                ${utils.getClosedDescriptionBlock(body.priority)}`;
 
-    const epicInfo = getEpicInfo(description.epicLink);
+    const epicInfo = getEpicInfo(body.epicLink);
 
     return [post, epicInfo].join('\n');
 };
@@ -40,7 +40,8 @@ const helper = {
     getDescription: async issue => {
         try {
             const {description} = await jiraRequests.getRenderedValues(issue.key, ['description']);
-            const htmlBody = getPost({...issue.descriptionFields, description});
+            const handleBody = description ? {...issue.descriptionFields, description} : issue.descriptionFields;
+            const htmlBody = getPost(handleBody);
             const body = htmlToText(htmlBody);
 
             return {body, htmlBody};
