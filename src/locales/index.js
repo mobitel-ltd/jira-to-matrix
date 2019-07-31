@@ -1,7 +1,8 @@
 const Polyglot = require('node-polyglot');
 const conf = require('../config');
 
-const lang = require(`./${conf.lang}`); // eslint-disable-line import/no-dynamic-require
+// eslint-disable-next-line
+const lang = require(`./${conf.lang}`);
 
 const polyglot = new Polyglot({
     phrases: lang.dict,
