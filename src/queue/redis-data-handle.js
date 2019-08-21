@@ -64,12 +64,25 @@ const getRedisRooms = async () => {
     }
 };
 
+const createRoomDataOnlyNew = createRoomData => {
+    const createRoomDataByKey = createRoomData.map(el => {
+        const {issue, projectKey} = el;
+        const keyMap = issue ? issue.key : projectKey;
+
+        return {[keyMap]: el};
+    })
+        .reduce((acc, el) => ({...acc, ...el}), {});
+
+    return Object.values(createRoomDataByKey);
+};
+
 /**
  * @param {Array} createRoomData array redis room data
  * @returns {Promise<void>} no data
  */
 const rewriteRooms = async createRoomData => {
-    const bodyToJSON = JSON.stringify(createRoomData);
+    const dataForCreateRoom = createRoomDataOnlyNew(createRoomData);
+    const bodyToJSON = JSON.stringify(dataForCreateRoom);
     await redis.setAsync(REDIS_ROOM_KEY, bodyToJSON);
     logger.info('Rooms data rewrited by redis.');
 };
@@ -196,4 +209,5 @@ module.exports = {
     handleRedisData,
     handleRedisRooms,
     getRedisValue,
+    createRoomDataOnlyNew,
 };
