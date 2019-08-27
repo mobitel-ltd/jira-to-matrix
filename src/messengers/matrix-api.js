@@ -224,6 +224,12 @@ module.exports = class Matrix extends MessengerAbstract {
             }
         });
 
+        this.client.on('RoomMember.membership', async (event, member) => {
+            if (member.membership === 'invite' && member.userId === this.userId) {
+                await this.client.joinRoom(member.roomId);
+            }
+        });
+
         this.client.on('event', this._inviteBot.bind(this));
 
         return this.client;
