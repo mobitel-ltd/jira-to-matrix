@@ -136,6 +136,7 @@ const conversations = {
     rename: stub().resolves(conversationRenameJSON),
     // https://api.slack.com/methods/conversations.setPurpose
     setPurpose: stub().resolves(conversationPurposeJSON.correct),
+    info: stub().resolves(expectedChannel),
 };
 
 const sdk = {...createStubInstance(WebClient), auth, conversations, users, chat};
@@ -149,7 +150,7 @@ const commandsHandler = stub().resolves();
 describe('Integ tests', () => {
     const slackApi = new SlackApi({config: messengerConfig, sdk, commandsHandler, logger});
 
-    const fsm = new FSM(slackApi, queueHandler, app, conf.port);
+    const fsm = new FSM([slackApi], queueHandler, app, conf.port);
 
     beforeEach(() => {
         fsm.start();
@@ -241,9 +242,9 @@ describe('Integ tests', () => {
         const dataKeys = await redisUtils.getDataFromRedis();
         const roomKeys = await redisUtils.getRedisRooms();
 
-        expect(dataKeys).to.be.null;
-        expect(roomKeys).to.be.null;
         expect(sdk.conversations.create).to.be.calledWithExactly(expectedCreateRoomData);
         expect(sdk.conversations.create).to.be.calledWithExactly(expectedProjectRoomData);
+        expect(dataKeys).to.be.null;
+        expect(roomKeys).to.be.null;
     });
 });

@@ -10,7 +10,7 @@ const queueHandler = require('../src/queue');
 const ChatApi = getChatApi(conf.messenger.name);
 const chatApi = new ChatApi({config: conf.messenger, commandsHandler, logger: getLogger('messenger-api')});
 
-const fsm = new FSM(chatApi, queueHandler, app, conf.port);
+const fsm = new FSM([chatApi], queueHandler, app, conf.port);
 
 fsm.start();
 
