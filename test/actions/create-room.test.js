@@ -1,22 +1,32 @@
+const nock = require('nock');
+const utils = require('../../src/lib/utils.js');
+const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
+const createRoom = require('../../src/bot/actions/create-room.js');
+
+const commentCreatedJSON = require('../fixtures/webhooks/comment/created.json');
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
 const epicJSON = require('../fixtures/webhooks/epic/created.json');
 const projectJSON = require('../fixtures/webhooks/project/created.json');
-const nock = require('nock');
-const utils = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const watchersBody = require('../fixtures/jira-api-requests/watchers.json');
-const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
 const projectData = require('../fixtures/jira-api-requests/project.json');
-const createRoom = require('../../src/bot/actions/create-room.js');
+const issueBodyJSON = require('../fixtures/jira-api-requests/issue.json');
+const testUtils = require('../test-utils');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Create room test', () => {
-    const watchers = watchersBody.watchers.map(({name}) => utils.getMatrixUserID(name));
+    let chatApi = testUtils.getChatApi();
+    const members = [
+        issueBodyJSON.fields.reporter.name,
+        issueBodyJSON.fields.creator.name,
+        issueBodyJSON.fields.assignee.name,
+    ].map(name => chatApi.getChatUserId(name));
+
+    const watchers = watchersBody.watchers.map(({name}) => chatApi.getChatUserId(name));
     const errorMsg = 'some error';
 
     const createRoomData = getCreateRoomData(JSONbody);
@@ -25,79 +35,94 @@ describe('Create room test', () => {
 
     const expectedEpicRoomOptions = {
         'room_alias_name': epicJSON.issue.key,
-        'invite': [utils.getMatrixUserID(epicJSON.user.name), ...watchers],
-        'name': utils.composeRoomName({key: epicJSON.issue.key, summary: epicJSON.issue.fields.summary}),
+        'invite': [...new Set([...members, ...watchers])],
+        'name': chatApi.composeRoomName(epicJSON.issue.key, epicJSON.issue.fields.summary),
         'topic': utils.getViewUrl(epicJSON.issue.key),
+        'purpose': utils.getSummary(epicJSON),
     };
 
     const expectedIssueRoomOptions = {
         'room_alias_name': createRoomData.issue.key,
-        'invite': [utils.getMatrixUserID(JSONbody.user.name), ...watchers],
-        'name': utils.composeRoomName(createRoomData.issue),
+        'invite': [...new Set([...members, ...watchers])],
+        'name': chatApi.composeRoomName(createRoomData.issue.key, createRoomData.issue.summary),
         'topic': utils.getViewUrl(createRoomData.issue.key),
+        'purpose': createRoomData.issue.summary,
+    };
+
+    const expectedIssueRoomOptionsNoSummary = {
+        'room_alias_name': issueBodyJSON.key,
+        'invite': [...new Set([...members, ...watchers])],
+        'name': chatApi.composeRoomName(issueBodyJSON.key, issueBodyJSON.fields.summary),
+        'topic': utils.getViewUrl(issueBodyJSON.key),
+        'purpose': issueBodyJSON.fields.summary,
     };
 
     const expectedEpicProjectOptions = {
         'room_alias_name': projectKey,
-        'invite': [utils.getMatrixUserID(projectData.lead.key)],
-        'name': projectData.name,
+        'invite': [chatApi.getChatUserId(projectData.lead.key)],
+        'name': chatApi.composeRoomName(projectData.key, projectData.name),
         'topic': utils.getViewUrl(projectKey),
     };
 
     const expectedCreateProjectOptions = {
         'room_alias_name': projectJSON.project.key,
-        'invite': [utils.getMatrixUserID(projectData.lead.key)],
-        'name': projectData.name,
+        'invite': [chatApi.getChatUserId(projectData.lead.key)],
+        'name': chatApi.composeRoomName(projectData.key, projectData.name),
         'topic': utils.getViewUrl(projectJSON.project.key),
     };
 
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        getRoomId: stub().resolves('id'),
-        createRoom: stub().resolves('correct room'),
-    };
 
-
-    before(() => {
+    beforeEach(() => {
+        chatApi = testUtils.getChatApi({alias: [createRoomData.issue.key, createRoomData.projectKey]});
         nock(utils.getRestUrl())
+            // comment created hook
+            .get(`/issue/${utils.getIssueId(commentCreatedJSON)}`)
+            .reply(200, issueBodyJSON)
+            .get(`/issue/${issueBodyJSON.key}`)
+            .reply(200, issueBodyJSON)
+            .get(`/issue/${createRoomData.issue.key}`)
+            .times(2)
+            .reply(200, issueBodyJSON)
+            .get(`/issue/${issueBodyJSON.key}/watchers`)
+            .reply(200, watchersBody)
+            .get(`/issue/${issueBodyJSON.key}`)
+            .query(utils.expandParams)
+            .reply(200, renderedIssueJSON)
+            // room created hook
             .get(`/issue/${createRoomData.issue.key}/watchers`)
-            .times(5)
             .reply(200, watchersBody)
             .get(`/issue/${epicJSON.issue.key}/watchers`)
             .reply(200, watchersBody)
             .get(`/project/${projectKey}`)
-            .times(2)
             .reply(200, projectData)
             .get(`/project/${JSONbody.issue.fields.project.key}`)
-            .times(2)
             .reply(200, projectData)
             .get(`/project/${projectJSON.project.key}`)
             .reply(200, projectData)
-            .get(`/issue/${createRoomData.issue.id}`)
+            .get(`/issue/${createRoomData.issue.key}`)
             .query(utils.expandParams)
-            .times(5)
             .reply(200, renderedIssueJSON)
-            .get(`/issue/${epicJSON.issue.id}`)
+            .get(`/issue/${epicJSON.issue.key}`)
+            .times(2)
+            .reply(200, issueBodyJSON)
+            .get(`/issue/${epicJSON.issue.key}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON);
     });
 
     afterEach(() => {
-        Object.values(chatApi).map(val => val.reset());
-    });
-
-    after(() => {
         nock.cleanAll();
     });
 
-    it('Expect issue room and project room should not be created if we run simple issue_created', async () => {
+    it('Expect both issue room and project room not to be created if we run simple issue_created and both chat room exists in chat', async () => {
         const result = await createRoom({chatApi, ...createRoomData});
         expect(result).to.be.true;
         expect(chatApi.createRoom).not.to.be.called;
     });
 
     it('Expect room should be created if it\'s not exists and project creates if we run simple issue_created', async () => {
-        chatApi.getRoomId.throws();
+        chatApi.getRoomIdByName.reset();
+        chatApi.getRoomIdByName.resolves(false);
         const result = await createRoom({chatApi, ...createRoomData});
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptions);
         expect(result).to.be.true;
@@ -128,7 +153,7 @@ describe('Create room test', () => {
         ].join('\n');
 
         try {
-            res = await createRoom({chatApi, ...createRoomData});
+            res = await createRoom({chatApi, ...getCreateRoomData(epicJSON)});
         } catch (err) {
             res = err;
         }
@@ -153,5 +178,28 @@ describe('Create room test', () => {
             res = err;
         }
         expect(res).to.be.deep.equal(expectedError);
+    });
+
+    it('Expect room created if we get create_comment hook', async () => {
+        chatApi.getRoomId.throws();
+        const result = await createRoom({chatApi, ...getCreateRoomData(commentCreatedJSON)});
+
+        expect(chatApi.createRoom).to.be.calledWithExactly({
+            'room_alias_name': issueBodyJSON.key,
+            // beacause watchers are includes issue assigne in this case
+            'invite': [...new Set([...members, ...watchers])],
+            'name': chatApi.composeRoomName(issueBodyJSON.key, issueBodyJSON.fields.summary),
+            'topic': utils.getViewUrl(issueBodyJSON.key),
+            'purpose': issueBodyJSON.fields.summary,
+        });
+        expect(result).to.be.true;
+    });
+
+    it('Expect room should be created if it\'s not exists and project creates if we run create room with only key', async () => {
+        chatApi.getRoomIdByName.reset();
+        chatApi.getRoomIdByName.resolves(false);
+        const result = await createRoom({chatApi, issue: {key: createRoomData.issue.key}});
+        expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptionsNoSummary);
+        expect(result).to.be.true;
     });
 });

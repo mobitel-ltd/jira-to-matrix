@@ -43,6 +43,7 @@ const dict = Object.freeze({
     successUserKick: 'Пользователь %{user} исключен из комнаты %{roomName}',
     errorUserKick: 'Ошибка при попытки исключения пользователя %{user} из комнаты %{roomName}',
     kickInfo: 'Пользователь %{sender} попытался исключить следующих пользователей из комнат:',
+    powerUp: 'Пользователь %{targetUser} получил права модератора для комнаты %{roomName}',
 });
 /* spell-checker: enable */
 

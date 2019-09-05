@@ -4,7 +4,6 @@
     "issue_event_type_name": "issue_commented",
     "user": {
         "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-        "name": "jira_test",
         "key": "jira_test",
         "emailAddress": "jira_test@test-example.ru",
         "avatarUrls": {
@@ -55,7 +54,6 @@
             "customfield_10602": [
                 {
                     "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                    "name": "jira_test",
                     "key": "jira_test",
                     "emailAddress": "jira_test@test-example.ru",
                     "avatarUrls": {
@@ -70,7 +68,6 @@
                 },
                 {
                     "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test_bot",
-                    "name": "jira_test_bot",
                     "key": "jira_test_bot",
                     "emailAddress": "jira_test_bot@test-example.ru",
                     "avatarUrls": {
@@ -85,7 +82,6 @@
                 },
                 {
                     "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=gv_grudinin",
-                    "name": "gv_grudinin",
                     "key": "gv_grudinin",
                     "emailAddress": "gv_grudinin@test-example.ru",
                     "avatarUrls": {
@@ -113,7 +109,6 @@
             },
             "creator": {
                 "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "name": "jira_test",
                 "key": "jira_test",
                 "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
@@ -130,7 +125,6 @@
             "created": "2017-09-08T11:43:48.626+0300",
             "reporter": {
                 "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "name": "jira_test",
                 "key": "jira_test",
                 "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
@@ -178,7 +172,6 @@
                         "body": "еуые",
                         "updateAuthor": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "name": "jira_test",
                             "key": "jira_test",
                             "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
@@ -199,7 +192,6 @@
                         "id": "31023",
                         "author": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "name": "jira_test",
                             "key": "jira_test",
                             "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
@@ -215,7 +207,6 @@
                         "body": "111",
                         "updateAuthor": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "name": "jira_test",
                             "key": "jira_test",
                             "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
@@ -244,7 +235,6 @@
             },
             "assignee": {
                 "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "name": "jira_test",
                 "key": "jira_test",
                 "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
@@ -351,7 +341,6 @@
             "id": "31023",
             "author": {
                 "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "name": "jira_test",
                 "key": "jira_test",
                 "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
@@ -367,7 +356,6 @@
             "body": "111",
             "updateAuthor": {
                 "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "name": "jira_test",
                 "key": "jira_test",
                 "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {

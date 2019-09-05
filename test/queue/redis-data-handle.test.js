@@ -1,6 +1,8 @@
+const utils = require('../../src/lib/utils');
 const nock = require('nock');
 const {jira: {url: jiraUrl}} = require('../../src/config');
-const {auth, getRestUrl, expandParams} = require('../../src/lib/utils.js');
+const {getRestUrl, expandParams} = require('../../src/lib/utils.js');
+const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const projectBody = require('../fixtures/jira-api-requests/project.json');
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
@@ -16,12 +18,6 @@ const {cleanRedis} = require('../test-utils');
 
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
-const loggerSpy = {
-    error: stub(),
-    warn: stub(),
-    debug: stub(),
-    info: stub(),
-};
 
 const {
     saveIncoming,
@@ -30,12 +26,12 @@ const {
     getRedisRooms,
     handleRedisData,
     handleRedisRooms,
+    createRoomDataOnlyNew,
 } = proxyquire('../../src/queue/redis-data-handle.js', {
     '../bot/actions': {
         createRoom: createRoomStub,
         postEpicUpdates: postEpicUpdatesStub,
     },
-    '../modules/log.js': () => loggerSpy,
 });
 
 describe('saveIncoming', () => {
@@ -92,13 +88,12 @@ describe('redis-data-handle test', () => {
             issue: {
                 key: 'BBCOM-1398',
                 id: '30369',
-                roomMembers: ['jira_test'],
                 summary: 'Test',
                 descriptionFields: {
-                    assigneeName: 'jira_test',
-                    assigneeEmail: 'jira_test@test-example.ru',
-                    reporterName: 'jira_test',
-                    reporterEmail: 'jira_test@test-example.ru',
+                    assigneeName: JSONbody.issue.fields.assignee.displayName,
+                    assigneeEmail: JSONbody.issue.fields.assignee.emailAddress,
+                    reporterName: JSONbody.issue.fields.reporter.displayName,
+                    reporterEmail: JSONbody.issue.fields.reporter.emailAddress,
                     typeName: 'Task',
                     epicLink: 'BBCOM-801',
                     estimateTime: '1h',
@@ -137,12 +132,8 @@ describe('redis-data-handle test', () => {
             .times(2)
             .reply(200, '<HTML>');
 
-        nock(getRestUrl(), {
-            reqheaders: {
-                Authorization: auth(),
-            },
-        })
-            .get(`/project/${JSONbody.issue.fields.project.key}`)
+        nock(getRestUrl())
+            .get(`/issue/${JSONbody.issue.key}`)
             .reply(200, projectBody)
             .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, {...responce, id: 28516})
@@ -173,25 +164,23 @@ describe('redis-data-handle test', () => {
         const dataFromRedisBefore = await getDataFromRedis();
         await handleRedisData('client', dataFromRedisBefore);
         const dataFromRedisAfter = await getDataFromRedis();
-        const expected = 'Result of handling redis key';
 
         expect(dataFromRedisBefore).to.have.deep.members(expectedData);
-        expect(loggerSpy.info).to.have.been.calledWith(expected);
         expect(dataFromRedisAfter).to.be.null;
         expect(postEpicUpdatesStub).to.be.called;
     });
 
     it('test error in key handleRedisData', async () => {
-        postEpicUpdatesStub.throws('error');
+        postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
 
         const dataFromRedisBefore = await getDataFromRedis();
         await handleRedisData('client', dataFromRedisBefore);
         const dataFromRedisAfter = await getDataFromRedis();
-        const expected = 'Error in postEpicUpdates_2018-1-11 13:08:04,225\n';
+        const redisRooms = await getRedisRooms();
 
         expect(dataFromRedisBefore).to.have.deep.members(expectedData);
-        expect(loggerSpy.error).to.have.been.calledWith(expected);
         expect(dataFromRedisAfter).to.have.deep.members(expectedData);
+        expect(redisRooms).deep.eq([{issue: {key: JSONbody.issue.key}}]);
         expect(postEpicUpdatesStub).to.be.called;
     });
 
@@ -211,8 +200,6 @@ describe('redis-data-handle test', () => {
         const roomsData = await getRedisRooms();
         expect(roomsData).to.have.deep.equal([...expectedRoom, ...createRoomData]);
         await handleRedisRooms(chatApi, roomsData);
-        expect(loggerSpy.error).to.have.been.calledWith('Error in handle room data\n', 'createRoomStub');
-        expect(loggerSpy.warn).to.have.been.calledWith('Rooms which not created', createRoomData);
 
         const roomsKeysAfter = await getRedisRooms();
         expect(roomsKeysAfter).to.have.deep.equal(createRoomData);
@@ -231,87 +218,34 @@ describe('redis-data-handle test', () => {
         expect(createRoomStub).not.to.be.called;
     });
 
-    it('test incorrect handleRedisRooms', async () => {
-        await handleRedisRooms(chatApi, 'rooms');
-        expect(createRoomStub).not.to.be.called;
-        const expected = 'handleRedisRooms error';
-        expect(loggerSpy.error).to.have.been.calledWith(expected);
-    });
-
     afterEach(async () => {
         nock.cleanAll();
-        Object.keys(loggerSpy).map(el => loggerSpy[el].reset());
         createRoomStub.reset();
         await cleanRedis();
     });
 });
 
-describe('Redis errors in redis-data-handle', () => {
-    const {
-        rewriteRooms: rewrite,
-        saveIncoming: save,
-        getRedisValue: getValue,
-        getDataFromRedis: getRedisData,
-        getRedisRooms: getRooms,
-        handleRedisData: handleData,
-    } = proxyquire('../../src/queue/redis-data-handle.js', {
-        '../redis-client.js': {
-            getAsync: stub().throws('error'),
-            keysAsync: stub().throws('error'),
-            setAsync: stub().throws('error'),
-        },
-        '../modules/log.js': () => loggerSpy,
-    });
+describe('handle queue for only new task newrooms', () => {
+    it('test createRoomDataOnlyNew shoul be return array only new tasks', () => {
+        const createRoomDataBase = getCreateRoomData(JSONbody);
+        const createRoomDataIssueKeyOnly = {issue: {key: createRoomDataBase.issue.key}};
+        const createRoomDataIssueProjectOnly = {projectKey: createRoomDataBase.projectKey};
 
-    it('test error getRedisRooms', async () => {
-        const result = await getRooms();
-        const expected = 'getRedisRooms error';
-        expect(result).to.be.null;
-        expect(loggerSpy.error).to.have.been.calledWithExactly(expected);
-    });
+        const createRoomDataBase2 = getCreateRoomData(JSONbody);
+        createRoomDataBase2.issue.key = 'another';
+        const createRoomDataBase2changeDescription = {issue: {...createRoomDataBase2.issue, descriptionFields: {...createRoomDataBase2.issue.descriptionFields, description: 'change info'}}, projectKey: createRoomDataBase2.projectKey};
 
-    it('test error handleRedisData', async () => {
-        await handleData('client', 'data');
-        const expected = 'handleRedisData error';
-        expect(loggerSpy.error).to.have.been.calledWith(expected);
-    });
-
-    it('test no handleRedisData', async () => {
-        await handleData('client');
-        const expected = 'No data from redis';
-        expect(loggerSpy.warn).to.have.been.calledWithExactly(expected);
-    });
-
-    it('test no handleRedisData', async () => {
-        const result = await getRedisData();
-        const expected = 'getDataFromRedis error';
-        expect(result).to.be.null;
-        expect(loggerSpy.error).to.have.been.calledWith(expected);
-    });
-
-    it('test no getRedisValue', async () => {
-        const result = await getValue({});
-        const expected = 'Error in getting value of key: [object Object]\n';
-
-        expect(result).to.be.false;
-        expect(loggerSpy.error).to.have.been.calledWith(expected);
-    });
-
-    it('test no save to redis error', async () => {
-        const expected = 'Error while saving to redis:\nerror';
-        try {
-            await save({});
-        } catch (err) {
-            expect(err).to.be.equal(expected);
-        }
-    });
-
-    it('test rewrite rooms error', async () => {
-        const expected = 'Error while rewrite rooms in redis:\nerror';
-        try {
-            await rewrite('');
-        } catch (err) {
-            expect(err).to.be.equal(expected);
-        }
+        const result = createRoomDataOnlyNew([
+            createRoomDataBase,
+            createRoomDataIssueProjectOnly,
+            createRoomDataIssueKeyOnly,
+            createRoomDataBase2,
+            createRoomDataBase2changeDescription,
+        ]);
+        expect(result).to.be.deep.equal([
+            createRoomDataIssueKeyOnly,
+            createRoomDataIssueProjectOnly,
+            createRoomDataBase2changeDescription,
+        ]);
     });
 });

@@ -1,0 +1,209 @@
+{
+    "timestamp": "2019-2-27 15:40:35,494",
+    "webhookEvent": "jira:issue_updated",
+    "issue_event_type_name": "issue_updated",
+    "user": {
+        "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
+        "key": "jira_test",
+        "accountId": "5c07f55ba1b46046f530e0f3",
+        "emailAddress": "jira_test@test-example.ru",
+        "avatarUrls": {
+            "48x48": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+            "24x24": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+            "16x16": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+            "32x32": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+        },
+        "displayName": "jira_test",
+        "active": true,
+        "timeZone": "Europe/Moscow"
+    },
+    "issue": {
+        "id": "15082",
+        "self": "https://jira.test-example.ru/rest/api/2/issue/15082",
+        "key": "INDEV-131",
+        "fields": {
+            "issuetype": {
+                "self": "https://jira.test-example.ru/rest/api/2/issuetype/10169",
+                "id": "10169",
+                "description": "Stories track functionality or features expressed as user goals.",
+                "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10315&avatarType=issuetype",
+                "name": "Story",
+                "subtask": false,
+                "avatarId": 10315
+            },
+            "timespent": null,
+            "customfield_10030": null,
+            "project": {
+                "self": "https://jira.test-example.ru/rest/api/2/project/10105",
+                "id": "10105",
+                "key": "INDEV",
+                "name": "Internal Development",
+                "projectTypeKey": "software",
+                "avatarUrls": {
+                    "48x48": "https://jira.test-example.ru/secure/projectavatar?pid=10105&avatarId=10523",
+                    "24x24": "https://jira.test-example.ru/secure/projectavatar?size=small&pid=10105&avatarId=10523",
+                    "16x16": "https://jira.test-example.ru/secure/projectavatar?size=xsmall&pid=10105&avatarId=10523",
+                    "32x32": "https://jira.test-example.ru/secure/projectavatar?size=medium&pid=10105&avatarId=10523"
+                }
+            },
+            "fixVersions": [],
+            "aggregatetimespent": null,
+            "resolution": null,
+            "resolutiondate": null,
+            "workratio": -1,
+            "lastViewed": "2019-02-27T14:31:22.269+0300",
+            "watches": {
+                "self": "https://jira.test-example.ru/rest/api/2/issue/INDEV-131/watchers",
+                "watchCount": 1,
+                "isWatching": true
+            },
+            "created": "2019-02-27T14:30:19.009+0300",
+            "customfield_10020": null,
+            "customfield_10021": [],
+            "priority": {
+                "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
+                "name": "Medium",
+                "id": "3"
+            },
+            "customfield_10025": null,
+            "labels": [],
+            "customfield_10026": null,
+            "customfield_10016": null,
+            "customfield_10017": null,
+            "customfield_10018": null,
+            "customfield_10019": "0|i00r6q:",
+            "aggregatetimeoriginalestimate": null,
+            "timeestimate": null,
+            "versions": [],
+            "issuelinks": [],
+            "assignee": {
+                "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
+                "accountId": "5b912e21fa38ae2c896099ae",
+                "emailAddress": "ii_ivanov@test-example.ru",
+                "avatarUrls": {
+                    "48x48": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+                    "24x24": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+                    "16x16": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+                    "32x32": "https://avatar-cdn.atlassian.com/e3fff2e843129095bea6a8b2d8ebab70?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe3fff2e843129095bea6a8b2d8ebab70%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+                },
+                "displayName": "Иванов Иван Иванович",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
+            "updated": "2019-02-27T15:40:34.940+0300",
+            "status": {
+                "self": "https://jira.test-example.ru/rest/api/2/status/10257",
+                "description": "",
+                "iconUrl": "https://jira.test-example.ru/",
+                "name": "To Do",
+                "id": "10257",
+                "statusCategory": {
+                    "self": "https://jira.test-example.ru/rest/api/2/statuscategory/2",
+                    "id": 2,
+                    "key": "new",
+                    "colorName": "blue-gray",
+                    "name": "New"
+                }
+            },
+            "components": [],
+            "timeoriginalestimate": null,
+            "description": "Лалалалл 11233",
+            "customfield_10055": null,
+            "customfield_10056": null,
+            "customfield_10013": null,
+            "customfield_10057": null,
+            "customfield_10014": null,
+            "customfield_10058": null,
+            "customfield_10015": {
+                "hasEpicLinkFieldDependency": false,
+                "showField": false,
+                "nonEditableReason": {
+                    "reason": "PLUGIN_LICENSE_ERROR",
+                    "message": "Portfolio for Jira must be licensed for the Parent Link to be available."
+                }
+            },
+            "timetracking": {},
+            "customfield_10005": null,
+            "customfield_10006": null,
+            "security": null,
+            "customfield_10007": null,
+            "customfield_10008": null,
+            "customfield_10009": null,
+            "attachment": [],
+            "aggregatetimeestimate": null,
+            "summary": "Тестовая задача для переноса",
+            "creator": {
+                "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
+                "key": "jira_test",
+                "accountId": "5c07f55ba1b46046f530e0f3",
+                "emailAddress": "jira_test@test-example.ru",
+                "avatarUrls": {
+                    "48x48": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+                    "24x24": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+                    "16x16": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+                    "32x32": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+                },
+                "displayName": "jira_test",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
+            "subtasks": [],
+            "customfield_10040": null,
+            "customfield_10041": null,
+            "reporter": {
+                "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
+                "key": "jira_test",
+                "accountId": "5c07f55ba1b46046f530e0f3",
+                "emailAddress": "jira_test@test-example.ru",
+                "avatarUrls": {
+                    "48x48": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+                    "24x24": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+                    "16x16": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+                    "32x32": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+                },
+                "displayName": "jira_test",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
+            "customfield_10000": "{}",
+            "aggregateprogress": {
+                "progress": 0,
+                "total": 0
+            },
+            "customfield_10001": null,
+            "customfield_10002": null,
+            "customfield_10003": null,
+            "customfield_10004": null,
+            "customfield_10039": null,
+            "environment": null,
+            "duedate": null,
+            "progress": {
+                "progress": 0,
+                "total": 0
+            },
+            "votes": {
+                "self": "https://jira.test-example.ru/rest/api/2/issue/INDEV-131/votes",
+                "votes": 0,
+                "hasVoted": false
+            }
+        }
+    },
+    "changelog": {
+        "id": "44173",
+        "items": [
+            {
+                "field": "description",
+                "fieldtype": "jira",
+                "fieldId": "description",
+                "from": null,
+                "fromString": "Лалалалл",
+                "to": null,
+                "toString": "Лалалалл 11233"
+            }
+        ]
+    },
+    "level": "silly",
+    "message": "Jira body",
+    "label": "/src/jira-app.js"
+}

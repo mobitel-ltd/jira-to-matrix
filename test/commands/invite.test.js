@@ -1,30 +1,26 @@
-const {invite} = require('../../src/bot/timeline-handler/commands');
+const commandHandler = require('../../src/bot/timeline-handler');
+const testUtils = require('../test-utils');
 const translate = require('../../src/locales');
-const utils = require('../../src/lib/utils');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('invite test', () => {
-    const room = {roomId: 12345};
-    const inviteRoomId = 'someID';
-
-    const chatApi = {
-        invite: stub(),
-        getRoomId: stub(),
-        sendHtmlMessage: stub(),
-    };
+    let chatApi;
+    let baseOptions;
+    // const inviteRoomId = testUtils.getRoomId();
+    const roomId = 12345;
 
     const bodyText = 'BBCOM-123';
     const sender = 'jira_test';
-    const senderMatrixId = utils.getMatrixUserID(sender);
-    const alias = utils.getMatrixRoomAlias(bodyText.toUpperCase());
+    const alias = `#${bodyText.toUpperCase()}@matrix.test-example.ru`;
+    const commandName = 'invite';
 
     beforeEach(() => {
-        chatApi.getRoomId.resolves(inviteRoomId);
+        chatApi = testUtils.getChatApi({alias: [bodyText, alias]});
+        baseOptions = {roomId, bodyText, commandName, sender, chatApi};
     });
 
     afterEach(() => {
@@ -33,53 +29,31 @@ describe('invite test', () => {
 
     it('Expect invite successfully', async () => {
         const body = translate('successMatrixInvite', {sender, roomName: bodyText});
+        const result = await commandHandler(baseOptions);
 
-        await invite({bodyText, sender, room, chatApi});
-
-        expect(chatApi.getRoomId).have.to.been.calledWithExactly(alias);
-        expect(chatApi.invite).have.to.been.calledWithExactly(inviteRoomId, senderMatrixId);
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
+        expect(result).to.be.eq(body);
     });
 
     it('Expect invite to room with domain', async () => {
         const body = translate('successMatrixInvite', {sender, roomName: alias});
+        const result = await commandHandler({...baseOptions, bodyText: alias});
 
-        await invite({bodyText: alias, sender, room, chatApi});
-
-        expect(chatApi.getRoomId).have.to.been.calledWithExactly(alias);
-        expect(chatApi.invite).have.to.been.calledWithExactly(inviteRoomId, senderMatrixId);
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
+        expect(result).to.be.eq(body);
     });
 
     it('Expect invite to not found room return no found warn', async () => {
-        chatApi.getRoomId.throws('Error!!!');
-        const body = translate('notFoundRoom', {roomName: bodyText});
-        await invite({bodyText, sender, room, chatApi});
+        const notFoundRoomName = 'notFoundRoom';
+        const body = translate('notFoundRoom', {roomName: notFoundRoomName});
+        const result = await commandHandler({...baseOptions, bodyText: notFoundRoomName});
 
-        expect(chatApi.getRoomId).have.to.been.thrown;
-        expect(chatApi.invite).not.to.have.been.called;
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
+        expect(result).to.be.eq(body);
     });
 
     it('Expect invite not admin user return no permission warn', async () => {
-        const noAdminUser = 'Fedor';
+        const noAdminUser = 'fedor';
         const body = translate('notAdmin', {sender: noAdminUser});
-        await invite({bodyText, sender: noAdminUser, room, chatApi});
+        const result = await commandHandler({...baseOptions, sender: noAdminUser});
 
-        expect(chatApi.getRoomId).not.to.have.been.called;
-        expect(chatApi.invite).not.to.have.been.called;
-        expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(room.roomId, body, body);
-    });
-
-    it('Expect some other error to be not handled', async () => {
-        chatApi.invite.throws('Error!!!');
-        let res;
-        try {
-            await invite({bodyText, sender, room, chatApi});
-        } catch (err) {
-            res = err;
-        }
-
-        expect(res).to.include('Matrix Invite command');
+        expect(result).to.be.eq(body);
     });
 });

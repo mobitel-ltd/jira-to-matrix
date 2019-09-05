@@ -1,0 +1,90 @@
+{
+    "expand": "description,lead,issueTypes,url,projectKeys",
+    "self": "https://jira.test-example.ru/rest/api/2/project/10305",
+    "id": "10305",
+    "key": "BBCOM",
+    "description": "",
+    "lead": {
+        "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
+        "key": "jira_test",
+        "accountId": "5c07f55ba1b46046f530e0f3",
+        "name": "jira_test",
+        "avatarUrls": {
+            "16x16": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+            "24x24": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+            "32x32": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue",
+            "48x48": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue"
+        },
+        "displayName": "jira_test",
+        "active": true
+    },
+    "components": [],
+    "issueTypes": [
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10002",
+            "id": "10002",
+            "description": "Задание для выполнения.",
+            "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10318&avatarType=issuetype",
+            "name": "Задача",
+            "subtask": false,
+            "avatarId": 10318
+        },
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10003",
+            "id": "10003",
+            "description": "Подзадача задачи.",
+            "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10316&avatarType=issuetype",
+            "name": "Подзадачи",
+            "subtask": true,
+            "avatarId": 10316
+        },
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10001",
+            "id": "10001",
+            "description": "",
+            "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10315&avatarType=issuetype",
+            "name": "История",
+            "subtask": false,
+            "avatarId": 10315
+        },
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10004",
+            "id": "10004",
+            "description": "",
+            "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10303&avatarType=issuetype",
+            "name": "Баг",
+            "subtask": false,
+            "avatarId": 10303
+        },
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10000",
+            "id": "10000",
+            "description": "Создано через Jira Software — не редактировать и не удалять. Это тип задачи нужен для большой пользовательской истории, которая требует упорядочивания.",
+            "iconUrl": "https://jira.test-example.ru/images/icons/issuetypes/epic.svg",
+            "name": "Эпик",
+            "subtask": false
+        }
+    ],
+    "assigneeType": "UNASSIGNED",
+    "versions": [],
+    "name": "Test Classic Project",
+    "roles": {
+        "View Only": "https://jira.test-example.ru/rest/api/2/project/10305/role/10259",
+        "atlassian-addons-project-access": "https://jira.test-example.ru/rest/api/2/project/10305/role/10100",
+        "Service Desk Team": "https://jira.test-example.ru/rest/api/2/project/10305/role/10325",
+        "Assistants": "https://jira.test-example.ru/rest/api/2/project/10305/role/10258",
+        "Service Desk Customers": "https://jira.test-example.ru/rest/api/2/project/10305/role/10324",
+        "Administrators": "https://jira.test-example.ru/rest/api/2/project/10305/role/10002",
+        "Members": "https://jira.test-example.ru/rest/api/2/project/10305/role/10257"
+    },
+    "avatarUrls": {
+        "48x48": "https://jira.test-example.ru/secure/projectavatar?avatarId=10324",
+        "24x24": "https://jira.test-example.ru/secure/projectavatar?size=small&avatarId=10324",
+        "16x16": "https://jira.test-example.ru/secure/projectavatar?size=xsmall&avatarId=10324",
+        "32x32": "https://jira.test-example.ru/secure/projectavatar?size=medium&avatarId=10324"
+    },
+    "projectTypeKey": "software",
+    "simplified": false,
+    "style": "classic",
+    "isPrivate": false
+}

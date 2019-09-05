@@ -7,27 +7,21 @@ const postNewLinks = require('../../src/bot/actions/post-new-links.js');
 const {isPostNewLinks} = require('../../src/jira-hook-parser/bot-handler.js');
 const {getPostLinkMessageBody} = require('../../src/bot/actions/helper');
 const redis = require('../../src/redis-client.js');
-const {cleanRedis} = require('../test-utils');
+const {cleanRedis, getChatApi} = require('../test-utils');
 const JSONBody = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueBody = require('../fixtures/jira-api-requests/issue.json');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
 describe('Test postNewLinks', () => {
+    let chatApi;
+
     const issueLinkId = postNewLinksbody.issueLink.id;
     const roomIDIn = 'inId';
     const roomIDOut = 'outId';
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        getRoomId: stub(),
-    };
-
-    chatApi.getRoomId.withArgs(utils.getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
-    chatApi.getRoomId.withArgs(utils.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
 
     before(() => {
         nock(utils.getRestUrl())
@@ -45,8 +39,13 @@ describe('Test postNewLinks', () => {
             .reply(200, issueBody);
     });
 
+    beforeEach(() => {
+        chatApi = getChatApi();
+        chatApi.getRoomId.withArgs(utils.getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
+        chatApi.getRoomId.withArgs(utils.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
+    });
+
     afterEach(async () => {
-        Object.values(chatApi).map(val => val.resetHistory());
         await cleanRedis();
     });
 

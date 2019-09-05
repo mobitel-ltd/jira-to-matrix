@@ -6,6 +6,7 @@ const string = Joi.string().required();
 const boolean = Joi.boolean().required();
 const address = [string.uri(), string.ip()];
 const obj = fields => Joi.object(fields).required();
+const objOptional = fields => Joi.object(fields).optional();
 const array = itemsType => Joi.array().items(itemsType);
 
 const schema = obj({
@@ -51,7 +52,6 @@ const schema = obj({
         domain: string,
         user: string,
         password: string,
-        eventPassword: Joi.string().optional(),
         eventPort: Joi.number().optional(),
     }),
     log: {
@@ -60,6 +60,10 @@ const schema = obj({
         fileLevel: string,
         consoleLevel: string,
     },
+    ping: objOptional({
+        interval: Joi.number().integer().optional(),
+        count: Joi.number().integer().optional(),
+    }),
 });
 
 /**

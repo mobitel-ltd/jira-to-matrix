@@ -1,17 +1,23 @@
 const utils = require('../../lib/utils');
-const {getPostStatusData, isAvailabledIssue} = require('./helper.js');
+const jiraRequests = require('../../lib/jira-request');
+const {getPostStatusData} = require('./helper.js');
 
-const handler = (chatApi, data) => async key => {
-    if (await isAvailabledIssue(key)) {
-        const roomID = await chatApi.getRoomId(key);
-        const {body, htmlBody} = getPostStatusData(data);
-        return chatApi.sendHtmlMessage(roomID, body, htmlBody);
-    }
+const handler = (chatApi, data) => roomID => {
+    const {body, htmlBody} = getPostStatusData(data);
+
+    return chatApi.sendHtmlMessage(roomID, body, htmlBody);
 };
 
 module.exports = async ({chatApi, linksKeys, data}) => {
     try {
-        await Promise.all(linksKeys.map(handler(chatApi, data)));
+        const checkedIssues = await Promise.all(linksKeys.map(async key => {
+            const issue = await jiraRequests.getIssueSafety(key);
+
+            return issue && key;
+        }));
+        const availableIssues = checkedIssues.filter(Boolean);
+        const roomIDs = await Promise.all(availableIssues.map(chatApi.getRoomId.bind(chatApi)));
+        await Promise.all(roomIDs.map(handler(chatApi, data)));
 
         return true;
     } catch (err) {

@@ -4,6 +4,8 @@ const firstJSON = require('../fixtures/webhooks/comment/created.json');
 const secondJSON = require('../fixtures/webhooks/issue/updated/commented.json');
 const {getBotActions, getParserName, getFuncAndBody} = require('../../src/jira-hook-parser/bot-handler.js');
 const translate = require('../../src/locales');
+const issueMovedJSON = require('../fixtures/webhooks/issue/updated/move-issue.json');
+const utils = require('../../src/lib/utils');
 
 describe('get-bot-data', () => {
     const firstBodyArr = getBotActions(firstJSON);
@@ -26,6 +28,41 @@ describe('get-bot-data', () => {
 
         const secondBodyArrExpected = ['getInviteNewMembersData', 'getPostEpicUpdatesData'];
         assert.deepEqual(getParserNameSecond, secondBodyArrExpected);
+    });
+
+    it('Expect correct issue_moved data', () => {
+        const res = getFuncAndBody(issueMovedJSON);
+        const expected = [
+            {
+                createRoomData: false,
+                redisKey: 'newrooms',
+            },
+            {
+                redisKey: 'postIssueUpdates_2019-2-27 13:30:21,620',
+                funcName: 'postIssueUpdates',
+                data: {
+                    oldKey: 'TCP-2',
+                    newKey: 'INDEV-130',
+                    newNameData: {
+                        key: 'INDEV-130',
+                        summary: 'test Task 2',
+                    },
+                    changelog: utils.getChangelog(issueMovedJSON),
+                    author: 'jira_test',
+                },
+            },
+            {
+                redisKey: 'inviteNewMembers_2019-2-27 13:30:21,620',
+                funcName: 'inviteNewMembers',
+                data: {
+                    issue: {
+                        key: 'INDEV-130',
+                    },
+                },
+            },
+        ];
+
+        assert.deepEqual(res, expected);
     });
 
     it('test correct getFuncAndBody', () => {
@@ -57,9 +94,6 @@ describe('get-bot-data', () => {
                 redisKey: 'newrooms',
                 createRoomData: {
                     'issue': {
-                        'roomMembers': [
-                            'jira_test',
-                        ],
                         'descriptionFields': {
                             'assigneeEmail': 'jira_test@test-example.ru',
                             'assigneeName': 'jira_test',
@@ -83,9 +117,6 @@ describe('get-bot-data', () => {
                 funcName: 'inviteNewMembers',
                 data: {
                     'issue': {
-                        'roomMembers': [
-                            'jira_test',
-                        ],
                         'key': 'BBCOM-956',
                     },
                 },

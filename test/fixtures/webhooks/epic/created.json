@@ -4,8 +4,6 @@
     "issue_event_type_name": "issue_created",
     "user": {
         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-        "name": "jira_test",
-        "key": "jira_test",
         "accountId": "5b912e21fa38ae2c896099ae",
         "emailAddress": "jira_test@jira.test-example.ru",
         "avatarUrls": {
@@ -78,7 +76,20 @@
             "aggregatetimeoriginalestimate": null,
             "versions": [],
             "issuelinks": [],
-            "assignee": null,
+            "assignee": {
+                "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
+                "accountId": "5b912f5c8a96e82b9549361c",
+                "emailAddress": "ii_ivanov@test-example.ru",
+                "avatarUrls": {
+                    "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+                    "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+                    "16x16": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+                    "32x32": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
+                },
+                "displayName": "Иванов Иван Иванович",
+                "active": true,
+                "timeZone": "Europe/Moscow"
+            },
             "updated": "2019-01-30T19:48:08.263+0300",
             "status": {
                 "self": "https://jira.test-example.ru/rest/api/2/status/10501",
@@ -123,8 +134,6 @@
             "summary": "Тестовый эпик",
             "creator": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-                "name": "jira_test",
-                "key": "jira_test",
                 "accountId": "5b912e21fa38ae2c896099ae",
                 "emailAddress": "jira_test@jira.test-example.ru",
                 "avatarUrls": {
@@ -142,8 +151,6 @@
             "customfield_10041": null,
             "reporter": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912e21fa38ae2c896099ae",
-                "name": "jira_test",
-                "key": "jira_test",
                 "accountId": "5b912e21fa38ae2c896099ae",
                 "emailAddress": "jira_test@jira.test-example.ru",
                 "avatarUrls": {
@@ -181,47 +188,53 @@
     },
     "changelog": {
         "id": "35063",
-        "items": [{
-            "field": "description",
-            "fieldtype": "jira",
-            "fieldId": "description",
-            "from": null,
-            "fromString": null,
-            "to": null,
-            "toString": "Тестовый эпик"
-        }, {
-            "field": "priority",
-            "fieldtype": "jira",
-            "fieldId": "priority",
-            "from": null,
-            "fromString": null,
-            "to": "3",
-            "toString": "Medium"
-        }, {
-            "field": "reporter",
-            "fieldtype": "jira",
-            "fieldId": "reporter",
-            "from": null,
-            "fromString": null,
-            "to": "jira_test",
-            "toString": "Jira Test"
-        }, {
-            "field": "Статус",
-            "fieldtype": "jira",
-            "fieldId": "status",
-            "from": null,
-            "fromString": null,
-            "to": "10501",
-            "toString": "To Do"
-        }, {
-            "field": "summary",
-            "fieldtype": "jira",
-            "fieldId": "summary",
-            "from": null,
-            "fromString": null,
-            "to": null,
-            "toString": "Тестовый эпик"
-        }]
+        "items": [
+            {
+                "field": "description",
+                "fieldtype": "jira",
+                "fieldId": "description",
+                "from": null,
+                "fromString": null,
+                "to": null,
+                "toString": "Тестовый эпик"
+            },
+            {
+                "field": "priority",
+                "fieldtype": "jira",
+                "fieldId": "priority",
+                "from": null,
+                "fromString": null,
+                "to": "3",
+                "toString": "Medium"
+            },
+            {
+                "field": "reporter",
+                "fieldtype": "jira",
+                "fieldId": "reporter",
+                "from": null,
+                "fromString": null,
+                "to": "jira_test",
+                "toString": "Jira Test"
+            },
+            {
+                "field": "Статус",
+                "fieldtype": "jira",
+                "fieldId": "status",
+                "from": null,
+                "fromString": null,
+                "to": "10501",
+                "toString": "To Do"
+            },
+            {
+                "field": "summary",
+                "fieldtype": "jira",
+                "fieldId": "summary",
+                "from": null,
+                "fromString": null,
+                "to": null,
+                "toString": "Тестовый эпик"
+            }
+        ]
     },
     "level": "silly",
     "message": "Jira body",

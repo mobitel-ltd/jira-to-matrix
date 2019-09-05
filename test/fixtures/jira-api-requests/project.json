@@ -1,7 +1,7 @@
 {
-  "self": "http://jira.test-example.ru/jira/rest/api/2/project/BBCOM",
+  "self": "http://jira.test-example.ru/jira/rest/api/2/project/DTP",
   "id": "10305",
-  "key": "BBCOM",
+  "key": "DTP",
   "description": "This project was created as an example for REST.",
   "lead": {
     "self": "http://jira.test-example.ru/jira/rest/api/2/user?username=fred",
@@ -39,18 +39,20 @@
       },
       "assigneeType": "PROJECT_LEAD",
       "assignee": {
-        "self": "http://jira.test-example.ru/jira/rest/api/2/user?username=fred",
-        "key": "fred",
-        "accountId": "99:27935d01-92a7-4687-8272-a9b8d3b2ae2e",
-        "name": "fred",
+        "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
+        "name": "ii_ivanov",
+        "key": "ii_ivanov",
+        "accountId": "5b912f5c8a96e82b9549361c",
+        "emailAddress": "ii_ivanov@test-example.ru",
         "avatarUrls": {
-          "48x48": "http://jira.test-example.ru/jira/secure/useravatar?size=large&ownerId=fred",
-          "24x24": "http://jira.test-example.ru/jira/secure/useravatar?size=small&ownerId=fred",
-          "16x16": "http://jira.test-example.ru/jira/secure/useravatar?size=xsmall&ownerId=fred",
-          "32x32": "http://jira.test-example.ru/jira/secure/useravatar?size=medium&ownerId=fred"
+          "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
+          "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
+          "16x16": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
+          "32x32": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
         },
-        "displayName": "Fred F. User",
-        "active": false
+        "displayName": "Иванов Иван Иванович",
+        "active": true,
+        "timeZone": "Europe/Moscow"
       },
       "realAssigneeType": "PROJECT_LEAD",
       "realAssignee": {
@@ -92,13 +94,13 @@
       "avatarId": 10002
     }
   ],
-  "url": "http://jira.test-example.ru/jira/browse/BBCOM",
+  "url": "http://jira.test-example.ru/jira/browse/DTP",
   "email": "from-jira@example.com",
   "assigneeType": "PROJECT_LEAD",
   "versions": [],
   "name": "Example",
   "roles": {
-    "Developers": "http://jira.test-example.ru/jira/rest/api/2/project/BBCOM/role/10305"
+    "Developers": "http://jira.test-example.ru/jira/rest/api/2/project/DTP/role/10305"
   },
   "avatarUrls": {
     "48x48": "http://jira.test-example.ru/jira/secure/projectavatar?size=large&pid=10305",

@@ -5,20 +5,20 @@ const {isPostProjectUpdates} = require('../../src/jira-hook-parser/bot-handler.j
 const {postProjectUpdates} = require('../../src/bot/actions');
 const {getEpicChangedMessageBody, getNewEpicMessageBody} = require('../../src/bot/actions/helper');
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
+const testUtils = require('../test-utils');
 chai.use(sinonChai);
 
 describe('Post project updates test', () => {
-    const roomId = 'roomId';
+    let chatApi;
 
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        getRoomId: stub().resolves(roomId),
-    };
-
+    const roomId = testUtils.getRoomId();
     const postProjectUpdatesData = getPostProjectUpdatesData(genericJSON);
+
+    beforeEach(() => {
+        chatApi = testUtils.getChatApi({alias: postProjectUpdatesData.projectKey});
+    });
 
     it('getPostProjectUpdatesData', () => {
         const result = isPostProjectUpdates(genericJSON);
@@ -41,14 +41,12 @@ describe('Post project updates test', () => {
     });
 
     it('Expect postProjectUpdates to be thrown if no room is found', async () => {
-        const errName = 'Error!';
-        chatApi.getRoomId.throws(errName);
         let res;
         try {
-            res = await postProjectUpdates({chatApi, ...postProjectUpdatesData});
+            await postProjectUpdates({chatApi, ...postProjectUpdatesData, projectKey: 'some_key'});
         } catch (err) {
             res = err;
         }
-        expect(res).to.include(errName);
+        expect(res).not.to.undefined;
     });
 });

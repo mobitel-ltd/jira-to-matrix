@@ -14,24 +14,24 @@ const getEpicInfo = epicLink =>
                 ${utils.getOpenedDescriptionBlock(epicLink)}
                 ${utils.getClosedDescriptionBlock(utils.getViewUrl(epicLink))}`);
 
-const getPost = description => {
+const getPost = body => {
     const post = `
             Assignee:
-                ${utils.getOpenedDescriptionBlock(description.assigneeName)}
-                ${utils.getClosedDescriptionBlock(description.assigneeEmail)}
+                ${utils.getOpenedDescriptionBlock(body.assigneeName)}
+                ${utils.getClosedDescriptionBlock(body.assigneeEmail)}
             <br>Reporter:
-                ${utils.getOpenedDescriptionBlock(description.reporterName)}
-                ${utils.getClosedDescriptionBlock(description.reporterEmail)}
+                ${utils.getOpenedDescriptionBlock(body.reporterName)}
+                ${utils.getClosedDescriptionBlock(body.reporterEmail)}
             <br>Type:
-                ${utils.getClosedDescriptionBlock(description.typeName)}
+                ${utils.getClosedDescriptionBlock(body.typeName)}
             <br>Estimate time:
-                ${utils.getClosedDescriptionBlock(description.estimateTime)}
+                ${utils.getClosedDescriptionBlock(body.estimateTime)}
             <br>Description:
-                ${utils.getClosedDescriptionBlock(htmlToText(description.description))}
+                ${utils.getClosedDescriptionBlock(marked(body.description))}
             <br>Priority:
-                ${utils.getClosedDescriptionBlock(description.priority)}`;
+                ${utils.getClosedDescriptionBlock(body.priority)}`;
 
-    const epicInfo = getEpicInfo(description.epicLink);
+    const epicInfo = getEpicInfo(body.epicLink);
 
     return [post, epicInfo].join('\n');
 };
@@ -39,8 +39,9 @@ const getPost = description => {
 const helper = {
     getDescription: async issue => {
         try {
-            const {description} = await jiraRequests.getRenderedValues(issue.id, ['description']);
-            const htmlBody = getPost({...issue.descriptionFields, description});
+            const {description} = await jiraRequests.getRenderedValues(issue.key, ['description']);
+            const handleBody = description ? {...issue.descriptionFields, description} : issue.descriptionFields;
+            const htmlBody = getPost(handleBody);
             const body = htmlToText(htmlBody);
 
             return {body, htmlBody};
@@ -49,20 +50,13 @@ const helper = {
         }
     },
 
-    isAvailabledIssue: async issueKey => {
-        const projectKey = utils.getProjectKeyFromIssueKey(issueKey);
-        const projectBody = await jiraRequests.getProject(projectKey);
-
-        return !utils.isIgnoreProject(projectBody) || jiraRequests.getIssueSafety(issueKey);
-    },
-
     getHookHandler: type => {
         const handlers = {
             issue: async body => {
                 const key = utils.getIssueKey(body);
-                const status = await helper.isAvailabledIssue(key);
+                const status = await jiraRequests.getIssueSafety(key);
 
-                return !status;
+                return !status || !!utils.getChangelogField('Rank', body);
             },
             issuelink: async body => {
                 const allId = [utils.getIssueLinkSourceId(body), utils.getIssueLinkDestinationId(body)];
@@ -89,21 +83,28 @@ const helper = {
     getIgnoreStatus: body => {
         const type = utils.getHookType(body);
         const handler = helper.getHookHandler(type);
+        if (!handler) {
+            logger.warn('Unknown hook type, should be ignored!');
+            return true;
+        }
 
-        return handler && handler(body);
+        return handler(body);
     },
 
     getIgnoreBodyData: body => {
         const username = utils.getHookUserName(body);
-        const creator = utils.getCreator(body);
+        const creator = utils.getCreatorDisplayName(body);
 
         const isInUsersToIgnore = arr =>
             [username, creator].some(user => arr.includes(user));
 
-        const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
-        const ignoreStatus = userIgnoreStatus;
+        if (!username && !creator) {
+            return {username, creator, ignoreStatus: false};
+        }
 
-        return {username, creator, ignoreStatus};
+        const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
+
+        return {username, creator, ignoreStatus: userIgnoreStatus};
     },
 
     getIgnoreProject: async body => {
@@ -116,16 +117,6 @@ const helper = {
 
         return {timestamp, webhookEvent, ignoreStatus, issueName};
     },
-
-    getIgnoreInfo: async body => {
-        const userStatus = helper.getIgnoreBodyData(body);
-        const projectStatus = await helper.getIgnoreProject(body);
-        const status = userStatus.ignoreStatus || projectStatus.ignoreStatus;
-
-        return {userStatus, projectStatus, status};
-    },
-
-    getMembersUserId: members => members.map(({userId}) => userId),
 
     getEpicChangedMessageBody: ({summary, key, status, name}) => {
         const viewUrl = utils.getViewUrl(key);
@@ -191,10 +182,9 @@ const helper = {
         return [message, ...changesDescription].join('<br>');
     },
 
-    getIssueUpdateInfoMessageBody: async ({changelog, key, user}) => {
-        const author = user.displayName;
+    getIssueUpdateInfoMessageBody: async ({changelog, oldKey, author}) => {
         const fields = helper.fieldNames(changelog.items);
-        const renderedValues = await jiraRequests.getRenderedValues(key, fields);
+        const renderedValues = await jiraRequests.getRenderedValues(oldKey, fields);
 
         const changelogItemsTostring = helper.itemsToString(changelog.items);
         const formattedValues = {...changelogItemsTostring, ...renderedValues};

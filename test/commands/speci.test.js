@@ -2,24 +2,17 @@ const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const schemas = require('../../src/lib/schemas');
 const translate = require('../../src/locales');
-const messages = require('../../src/lib/messages');
+const commandHandler = require('../../src/bot/timeline-handler');
+const testUtils = require('../test-utils');
 
 const chai = require('chai');
-const {stub} = require('sinon');
 const sinonChai = require('sinon-chai');
 const {expect} = chai;
 chai.use(sinonChai);
 
-const proxyquire = require('proxyquire');
-const searchUserStub = stub();
-
-const spec = proxyquire('../../src/bot/timeline-handler/commands/speci.js', {
-    './helper.js': {
-        searchUser: searchUserStub,
-    },
-});
-
 describe('spec test', () => {
+    let chatApi;
+    let baseOptions;
     const noRulesUser = {
         displayName: 'No Rules User',
         name: 'noRules',
@@ -35,21 +28,9 @@ describe('spec test', () => {
 
     const users = [userA, userB];
 
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        invite: stub(),
-    };
-
     const roomName = 'BBCOM-123';
-    const room = {
-        roomId: 12345,
-        members: [
-            {
-                userId: utils.getMatrixUserID(userB.name),
-            },
-        ],
-        getJoinedMembers: () => room.members,
-    };
+    const roomId = 12345;
+    const commandName = 'spec';
 
     before(() => {
         nock(utils.getRestUrl(), {
@@ -66,8 +47,29 @@ describe('spec test', () => {
             .post(`/issue/${roomName}/watchers`, schemas.watcher(noPermissionUser.name))
             .reply(403)
             .post(`/issue/${roomName}/watchers`, schemas.watcher(noRulesUser.name))
-            .reply(404);
+            .reply(404)
+            .get('/user/search')
+            .query({username: 'Ivan'})
+            .reply(200, users)
+            .get('/user/search')
+            .query({username: userA.displayName})
+            .reply(200, [userA])
+            .get('/user/search')
+            .query({username: noPermissionUser.displayName})
+            .reply(200, [noPermissionUser])
+            .get('/user/search')
+            .query({username: noRulesUser.displayName})
+            .reply(200, [noRulesUser])
+            .get('/user/search')
+            .query({username: 'fake'})
+            .reply(200, []);
     });
+
+    beforeEach(() => {
+        chatApi = testUtils.getChatApi();
+        baseOptions = {roomId, roomName, commandName, chatApi};
+    });
+
 
     afterEach(() => {
         Object.values(chatApi).map(val => val.reset());
@@ -78,79 +80,58 @@ describe('spec test', () => {
     });
 
     it('should add user ("!spec Ivan Andreevich A")', async () => {
-        searchUserStub.resolves([userA]);
         const post = translate('successWatcherJira');
-        const result = await spec({bodyText: userA.displayName, room, roomName, chatApi});
+        const result = await commandHandler({bodyText: userA.displayName, ...baseOptions});
 
-        expect(result).to.be.equal(messages.getWatcherAddedLog(userA.displayName, roomName));
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(result).to.be.eq(post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('should not add to watchers("!spec fake")', async () => {
-        searchUserStub.resolves([]);
-        const result = await spec({bodyText: userA.displayName, room, roomName, chatApi});
+        const result = await commandHandler({bodyText: 'fake', ...baseOptions});
         const post = translate('errorWatcherJira');
 
-        expect(result).to.be.equal(messages.getWatcherNotAddedLog(userA.displayName));
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(result).to.be.eq(post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('should show list of users ("!spec Ivan")', async () => {
-        searchUserStub.resolves(users);
         const post = utils.getListToHTML(users);
-        const result = await spec({bodyText: 'Ivan', room, roomName, chatApi});
+        const result = await commandHandler({bodyText: 'Ivan', ...baseOptions});
 
-        expect(result).to.be.undefined;
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
-    });
-
-    it('should be in room', async () => {
-        searchUserStub.resolves([userB]);
-        chatApi.invite.throws('Error!!!');
-        const post = translate('successWatcherJira');
-        const result = await spec({bodyText: userB.displayName, room, roomName, chatApi});
-
-        expect(result).to.be.equal(messages.getWatcherAddedLog(userB.displayName, roomName));
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
-        expect(chatApi.invite).not.to.be.called;
+        expect(result).to.be.eq(post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('should be error (invite throw)', async () => {
-        searchUserStub.resolves(users.slice(0, 1));
+        const post = translate('errorMatrixCommands');
         chatApi.invite.throws('Error!!!');
-        const expected = [
-            utils.getDefaultErrorLog('Spec command'),
-            utils.getDefaultErrorLog('addToWatchers'),
-            'Error!!!',
-        ].join('\n');
         let result;
         try {
-            result = await spec({bodyText: userA.displayName, room, roomName, chatApi});
+            result = await commandHandler({bodyText: userA.displayName, ...baseOptions});
         } catch (err) {
             result = err;
         }
 
-        expect(result).to.be.equal(expected);
-        expect(chatApi.sendHtmlMessage).not.to.have.been.called;
+        expect(result).to.be.undefined;
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('should be sent msg about adding admin status if 403 error got in request', async () => {
-        searchUserStub.resolves([noPermissionUser]);
         const projectKey = utils.getProjectKeyFromIssueKey(roomName);
         const viewUrl = utils.getViewUrl(projectKey);
         const post = translate('setBotToAdmin', {projectKey, viewUrl});
-        const result = await spec({bodyText: noPermissionUser.displayName, room, roomName, chatApi});
+        const result = await commandHandler({bodyText: noPermissionUser.displayName, ...baseOptions});
 
         expect(result).to.be.eq(post);
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('should be sent msg about no access to project if 404 error got in request', async () => {
-        searchUserStub.resolves([noRulesUser]);
         const post = translate('noRulesToWatchIssue');
-        const result = await spec({bodyText: noRulesUser.displayName, room, roomName, chatApi});
+        const result = await commandHandler({bodyText: noRulesUser.displayName, ...baseOptions});
 
         expect(result).to.be.eq(post);
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(room.roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 });

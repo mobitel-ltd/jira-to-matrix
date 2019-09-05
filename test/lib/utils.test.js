@@ -2,9 +2,15 @@
 const utils = require('../../src/lib/utils');
 const assert = require('assert');
 const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
-const {expect} = require('chai');
 const body = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueUpdatedGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
+const issueBody = require('../fixtures/jira-api-requests/issue.json');
+const chai = require('chai');
+const {stub} = require('sinon');
+const sinonChai = require('sinon-chai');
+const {expect} = chai;
+chai.use(sinonChai);
+
 describe('Utils testing', () => {
     const expectedFuncKeys = [
         'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
@@ -61,17 +67,26 @@ describe('Utils testing', () => {
 
     it('Extract username from JIRA webhook', () => {
         const samples = [
-            [{
-                comment: {author: {name: 'user1'}},
-                user: {name: 'user2'},
-            }, 'user1'],
-            [{
-                user: {name: 'user2'},
-            }, 'user2'],
-            [{
-                comment: {author1: {name: 'user1'}},
-                user: {name1: 'user2'},
-            }, undefined],
+            [
+                {
+                    comment: {author: {name: 'user1'}},
+                    user: {name: 'user2'},
+                },
+                'user1',
+            ],
+            [
+                {
+                    user: {name: 'user2'},
+                },
+                'user2',
+            ],
+            [
+                {
+                    comment: {author1: {name: 'user1'}},
+                    user: {name1: 'user2'},
+                },
+                undefined,
+            ],
             [{comment: {}}, undefined],
             [{}, undefined],
         ];
@@ -81,16 +96,12 @@ describe('Utils testing', () => {
         });
     });
 
-    it('Extract creator name from JIRA webhook', () => {
-        const creator = utils.getCreator(body);
-
-        expect(creator).to.be.equal('jira_test');
-    });
-
     it('Test correct auth', () => {
         const currentAuth = utils.auth();
 
-        expect(currentAuth).to.be.equal('Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ=');
+        expect(currentAuth).to.be.equal(
+            'Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ='
+        );
     });
 
     it('Test correct getChangelogField', () => {
@@ -118,13 +129,6 @@ describe('Utils testing', () => {
         expect(body).to.be.undefined;
     });
 
-    it('getMatrixUserID test', () => {
-        const name = 'BBCOM';
-        const result = utils.getMatrixUserID(name);
-
-        expect(result).to.equal('@BBCOM:matrix.test-example.ru');
-    });
-
     it('Expect getLimit to be timestamp of 01.01.2018', () => {
         const limit = utils.getLimit();
         const expected = 1514775600000;
@@ -136,5 +140,80 @@ describe('Utils testing', () => {
         const res = utils.runMethod({}, 'getCreator');
 
         expect(res).to.be.undefined;
+    });
+
+    it('Expect get roommembers works with issue from request', () => {
+        const data = utils.getMembers(issueBody);
+
+        expect(data).to.be.not.empty;
+    });
+
+    it('Expect getKeyFromError return correct key', () => {
+        const key = 'BOPB-19';
+        const str = `Error in postComment_1555586889467
+                    Error in Post comment
+                    No roomId for ${key} from Matrix
+                    M_NOT_FOUND: Room alias #BOPB-19:matrix.bingo-boom.ru not found`;
+        const data = utils.getKeyFromError(str);
+
+        expect(data).to.be.eq(key);
+    });
+
+    describe('command handler test', () => {
+        it('correct command name', () => {
+            const body = '!help';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('help');
+            expect(bodyText).to.be.undefined;
+        });
+
+        it('correct command name', () => {
+            const body = '!help   ';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('help');
+            expect(bodyText).to.be.undefined;
+        });
+
+        it('correct command name', () => {
+            const body = '!op gogogogo';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).to.be.equal('op');
+            expect(bodyText).to.be.equal('gogogogo');
+        });
+
+        it('false command name', () => {
+            const body = 'help';
+            const {commandName} = utils.parseEventBody(body);
+            expect(commandName).not.to.be;
+        });
+
+        it('false command name', () => {
+            const body = '!!help';
+            const {commandName, bodyText} = utils.parseEventBody(body);
+            expect(commandName).not.to.be;
+            expect(bodyText).not.to.be;
+        });
+    });
+
+    describe('connect (ping Jira)', () => {
+        it('connect any times (7)', async () => {
+            const func = stub();
+            func.rejects('Some error');
+            func.onCall(7).resolves();
+            await utils.connect(func, 100, 10);
+            expect(func).to.be.callCount(8);
+        });
+
+        it('connect more 10 time and error', async () => {
+            const func = stub();
+            func.rejects('Some error');
+            const countCall = 10;
+            try {
+                await utils.connect(func, 10, countCall);
+            } catch (err) {
+                expect(err).to.be.equal('No connection.');
+            }
+            expect(func).to.be.callCount(countCall);
+        });
     });
 });
