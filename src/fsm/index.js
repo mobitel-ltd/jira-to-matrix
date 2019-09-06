@@ -54,7 +54,7 @@ const getChatFsm = (chatApi, handler) => {
                 }));
             },
             onFinishConnection() {
-                logger.debug('Chat connected');
+                logger.info('All chat bot are connected!!!');
             },
             async onHandleQueue() {
                 logger.debug('Start queue handling');

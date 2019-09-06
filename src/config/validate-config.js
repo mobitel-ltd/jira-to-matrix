@@ -53,6 +53,10 @@ const schema = obj({
         user: string,
         password: string,
         eventPort: Joi.number().optional(),
+        bots: array(obj({
+            user: string,
+            password: string,
+        })).optional(),
     }),
     log: {
         type: string,
