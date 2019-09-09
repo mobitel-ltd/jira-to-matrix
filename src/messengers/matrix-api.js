@@ -541,4 +541,15 @@ module.exports = class Matrix extends MessengerAbstract {
         await this.createAlias(key, roomId);
         await this.setRoomTopic(roomId, topic);
     }
+
+    /**
+     * Check if user is in room
+     * @param {string} roomId room id
+     * @returns {boolean} return true if user in this room
+     */
+    async isInRoom(roomId) {
+        const room = await this.client.getRoom(roomId);
+
+        return Boolean(room);
+    }
 };

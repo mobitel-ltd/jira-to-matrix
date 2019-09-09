@@ -30,6 +30,7 @@ module.exports = class SlackApi extends MessengerAbstract {
         this.sdk = sdk || new WebClient(config.password);
         this.logger = logger;
         this.commandServer;
+        this.count = 0;
     }
 
     /**
@@ -400,5 +401,20 @@ module.exports = class SlackApi extends MessengerAbstract {
      */
     async updateRoomData(roomId, topic) {
         await this.setRoomTopic(roomId, topic);
+    }
+
+    /**
+     * Check if user is in room
+     * @param {string} channel channel id
+     * @returns {boolean} return true if user in this room
+     */
+    async isInRoom(channel) {
+        try {
+            await this.getRoomInfo(channel);
+
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 };

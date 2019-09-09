@@ -34,7 +34,7 @@ describe('Fsm test', () => {
     });
 
     it('Expect fsm state is "ready" after queue is handled', async () => {
-        fsm = new Fsm(chatApi, handler, app, port);
+        fsm = new Fsm([chatApi], handler, app, port);
         await fsm.start();
         await fsm._handle();
 
@@ -42,7 +42,7 @@ describe('Fsm test', () => {
     });
 
     it('Expect fsm state is "ready" after start connection and call handle during connection', async () => {
-        fsm = new Fsm(chatApi, handler, app, port);
+        fsm = new Fsm([chatApi], handler, app, port);
         await fsm.start();
         await fsm.handleHook();
         await delay(150);
@@ -54,7 +54,7 @@ describe('Fsm test', () => {
 
     it('Expect fsm wait until handling is finished but new hook we get', async () => {
         const longTimeHandler = stub().callsFake(() => delay(100)).resolves();
-        fsm = new Fsm(chatApi, longTimeHandler, app, port);
+        fsm = new Fsm([chatApi], longTimeHandler, app, port);
         await fsm.start();
         await delay(50);
         await fsm.handleHook();
