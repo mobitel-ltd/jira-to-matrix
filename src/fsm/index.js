@@ -3,6 +3,7 @@ const logger = require('../modules/log')(module);
 const StateMachine = require('javascript-state-machine');
 const StateMachineHistory = require('javascript-state-machine/lib/history');
 const {states} = require('./states');
+const ChatFasade = require('../messengers/chat-fasade');
 
 const getJiraFsm = (app, port) => new StateMachine({
     init: states.init,
@@ -48,14 +49,17 @@ const getChatFsm = (chatApi, handler) => {
         ],
         methods: {
             async onConnect() {
-                await chatApi.connect();
+                await Promise.all(chatApi.map(async item => {
+                    await item.connect();
+                }));
             },
             onFinishConnection() {
                 logger.debug('Chat connected');
             },
             async onHandleQueue() {
                 logger.debug('Start queue handling');
-                await handler(chatApi);
+                const chatFasade = new ChatFasade(chatApi);
+                await handler(chatFasade);
             },
             onFinishHandle() {
                 logger.debug('Finish queue handling');
@@ -65,7 +69,7 @@ const getChatFsm = (chatApi, handler) => {
             // },
             onStop() {
                 logger.info('Messenger disconnected');
-                return this.is('init') || chatApi.disconnect();
+                return this.is('init') || chatApi.map(item => item.disconnect());
             },
             // onPendingTransition(transition, from, to) {
             //     logger.error('FSM error', transition, from, to);
@@ -81,7 +85,7 @@ const getChatFsm = (chatApi, handler) => {
 
 module.exports = class {
     /**
-     * @param {Object} chatApi instance of messenger Api, matrix or slack for example
+     * @param {Object[]} chatApi array of instances of messenger Api, matrix or slack for example
      * @param {function} queueHandler redis queue handle function
      * @param {function} app jira express REST app
      * @param {integer} port jira server port
