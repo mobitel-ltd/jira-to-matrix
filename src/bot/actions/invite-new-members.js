@@ -11,7 +11,7 @@ module.exports = async ({chatApi, issue}) => {
         const issueWatchers = await getIssueWatchers(issue);
         const issueWatchersChatIds = issueWatchers.map(user => chatApi.getChatUserId(user));
 
-        const newMembers = Ramda.difference(issueWatchersChatIds, chatRoomMembers);
+        const newMembers = Ramda.difference(issueWatchersChatIds, chatRoomMembers).filter(Boolean);
 
         await Promise.all(newMembers.map(async userID => {
             await chatApi.invite(roomId, userID);

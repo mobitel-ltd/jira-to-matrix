@@ -8,9 +8,11 @@ const app = require('./jira-app');
 const queueHandler = require('../src/queue');
 
 const ChatApi = getChatApi(conf.messenger.name);
-const chatApi = new ChatApi({config: conf.messenger, commandsHandler, logger: getLogger('messenger-api')});
+const apiCollection = conf.messenger.bots.map(item =>
+    new ChatApi({config: {...conf.messenger, ...item}, commandsHandler, logger: getLogger('messenger-api')})
+);
 
-const fsm = new FSM(chatApi, queueHandler, app, conf.port);
+const fsm = new FSM(apiCollection, queueHandler, app, conf.port);
 
 fsm.start();
 

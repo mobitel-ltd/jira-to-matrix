@@ -3,10 +3,14 @@ const faker = require('faker');
 const slack = {
     name: 'slack',
     admins: ['jira_test'],
-    user: 'jirabot',
     domain: faker.internet.domainName(),
-    password: faker.random.uuid(),
     eventPort: 3001,
+    user: 'jirabot',
+    password: faker.random.uuid(),
+    bots: [{
+        user: 'jirabot',
+        password: faker.random.uuid(),
+    }],
 };
 
 const matrix = {
@@ -15,6 +19,10 @@ const matrix = {
     domain: 'matrix.test-example.ru',
     user: 'jira_test_bot',
     password: 'fakepasswprd',
+    bots: [{
+        user: 'jira_test_bot',
+        password: 'fakepasswprd',
+    }],
 };
 
 module.exports = Object.freeze({
