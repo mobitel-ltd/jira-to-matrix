@@ -36,7 +36,6 @@ module.exports = class Matrix extends MessengerAbstract {
         this.BOT_OUT_OF_ROOM_EXEPTION = `User ${this.userId} not in room`;
         this.postfix = `:${config.domain}`.length;
         this.logger = logger;
-        this.startTime = Date.now();
     }
 
     /**
@@ -140,10 +139,6 @@ module.exports = class Matrix extends MessengerAbstract {
         const syncHandler = state => {
             if (state === 'SYNCING') {
                 this.logger.info('well connected');
-                const timeSync = Math.floor((Date.now() - this.startTime) / 1000);
-                const minSync = Math.floor(timeSync / 60);
-                const secSync = timeSync % 60;
-                this.logger.info(`Matrix bot ${this.config.user} was connected on ${minSync} min ${secSync} sec`);
                 resolve(this.client);
             } else {
                 this.client.once('sync', syncHandler);
