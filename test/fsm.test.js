@@ -22,9 +22,10 @@ describe('Fsm test', () => {
     let fsm;
     const chatApi = {
         connect: async () => {
-            await delay(100);
+            await delay(1000);
         },
         disconnect: stub(),
+        config: {user: 'fakeName'},
     };
     const handler = stub().resolves();
 

@@ -60,7 +60,7 @@ const getChatFsm = (chatApi, handler) => {
                 await Promise.all(chatApi.map(async item => {
                     await item.connect();
                     const {min, sec} = timing(startTime);
-                    logger.info(`Matrix bot was connected on ${min} min ${sec} sec`);
+                    logger.info(`Matrix bot ${item.config.user} was connected on ${min} min ${sec} sec`);
                 }));
             },
             onFinishConnection() {

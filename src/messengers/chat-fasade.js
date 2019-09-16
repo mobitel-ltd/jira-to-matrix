@@ -84,7 +84,6 @@ module.exports = class ChatFasade extends MessengerAbstract {
 
     /**
      * Transform ldap user name to chat user id
-     * @abstract
      * @param {String} shortName shortName of user from ldap
      * @returns {String} user in chat format
      */
