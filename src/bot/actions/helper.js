@@ -121,7 +121,7 @@ const helper = {
 
     isInIgnoreRedis: async (project, taskType) => {
         // example {INDEV: {taskType: ['task', 'error'], BBQ: ['task']}}
-        const result = await redis.getAsync('ignore:project');
+        const result = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
         const redisIgnore = JSON.parse(result);
         if (!redisIgnore) {
             logger.debug('No redis ignore projects found!!!');

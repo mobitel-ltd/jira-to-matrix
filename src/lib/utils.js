@@ -13,7 +13,7 @@ const REDIS_ROOM_KEY = 'newrooms';
 const ROOMS_OLD_NAME = 'rooms';
 const REDIS_LINK_PREFIX = 'link';
 const REDIS_EPIC_PREFIX = 'epic';
-const REDIS_IGNORE_PREFIX = 'ignore';
+const REDIS_IGNORE_PREFIX = 'ignore:project';
 
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER, REDIS_IGNORE_PREFIX];
@@ -482,6 +482,7 @@ const utils = {
 module.exports = {
     INDENT,
     REDIS_ROOM_KEY,
+    REDIS_IGNORE_PREFIX,
     COMMON_NAME,
     NO_ROOM_PATTERN,
     END_NO_ROOM_PATTERN,
