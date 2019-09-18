@@ -176,6 +176,7 @@ describe('Helper tests', () => {
                 .get(`/issue/${rankHook.issue.key}`)
                 .reply(200, issueBody)
                 .get(`/issue/${notIgnoredIssueHook.issue.key}`)
+                .times(2)
                 .reply(200, issueBody)
                 .get(`/project/${projectCreatedJSON.project.key}`)
                 .reply(200, newGenNotIgnoreProject)
@@ -280,8 +281,10 @@ describe('Helper tests', () => {
 
             nock(utils.getRestUrl())
                 .get(`/issue/${body.issueLink.sourceIssueId}`)
+                .times(3)
                 .reply(status1, issueBody)
                 .get(`/issue/${body.issueLink.destinationIssueId}`)
+                .times(3)
                 .reply(status2, issueBody);
 
             const {issueName, timestamp, webhookEvent, ignoreStatus} = await getIgnoreProject(body);

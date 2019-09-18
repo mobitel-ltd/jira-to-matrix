@@ -13,9 +13,10 @@ const REDIS_ROOM_KEY = 'newrooms';
 const ROOMS_OLD_NAME = 'rooms';
 const REDIS_LINK_PREFIX = 'link';
 const REDIS_EPIC_PREFIX = 'epic';
+const REDIS_IGNORE_PREFIX = 'ignore';
 
 const DELIMITER = '|';
-const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
+const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER, REDIS_IGNORE_PREFIX];
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
@@ -154,7 +155,7 @@ const utils = {
 
     getCreatorDisplayName: body => utils.runMethod(body, 'getCreatorDisplayName'),
 
-    getProjectKey: body => utils.runMethod(body, 'getProjectKey'),
+    getProjectKey: body => utils.runMethod(body, 'getProjectKey') || handlers.issue.getProjectKey(body),
 
     getLinks: body => utils.runMethod(body, 'getLinks'),
 

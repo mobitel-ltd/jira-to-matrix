@@ -134,6 +134,7 @@ describe('redis-data-handle test', () => {
 
         nock(getRestUrl())
             .get(`/issue/${JSONbody.issue.key}`)
+            .times(2)
             .reply(200, projectBody)
             .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, {...responce, id: 28516})

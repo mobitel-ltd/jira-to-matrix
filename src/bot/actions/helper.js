@@ -6,6 +6,7 @@ const marked = require('marked');
 const {usersToIgnore, testMode} = require('../../config');
 const utils = require('../../lib/utils.js');
 const jiraRequests = require('../../lib/jira-request.js');
+const redis = require('../../redis-client');
 
 const getEpicInfo = epicLink =>
     ((epicLink === translate('miss'))
@@ -80,15 +81,20 @@ const helper = {
         return handlers[type];
     },
 
-    getIgnoreStatus: body => {
+    getIgnoreStatus: async body => {
         const type = utils.getHookType(body);
         const handler = helper.getHookHandler(type);
         if (!handler) {
             logger.warn('Unknown hook type, should be ignored!');
             return true;
         }
+        const status = await handler(body);
 
-        return handler(body);
+        if (status) {
+            logger.warn('Project should be ignore');
+        }
+
+        return status;
     },
 
     getIgnoreBodyData: body => {
@@ -107,13 +113,51 @@ const helper = {
         return {username, creator, ignoreStatus: userIgnoreStatus};
     },
 
+    getAvailableIssueId: async body => {
+        const sourceId = utils.getIssueLinkSourceId(body);
+
+        return await jiraRequests.getIssueSafety(sourceId) ? sourceId : utils.getIssueLinkDestinationId(body);
+    },
+
+    isInIgnoreRedis: async (project, taskType) => {
+        // example {INDEV: {taskType: ['task', 'error'], BBQ: ['task']}}
+        const result = await redis.getAsync('ignore:project');
+        const redisIgnore = JSON.parse(result);
+        if (!redisIgnore) {
+            logger.debug('No redis ignore projects found!!!');
+            return false;
+        }
+        const ignoreList = redisIgnore[project];
+        if (!ignoreList) {
+            return false;
+        }
+
+        return ignoreList.taskType.includes(taskType);
+        // return ignoreList.taskType.includes(taskType) || ignoreList.issues.includes(issueKey);
+    },
+
+    getIgnoreRedis: async body => {
+        const type = utils.getHookType(body);
+        if (type === 'project') {
+            return false;
+        }
+
+        const keyOrId = type === 'issuelink' ? await helper.getAvailableIssueId(body) : utils.getIssueKey(body) || utils.getIssueId(body);
+        const {typeName} = utils.getDescriptionFields(body);
+
+        const issue = await jiraRequests.getIssue(keyOrId);
+        const projectKey = utils.getProjectKey({issue});
+
+        return helper.isInIgnoreRedis(projectKey, typeName);
+    },
+
     getIgnoreProject: async body => {
         await jiraRequests.testJiraRequest();
-
-        const ignoreStatus = await helper.getIgnoreStatus(body);
         const webhookEvent = utils.getBodyWebhookEvent(body);
         const timestamp = utils.getBodyTimestamp(body);
         const issueName = utils.getIssueName(body);
+
+        const ignoreStatus = await helper.getIgnoreStatus(body) || await helper.getIgnoreRedis(body);
 
         return {timestamp, webhookEvent, ignoreStatus, issueName};
     },
