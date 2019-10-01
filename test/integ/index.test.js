@@ -1,3 +1,4 @@
+const Ramda = require('ramda');
 const {WebClient} = require('@slack/web-api');
 const nock = require('nock');
 const supertest = require('supertest');
@@ -11,6 +12,7 @@ const queueHandler = require('../../src/queue');
 const utils = require('../../src/lib/utils.js');
 const {cleanRedis} = require('../test-utils');
 const redisUtils = require('../../src/queue/redis-data-handle.js');
+const redis = require('../../src/redis-client');
 
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
 const jiraCommentCreatedJSON = require('../fixtures/webhooks/comment/created.json');
@@ -146,14 +148,27 @@ const commandsHandler = stub().resolves();
 // const methodName = conf.messenger.name === 'slack' ? 'only' : 'skip';
 // describe[methodName]('Integ tests', () => {
 
+const ignoreData = {
+    INDEV: {
+        taskType: ['Error'],
+        autor: [],
+    },
+    BBQ: {
+        taskType: ['task'],
+        autor: [],
+    }};
 
 describe('Integ tests', () => {
     const slackApi = new SlackApi({config: messengerConfig, sdk, commandsHandler, logger});
 
     const fsm = new FSM([slackApi], queueHandler, app, conf.port);
 
-    beforeEach(() => {
+    beforeEach(async () => {
         fsm.start();
+
+        const bodyToJSON = JSON.stringify(ignoreData);
+        await redis.setAsync(utils.REDIS_IGNORE_PREFIX, bodyToJSON);
+
         nock(conf.jira.url)
             .get('')
             .times(2)
@@ -248,5 +263,40 @@ describe('Integ tests', () => {
         expect(sdk.conversations.create).to.be.calledWithExactly(expectedProjectRoomData);
         expect(dataKeys).to.be.null;
         expect(roomKeys).to.be.null;
+    });
+
+    it('GET /ignore return all ignore projects', async () => {
+        const {text} = await request.get('/ignore');
+        expect(JSON.parse(text)).to.be.deep.eq(ignoreData);
+    });
+
+    it('POST /ignore add ignore project on key', async () => {
+        const newIgnoreKey = {testProject: {taskType: ['test'], autor: ['Doncova']}};
+        const res = await request
+            .post('/ignore')
+            .send(JSON.stringify(newIgnoreKey))
+            .set('Content-Type', 'application/json');
+        expect(res.status).to.be.eq(200);
+
+        const {text} = await request.get('/ignore');
+        expect(JSON.parse(text)).to.be.deep.eq({...ignoreData, ...newIgnoreKey});
+    });
+    it('PUT /ignore update ignore project on key', async () => {
+        const newData = {taskType: ['test'], autor: ['Doncova']};
+        const res = await request
+            .put('/ignore/INDEV')
+            .send(JSON.stringify(newData))
+            .set('Content-Type', 'application/json');
+        expect(res.status).to.be.eq(200);
+
+        const {text} = await request.get('/ignore');
+        expect(JSON.parse(text)).to.be.deep.eq({...ignoreData, INDEV: newData});
+    });
+    it('DELETE /ignore delete ignore projects', async () => {
+        const res = await request.delete('/ignore/INDEV');
+        expect(res.status).to.be.eq(200);
+
+        const {text} = await request.get('/ignore');
+        expect(JSON.parse(text)).to.be.deep.eq(Ramda.omit(['INDEV'], ignoreData));
     });
 });
