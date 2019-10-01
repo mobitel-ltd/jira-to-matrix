@@ -30,6 +30,11 @@ const END_NO_ROOM_PATTERN = ' from Matrix';
 
 const NEW_YEAR_2018 = new Date(Date.UTC(2018, 0, 1, 3));
 
+const httpStatus = {
+    OK: 200,
+    BAD_REQUEST: 404,
+};
+
 const getIdFromUrl = url => {
     const [res] = url
         .split('/')
@@ -488,5 +493,6 @@ module.exports = {
     END_NO_ROOM_PATTERN,
     PING_INTERVAL,
     PING_COUNT,
+    httpStatus,
     ...utils,
 };

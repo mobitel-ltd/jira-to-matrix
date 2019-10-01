@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('./jira-hook-parser');
 const {getIgnoreList, setIgnoreData, delIgnoreData} = require('./bot/settings');
+const {httpStatus} = require('./lib/utils');
 
 const app = express();
 
@@ -30,23 +31,21 @@ module.exports = handleFunc => {
         .get('/ignore', async (req, res) => {
             try {
                 const result = await getIgnoreList();
-                res.end(result);
+                res.json(result).end();
             } catch (err) {
                 logger.error(err);
-                res.status(302);
-                res.end();
+                res.status(httpStatus.BAD_REQUEST).end();
             }
         })
         .post('/ignore', async (req, res) => {
             const [ignoreData] = Object.entries(req.body);
-            const [key, data] = ignoreData;
             try {
+                const [key, data] = ignoreData;
                 await setIgnoreData(key, data);
                 res.end();
             } catch (err) {
                 logger.error(err);
-                res.status(302);
-                res.end();
+                res.status(httpStatus.BAD_REQUEST).end();
             }
         })
         .put('/ignore/:key', async (req, res) => {
@@ -57,8 +56,7 @@ module.exports = handleFunc => {
                 res.end();
             } catch (err) {
                 logger.error(err);
-                res.status(302);
-                res.end();
+                res.status(httpStatus.BAD_REQUEST).end();
             }
         })
         .delete('/ignore/:key', async (req, res) => {
@@ -68,8 +66,7 @@ module.exports = handleFunc => {
                 res.end();
             } catch (err) {
                 logger.error(err);
-                res.status(302);
-                res.end();
+                res.status(httpStatus.BAD_REQUEST).end();
             }
         })
         .use((req, res) => {

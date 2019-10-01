@@ -119,7 +119,7 @@ const helper = {
         return await jiraRequests.getIssueSafety(sourceId) ? sourceId : utils.getIssueLinkDestinationId(body);
     },
 
-    isInIgnoreRedis: async (project, taskType) => {
+    isManuallyIgnore: async (project, taskType) => {
         // example {INDEV: {taskType: ['task', 'error'], BBQ: ['task']}}
         const result = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
         const redisIgnore = JSON.parse(result);
@@ -136,7 +136,7 @@ const helper = {
         // return ignoreList.taskType.includes(taskType) || ignoreList.issues.includes(issueKey);
     },
 
-    getIgnoreRedis: async body => {
+    getManuallyIgnore: async body => {
         const type = utils.getHookType(body);
         if (type === 'project') {
             return false;
@@ -144,11 +144,14 @@ const helper = {
 
         const keyOrId = type === 'issuelink' ? await helper.getAvailableIssueId(body) : utils.getIssueKey(body) || utils.getIssueId(body);
         const {typeName} = utils.getDescriptionFields(body);
+        if (!typeName) {
+            return false;
+        }
 
         const issue = await jiraRequests.getIssue(keyOrId);
         const projectKey = utils.getProjectKey({issue});
 
-        return helper.isInIgnoreRedis(projectKey, typeName);
+        return helper.isManuallyIgnore(projectKey, typeName);
     },
 
     getIgnoreProject: async body => {
@@ -157,7 +160,7 @@ const helper = {
         const timestamp = utils.getBodyTimestamp(body);
         const issueName = utils.getIssueName(body);
 
-        const ignoreStatus = await helper.getIgnoreStatus(body) || await helper.getIgnoreRedis(body);
+        const ignoreStatus = await helper.getIgnoreStatus(body) || await helper.getManuallyIgnore(body);
 
         return {timestamp, webhookEvent, ignoreStatus, issueName};
     },

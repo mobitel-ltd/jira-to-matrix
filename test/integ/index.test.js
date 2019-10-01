@@ -158,6 +158,8 @@ const ignoreData = {
         autor: [],
     }};
 
+const {httpStatus} = utils;
+
 describe('Integ tests', () => {
     const slackApi = new SlackApi({config: messengerConfig, sdk, commandsHandler, logger});
 
@@ -266,37 +268,48 @@ describe('Integ tests', () => {
     });
 
     it('GET /ignore return all ignore projects', async () => {
-        const {text} = await request.get('/ignore');
-        expect(JSON.parse(text)).to.be.deep.eq(ignoreData);
+        const {body} = await request.get('/ignore')
+            .expect(httpStatus.OK);
+        expect(JSON.parse(body)).to.be.deep.eq(ignoreData);
     });
 
     it('POST /ignore add ignore project on key', async () => {
         const newIgnoreKey = {testProject: {taskType: ['test'], autor: ['Doncova']}};
-        const res = await request
+        await request
             .post('/ignore')
-            .send(JSON.stringify(newIgnoreKey))
-            .set('Content-Type', 'application/json');
-        expect(res.status).to.be.eq(200);
+            .send(newIgnoreKey)
+            .expect(httpStatus.OK);
 
-        const {text} = await request.get('/ignore');
-        expect(JSON.parse(text)).to.be.deep.eq({...ignoreData, ...newIgnoreKey});
+        const {body} = await request.get('/ignore');
+        expect(JSON.parse(body)).to.be.deep.eq({...ignoreData, ...newIgnoreKey});
+    });
+    it('POST /ignore bad requests', async () => {
+        const newIgnoreKey = 'bad key';
+        await request
+            .post('/ignore')
+            .send(newIgnoreKey)
+            .expect(httpStatus.BAD_REQUEST);
+
+        await request
+            .post('/ignore')
+            .send()
+            .expect(httpStatus.BAD_REQUEST);
     });
     it('PUT /ignore update ignore project on key', async () => {
         const newData = {taskType: ['test'], autor: ['Doncova']};
-        const res = await request
+        await request
             .put('/ignore/INDEV')
-            .send(JSON.stringify(newData))
-            .set('Content-Type', 'application/json');
-        expect(res.status).to.be.eq(200);
+            .send(newData)
+            .expect(httpStatus.OK);
 
-        const {text} = await request.get('/ignore');
-        expect(JSON.parse(text)).to.be.deep.eq({...ignoreData, INDEV: newData});
+        const {body} = await request.get('/ignore');
+        expect(JSON.parse(body)).to.be.deep.eq({...ignoreData, INDEV: newData});
     });
     it('DELETE /ignore delete ignore projects', async () => {
-        const res = await request.delete('/ignore/INDEV');
-        expect(res.status).to.be.eq(200);
+        await request.delete('/ignore/INDEV')
+            .expect(httpStatus.OK);
 
-        const {text} = await request.get('/ignore');
-        expect(JSON.parse(text)).to.be.deep.eq(Ramda.omit(['INDEV'], ignoreData));
+        const {body} = await request.get('/ignore');
+        expect(JSON.parse(body)).to.be.deep.eq(Ramda.omit(['INDEV'], ignoreData));
     });
 });
