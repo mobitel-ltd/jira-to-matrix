@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('./jira-hook-parser');
+const {getIgnoreList, setIgnoreData, delIgnoreData} = require('./bot/settings');
+const {httpStatus} = require('./lib/utils');
 
 const app = express();
 
@@ -25,6 +27,47 @@ module.exports = handleFunc => {
         })
         .get('/', (req, res) => {
             res.end(`Version ${process.env.npm_package_version}`);
+        })
+        .get('/ignore', async (req, res) => {
+            try {
+                const result = await getIgnoreList();
+                res.json(result).end();
+            } catch (err) {
+                logger.error(err);
+                res.status(httpStatus.BAD_REQUEST).end();
+            }
+        })
+        .post('/ignore', async (req, res) => {
+            const [ignoreData] = Object.entries(req.body);
+            try {
+                const [key, data] = ignoreData;
+                await setIgnoreData(key, data);
+                res.end();
+            } catch (err) {
+                logger.error(err);
+                res.status(httpStatus.BAD_REQUEST).end();
+            }
+        })
+        .put('/ignore/:key', async (req, res) => {
+            const {key} = req.params;
+            const data = req.body;
+            try {
+                await setIgnoreData(key, data);
+                res.end();
+            } catch (err) {
+                logger.error(err);
+                res.status(httpStatus.BAD_REQUEST).end();
+            }
+        })
+        .delete('/ignore/:key', async (req, res) => {
+            const {key} = req.params;
+            try {
+                await delIgnoreData(key);
+                res.end();
+            } catch (err) {
+                logger.error(err);
+                res.status(httpStatus.BAD_REQUEST).end();
+            }
         })
         .use((req, res) => {
             res.end();

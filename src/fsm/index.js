@@ -37,7 +37,15 @@ const getJiraFsm = (app, port) => new StateMachine({
     },
 });
 
+const timing = (startTime, now = Date.now()) => {
+    const timeSync = Math.floor((now - startTime) / 1000);
+    const min = Math.floor(timeSync / 60);
+    const sec = timeSync % 60;
+    return {min, sec};
+};
+
 const getChatFsm = (chatApi, handler) => {
+    const startTime = Date.now();
     const fsm = new StateMachine({
         init: states.init,
         transitions: [
@@ -51,10 +59,14 @@ const getChatFsm = (chatApi, handler) => {
             async onConnect() {
                 await Promise.all(chatApi.map(async item => {
                     await item.connect();
+                    const {min, sec} = timing(startTime);
+                    logger.info(`Matrix bot ${item.config.user} was connected on ${min} min ${sec} sec`);
                 }));
             },
             onFinishConnection() {
                 logger.info('All chat bot are connected!!!');
+                const {min, sec} = timing(startTime);
+                logger.info(`All matrix bots were connected on ${min} min ${sec} sec`);
             },
             async onHandleQueue() {
                 logger.debug('Start queue handling');

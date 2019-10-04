@@ -13,9 +13,10 @@ const REDIS_ROOM_KEY = 'newrooms';
 const ROOMS_OLD_NAME = 'rooms';
 const REDIS_LINK_PREFIX = 'link';
 const REDIS_EPIC_PREFIX = 'epic';
+const REDIS_IGNORE_PREFIX = 'ignore:project';
 
 const DELIMITER = '|';
-const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER];
+const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER, REDIS_IGNORE_PREFIX];
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
@@ -28,6 +29,11 @@ const NO_ROOM_PATTERN = 'No roomId for ';
 const END_NO_ROOM_PATTERN = ' from Matrix';
 
 const NEW_YEAR_2018 = new Date(Date.UTC(2018, 0, 1, 3));
+
+const httpStatus = {
+    OK: 200,
+    BAD_REQUEST: 404,
+};
 
 const getIdFromUrl = url => {
     const [res] = url
@@ -154,7 +160,7 @@ const utils = {
 
     getCreatorDisplayName: body => utils.runMethod(body, 'getCreatorDisplayName'),
 
-    getProjectKey: body => utils.runMethod(body, 'getProjectKey'),
+    getProjectKey: body => utils.runMethod(body, 'getProjectKey') || handlers.issue.getProjectKey(body),
 
     getLinks: body => utils.runMethod(body, 'getLinks'),
 
@@ -481,10 +487,12 @@ const utils = {
 module.exports = {
     INDENT,
     REDIS_ROOM_KEY,
+    REDIS_IGNORE_PREFIX,
     COMMON_NAME,
     NO_ROOM_PATTERN,
     END_NO_ROOM_PATTERN,
     PING_INTERVAL,
     PING_COUNT,
+    httpStatus,
     ...utils,
 };

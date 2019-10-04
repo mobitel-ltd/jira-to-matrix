@@ -81,4 +81,13 @@ module.exports = class ChatFasade extends MessengerAbstract {
 
         return client.sendHtmlMessage(roomId, body, htmlBody);
     }
+
+    /**
+     * Transform ldap user name to chat user id
+     * @param {String} shortName shortName of user from ldap
+     * @returns {String} user in chat format
+     */
+    getChatUserId(shortName) {
+        return this.worker.getChatUserId(shortName);
+    }
 };
