@@ -44,6 +44,16 @@ const dict = Object.freeze({
     errorUserKick: 'Ошибка при попытки исключения пользователя %{user} из комнаты %{roomName}',
     kickInfo: 'Пользователь %{sender} попытался исключить следующих пользователей из комнат:',
     powerUp: 'Пользователь %{targetUser} получил права модератора для комнаты %{roomName}',
+    currentIgnoreSettings: 'Текущие настройки игнорирования для проекта "%{project}": ',
+    varsComandsIgnoreSettings: 'Вы можете использовать команды добавления или удаления типов, например<br>!ignore add Error<br>!ignore del Error',
+    emptyIgnoreList: 'Для проекта %{project} настройки пока не сделаны.<br>Вы можете добавить тип командой !ignore add Error',
+    notIgnoreKey: 'Укажите ключи.<br>!ignore add <b>Task</b>',
+    notKeyInProject: 'Такой ключ не предусмотрен в проекте "%{project}".',
+    keyNotFoundForDelete: 'Ключ не найден в настройках проекта "%{project}".',
+    keyAlreadyExistForAdd: 'Ключ "%{typeTaskFromUser}" уже добавлен в игнор лист для проекта "%{project}"',
+    commandNotFound: 'Неправильная команда.',
+    ignoreKeyAdded: 'Ключ "%{typeTaskFromUser}" был добавлен для проекта "%{project}".',
+    ignoreKeyDeleted: 'Ключ "%{typeTaskFromUser}" был удален для проекта "%{project}".',
 });
 /* spell-checker: enable */
 

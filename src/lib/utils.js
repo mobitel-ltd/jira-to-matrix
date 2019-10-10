@@ -422,6 +422,17 @@ const utils = {
             `${translate('listJiraCommand')}:<br>`
         ),
 
+    getIgnoreTips: (project, currentTaskType) => {
+        if (currentTaskType.length === 0) {
+            return `${translate('emptyIgnoreList', {project})}`;
+        }
+        return `${translate('currentIgnoreSettings', {project})}
+                <br>
+                ${currentTaskType.map((name, id) => `<strong>${id + 1})</strong> - ${name}`).join('<br>')}
+                <br>
+                ${translate('varsComandsIgnoreSettings')}`;
+    },
+
     expandParams: {expand: 'renderedFields'},
 
     propIn: Ramda.curry((prop, arr, obj) =>
