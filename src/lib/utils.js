@@ -433,6 +433,11 @@ const utils = {
                 ${translate('varsComandsIgnoreSettings')}`;
     },
 
+    ignoreKeysInProject: (project, namesIssueTypeInProject) => `${translate('notKeyInProject', {project})}
+                <br>
+                ${namesIssueTypeInProject.map((name, id) => `<strong>${id + 1})</strong> - ${name}`).join('<br>')}
+                `,
+
     expandParams: {expand: 'renderedFields'},
 
     propIn: Ramda.curry((prop, arr, obj) =>
@@ -492,6 +497,18 @@ const utils = {
         or <font color="green"><strong>!invite #BBCOM-101:messenger.domain</strong></font><br>
         ${INDENT}Bot invite you in room for issue <font color="green">BBCOM-101</font><br><br>
     If you have administrator status, you can invite the bot into the room and he will not be denied:)
+    <h5>Use "!ignore" command to add project task-types to ignore list. After that hooks form jira will be ignored.<br>
+    example:</h5>
+        ${INDENT}<font color="green"><strong>!ignore</strong></font>
+        ${INDENT}you will see a message:<br>
+        ${INDENT}Current ignore-settings for project "TCP":<br>
+        ${INDENT}${INDENT}1) - Task<br>
+        ${INDENT}${INDENT}2) - Epic<br>
+        ${INDENT}${INDENT}3) - Bug<br>
+        ${INDENT}${INDENT}...<br>
+        ${INDENT}You can use comands add or del types, for example<br>
+        ${INDENT}!ignore add Error<br>
+        ${INDENT}!ignore del Error<br>
     `,
 };
 

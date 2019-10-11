@@ -57,7 +57,7 @@ describe('ignore test test', () => {
         expect(result).to.be.eq(post);
     });
     it('Exist command and key not in project', async () => {
-        const post = translate('notKeyInProject', {project});
+        const post = utils.ignoreKeysInProject(project, ['Task', 'Error']);
         const result = await commandHandler({...baseOptions, bodyText: 'add abracadabra'});
         expect(result).to.be.eq(post);
     });

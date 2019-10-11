@@ -44,7 +44,7 @@ const dict = Object.freeze({
     varsComandsIgnoreSettings: 'You can use comands add or del types, for example<br>!ignore add Error<br>!ignore del Error',
     emptyIgnoreList: 'For project %{project} ignore list is empty.<br>You can add ignore key !ignore add Error',
     notIgnoreKey: 'Write key.<br>!ignore add <b>Task</b>',
-    notKeyInProject: 'Such key not found in project "%{project}".',
+    notKeyInProject: 'Such key not found in project "%{project}".<br>You can use keys:',
     keyNotFoundForDelete: 'This key not found in ignore list for project "%{project}".',
     keyAlreadyExistForAdd: 'Key "%{typeTaskFromUser}" already exist in project "%{project}"',
     commandNotFound: 'Command not found.',

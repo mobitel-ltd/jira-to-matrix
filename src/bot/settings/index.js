@@ -17,7 +17,7 @@ const setIgnoreData = async (project, data) => {
         const newIgnore = {...redisIgnore, [project]: data};
 
         await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify(newIgnore));
-        await fs.promises.writeFile('./ignore-list.json', JSON.stringify(newIgnore));
+        await fs.promises.writeFile(`./backup/ignore-list-${Date.now()}.json`, JSON.stringify(newIgnore));
 
         logger.info('New ignore data was writed by redis.');
     } catch (err) {
@@ -33,7 +33,7 @@ const delIgnoreData = async project => {
         const fiteredIgnoreData = Ramda.omit([project], redisIgnore);
 
         await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify(fiteredIgnoreData));
-        await fs.promises.writeFile('./ignore-list.json', JSON.stringify(fiteredIgnoreData));
+        await fs.promises.writeFile(`./backup/ignore-list-${Date.now()}.json`, JSON.stringify(fiteredIgnoreData));
 
         logger.info('Key was deleted by redis.');
     } catch (err) {

@@ -48,7 +48,7 @@ const dict = Object.freeze({
     varsComandsIgnoreSettings: 'Вы можете использовать команды добавления или удаления типов, например<br>!ignore add Error<br>!ignore del Error',
     emptyIgnoreList: 'Для проекта %{project} настройки пока не сделаны.<br>Вы можете добавить тип командой !ignore add Error',
     notIgnoreKey: 'Укажите ключи.<br>!ignore add <b>Task</b>',
-    notKeyInProject: 'Такой ключ не предусмотрен в проекте "%{project}".',
+    notKeyInProject: 'Такой ключ не предусмотрен в проекте "%{project}".<br>Вы можете использовать ключи:',
     keyNotFoundForDelete: 'Ключ не найден в настройках проекта "%{project}".',
     keyAlreadyExistForAdd: 'Ключ "%{typeTaskFromUser}" уже добавлен в игнор лист для проекта "%{project}"',
     commandNotFound: 'Неправильная команда.',

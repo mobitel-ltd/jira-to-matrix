@@ -28,7 +28,7 @@ module.exports = async ({bodyText, roomId, roomName, sender, chatApi}) => {
         }
 
         if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
-            return translate('notKeyInProject', {project});
+            return utils.ignoreKeysInProject(project, namesIssueTypeInProject);
         }
         switch (command) {
             case 'add':
