@@ -92,3 +92,5 @@ dump.rdb
 
 #Makefile
 Makefile
+
+ignore-list*
