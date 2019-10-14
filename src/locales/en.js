@@ -40,16 +40,16 @@ const dict = Object.freeze({
     errorUserKick: 'Error kicking user %{user} from room %{roomName}',
     kickInfo: 'User %{sender} has kicked next members from rooms:',
     powerUp: 'User %{targetUser} became a moderator for room %{roomName}',
-    currentIgnoreSettings: 'Current ignore-settings for project "%{project}": ',
+    currentIgnoreSettings: 'Current ignore-settings for project "%{projectKey}": ',
     varsComandsIgnoreSettings: 'You can use comands add or del types, for example<br>!ignore add Error<br>!ignore del Error',
-    emptyIgnoreList: 'For project %{project} ignore list is empty.<br>You can add ignore key !ignore add Error',
+    emptyIgnoreList: 'For project %{projectKey} ignore list is empty.<br>You can add ignore key !ignore add Error',
     notIgnoreKey: 'Write key.<br>!ignore add <b>Task</b>',
-    notKeyInProject: 'Such key not found in project "%{project}".<br>You can use keys:',
-    keyNotFoundForDelete: 'This key not found in ignore list for project "%{project}".',
-    keyAlreadyExistForAdd: 'Key "%{typeTaskFromUser}" already exist in project "%{project}"',
+    notKeyInProject: 'Such key not found in project "%{projectKey}".<br>You can use keys:',
+    keyNotFoundForDelete: 'This key not found in ignore list for project "%{projectKey}".',
+    keyAlreadyExistForAdd: 'Key "%{typeTaskFromUser}" already exist in project "%{projectKey}"',
     commandNotFound: 'Command not found.',
-    ignoreKeyAdded: 'Key "%{typeTaskFromUser}" was added for project "%{project}".',
-    ignoreKeyDeleted: 'Key "%{typeTaskFromUser}" was deleted for project "%{project}".',
+    ignoreKeyAdded: 'Key "%{typeTaskFromUser}" was added for project "%{projectKey}".',
+    ignoreKeyDeleted: 'Key "%{typeTaskFromUser}" was deleted for project "%{projectKey}".',
 });
 
 module.exports.dict = dict;

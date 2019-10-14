@@ -1,23 +1,23 @@
-const fs = require('fs');
+const {writeFile} = require('fs').promises;
 const Ramda = require('ramda');
 const redis = require('../../redis-client');
 const utils = require('../../lib/utils.js');
 const logger = require('../../modules/log')(module);
 
-const getIgnoreList = async () => {
-    const result = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
-    return result ? result : 'Ignore list is empty.';
+const getAllIgnoreData = async () => {
+    const data = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
+
+    return data ? JSON.parse(data) : {};
 };
 
-const setIgnoreData = async (project, data) => {
+const setIgnoreData = async (projectKey, data) => {
     try {
-        const result = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
-        const redisIgnore = JSON.parse(result);
+        const redisIgnore = await getAllIgnoreData();
 
-        const newIgnore = {...redisIgnore, [project]: data};
+        const newIgnore = {...redisIgnore, [projectKey]: data};
 
         await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify(newIgnore));
-        await fs.promises.writeFile(`./backup/ignore-list-${Date.now()}.json`, JSON.stringify(newIgnore));
+        await writeFile(`./backup/ignore-list-${Date.now()}.json`, JSON.stringify(newIgnore));
 
         logger.info('New ignore data was writed by redis.');
     } catch (err) {
@@ -25,15 +25,14 @@ const setIgnoreData = async (project, data) => {
     }
 };
 
-const delIgnoreData = async project => {
+const delIgnoreData = async projectKey => {
     try {
-        const result = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
-        const redisIgnore = JSON.parse(result);
+        const redisIgnore = await getAllIgnoreData();
 
-        const fiteredIgnoreData = Ramda.omit([project], redisIgnore);
+        const fiteredIgnoreData = Ramda.omit([projectKey], redisIgnore);
 
         await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify(fiteredIgnoreData));
-        await fs.promises.writeFile(`./backup/ignore-list-${Date.now()}.json`, JSON.stringify(fiteredIgnoreData));
+        await writeFile(`./backup/ignore-list-${Date.now()}.json`, JSON.stringify(fiteredIgnoreData));
 
         logger.info('Key was deleted by redis.');
     } catch (err) {
@@ -42,7 +41,7 @@ const delIgnoreData = async project => {
 };
 
 module.exports = {
-    getIgnoreList,
+    getAllIgnoreData,
     setIgnoreData,
     delIgnoreData,
 };

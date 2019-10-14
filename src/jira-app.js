@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('./jira-hook-parser');
-const {getIgnoreList, setIgnoreData, delIgnoreData} = require('./bot/settings');
+const {getAllIgnoreData, setIgnoreData, delIgnoreData} = require('./bot/settings');
 const {httpStatus} = require('./lib/utils');
 
 const app = express();
@@ -30,7 +30,7 @@ module.exports = handleFunc => {
         })
         .get('/ignore', async (req, res) => {
             try {
-                const result = await getIgnoreList();
+                const result = await getAllIgnoreData() || 'Ignore list is empty.';
                 res.json(result).end();
             } catch (err) {
                 logger.error(err);

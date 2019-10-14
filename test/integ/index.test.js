@@ -156,7 +156,8 @@ const ignoreData = {
     BBQ: {
         taskType: ['task'],
         autor: [],
-    }};
+    },
+};
 
 const {httpStatus} = utils;
 
@@ -270,7 +271,7 @@ describe('Integ tests', () => {
     it('GET /ignore return all ignore projects', async () => {
         const {body} = await request.get('/ignore')
             .expect(httpStatus.OK);
-        expect(JSON.parse(body)).to.be.deep.eq(ignoreData);
+        expect(body).to.be.deep.eq(ignoreData);
     });
 
     it('POST /ignore add ignore project on key', async () => {
@@ -281,7 +282,7 @@ describe('Integ tests', () => {
             .expect(httpStatus.OK);
 
         const {body} = await request.get('/ignore');
-        expect(JSON.parse(body)).to.be.deep.eq({...ignoreData, ...newIgnoreKey});
+        expect(body).to.be.deep.eq({...ignoreData, ...newIgnoreKey});
     });
     it('POST /ignore bad requests', async () => {
         const newIgnoreKey = 'bad key';
@@ -303,13 +304,13 @@ describe('Integ tests', () => {
             .expect(httpStatus.OK);
 
         const {body} = await request.get('/ignore');
-        expect(JSON.parse(body)).to.be.deep.eq({...ignoreData, INDEV: newData});
+        expect(body).to.be.deep.eq({...ignoreData, INDEV: newData});
     });
     it('DELETE /ignore delete ignore projects', async () => {
         await request.delete('/ignore/INDEV')
             .expect(httpStatus.OK);
 
         const {body} = await request.get('/ignore');
-        expect(JSON.parse(body)).to.be.deep.eq(Ramda.omit(['INDEV'], ignoreData));
+        expect(body).to.be.deep.eq(Ramda.omit(['INDEV'], ignoreData));
     });
 });

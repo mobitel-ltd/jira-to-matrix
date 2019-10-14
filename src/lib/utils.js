@@ -422,18 +422,18 @@ const utils = {
             `${translate('listJiraCommand')}:<br>`
         ),
 
-    getIgnoreTips: (project, currentTaskType) => {
+    getIgnoreTips: (projectKey, currentTaskType) => {
         if (currentTaskType.length === 0) {
-            return `${translate('emptyIgnoreList', {project})}`;
+            return `${translate('emptyIgnoreList', {projectKey})}`;
         }
-        return `${translate('currentIgnoreSettings', {project})}
+        return `${translate('currentIgnoreSettings', {projectKey})}
                 <br>
                 ${currentTaskType.map((name, id) => `<strong>${id + 1})</strong> - ${name}`).join('<br>')}
                 <br>
                 ${translate('varsComandsIgnoreSettings')}`;
     },
 
-    ignoreKeysInProject: (project, namesIssueTypeInProject) => `${translate('notKeyInProject', {project})}
+    ignoreKeysInProject: (projectKey, namesIssueTypeInProject) => `${translate('notKeyInProject', {projectKey})}
                 <br>
                 ${namesIssueTypeInProject.map((name, id) => `<strong>${id + 1})</strong> - ${name}`).join('<br>')}
                 `,
