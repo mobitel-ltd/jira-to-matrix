@@ -9,6 +9,19 @@ const getIgnoreList = async () => {
     return result ? result : 'Ignore list is empty.';
 };
 
+const checkCreateRedisKey = async () => {
+    try {
+        const result = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
+        if (!result) {
+            logger.warn(`Ignore key not found in Redis and to be created`);
+            await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({}));
+        }
+        logger.info(`Ignore key in Redis: ${JSON.parse(result)}`);
+    } catch (err) {
+        logger.error(err);
+    }
+};
+
 const setIgnoreData = async (project, data) => {
     try {
         const result = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
@@ -45,4 +58,5 @@ module.exports = {
     getIgnoreList,
     setIgnoreData,
     delIgnoreData,
+    checkCreateRedisKey,
 };

@@ -1,10 +1,11 @@
 const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
 const utils = require('../../../lib/utils');
-const {getIgnoreList, setIgnoreData} = require('../../settings');
+const {getIgnoreList, setIgnoreData, checkCreateRedisKey} = require('../../settings');
 
 module.exports = async ({bodyText, roomId, roomName, sender, chatApi}) => {
     try {
+        await checkCreateRedisKey();
         const project = utils.getProjectKeyFromIssueKey(roomName);
         const {lead: {key: projectAdmin}, issueTypes} = await jiraRequests.getProject(project);
         if (projectAdmin !== sender) {
