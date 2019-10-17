@@ -1,6 +1,5 @@
 const path = require('path');
 const winston = require('winston');
-const WinstonDailyRotateFile = require('winston-daily-rotate-file');
 const configPath = path.resolve('./', process.env.NODE_ENV === 'test' ? 'test/fixtures' : '', 'config.js');
 const {log: logConfig} = require(configPath);
 
@@ -30,7 +29,7 @@ const getLabel = mod => {
 const getTransports = data => {
     const baseTransport = {label: getLabel(data), timestamp};
 
-    const fileTransport = new WinstonDailyRotateFile({
+    const fileTransport = new winston.transports.File({
         ...baseTransport,
         filename: logConfig.filePath,
         level: logConfig.fileLevel,
