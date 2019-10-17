@@ -65,7 +65,6 @@
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "ru-names": "^1.0.7",
-    "winston": "^2.4.0",
-    "winston-daily-rotate-file": "^1.7.2"
+    "winston": "^2.4.0"
   }
 }
