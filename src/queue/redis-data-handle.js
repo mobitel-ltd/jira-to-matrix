@@ -132,7 +132,7 @@ const handleRedisData = async (client, dataFromRedis) => {
             await rewriteRooms([...redisRoomsData, ...newRoomRecords]);
         }
 
-        logger.info('Result of handling redis key', logs);
+        logger.info('Result of handling redis key', JSON.stringify(logs));
     } catch (err) {
         logger.error('handleRedisData error', err);
     }
