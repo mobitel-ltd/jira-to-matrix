@@ -1,14 +1,14 @@
-const {getNewEpicMessageBody, getEpicChangedMessageBody} = require('./helper.js');
+const { getNewEpicMessageBody, getEpicChangedMessageBody } = require('./helper.js');
 
 const getMsg = {
-    'issue_created': getNewEpicMessageBody,
-    'issue_generic': getEpicChangedMessageBody,
+    issue_created: getNewEpicMessageBody,
+    issue_generic: getEpicChangedMessageBody,
 };
-module.exports = async ({chatApi, typeEvent, projectKey, data}) => {
+module.exports = async ({ chatApi, typeEvent, projectKey, data }) => {
     try {
         const roomId = await chatApi.getRoomId(projectKey);
 
-        const {body, htmlBody} = getMsg[typeEvent](data);
+        const { body, htmlBody } = getMsg[typeEvent](data);
         await chatApi.sendHtmlMessage(roomId, body, htmlBody);
 
         return true;

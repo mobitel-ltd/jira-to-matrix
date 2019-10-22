@@ -9,10 +9,10 @@ const getEvent = content => ({
 });
 
 const defaultLogger = {
-    info: () => { },
-    error: () => { },
-    warn: () => { },
-    debug: () => { },
+    info: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
 };
 
 module.exports = class Matrix extends MessengerAbstract {
@@ -24,7 +24,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * @param  {Object} options.commandsHandler matrix event commands
      * @param  {Object} options.logger logger, winstone type, if no logger is set logger is off
      */
-    constructor({config, sdk = matrixSdk, commandsHandler, logger = defaultLogger}) {
+    constructor({ config, sdk = matrixSdk, commandsHandler, logger = defaultLogger }) {
         super();
         this.commandsHandler = commandsHandler;
         this.config = config;
@@ -61,9 +61,9 @@ module.exports = class Matrix extends MessengerAbstract {
 
             const sender = utils.getNameFromMatrixId(event.getSender());
 
-            const {body} = event.getContent();
+            const { body } = event.getContent();
 
-            const {commandName, bodyText} = utils.parseEventBody(body);
+            const { commandName, bodyText } = utils.parseEventBody(body);
 
             if (!commandName) {
                 return;
@@ -85,7 +85,6 @@ module.exports = class Matrix extends MessengerAbstract {
         }
     }
 
-
     /**
      * Convert string with alias to matrix form
      * @param  {string} alias alias for a room
@@ -104,7 +103,6 @@ module.exports = class Matrix extends MessengerAbstract {
         return err.message.includes(this.EVENT_EXCEPTION) || err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION);
     }
 
-
     /**
      * @private
      * @param {string} baseUrl from config.
@@ -115,7 +113,7 @@ module.exports = class Matrix extends MessengerAbstract {
     async _createClient() {
         try {
             const client = this.sdk.createClient(this.baseUrl);
-            const {access_token: accessToken} = await client.loginWithPassword(this.userId, this.config.password);
+            const { access_token: accessToken } = await client.loginWithPassword(this.userId, this.config.password);
             const matrixClient = this.sdk.createClient({
                 baseUrl: this.baseUrl,
                 accessToken,
@@ -162,7 +160,6 @@ module.exports = class Matrix extends MessengerAbstract {
         }
     }
 
-
     /**
      * @param  {object} event matrix event
      */
@@ -175,9 +172,9 @@ module.exports = class Matrix extends MessengerAbstract {
         sender = sender.slice(1, -this.postfix);
 
         if (
-            !this.config.admins.includes(sender)
-            && sender !== this.config.user
-            && event.getStateKey() === this.userId
+            !this.config.admins.includes(sender) &&
+            sender !== this.config.user &&
+            event.getStateKey() === this.userId
         ) {
             await this.client.leave(event.getRoomId());
             return;
@@ -241,7 +238,6 @@ module.exports = class Matrix extends MessengerAbstract {
     getClient() {
         return this.client;
     }
-
 
     /**
      * @returns {Boolean} connect status
@@ -312,7 +308,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * @param {string} options.topic room topic
      * @returns {string} matrix room id
      */
-    async createRoom({invite, ...options}) {
+    async createRoom({ invite, ...options }) {
         try {
             const lowerNameList = invite.map(name => name.toLowerCase());
             const createRoomOptions = {
@@ -320,7 +316,7 @@ module.exports = class Matrix extends MessengerAbstract {
                 visibility: 'private',
                 invite: lowerNameList,
             };
-            const {room_id: roomId} = await this.client.createRoom(createRoomOptions);
+            const { room_id: roomId } = await this.client.createRoom(createRoomOptions);
             return roomId;
         } catch (err) {
             throw ['Error while creating room', err].join('\n');
@@ -333,7 +329,7 @@ module.exports = class Matrix extends MessengerAbstract {
      */
     async getRoomId(alias) {
         try {
-            const {room_id: roomId} = await this.client.getRoomIdForAlias(this._getMatrixRoomAlias(alias));
+            const { room_id: roomId } = await this.client.getRoomIdForAlias(this._getMatrixRoomAlias(alias));
             return roomId;
         } catch (err) {
             throw [`${utils.NO_ROOM_PATTERN}${alias}${utils.END_NO_ROOM_PATTERN}`, err].join('\n');
@@ -346,13 +342,13 @@ module.exports = class Matrix extends MessengerAbstract {
      * @param  {string?} roomId matrix roomId
      * @returns {Promise<String[]>} matrix room members
      */
-    async getRoomMembers({name, roomId}) {
+    async getRoomMembers({ name, roomId }) {
         try {
-            const id = roomId || await this.getRoomId(name);
+            const id = roomId || (await this.getRoomId(name));
             const room = await this.client.getRoom(id);
             const joinedMembers = room.getJoinedMembers();
 
-            return joinedMembers.map(({userId}) => userId);
+            return joinedMembers.map(({ userId }) => userId);
         } catch (err) {
             throw [`Error while getting matrix members from room ${name}`, err].join('\n');
         }
@@ -365,7 +361,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {Promise<Boolean>} return true if user in room
      */
     async isRoomMember(roomId, user) {
-        const roomMembers = await this.getRoomMembers({roomId});
+        const roomMembers = await this.getRoomMembers({ roomId });
         return roomMembers.includes(user);
     }
 
@@ -492,7 +488,7 @@ module.exports = class Matrix extends MessengerAbstract {
     async getRoomIdByName(text) {
         try {
             const alias = this._isRoomAlias(text) ? text : this._getMatrixRoomAlias(text.toUpperCase());
-            const {room_id: roomId} = await this.client.getRoomIdForAlias(alias);
+            const { room_id: roomId } = await this.client.getRoomIdForAlias(alias);
 
             return roomId;
         } catch (err) {

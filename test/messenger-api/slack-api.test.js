@@ -1,6 +1,6 @@
 const logger = require('../../src/modules/log')('slack-api');
 const faker = require('faker');
-const {WebClient} = require('@slack/web-api');
+const { WebClient } = require('@slack/web-api');
 const htmlToText = require('html-to-text').fromString;
 
 const messages = require('../fixtures/events/slack/messages.json');
@@ -20,11 +20,10 @@ const utils = require('../../src/lib/utils');
 
 const supertest = require('supertest');
 const chai = require('chai');
-const {stub, createStubInstance} = require('sinon');
+const { stub, createStubInstance } = require('sinon');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
-
 
 const testConfig = {
     name: 'slack',
@@ -55,7 +54,7 @@ describe('Slack api testing', () => {
         // https://api.slack.com/methods/conversations.create
         create: stub().resolves(conversationJSON.correct),
         // https://api.slack.com/methods/conversations.setTopic
-        setTopic: stub().resolves({ok: true, topic: testTopic}),
+        setTopic: stub().resolves({ ok: true, topic: testTopic }),
         // https://api.slack.com/methods/conversations.invite
         invite: stub().resolves(conversationsInviteJSON.correct),
         // https://api.slack.com/methods/conversations.members
@@ -78,9 +77,9 @@ describe('Slack api testing', () => {
         postMessage: stub().resolves(postMessageJSON.correct),
     };
 
-    const sdk = {...createStubInstance(WebClient), auth, conversations, users, chat};
+    const sdk = { ...createStubInstance(WebClient), auth, conversations, users, chat };
 
-    const slackApi = new SlackApi({config: testConfig, sdk, commandsHandler, logger});
+    const slackApi = new SlackApi({ config: testConfig, sdk, commandsHandler, logger });
 
     beforeEach(async () => {
         await slackApi.connect();
@@ -100,8 +99,8 @@ describe('Slack api testing', () => {
 
         expect(roomId).to.be.eq(conversationJSON.correct.channel.id);
         expect(sdk.conversations.create).to.be.calledWithExactly({
-            'is_private': true,
-            'name': options.name.toLowerCase(),
+            is_private: true,
+            name: options.name.toLowerCase(),
         });
         expect(sdk.conversations.invite).to.be.calledTwice;
         expect(sdk.conversations.setPurpose).to.be.calledWithExactly({
@@ -119,10 +118,12 @@ describe('Slack api testing', () => {
 
         const expectedData = {
             channel,
-            attachments: [{
-                text,
-                'mrkdwn_in': ['text'],
-            }],
+            attachments: [
+                {
+                    text,
+                    mrkdwn_in: ['text'],
+                },
+            ],
         };
         expect(sdk.chat.postMessage).to.be.calledWithExactly(expectedData);
     });
@@ -165,13 +166,13 @@ describe('Slack api testing', () => {
 
     it('Expect getJoinedMembers return array of members', async () => {
         const [channel] = usersConversationsJSON.correct.channels;
-        const members = await slackApi.getRoomMembers({name: channel.name});
+        const members = await slackApi.getRoomMembers({ name: channel.name });
 
         expect(members).to.be.an('array');
     });
 
     it('Expect setRoomName works well array of members', async () => {
-        const {name} = conversationRenameJSON.correct.channel;
+        const { name } = conversationRenameJSON.correct.channel;
         const status = await slackApi.setRoomName(conversationJSON.correct.channel.id, name);
 
         expect(status).to.be.true;
@@ -189,10 +190,12 @@ describe('Slack api testing', () => {
 
         expect(sdk.chat.postMessage).to.be.calledWithExactly({
             channel: messages.help.channel_id,
-            attachments: [{
-                'text': htmlToText(utils.helpPost),
-                'mrkdwn_in': ['text'],
-            }],
+            attachments: [
+                {
+                    text: htmlToText(utils.helpPost),
+                    mrkdwn_in: ['text'],
+                },
+            ],
         });
     });
 });

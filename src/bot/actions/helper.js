@@ -3,17 +3,18 @@ const Ramda = require('ramda');
 const logger = require('../../modules/log.js')(module);
 const translate = require('../../locales');
 const marked = require('marked');
-const {usersToIgnore, testMode} = require('../../config');
+const { usersToIgnore, testMode } = require('../../config');
 const utils = require('../../lib/utils.js');
 const jiraRequests = require('../../lib/jira-request.js');
 const redis = require('../../redis-client');
 
+// eslint-disable-next-line
 const getEpicInfo = epicLink =>
-    ((epicLink === translate('miss'))
+    epicLink === translate('miss')
         ? ''
         : `            <br>Epic link:
                 ${utils.getOpenedDescriptionBlock(epicLink)}
-                ${utils.getClosedDescriptionBlock(utils.getViewUrl(epicLink))}`);
+                ${utils.getClosedDescriptionBlock(utils.getViewUrl(epicLink))}`;
 
 const getPost = body => {
     const post = `
@@ -40,12 +41,12 @@ const getPost = body => {
 const helper = {
     getDescription: async issue => {
         try {
-            const {description} = await jiraRequests.getRenderedValues(issue.key, ['description']);
-            const handleBody = description ? {...issue.descriptionFields, description} : issue.descriptionFields;
+            const { description } = await jiraRequests.getRenderedValues(issue.key, ['description']);
+            const handleBody = description ? { ...issue.descriptionFields, description } : issue.descriptionFields;
             const htmlBody = getPost(handleBody);
             const body = htmlToText(htmlBody);
 
-            return {body, htmlBody};
+            return { body, htmlBody };
         } catch (err) {
             throw utils.errorTracing('getDescription', err);
         }
@@ -101,22 +102,21 @@ const helper = {
         const username = utils.getHookUserName(body);
         const creator = utils.getCreatorDisplayName(body);
 
-        const isInUsersToIgnore = arr =>
-            [username, creator].some(user => arr.includes(user));
+        const isInUsersToIgnore = arr => [username, creator].some(user => arr.includes(user));
 
         if (!username && !creator) {
-            return {username, creator, ignoreStatus: false};
+            return { username, creator, ignoreStatus: false };
         }
 
         const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
 
-        return {username, creator, ignoreStatus: userIgnoreStatus};
+        return { username, creator, ignoreStatus: userIgnoreStatus };
     },
 
     getAvailableIssueId: async body => {
         const sourceId = utils.getIssueLinkSourceId(body);
 
-        return await jiraRequests.getIssueSafety(sourceId) ? sourceId : utils.getIssueLinkDestinationId(body);
+        return (await jiraRequests.getIssueSafety(sourceId)) ? sourceId : utils.getIssueLinkDestinationId(body);
     },
 
     isManuallyIgnore: async (project, taskType) => {
@@ -142,14 +142,17 @@ const helper = {
             return false;
         }
 
-        const keyOrId = type === 'issuelink' ? await helper.getAvailableIssueId(body) : utils.getIssueKey(body) || utils.getIssueId(body);
-        const {typeName} = utils.getDescriptionFields(body);
+        const keyOrId =
+            type === 'issuelink'
+                ? await helper.getAvailableIssueId(body)
+                : utils.getIssueKey(body) || utils.getIssueId(body);
+        const { typeName } = utils.getDescriptionFields(body);
         if (!typeName) {
             return false;
         }
 
         const issue = await jiraRequests.getIssue(keyOrId);
-        const projectKey = utils.getProjectKey({issue});
+        const projectKey = utils.getProjectKey({ issue });
 
         return helper.isManuallyIgnore(projectKey, typeName);
     },
@@ -160,31 +163,31 @@ const helper = {
         const timestamp = utils.getBodyTimestamp(body);
         const issueName = utils.getIssueName(body);
 
-        const ignoreStatus = await helper.getIgnoreStatus(body) || await helper.getManuallyIgnore(body);
+        const ignoreStatus = (await helper.getIgnoreStatus(body)) || (await helper.getManuallyIgnore(body));
 
-        return {timestamp, webhookEvent, ignoreStatus, issueName};
+        return { timestamp, webhookEvent, ignoreStatus, issueName };
     },
 
-    getEpicChangedMessageBody: ({summary, key, status, name}) => {
+    getEpicChangedMessageBody: ({ summary, key, status, name }) => {
         const viewUrl = utils.getViewUrl(key);
-        const values = {name, key, summary, status, viewUrl};
+        const values = { name, key, summary, status, viewUrl };
 
         const body = translate('statusEpicChanged');
         const message = translate('statusEpicChangedMessage', values, values.name);
         const htmlBody = marked(message);
 
-        return {body, htmlBody};
+        return { body, htmlBody };
     },
 
-    getNewEpicMessageBody: ({key, summary}) => {
+    getNewEpicMessageBody: ({ key, summary }) => {
         const viewUrl = utils.getViewUrl(key);
-        const values = {key, summary, viewUrl};
+        const values = { key, summary, viewUrl };
 
         const body = translate('newEpicInProject');
         const message = translate('epicAddedToProject', values, values.name);
         const htmlBody = marked(message);
 
-        return {body, htmlBody};
+        return { body, htmlBody };
     },
     getPostStatusData: data => {
         if (!data.status) {
@@ -195,51 +198,47 @@ const helper = {
 
         const viewUrl = utils.getViewUrl(data.key);
 
-        const body = translate('statusHasChanged', {...data, viewUrl});
-        const message = translate('statusHasChangedMessage', {...data, viewUrl}, data.name);
+        const body = translate('statusHasChanged', { ...data, viewUrl });
+        const message = translate('statusHasChangedMessage', { ...data, viewUrl }, data.name);
         const htmlBody = marked(message);
 
-        return {body, htmlBody};
+        return { body, htmlBody };
     },
 
-    getNewIssueMessageBody: ({summary, key}) => {
+    getNewIssueMessageBody: ({ summary, key }) => {
         const viewUrl = utils.getViewUrl(key);
-        const values = {key, viewUrl, summary};
+        const values = { key, viewUrl, summary };
 
         const body = translate('newIssueInEpic');
         const message = translate('issueAddedToEpic', values);
         const htmlBody = marked(message);
 
-        return {body, htmlBody};
+        return { body, htmlBody };
     },
 
-    fieldNames: items =>
-        items.reduce((acc, {field}) =>
-            (field ? [...acc, field] : acc), []),
+    fieldNames: items => items.reduce((acc, { field }) => (field ? [...acc, field] : acc), []),
 
     itemsToString: items =>
-        items.reduce((acc, {field, toString}) =>
-            (field ? {...acc, [field]: toString} : acc), {}),
+        items.reduce((acc, { field, toString }) => (field ? { ...acc, [field]: toString } : acc), {}),
 
-    composeText: ({author, fields, formattedValues}) => {
-        const message = translate('issue_updated', {name: author});
-        const changesDescription = fields.map(field =>
-            `${field}: ${formattedValues[field]}`);
+    composeText: ({ author, fields, formattedValues }) => {
+        const message = translate('issue_updated', { name: author });
+        const changesDescription = fields.map(field => `${field}: ${formattedValues[field]}`);
 
         return [message, ...changesDescription].join('<br>');
     },
 
-    getIssueUpdateInfoMessageBody: async ({changelog, oldKey, author}) => {
+    getIssueUpdateInfoMessageBody: async ({ changelog, oldKey, author }) => {
         const fields = helper.fieldNames(changelog.items);
         const renderedValues = await jiraRequests.getRenderedValues(oldKey, fields);
 
         const changelogItemsTostring = helper.itemsToString(changelog.items);
-        const formattedValues = {...changelogItemsTostring, ...renderedValues};
+        const formattedValues = { ...changelogItemsTostring, ...renderedValues };
 
-        const htmlBody = helper.composeText({author, fields, formattedValues});
+        const htmlBody = helper.composeText({ author, fields, formattedValues });
         const body = translate('issueHasChanged');
 
-        return {htmlBody, body};
+        return { htmlBody, body };
     },
 
     getCommentHTMLBody: (headerText, commentBody) => `${headerText}: <br>${commentBody}`,
@@ -247,20 +246,16 @@ const helper = {
     getCommentBody: (issue, comment) => {
         const comments = Ramda.path(['renderedFields', 'comment', 'comments'], issue);
 
-        const result = Ramda.propOr(
-            comment.body,
-            'body',
-            Ramda.find(Ramda.propEq('id', comment.id), comments)
-        );
+        const result = Ramda.propOr(comment.body, 'body', Ramda.find(Ramda.propEq('id', comment.id), comments));
 
         return result;
     },
 
-    getPostLinkMessageBody: ({relation, related}, action = 'newLink') => {
+    getPostLinkMessageBody: ({ relation, related }, action = 'newLink') => {
         const key = utils.getKey(related);
         const viewUrl = utils.getViewUrl(key);
         const summary = utils.getSummary(related);
-        const values = {key, relation, summary, viewUrl};
+        const values = { key, relation, summary, viewUrl };
 
         const body = translate(action);
         const htmlBodyAction = related ? `${action}Message` : action;
@@ -268,7 +263,7 @@ const helper = {
         const message = translate(htmlBodyAction, values);
         const htmlBody = marked(message);
 
-        return {body, htmlBody};
+        return { body, htmlBody };
     },
 };
 

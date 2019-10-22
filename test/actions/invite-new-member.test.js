@@ -2,14 +2,14 @@ const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
 const watchersBody = require('../fixtures/jira-api-requests/watchers.json');
-const {getInviteNewMembersData} = require('../../src/jira-hook-parser/parse-body.js');
+const { getInviteNewMembersData } = require('../../src/jira-hook-parser/parse-body.js');
 const inviteNewMembers = require('../../src/bot/actions/invite-new-members.js');
 const testUtils = require('../test-utils');
 const issueBodyJSON = require('../fixtures/jira-api-requests/issue.json');
 
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 
 describe('inviteNewMembers test', () => {
@@ -19,12 +19,12 @@ describe('inviteNewMembers test', () => {
         issueBodyJSON.fields.creator.name,
         issueBodyJSON.fields.assignee.name,
     ].map(name => chatApi.getChatUserId(name));
-    const watchers = watchersBody.watchers.map(({name}) => chatApi.getChatUserId(name));
+    const watchers = watchersBody.watchers.map(({ name }) => chatApi.getChatUserId(name));
     const expectedWatchers = [...new Set([...members, ...watchers])];
 
     const upperWatchersBody = {
         ...watchersBody,
-        watchers: watchersBody.watchers.map(item => ({...item, name: item.name.toUpperCase()})),
+        watchers: watchersBody.watchers.map(item => ({ ...item, name: item.name.toUpperCase() })),
     };
 
     const inviteNewMembersData = getInviteNewMembersData(JSONbody);
@@ -50,7 +50,7 @@ describe('inviteNewMembers test', () => {
     });
 
     beforeEach(() => {
-        chatApi = testUtils.getChatApi({alias: [inviteNewMembersData.issue.key, inviteUpperCase.issue.key]});
+        chatApi = testUtils.getChatApi({ alias: [inviteNewMembersData.issue.key, inviteUpperCase.issue.key] });
         chatApi.getRoomMembers.resolves([chatApi.getChatUserId('jira_test')]);
     });
 
@@ -63,7 +63,7 @@ describe('inviteNewMembers test', () => {
 
         let result;
         try {
-            result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
+            result = await inviteNewMembers({ chatApi, ...inviteNewMembersData });
         } catch (error) {
             result = error;
         }
@@ -71,7 +71,7 @@ describe('inviteNewMembers test', () => {
     });
 
     it('Expect inviteNewMembers work correct', async () => {
-        const result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
+        const result = await inviteNewMembers({ chatApi, ...inviteNewMembersData });
 
         expect(result).to.deep.equal(expectedWatchers);
     });
@@ -79,13 +79,10 @@ describe('inviteNewMembers test', () => {
     it('Expect inviteNewMembers to be trown if 404 in invite', async () => {
         chatApi.invite.throws('Error in inviteStub!!!');
         let result;
-        const expected = [
-            'Error in inviteNewMembers',
-            'Error in inviteStub!!!',
-        ].join('\n');
+        const expected = ['Error in inviteNewMembers', 'Error in inviteStub!!!'].join('\n');
 
         try {
-            await inviteNewMembers({chatApi, ...inviteNewMembersData});
+            await inviteNewMembers({ chatApi, ...inviteNewMembersData });
         } catch (err) {
             result = err;
         }
@@ -96,12 +93,12 @@ describe('inviteNewMembers test', () => {
         const [userToadd, ...otherUsers] = expectedWatchers;
         chatApi.getRoomMembers.resolves([chatApi.getChatUserId('jira_test'), userToadd]);
 
-        const result = await inviteNewMembers({chatApi, ...inviteNewMembersData});
+        const result = await inviteNewMembers({ chatApi, ...inviteNewMembersData });
         expect(result).to.deep.equal(otherUsers);
     });
 
     it('Expect inviteNewMembers works correct if some Jira users in upperCase', async () => {
-        const result = await inviteNewMembers({chatApi, ...inviteUpperCase});
+        const result = await inviteNewMembers({ chatApi, ...inviteUpperCase });
         expect(result).to.deep.equal(expectedWatchers);
     });
 });

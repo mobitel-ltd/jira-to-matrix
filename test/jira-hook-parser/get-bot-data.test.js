@@ -2,7 +2,7 @@
 const assert = require('assert');
 const firstJSON = require('../fixtures/webhooks/comment/created.json');
 const secondJSON = require('../fixtures/webhooks/issue/updated/commented.json');
-const {getBotActions, getParserName, getFuncAndBody} = require('../../src/jira-hook-parser/bot-handler.js');
+const { getBotActions, getParserName, getFuncAndBody } = require('../../src/jira-hook-parser/bot-handler.js');
 const translate = require('../../src/locales');
 const issueMovedJSON = require('../fixtures/webhooks/issue/updated/move-issue.json');
 const utils = require('../../src/lib/utils');
@@ -79,7 +79,7 @@ describe('get-bot-data', () => {
                 funcName: 'postComment',
                 data: {
                     issueID: '26313',
-                    headerText: translate('comment_created', {name: 'jira_test'}),
+                    headerText: translate('comment_created', { name: 'jira_test' }),
                     comment: {
                         body: '12345',
                         id: '31039',
@@ -93,31 +93,31 @@ describe('get-bot-data', () => {
             {
                 redisKey: 'newrooms',
                 createRoomData: {
-                    'issue': {
-                        'descriptionFields': {
-                            'assigneeEmail': 'jira_test@test-example.ru',
-                            'assigneeName': 'jira_test',
-                            'description': 'dafdasfadf',
-                            'epicLink': 'BBCOM-801',
-                            'estimateTime': translate('miss'),
-                            'priority': 'Blocker',
-                            'reporterEmail': 'jira_test@test-example.ru',
-                            'reporterName': 'jira_test',
-                            'typeName': 'Task',
+                    issue: {
+                        descriptionFields: {
+                            assigneeEmail: 'jira_test@test-example.ru',
+                            assigneeName: 'jira_test',
+                            description: 'dafdasfadf',
+                            epicLink: 'BBCOM-801',
+                            estimateTime: translate('miss'),
+                            priority: 'Blocker',
+                            reporterEmail: 'jira_test@test-example.ru',
+                            reporterName: 'jira_test',
+                            typeName: 'Task',
                         },
-                        'id': '26313',
-                        'key': 'BBCOM-956',
-                        'summary': 'BBCOM-956',
+                        id: '26313',
+                        key: 'BBCOM-956',
+                        summary: 'BBCOM-956',
                     },
-                    'projectKey': 'BBCOM',
+                    projectKey: 'BBCOM',
                 },
             },
             {
                 redisKey: 'inviteNewMembers_1511973439683',
                 funcName: 'inviteNewMembers',
                 data: {
-                    'issue': {
-                        'key': 'BBCOM-956',
+                    issue: {
+                        key: 'BBCOM-956',
                     },
                 },
             },

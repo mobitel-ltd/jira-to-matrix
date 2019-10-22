@@ -1,7 +1,7 @@
 const logger = require('../../modules/log.js')(module);
 const redis = require('../../redis-client.js');
-const {getLinkedIssue, getIssueSafety} = require('../../lib/jira-request.js');
-const {getPostLinkMessageBody} = require('./helper');
+const { getLinkedIssue, getIssueSafety } = require('../../lib/jira-request.js');
+const { getPostLinkMessageBody } = require('./helper');
 const utils = require('../../lib/utils');
 
 const postLink = async (key, relations, chatApi) => {
@@ -9,7 +9,7 @@ const postLink = async (key, relations, chatApi) => {
     if (issue) {
         const roomID = await chatApi.getRoomId(key);
 
-        const {body, htmlBody} = getPostLinkMessageBody(relations);
+        const { body, htmlBody } = getPostLinkMessageBody(relations);
         await chatApi.sendHtmlMessage(roomID, body, htmlBody);
     }
 };
@@ -22,7 +22,7 @@ const handleLink = chatApi => async issueLinkId => {
         }
 
         const link = await getLinkedIssue(issueLinkId);
-        const {inward, outward} = utils.getRelations(link);
+        const { inward, outward } = utils.getRelations(link);
 
         await postLink(utils.getOutwardLinkKey(link), inward, chatApi);
         await postLink(utils.getInwardLinkKey(link), outward, chatApi);
@@ -32,7 +32,7 @@ const handleLink = chatApi => async issueLinkId => {
     }
 };
 
-module.exports = async ({chatApi, links}) => {
+module.exports = async ({ chatApi, links }) => {
     try {
         await Promise.all(links.map(handleLink(chatApi)));
         return true;

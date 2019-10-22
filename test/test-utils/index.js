@@ -1,8 +1,8 @@
-const {prefix} = require('../fixtures/config.js').redis;
+const { prefix } = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
 const config = require('../../src/config');
 const getChatApi = require('../../src/messengers');
-const {stub} = require('sinon');
+const { stub } = require('sinon');
 
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
@@ -22,14 +22,14 @@ module.exports = {
     getAlias: () => defaultAlias,
 
     getChatApi: (options = {}) => {
-        const {type, alias, roomId} = {
+        const { type, alias, roomId } = {
             type: config.messenger.name,
             alias: defaultAlias,
             roomId: defaultRoomId,
             ...options,
         };
         const ChatApi = getChatApi(type);
-        const realChatApi = new ChatApi({config: config.messenger});
+        const realChatApi = new ChatApi({ config: config.messenger });
 
         const chatApi = {
             sendHtmlMessage: stub(),

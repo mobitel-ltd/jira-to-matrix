@@ -1,11 +1,11 @@
 const app = require('../src/jira-app');
 const delay = require('delay');
 const Fsm = require('../src/fsm');
-const {states} = require('../src/fsm/states');
+const { states } = require('../src/fsm/states');
 const chai = require('chai');
-const {stub} = require('sinon');
+const { stub } = require('sinon');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Fsm test', () => {
@@ -25,7 +25,7 @@ describe('Fsm test', () => {
             await delay(1000);
         },
         disconnect: stub(),
-        config: {user: 'fakeName'},
+        config: { user: 'fakeName' },
     };
     const handler = stub().resolves();
 
@@ -54,7 +54,9 @@ describe('Fsm test', () => {
     });
 
     it('Expect fsm wait until handling is finished but new hook we get', async () => {
-        const longTimeHandler = stub().callsFake(() => delay(100)).resolves();
+        const longTimeHandler = stub()
+            .callsFake(() => delay(100))
+            .resolves();
         fsm = new Fsm([chatApi], longTimeHandler, app, port);
         await fsm.start();
         await delay(50);

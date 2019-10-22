@@ -6,9 +6,9 @@ const edimetaJSON = require('../fixtures/jira-api-requests/editmeta.json');
 const commandHandler = require('../../src/bot/timeline-handler');
 
 const chai = require('chai');
-const {stub} = require('sinon');
+const { stub } = require('sinon');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Prio command test', () => {
@@ -24,7 +24,7 @@ describe('Prio command test', () => {
 
     const commandName = 'prio';
 
-    const baseOptions = {roomId, roomName, commandName, chatApi};
+    const baseOptions = { roomId, roomName, commandName, chatApi };
 
     before(() => {
         nock(utils.getRestUrl())
@@ -46,7 +46,7 @@ describe('Prio command test', () => {
 
     it('Expect prio show all priorities with empty body ("!prio")', async () => {
         const post = utils.getCommandList(allPriorities);
-        const result = await commandHandler({...baseOptions});
+        const result = await commandHandler({ ...baseOptions });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
@@ -54,7 +54,7 @@ describe('Prio command test', () => {
 
     it('Expect prio command work correct ("!prio 1")', async () => {
         const post = translate('setPriority', priority);
-        const result = await commandHandler({...baseOptions, bodyText: priority.id});
+        const result = await commandHandler({ ...baseOptions, bodyText: priority.id });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
@@ -62,7 +62,7 @@ describe('Prio command test', () => {
 
     it('Expect prio command work correct with word command even in upper case("!prio HIGHEST")', async () => {
         const post = translate('setPriority', priority);
-        const result = await commandHandler({...baseOptions, bodyText: priority.name.toUpperCase()});
+        const result = await commandHandler({ ...baseOptions, bodyText: priority.name.toUpperCase() });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
@@ -70,8 +70,8 @@ describe('Prio command test', () => {
 
     it('Expect prio command send message about not found command ("!prio fake")', async () => {
         const bodyText = 'fake';
-        const post = translate('notFoundPrio', {bodyText});
-        const result = await commandHandler({...baseOptions, bodyText});
+        const post = translate('notFoundPrio', { bodyText });
+        const result = await commandHandler({ ...baseOptions, bodyText });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);

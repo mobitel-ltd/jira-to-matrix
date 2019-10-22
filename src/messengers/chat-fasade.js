@@ -1,7 +1,6 @@
 const ramda = require('ramda');
 const MessengerAbstract = require('./messenger-abstract');
 
-
 module.exports = class ChatFasade extends MessengerAbstract {
     /**
      * Fasade for messenger chats to handle multiple chat bots
@@ -51,7 +50,7 @@ module.exports = class ChatFasade extends MessengerAbstract {
      * @returns {Promise<string[]>} - chat room members
      */
     async getRoomMembers(data) {
-        const id = data.roomId || await this.getRoomId(data.name);
+        const id = data.roomId || (await this.getRoomId(data.name));
         const client = await this._getTargetClient(id);
 
         return client.getRoomMembers(data);

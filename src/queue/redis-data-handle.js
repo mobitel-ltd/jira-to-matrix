@@ -2,8 +2,8 @@ const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot/actions');
-const {prefix} = require('../config').redis;
-const {REDIS_ROOM_KEY, isIgnoreKey} = require('../lib/utils.js');
+const { prefix } = require('../config').redis;
+const { REDIS_ROOM_KEY, isIgnoreKey } = require('../lib/utils.js');
 const utils = require('../lib/utils');
 
 const getRedisKeys = async () => {
@@ -22,9 +22,7 @@ const getRedisValue = async key => {
         const redisValue = await redis.getAsync(newKey);
         const parsedRedisValue = JSON.parse(redisValue);
         logger.info(`Value from redis by key ${key}: `, parsedRedisValue);
-        const result = redisValue
-            ? {redisKey: newKey, ...parsedRedisValue}
-            : false;
+        const result = redisValue ? { redisKey: newKey, ...parsedRedisValue } : false;
 
         return result;
     } catch (err) {
@@ -65,13 +63,14 @@ const getRedisRooms = async () => {
 };
 
 const createRoomDataOnlyNew = createRoomData => {
-    const createRoomDataByKey = createRoomData.map(el => {
-        const {issue, projectKey} = el;
-        const keyMap = issue ? issue.key : projectKey;
+    const createRoomDataByKey = createRoomData
+        .map(el => {
+            const { issue, projectKey } = el;
+            const keyMap = issue ? issue.key : projectKey;
 
-        return {[keyMap]: el};
-    })
-        .reduce((acc, el) => ({...acc, ...el}), {});
+            return { [keyMap]: el };
+        })
+        .reduce((acc, el) => ({ ...acc, ...el }), {});
 
     return Object.values(createRoomDataByKey);
 };
@@ -95,16 +94,16 @@ const handleRedisData = async (client, dataFromRedis) => {
             return;
         }
         const result = await Promise.all(
-            dataFromRedis.map(async ({redisKey, funcName, data}) => {
+            dataFromRedis.map(async ({ redisKey, funcName, data }) => {
                 try {
                     const chatApi = await client;
 
-                    await bot[funcName]({...data, chatApi});
+                    await bot[funcName]({ ...data, chatApi });
                     await redis.delAsync(redisKey);
 
                     const log = `${redisKey} --- true`;
 
-                    return {log};
+                    return { log };
                 } catch (err) {
                     const errBody = typeof err === 'string' ? err : err.stack;
                     logger.error(`Error in ${redisKey}\n`, err);
@@ -113,26 +112,24 @@ const handleRedisData = async (client, dataFromRedis) => {
                     if (utils.isNoRoomError(errBody)) {
                         const key = utils.getKeyFromError(errBody);
                         logger.warn(`Room with key ${key} is not found, trying to create it again`);
-                        const newRoomRecord = key.includes('-')
-                            ? {issue: {key}}
-                            : {projectKey: key};
+                        const newRoomRecord = key.includes('-') ? { issue: { key } } : { projectKey: key };
 
-                        return {newRoomRecord, log};
+                        return { newRoomRecord, log };
                     }
-                    return {log};
+                    return { log };
                 }
-            })
+            }),
         );
 
-        const newRoomRecords = result.map(({newRoomRecord}) => newRoomRecord).filter(Boolean);
-        const logs = result.map(({log}) => log);
+        const newRoomRecords = result.map(({ newRoomRecord }) => newRoomRecord).filter(Boolean);
+        const logs = result.map(({ log }) => log);
         if (newRoomRecords.length) {
             logger.info('This room should be created', newRoomRecords);
-            const redisRoomsData = await getRedisRooms() || [];
+            const redisRoomsData = (await getRedisRooms()) || [];
             await rewriteRooms([...redisRoomsData, ...newRoomRecords]);
         }
 
-        logger.info('Result of handling redis key', logs);
+        logger.info('Result of handling redis key', JSON.stringify(logs));
     } catch (err) {
         logger.error('handleRedisData error', err);
     }
@@ -142,7 +139,7 @@ const handleRedisRooms = async (client, roomsData) => {
     const roomHandle = async data => {
         try {
             const chatApi = await client;
-            await bot.createRoom({...data, chatApi});
+            await bot.createRoom({ ...data, chatApi });
 
             return null;
         } catch (err) {
@@ -172,19 +169,17 @@ const handleRedisRooms = async (client, roomsData) => {
     }
 };
 
-const saveIncoming = async ({redisKey, ...restData}) => {
+const saveIncoming = async ({ redisKey, ...restData }) => {
     try {
         let redisValue = restData;
         if (redisKey === REDIS_ROOM_KEY) {
-            const {createRoomData} = restData;
+            const { createRoomData } = restData;
             if (!createRoomData) {
                 logger.warn('No createRoomData!');
                 return;
             }
 
-            const dataToAddToRedis = Array.isArray(createRoomData)
-                ? createRoomData
-                : [createRoomData];
+            const dataToAddToRedis = Array.isArray(createRoomData) ? createRoomData : [createRoomData];
             logger.debug('New data for redis rooms:', dataToAddToRedis);
 
             const currentRedisRoomData = (await getRedisRooms()) || [];

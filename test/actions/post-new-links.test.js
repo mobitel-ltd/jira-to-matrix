@@ -2,18 +2,18 @@ const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const postNewLinksbody = require('../fixtures/webhooks/issuelink/created.json');
 const issueLinkBody = require('../fixtures/jira-api-requests/issuelink.json');
-const {getPostNewLinksData} = require('../../src/jira-hook-parser/parse-body.js');
+const { getPostNewLinksData } = require('../../src/jira-hook-parser/parse-body.js');
 const postNewLinks = require('../../src/bot/actions/post-new-links.js');
-const {isPostNewLinks} = require('../../src/jira-hook-parser/bot-handler.js');
-const {getPostLinkMessageBody} = require('../../src/bot/actions/helper');
+const { isPostNewLinks } = require('../../src/jira-hook-parser/bot-handler.js');
+const { getPostLinkMessageBody } = require('../../src/bot/actions/helper');
 const redis = require('../../src/redis-client.js');
-const {cleanRedis, getChatApi} = require('../test-utils');
+const { cleanRedis, getChatApi } = require('../test-utils');
 const JSONBody = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueBody = require('../fixtures/jira-api-requests/issue.json');
 
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Test postNewLinks', () => {
@@ -59,7 +59,7 @@ describe('Test postNewLinks', () => {
     });
 
     it('Expect result to be correct after handling parser', () => {
-        const expected = {links: [issueLinkId]};
+        const expected = { links: [issueLinkId] };
         const res = getPostNewLinksData(postNewLinksbody);
         expect(res).to.be.deep.eq(expected);
     });
@@ -75,7 +75,7 @@ describe('Test postNewLinks', () => {
         });
 
         const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({...data, chatApi});
+        const res = await postNewLinks({ ...data, chatApi });
 
         expect(res).to.be.true;
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
@@ -86,7 +86,7 @@ describe('Test postNewLinks', () => {
         await redis.isNewLink(issueLinkId);
 
         const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({...data, chatApi});
+        const res = await postNewLinks({ ...data, chatApi });
 
         expect(res).to.be.true;
         expect(chatApi.sendHtmlMessage).not.to.be.called;
@@ -103,7 +103,7 @@ describe('Test postNewLinks', () => {
         });
 
         const data = getPostNewLinksData(JSONBody);
-        const res = await postNewLinks({...data, chatApi});
+        const res = await postNewLinks({ ...data, chatApi });
         expect(res).to.be.true;
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
@@ -114,7 +114,7 @@ describe('Test postNewLinks', () => {
         const data = getPostNewLinksData(JSONBody);
 
         try {
-            res = await postNewLinks({...data, chatApi});
+            res = await postNewLinks({ ...data, chatApi });
         } catch (err) {
             res = err;
         }
@@ -137,7 +137,7 @@ describe('Test postNewLinks', () => {
         });
 
         const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({...data, chatApi});
+        const res = await postNewLinks({ ...data, chatApi });
 
         expect(res).to.be.true;
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);

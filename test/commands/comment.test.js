@@ -1,7 +1,7 @@
 const nock = require('nock');
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 const translate = require('../../src/locales');
 const testUtils = require('../test-utils');
@@ -21,7 +21,7 @@ describe('comment test', () => {
 
     beforeEach(() => {
         chatApi = testUtils.getChatApi();
-        baseOptions = {roomId, roomName, commandName, sender, chatApi, bodyText};
+        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
         nock(utils.getRestUrl())
             .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
             .reply(201);
@@ -39,7 +39,7 @@ describe('comment test', () => {
 
     it('Expect comment not to be sent with empty body and warn message will be sent', async () => {
         const post = translate('emptyMatrixComment');
-        const result = await commandHandler({...baseOptions, bodyText: ''});
+        const result = await commandHandler({ ...baseOptions, bodyText: '' });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, post, post);

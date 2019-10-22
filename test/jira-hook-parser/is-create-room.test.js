@@ -1,14 +1,14 @@
 /* eslint-disable no-undefined */
-const {isCreateRoom} = require('../../src/jira-hook-parser/bot-handler');
+const { isCreateRoom } = require('../../src/jira-hook-parser/bot-handler');
 const assert = require('assert');
 const commentHook = require('../fixtures/webhooks/comment/created.json');
 
 describe('create-room', () => {
     it('Should create room on webhook or not', () => {
         const samples = [
-            [{webhookEvent: 'jira:issue_created', issue: {key: 'smth'}}, true],
-            [{webhookEvent: 'jira:issue_updated', issue: {}}, undefined],
-            [{webhookEvent: 'jira:issue_created'}, undefined],
+            [{ webhookEvent: 'jira:issue_created', issue: { key: 'smth' } }, true],
+            [{ webhookEvent: 'jira:issue_updated', issue: {} }, undefined],
+            [{ webhookEvent: 'jira:issue_created' }, undefined],
             [{}, undefined],
             [undefined, undefined],
         ];

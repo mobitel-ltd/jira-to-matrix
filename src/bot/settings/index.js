@@ -1,4 +1,4 @@
-const {writeFile} = require('fs').promises;
+const { writeFile } = require('fs').promises;
 const Ramda = require('ramda');
 const redis = require('../../redis-client');
 const utils = require('../../lib/utils.js');
@@ -14,7 +14,7 @@ const setIgnoreData = async (projectKey, data) => {
     try {
         const redisIgnore = await getAllIgnoreData();
 
-        const newIgnore = {...redisIgnore, [projectKey]: data};
+        const newIgnore = { ...redisIgnore, [projectKey]: data };
 
         await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify(newIgnore));
         await writeFile(`./backup/ignore-list-${Date.now()}.json`, JSON.stringify(newIgnore));
