@@ -1,7 +1,7 @@
 const path = require('path');
 const winston = require('winston');
 const configPath = path.resolve('./', process.env.NODE_ENV === 'test' ? 'test/fixtures' : '', 'config.js');
-const {log: logConfig} = require(configPath);
+const { log: logConfig } = require(configPath);
 
 /**
  * Customize logger timestamp format to locale datetime with milliseconds
@@ -27,7 +27,7 @@ const getLabel = mod => {
 };
 
 const getTransports = data => {
-    const baseTransport = {label: getLabel(data), timestamp};
+    const baseTransport = { label: getLabel(data), timestamp };
 
     const fileTransport = new winston.transports.File({
         ...baseTransport,
@@ -36,7 +36,7 @@ const getTransports = data => {
         json: true,
     });
 
-    const consoleTransport = new (winston.transports.Console)({
+    const consoleTransport = new winston.transports.Console({
         ...baseTransport,
         colorize: true,
         level: logConfig.consoleLevel,
@@ -63,7 +63,7 @@ const getTransports = data => {
 module.exports = data => {
     const transports = getTransports(data);
 
-    return new (winston.Logger)({
+    return new winston.Logger({
         exitOnError: false,
         transports,
     });

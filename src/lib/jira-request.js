@@ -1,23 +1,22 @@
 const querystring = require('querystring');
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
-const {jira, inviteIgnoreUsers = []} = require('../config');
-const {request, requestPost, requestPut} = require('./request.js');
+const { jira, inviteIgnoreUsers = [] } = require('../config');
+const { request, requestPost, requestPut } = require('./request.js');
 const utils = require('./utils.js');
 const messages = require('./messages');
 const schemas = require('./schemas');
 
-const {url: jiraUrl} = jira;
+const { url: jiraUrl } = jira;
 
 const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
 
 // Checking occurrences of current name
 
-
 const jiraRequests = {
-    checkUser: ({name, displayName}, expectedName) =>
-        name.toLowerCase().includes(expectedName.toLowerCase())
-        || displayName.toLowerCase().includes(expectedName.toLowerCase()),
+    checkUser: ({ name, displayName }, expectedName) =>
+        name.toLowerCase().includes(expectedName.toLowerCase()) ||
+        displayName.toLowerCase().includes(expectedName.toLowerCase()),
 
     postComment: (roomName, sender, bodyText) => {
         const url = utils.getRestUrl('issue', roomName, 'comment');
@@ -33,7 +32,7 @@ const jiraRequests = {
 
     getPossibleIssueStatuses: async roomName => {
         const url = utils.getRestUrl('issue', roomName, 'transitions');
-        const {transitions} = await request(url);
+        const { transitions } = await request(url);
 
         return transitions;
     },
@@ -70,13 +69,13 @@ const jiraRequests = {
      * @param {array} roomMembers array of users linked to current issue
      * @return {array} jira response with issue
      */
-    getIssueWatchers: async ({key}) => {
+    getIssueWatchers: async ({ key }) => {
         const url = utils.getRestUrl('issue', key, 'watchers');
         const body = await request(url);
-        const watchers = (body && Array.isArray(body.watchers)) ? body.watchers.map(item => item.name) : [];
+        const watchers = body && Array.isArray(body.watchers) ? body.watchers.map(item => item.name) : [];
 
         const issue = await jiraRequests.getIssue(key);
-        const roomMembers = utils.handleIssueAsHook.getMembers({issue});
+        const roomMembers = utils.handleIssueAsHook.getMembers({ issue });
 
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
@@ -107,7 +106,7 @@ const jiraRequests = {
     getIssue: async (id, params) => {
         try {
             const url = utils.getRestUrl('issue', id);
-            const issue = await request(url, {qs: params});
+            const issue = await request(url, { qs: params });
 
             return issue;
         } catch (err) {
@@ -149,7 +148,7 @@ const jiraRequests = {
 
             const renderedValues = Ramda.pipe(
                 Ramda.pick(fields),
-                Ramda.filter(value => !!value)
+                Ramda.filter(value => !!value),
             )(issue.renderedFields);
 
             return renderedValues;
@@ -159,7 +158,7 @@ const jiraRequests = {
     },
 
     getUsersByParam: username => {
-        const queryPararms = querystring.stringify({username});
+        const queryPararms = querystring.stringify({ username });
         const url = utils.getRestUrl('user', `search?${queryPararms}`);
 
         return request(url);
@@ -172,9 +171,7 @@ const jiraRequests = {
         }
         const allUsers = await jiraRequests.getUsersByParam(name);
 
-        return allUsers.reduce((prev, cur) =>
-            (jiraRequests.checkUser(cur, name) ? [...prev, cur] : prev),
-        []);
+        return allUsers.reduce((prev, cur) => (jiraRequests.checkUser(cur, name) ? [...prev, cur] : prev), []);
     },
 
     // recursive function to get users by num and startAt (start position in jira list of users)

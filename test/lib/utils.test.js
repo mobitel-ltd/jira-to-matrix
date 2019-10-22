@@ -6,15 +6,13 @@ const body = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueUpdatedGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
 const issueBody = require('../fixtures/jira-api-requests/issue.json');
 const chai = require('chai');
-const {stub} = require('sinon');
+const { stub } = require('sinon');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Utils testing', () => {
-    const expectedFuncKeys = [
-        'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
-    ];
+    const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
 
     it('test isIgnoreKey', () => {
         const keys = [
@@ -28,14 +26,14 @@ describe('Utils testing', () => {
 
     it('Prop in an array', () => {
         const samples = [
-            ['prop', [1, 2], {prop: 1}, true],
-            ['prop', [undefined, 2], {prop: undefined}, true],
-            ['prop', [1, 2], {prop: 3}, false],
-            ['prop', [1, 2], {prop1: 1}, false],
+            ['prop', [1, 2], { prop: 1 }, true],
+            ['prop', [undefined, 2], { prop: undefined }, true],
+            ['prop', [1, 2], { prop: 3 }, false],
+            ['prop', [1, 2], { prop1: 1 }, false],
             ['prop', [1, 2], undefined, false],
             ['prop', [1, 2], {}, false],
-            ['prop', [1, 2], {prop: undefined}, false],
-            ['prop', [1, 2], {prop: null}, false],
+            ['prop', [1, 2], { prop: undefined }, false],
+            ['prop', [1, 2], { prop: null }, false],
         ];
         samples.forEach(sample => {
             const fn1 = utils.propIn(sample[0]);
@@ -51,7 +49,7 @@ describe('Utils testing', () => {
             ['', false],
             [null, false],
             [undefined, false],
-            [{prop: 1}, false],
+            [{ prop: 1 }, false],
             [[], false],
         ];
         samples.forEach(sample => {
@@ -69,25 +67,25 @@ describe('Utils testing', () => {
         const samples = [
             [
                 {
-                    comment: {author: {name: 'user1'}},
-                    user: {name: 'user2'},
+                    comment: { author: { name: 'user1' } },
+                    user: { name: 'user2' },
                 },
                 'user1',
             ],
             [
                 {
-                    user: {name: 'user2'},
+                    user: { name: 'user2' },
                 },
                 'user2',
             ],
             [
                 {
-                    comment: {author1: {name: 'user1'}},
-                    user: {name1: 'user2'},
+                    comment: { author1: { name: 'user1' } },
+                    user: { name1: 'user2' },
                 },
                 undefined,
             ],
-            [{comment: {}}, undefined],
+            [{ comment: {} }, undefined],
             [{}, undefined],
         ];
         samples.forEach(sample => {
@@ -99,9 +97,7 @@ describe('Utils testing', () => {
     it('Test correct auth', () => {
         const currentAuth = utils.auth();
 
-        expect(currentAuth).to.be.equal(
-            'Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ='
-        );
+        expect(currentAuth).to.be.equal('Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ=');
     });
 
     it('Test correct getChangelogField', () => {
@@ -136,7 +132,7 @@ describe('Utils testing', () => {
         expect(limit).to.be.equal(expected);
     });
 
-    it('Expect runMethod don\'t throw with unknown type', () => {
+    it("Expect runMethod don't throw with unknown type", () => {
         const res = utils.runMethod({}, 'getCreator');
 
         expect(res).to.be.undefined;
@@ -162,34 +158,34 @@ describe('Utils testing', () => {
     describe('command handler test', () => {
         it('correct command name', () => {
             const body = '!help';
-            const {commandName, bodyText} = utils.parseEventBody(body);
+            const { commandName, bodyText } = utils.parseEventBody(body);
             expect(commandName).to.be.equal('help');
             expect(bodyText).to.be.undefined;
         });
 
         it('correct command name', () => {
             const body = '!help   ';
-            const {commandName, bodyText} = utils.parseEventBody(body);
+            const { commandName, bodyText } = utils.parseEventBody(body);
             expect(commandName).to.be.equal('help');
             expect(bodyText).to.be.undefined;
         });
 
         it('correct command name', () => {
             const body = '!op gogogogo';
-            const {commandName, bodyText} = utils.parseEventBody(body);
+            const { commandName, bodyText } = utils.parseEventBody(body);
             expect(commandName).to.be.equal('op');
             expect(bodyText).to.be.equal('gogogogo');
         });
 
         it('false command name', () => {
             const body = 'help';
-            const {commandName} = utils.parseEventBody(body);
+            const { commandName } = utils.parseEventBody(body);
             expect(commandName).not.to.be;
         });
 
         it('false command name', () => {
             const body = '!!help';
-            const {commandName, bodyText} = utils.parseEventBody(body);
+            const { commandName, bodyText } = utils.parseEventBody(body);
             expect(commandName).not.to.be;
             expect(bodyText).not.to.be;
         });

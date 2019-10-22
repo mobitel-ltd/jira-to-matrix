@@ -3,30 +3,33 @@ const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const linkDeletedHook = require('../fixtures/webhooks/issuelink/deleted.json');
 const issueBody = require('../fixtures/jira-api-requests/issue.json');
-const {getPostLinksDeletedData} = require('../../src/jira-hook-parser/parse-body.js');
+const { getPostLinksDeletedData } = require('../../src/jira-hook-parser/parse-body.js');
 const postLinksDeleted = require('../../src/bot/actions/post-link-deleted');
-const {isDeleteLinks} = require('../../src/jira-hook-parser/bot-handler.js');
-const {getPostLinkMessageBody} = require('../../src/bot/actions/helper');
-const {cleanRedis, getChatApi} = require('../test-utils');
+const { isDeleteLinks } = require('../../src/jira-hook-parser/bot-handler.js');
+const { getPostLinkMessageBody } = require('../../src/bot/actions/helper');
+const { cleanRedis, getChatApi } = require('../test-utils');
 const translate = require('../../src/locales');
 const marked = require('marked');
 
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Test postLinksDeleted', () => {
     let chatApi;
-    const {sourceIssueId} = linkDeletedHook.issueLink;
-    const {destinationIssueId} = linkDeletedHook.issueLink;
+    const { sourceIssueId } = linkDeletedHook.issueLink;
+    const { destinationIssueId } = linkDeletedHook.issueLink;
 
     const roomIDIn = 'inId';
     const roomIDOut = 'outId';
 
     beforeEach(() => {
         chatApi = getChatApi();
-        chatApi.getRoomId.withArgs(utils.getKey(issueBody)).onFirstCall().resolves(roomIDIn);
+        chatApi.getRoomId
+            .withArgs(utils.getKey(issueBody))
+            .onFirstCall()
+            .resolves(roomIDIn);
         chatApi.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
         nock(utils.getRestUrl())
             .get(`/issue/${sourceIssueId}`)
@@ -57,17 +60,23 @@ describe('Test postLinksDeleted', () => {
     });
 
     it('Expect data to be handled by postLinksDeleted', async () => {
-        const bodyIn = getPostLinkMessageBody({
-            relation: linkDeletedHook.issueLink.issueLinkType.outwardName,
-            related: issueBody,
-        }, 'deleteLink');
-        const bodyOut = getPostLinkMessageBody({
-            relation: linkDeletedHook.issueLink.issueLinkType.inwardName,
-            related: issueBody,
-        }, 'deleteLink');
+        const bodyIn = getPostLinkMessageBody(
+            {
+                relation: linkDeletedHook.issueLink.issueLinkType.outwardName,
+                related: issueBody,
+            },
+            'deleteLink',
+        );
+        const bodyOut = getPostLinkMessageBody(
+            {
+                relation: linkDeletedHook.issueLink.issueLinkType.inwardName,
+                related: issueBody,
+            },
+            'deleteLink',
+        );
 
         const data = getPostLinksDeletedData(linkDeletedHook);
-        const res = await postLinksDeleted({...data, chatApi});
+        const res = await postLinksDeleted({ ...data, chatApi });
 
         expect(res).to.be.true;
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
@@ -83,7 +92,7 @@ describe('Test postLinksDeleted', () => {
 
         const expectedPost = translate('deleteLink');
         const data = getPostLinksDeletedData(linkDeletedHook);
-        const res = await postLinksDeleted({...data, chatApi});
+        const res = await postLinksDeleted({ ...data, chatApi });
 
         expect(res).to.be.true;
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, expectedPost, marked(expectedPost));
@@ -94,7 +103,7 @@ describe('Test postLinksDeleted', () => {
         const data = getPostLinksDeletedData(linkDeletedHook);
         let res;
         try {
-            res = await postLinksDeleted({...data, chatApi});
+            res = await postLinksDeleted({ ...data, chatApi });
         } catch (err) {
             res = err;
         }

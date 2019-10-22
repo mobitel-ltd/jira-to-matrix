@@ -1,7 +1,12 @@
-const {expect} = require('chai');
-const {saveIncoming} = require('../../src/queue/redis-data-handle.js');
-const {cleanRedis} = require('../test-utils');
-const {getRedisValue, getRedisKeys, getDataFromRedis, getRedisRooms} = require('../../src/queue/redis-data-handle.js');
+const { expect } = require('chai');
+const { saveIncoming } = require('../../src/queue/redis-data-handle.js');
+const { cleanRedis } = require('../test-utils');
+const {
+    getRedisValue,
+    getRedisKeys,
+    getDataFromRedis,
+    getRedisRooms,
+} = require('../../src/queue/redis-data-handle.js');
 
 describe('Test save data to redis', () => {
     const expectedFuncKeys1 = [
@@ -51,7 +56,7 @@ describe('Test save data to redis', () => {
     };
     const room2 = {
         redisKey: 'newrooms',
-        createRoomData: {issue: 'some data else'},
+        createRoomData: { issue: 'some data else' },
     };
     const room3 = {
         redisKey: 'newrooms',
@@ -87,9 +92,7 @@ describe('Test save data to redis', () => {
         expectedFuncKeys1.forEach(key => expect(funcKeysData).to.deep.include(key));
 
         const roomsKeys = await getRedisRooms();
-        const expectedRoom = [
-            {issue: 'some data'},
-        ];
+        const expectedRoom = [{ issue: 'some data' }];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
@@ -99,14 +102,10 @@ describe('Test save data to redis', () => {
 
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);
-        [...expectedFuncKeys1, ...expectedFuncKeys2]
-            .forEach(key => expect(funcKeysData).to.deep.include(key));
+        [...expectedFuncKeys1, ...expectedFuncKeys2].forEach(key => expect(funcKeysData).to.deep.include(key));
 
         const roomsKeys = await getRedisRooms();
-        const expectedRoom = [
-            {issue: 'some data'},
-            {issue: 'some data else'},
-        ];
+        const expectedRoom = [{ issue: 'some data' }, { issue: 'some data else' }];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
@@ -116,32 +115,25 @@ describe('Test save data to redis', () => {
 
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);
-        [...expectedFuncKeys1, ...expectedFuncKeys2, ...expectedFuncKeys3]
-            .forEach(key => expect(funcKeysData).to.deep.include(key));
+        [...expectedFuncKeys1, ...expectedFuncKeys2, ...expectedFuncKeys3].forEach(key =>
+            expect(funcKeysData).to.deep.include(key),
+        );
 
         const roomsKeys = await getRedisRooms();
-        const expectedRoom = [
-            {issue: 'some data'},
-            {issue: 'some data else'},
-        ];
-
+        const expectedRoom = [{ issue: 'some data' }, { issue: 'some data else' }];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
 
-    it('test don\'t save one room data two times', async () => {
+    it("test don't save one room data two times", async () => {
         await Promise.all(dataToSave2.map(saveIncoming));
 
         const redisKeys = await getRedisKeys();
         const funcKeysData = await getDataFromRedis(redisKeys);
-        [...expectedFuncKeys1, ...expectedFuncKeys2]
-            .forEach(key => expect(funcKeysData).to.deep.include(key));
+        [...expectedFuncKeys1, ...expectedFuncKeys2].forEach(key => expect(funcKeysData).to.deep.include(key));
 
         const roomsKeys = await getRedisRooms();
-        const expectedRoom = [
-            {issue: 'some data'},
-            {issue: 'some data else'},
-        ];
+        const expectedRoom = [{ issue: 'some data' }, { issue: 'some data else' }];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });

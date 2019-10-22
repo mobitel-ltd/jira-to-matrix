@@ -1,13 +1,13 @@
 const assert = require('assert');
 const utils = require('../../src/lib/utils.js');
-const {request} = require('../../src/lib/request');
-const {getRequestErrorLog} = require('../../src/lib/messages');
+const { request } = require('../../src/lib/request');
+const { getRequestErrorLog } = require('../../src/lib/messages');
 const nock = require('nock');
 
 describe('request testing', () => {
     const urlPath = '12345';
     const fakePath = 'error';
-    const body = {result: true};
+    const body = { result: true };
 
     before(() => {
         nock(utils.getRestUrl())

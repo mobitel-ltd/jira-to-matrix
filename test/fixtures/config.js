@@ -7,10 +7,12 @@ const slack = {
     eventPort: 3001,
     user: 'jirabot',
     password: faker.random.uuid(),
-    bots: [{
-        user: 'jirabot',
-        password: faker.random.uuid(),
-    }],
+    bots: [
+        {
+            user: 'jirabot',
+            password: faker.random.uuid(),
+        },
+    ],
 };
 
 const matrix = {
@@ -19,10 +21,12 @@ const matrix = {
     domain: 'matrix.test-example.ru',
     user: 'jira_test_bot',
     password: 'fakepasswprd',
-    bots: [{
-        user: 'jira_test_bot',
-        password: 'fakepasswprd',
-    }],
+    bots: [
+        {
+            user: 'jira_test_bot',
+            password: 'fakepasswprd',
+        },
+    ],
 };
 
 module.exports = Object.freeze({

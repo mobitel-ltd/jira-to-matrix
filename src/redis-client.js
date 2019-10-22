@@ -1,8 +1,8 @@
 const redis = require('redis');
 const conf = require('./config');
 const logger = require('./modules/log.js')(module);
-const {promisify} = require('util');
-const {getRedisLinkKey} = require('./lib/utils');
+const { promisify } = require('util');
+const { getRedisLinkKey } = require('./lib/utils');
 
 const createClient = config => {
     try {

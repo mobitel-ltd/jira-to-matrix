@@ -1,8 +1,9 @@
 # JIRA to Matrix bot
 
-[![Build Status](https://travis-ci.org/grigori-gru/jira-to-matrix.svg?branch=master)](https://travis-ci.org/grigori-gru/jira-to-matrix)
-[![codecov](https://codecov.io/gh/grigori-gru/jira-to-matrix/branch/master/graph/badge.svg)](https://codecov.io/gh/grigori-gru/jira-to-matrix)
+[![Build Status](https://travis-ci.org/mobitel-ltd/jira-to-matrix.svg?branch=master)](https://travis-ci.org/mobitel-ltd/jira-to-matrix)
+[![codecov](https://codecov.io/gh/mobitel-ltd/jira-to-matrix/branch/master/graph/badge.svg)](https://codecov.io/gh/mobitel-ltd/jira-to-matrix)
 [![dependencies Status](https://david-dm.org/grigori-gru/jira-to-matrix/status.svg)](https://david-dm.org/grigori-gru/jira-to-matrix)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 A bot (web-service) which:
 

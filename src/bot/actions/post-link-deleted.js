@@ -1,17 +1,17 @@
-const {getIssueSafety} = require('../../lib/jira-request');
-const {getPostLinkMessageBody} = require('./helper');
+const { getIssueSafety } = require('../../lib/jira-request');
+const { getPostLinkMessageBody } = require('./helper');
 const utils = require('../../lib/utils');
-const {getNoIssueLinkLog} = require('../../lib/messages');
+const { getNoIssueLinkLog } = require('../../lib/messages');
 
 const postLink = (roomID, related, relation, chatApi) => {
     if (roomID) {
-        const {body, htmlBody} = getPostLinkMessageBody({relation, related}, 'deleteLink');
+        const { body, htmlBody } = getPostLinkMessageBody({ relation, related }, 'deleteLink');
 
         return chatApi.sendHtmlMessage(roomID, body, htmlBody);
     }
 };
 
-module.exports = async ({chatApi, sourceIssueId, destinationIssueId, sourceRelation, destinationRelation}) => {
+module.exports = async ({ chatApi, sourceIssueId, destinationIssueId, sourceRelation, destinationRelation }) => {
     try {
         const links = [sourceIssueId, destinationIssueId];
         const [sourceIssue, destinationIssue] = await Promise.all(links.map(getIssueSafety));
@@ -20,8 +20,8 @@ module.exports = async ({chatApi, sourceIssueId, destinationIssueId, sourceRelat
         }
         const [sourceIssueKey, destinationIssueKey] = [sourceIssue, destinationIssue].map(utils.getKey);
 
-        const sourceIssueRoomId = sourceIssueKey && await chatApi.getRoomId(sourceIssueKey);
-        const destinationIssueRoomId = destinationIssueKey && await chatApi.getRoomId(destinationIssueKey);
+        const sourceIssueRoomId = sourceIssueKey && (await chatApi.getRoomId(sourceIssueKey));
+        const destinationIssueRoomId = destinationIssueKey && (await chatApi.getRoomId(destinationIssueKey));
 
         await postLink(sourceIssueRoomId, destinationIssue, sourceRelation, chatApi);
         await postLink(destinationIssueRoomId, sourceIssue, destinationRelation, chatApi);

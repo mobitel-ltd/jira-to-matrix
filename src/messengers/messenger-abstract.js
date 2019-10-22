@@ -8,7 +8,7 @@ module.exports = class {
      * @param {String}  summary Jira issue summary
      * @returns {String} room name in chat
      */
-    composeRoomName(key, summary) { }
+    composeRoomName(key, summary) {}
 
     /**
      * Transform ldap user name to chat user id
@@ -16,13 +16,13 @@ module.exports = class {
      * @param {String} shortName shortName of user from ldap
      * @returns {String} user in chat format
      */
-    getChatUserId(shortName) { }
+    getChatUserId(shortName) {}
 
     /**
      * @abstract
      * @returns {Boolean} connect status
      */
-    isConnected() { }
+    isConnected() {}
 
     /**
      * Get room id by name
@@ -31,7 +31,7 @@ module.exports = class {
      * @param {String} name roomname or alias
      * @returns {Promise<String|false>} returns roomId or false if not exisits
      */
-    async getRoomIdByName(name) { }
+    async getRoomIdByName(name) {}
 
     /**
      * Set new topic for matrix room
@@ -41,7 +41,7 @@ module.exports = class {
      * @param  {string} topic chat room topic
      * @returns {Promise<boolean>} returns true if setting succedded
      */
-    async setRoomTopic(roomId, topic) { }
+    async setRoomTopic(roomId, topic) {}
 
     /**
      * Set new name for chat room
@@ -49,20 +49,20 @@ module.exports = class {
      * @param  {string} name new room name
      * @returns {Promise<boolean>} returns true if setting succedded
      */
-    async setRoomName(roomId, name) { }
+    async setRoomName(roomId, name) {}
 
     /**
      * @abstract
      * @async
      * @returns {Promise<this>} connected to Chat Client
      */
-    async connect() { }
+    async connect() {}
 
     /**
      *  disconnected Chat client
      * @returns {void}
      */
-    disconnect() { }
+    disconnect() {}
 
     /**
      * Set power level for current user in chat room
@@ -72,7 +72,7 @@ module.exports = class {
      * @param  {string} userId chat user id
      * @returns {Promise<boolean>} return true if request suceedded
      */
-    async setPower(roomId, userId) { }
+    async setPower(roomId, userId) {}
 
     /**
      * Create chat room
@@ -86,7 +86,7 @@ module.exports = class {
      * @param {string} options.purpose issue summary
      * @returns {Promise<String>} chat room id
      */
-    async createRoom(options) { }
+    async createRoom(options) {}
 
     /**
      * Get chat room id by alias
@@ -96,7 +96,7 @@ module.exports = class {
      * @returns {Promise<String>} chat room id
      * @throws throw error if no room is found
      */
-    async getRoomId(name) { }
+    async getRoomId(name) {}
 
     /**
      * Get chat room by name or id
@@ -107,7 +107,7 @@ module.exports = class {
      * @param  {string?} options.roomId chat roomId
      * @returns {Promise<String[]>} chat room members
      */
-    async getRoomMembers({name, roomId}) { }
+    async getRoomMembers({ name, roomId }) {}
 
     /**
      * Invite user to chat room
@@ -117,7 +117,7 @@ module.exports = class {
      * @param  {string} userId chat user id
      * @returns {Promise<boolean>} return true if user invited in room
      */
-    async invite(roomId, userId) { }
+    async invite(roomId, userId) {}
 
     /**
      * Send message to chat room
@@ -128,7 +128,7 @@ module.exports = class {
      * @param  {string} htmlBody chat message body
      * @returns {Promise<void>} return void if succedded sent
      */
-    async sendHtmlMessage(roomId, body, htmlBody) { }
+    async sendHtmlMessage(roomId, body, htmlBody) {}
 
     /**
      * Update room name
@@ -140,7 +140,7 @@ module.exports = class {
      * @param  {String} roomData.summary jira issue summary
      * @returns {Promise<void>} void
      */
-    async updateRoomName(roomId, roomData) { }
+    async updateRoomName(roomId, roomData) {}
 
     /**
      * Update room info data
@@ -151,12 +151,12 @@ module.exports = class {
      * @param  {String} key new room key
      * @returns {Promise<void>} void
      */
-    async updateRoomData(roomId, topic, key) { }
+    async updateRoomData(roomId, topic, key) {}
 
     /**
      * Check if user is in room
      * @param {string} roomId room id
      * @returns {boolean} return true if user in this room
      */
-    async isInRoom(roomId) { }
+    async isInRoom(roomId) {}
 };

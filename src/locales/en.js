@@ -2,7 +2,7 @@
 const dict = Object.freeze({
     notAdmin: 'User "%{sender}" don\'t have admin status for this command',
     setBotToAdmin: 'Incorrect bot status in project [%{projectKey}](%viewUrl), ask admin for help',
-    noRulesToWatchIssue: 'Bot don\'t have permission to watch or make actions in this Jira issue',
+    noRulesToWatchIssue: "Bot don't have permission to watch or make actions in this Jira issue",
     comment_created: '%{name} commented',
     comment_updated: '%{name} changed comment',
     issue_updated: '%{name} changed issue',
@@ -41,7 +41,8 @@ const dict = Object.freeze({
     kickInfo: 'User %{sender} has kicked next members from rooms:',
     powerUp: 'User %{targetUser} became a moderator for room %{roomName}',
     currentIgnoreSettings: 'Current ignore-settings for project "%{projectKey}": ',
-    varsComandsIgnoreSettings: 'You can use comands add or del types, for example<br>!ignore add Error<br>!ignore del Error',
+    varsComandsIgnoreSettings:
+        'You can use comands add or del types, for example<br>!ignore add Error<br>!ignore del Error',
     emptyIgnoreList: 'For project %{projectKey} ignore list is empty.<br>You can add ignore key !ignore add Error',
     notIgnoreKey: 'Write key.<br>!ignore add <b>Task</b>',
     notKeyInProject: 'Such key not found in project "%{projectKey}".<br>You can use keys:',
