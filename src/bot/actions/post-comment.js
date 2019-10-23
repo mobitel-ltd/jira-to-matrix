@@ -1,9 +1,9 @@
 const htmlToString = require('html-to-text').fromString;
 const logger = require('../../modules/log.js')(module);
-const {getCommentHTMLBody, getCommentBody} = require('./helper');
-const {getIssueFormatted} = require('../../lib/jira-request.js');
+const { getCommentHTMLBody, getCommentBody } = require('./helper');
+const { getIssueFormatted } = require('../../lib/jira-request.js');
 
-module.exports = async ({chatApi, issueID, headerText, comment, author}) => {
+module.exports = async ({ chatApi, issueID, headerText, comment, author }) => {
     try {
         if (!issueID) {
             logger.warn('No IssueId for posting comment. No way to define params for posting comment');

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const {getBotActions} = require('../../src/jira-hook-parser/bot-handler');
+const { getBotActions } = require('../../src/jira-hook-parser/bot-handler');
 const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
 const commentDeletedHook = require('../fixtures/webhooks/comment/deleted.json');
 const commentUpdatedHook = require('../fixtures/webhooks/comment/updated.json');
@@ -31,10 +31,7 @@ describe('bot func', () => {
 
     it('Expect issueCommentedHook returns correct funcs list', () => {
         const result = getBotActions(issueCommentedHook);
-        const expected = [
-            'inviteNewMembers',
-            'postEpicUpdates',
-        ];
+        const expected = ['inviteNewMembers', 'postEpicUpdates'];
         assert.deepEqual(result, expected);
     });
 
@@ -70,11 +67,7 @@ describe('bot func', () => {
 
     it('Expect issueCommentedChangedHook returns correct funcs list', () => {
         const result = getBotActions(issueCommentedChangedHook);
-        const expected = [
-            'postIssueUpdates',
-            'inviteNewMembers',
-            'postEpicUpdates',
-        ];
+        const expected = ['postIssueUpdates', 'inviteNewMembers', 'postEpicUpdates'];
         assert.deepEqual(result, expected);
     });
 });

@@ -1,14 +1,16 @@
 const logger = require('../modules/log.js')(module);
 const requestPromise = require('request-promise-native');
-const {auth} = require('./utils.js');
-const {getRequestErrorLog} = require('./messages');
+const { auth } = require('./utils.js');
+const { getRequestErrorLog } = require('./messages');
 const TIMEOUT = 60000;
-const {jira: {url: jiraUrl}} = require('../../src/config');
+const {
+    jira: { url: jiraUrl },
+} = require('../../src/config');
 
 const request = async (url, newOptions) => {
     const options = {
         method: 'GET',
-        headers: {'Authorization': auth(), 'content-type': 'application/json'},
+        headers: { Authorization: auth(), 'content-type': 'application/json' },
         timeout: TIMEOUT,
         ...newOptions,
     };
@@ -18,7 +20,7 @@ const request = async (url, newOptions) => {
         if (options.method === 'GET' && url !== jiraUrl) {
             return JSON.parse(response);
         }
-    } catch ({statusCode}) {
+    } catch ({ statusCode }) {
         throw getRequestErrorLog(url, statusCode, options);
     }
 };

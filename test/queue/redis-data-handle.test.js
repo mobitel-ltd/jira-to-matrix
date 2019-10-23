@@ -1,20 +1,22 @@
 const utils = require('../../src/lib/utils');
 const nock = require('nock');
-const {jira: {url: jiraUrl}} = require('../../src/config');
-const {getRestUrl, expandParams} = require('../../src/lib/utils.js');
-const {getCreateRoomData} = require('../../src/jira-hook-parser/parse-body.js');
+const {
+    jira: { url: jiraUrl },
+} = require('../../src/config');
+const { getRestUrl, expandParams } = require('../../src/lib/utils.js');
+const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
 const projectBody = require('../fixtures/jira-api-requests/project.json');
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const proxyquire = require('proxyquire');
 const chai = require('chai');
-const {stub} = require('sinon');
+const { stub } = require('sinon');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 const logger = require('../../src/modules/log.js')(module);
-const {cleanRedis} = require('../test-utils');
+const { cleanRedis } = require('../test-utils');
 
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
@@ -36,36 +38,36 @@ const {
 
 describe('saveIncoming', () => {
     it('test saveIncoming with no createRoomData args', async () => {
-        await saveIncoming({redisKey: 'newrooms'});
+        await saveIncoming({ redisKey: 'newrooms' });
         const result = await getRedisRooms();
         expect(result).to.be.null;
     });
 });
 
 describe('redis-data-handle test', () => {
-    const createRoomData = [{
-        issue: {
-            key: 'BBCOM-1111',
-            id: '30369',
-            roomMembers: ['jira_test'],
-            summary: 'Test',
-            descriptionFields: {
-                assigneeName: 'jira_test',
-                assigneeEmail: 'jira_test@test-example.ru',
-                reporterName: 'jira_test',
-                reporterEmail: 'jira_test@test-example.ru',
-                typeName: 'Task',
-                epicLink: 'BBCOM-801',
-                estimateTime: '1h',
-                description: 'Info',
-                priority: 'Medium',
+    const createRoomData = [
+        {
+            issue: {
+                key: 'BBCOM-1111',
+                id: '30369',
+                roomMembers: ['jira_test'],
+                summary: 'Test',
+                descriptionFields: {
+                    assigneeName: 'jira_test',
+                    assigneeEmail: 'jira_test@test-example.ru',
+                    reporterName: 'jira_test',
+                    reporterEmail: 'jira_test@test-example.ru',
+                    typeName: 'Task',
+                    epicLink: 'BBCOM-801',
+                    estimateTime: '1h',
+                    description: 'Info',
+                    priority: 'Medium',
+                },
             },
         },
-    }];
-
-    const expectedFuncKeys = [
-        'test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225',
     ];
+
+    const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
 
     const expectedData = [
         {
@@ -137,7 +139,7 @@ describe('redis-data-handle test', () => {
             .times(2)
             .reply(200, projectBody)
             .get(`/issue/BBCOM-1398/watchers`)
-            .reply(200, {...responce, id: 28516})
+            .reply(200, { ...responce, id: 28516 })
             .get(`/issue/30369`)
             .query(expandParams)
             .reply(200, issueBody)
@@ -149,7 +151,6 @@ describe('redis-data-handle test', () => {
 
         await getParsedAndSaveToRedis(JSONbody);
     });
-
 
     it('test correct redisKeys', async () => {
         const redisKeys = await getRedisKeys();
@@ -181,7 +182,7 @@ describe('redis-data-handle test', () => {
 
         expect(dataFromRedisBefore).to.have.deep.members(expectedData);
         expect(dataFromRedisAfter).to.have.deep.members(expectedData);
-        expect(redisRooms).deep.eq([{issue: {key: JSONbody.issue.key}}]);
+        expect(redisRooms).deep.eq([{ issue: { key: JSONbody.issue.key } }]);
         expect(postEpicUpdatesStub).to.be.called;
     });
 
@@ -191,7 +192,7 @@ describe('redis-data-handle test', () => {
     });
 
     it('test handleRedisRooms with error', async () => {
-        await saveIncoming({redisKey: 'newrooms', createRoomData});
+        await saveIncoming({ redisKey: 'newrooms', createRoomData });
         createRoomStub.callsFake(data => {
             logger.debug('data', data);
             if (data.issue.key === 'BBCOM-1111') {
@@ -229,12 +230,18 @@ describe('redis-data-handle test', () => {
 describe('handle queue for only new task newrooms', () => {
     it('test createRoomDataOnlyNew shoul be return array only new tasks', () => {
         const createRoomDataBase = getCreateRoomData(JSONbody);
-        const createRoomDataIssueKeyOnly = {issue: {key: createRoomDataBase.issue.key}};
-        const createRoomDataIssueProjectOnly = {projectKey: createRoomDataBase.projectKey};
+        const createRoomDataIssueKeyOnly = { issue: { key: createRoomDataBase.issue.key } };
+        const createRoomDataIssueProjectOnly = { projectKey: createRoomDataBase.projectKey };
 
         const createRoomDataBase2 = getCreateRoomData(JSONbody);
         createRoomDataBase2.issue.key = 'another';
-        const createRoomDataBase2changeDescription = {issue: {...createRoomDataBase2.issue, descriptionFields: {...createRoomDataBase2.issue.descriptionFields, description: 'change info'}}, projectKey: createRoomDataBase2.projectKey};
+        const createRoomDataBase2changeDescription = {
+            issue: {
+                ...createRoomDataBase2.issue,
+                descriptionFields: { ...createRoomDataBase2.issue.descriptionFields, description: 'change info' },
+            },
+            projectKey: createRoomDataBase2.projectKey,
+        };
 
         const result = createRoomDataOnlyNew([
             createRoomDataBase,

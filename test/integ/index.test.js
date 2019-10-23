@@ -1,5 +1,5 @@
 const Ramda = require('ramda');
-const {WebClient} = require('@slack/web-api');
+const { WebClient } = require('@slack/web-api');
 const nock = require('nock');
 const supertest = require('supertest');
 const faker = require('faker');
@@ -10,7 +10,7 @@ const FSM = require('../../src/fsm');
 const app = require('../../src/jira-app');
 const queueHandler = require('../../src/queue');
 const utils = require('../../src/lib/utils.js');
-const {cleanRedis} = require('../test-utils');
+const { cleanRedis } = require('../test-utils');
 const redisUtils = require('../../src/queue/redis-data-handle.js');
 const redis = require('../../src/redis-client');
 
@@ -34,9 +34,9 @@ const slackConversationJSON = require('../fixtures/slack-requests/conversation.j
 const conversationPurposeJSON = require('../fixtures/slack-requests/conversations/setPurpose.json');
 
 const chai = require('chai');
-const {stub, createStubInstance} = require('sinon');
+const { stub, createStubInstance } = require('sinon');
 const sinonChai = require('sinon-chai');
-const {expect} = chai;
+const { expect } = chai;
 chai.use(sinonChai);
 
 const request = supertest(`http://localhost:${conf.port}`);
@@ -54,7 +54,7 @@ const messengerConfig = {
 const auth = {
     test: stub().resolves(testJSON.user),
 };
-const {channels} = usersConversationsJSON.correct;
+const { channels } = usersConversationsJSON.correct;
 const [expectedChannel] = channels;
 
 const slackExpectedChannelId = faker.random.alphaNumeric(9).toUpperCase();
@@ -104,22 +104,20 @@ const slackChannelsAfterRoomCreating = {
             id: faker.random.alphaNumeric(9).toUpperCase(),
         },
     ],
-
 };
 
 const users = {
     // https://api.slack.com/methods/users.lookupByEmail
     lookupByEmail: stub().resolves(userJSON.correct),
     // https://api.slack.com/methods/users.conversations
-    conversations:
-        stub()
-            .onFirstCall()
-            .resolves(slackChannels)
-            .onSecondCall()
-            .resolves(slackChannels)
-            .onThirdCall()
-            .resolves(slackChannels)
-            .resolves(slackChannelsAfterRoomCreating),
+    conversations: stub()
+        .onFirstCall()
+        .resolves(slackChannels)
+        .onSecondCall()
+        .resolves(slackChannels)
+        .onThirdCall()
+        .resolves(slackChannels)
+        .resolves(slackChannelsAfterRoomCreating),
 };
 const chat = {
     // https://api.slack.com/methods/chat.postMessage
@@ -141,7 +139,7 @@ const conversations = {
     info: stub().resolves(expectedChannel),
 };
 
-const sdk = {...createStubInstance(WebClient), auth, conversations, users, chat};
+const sdk = { ...createStubInstance(WebClient), auth, conversations, users, chat };
 
 const commandsHandler = stub().resolves();
 
@@ -159,10 +157,10 @@ const ignoreData = {
     },
 };
 
-const {httpStatus} = utils;
+const { httpStatus } = utils;
 
 describe('Integ tests', () => {
-    const slackApi = new SlackApi({config: messengerConfig, sdk, commandsHandler, logger});
+    const slackApi = new SlackApi({ config: messengerConfig, sdk, commandsHandler, logger });
 
     const fsm = new FSM([slackApi], queueHandler, app, conf.port);
 
@@ -233,10 +231,12 @@ describe('Integ tests', () => {
 
         const expectedData = {
             channel: slackExpectedChannelId,
-            attachments: [{
-                'text': `${utils.getHeaderText(jiraCommentCreatedJSON)}: \n${jiraCommentCreatedJSON.comment.body}`,
-                'mrkdwn_in': ['text'],
-            }],
+            attachments: [
+                {
+                    text: `${utils.getHeaderText(jiraCommentCreatedJSON)}: \n${jiraCommentCreatedJSON.comment.body}`,
+                    mrkdwn_in: ['text'],
+                },
+            ],
         };
 
         expect(sdk.chat.postMessage).to.be.calledWithExactly(expectedData);
@@ -249,13 +249,13 @@ describe('Integ tests', () => {
             .set('Content-Type', 'application/json');
 
         const expectedCreateRoomData = {
-            'is_private': true,
-            'name': jiraIssueCreatedJSON.issue.key.toLowerCase(),
+            is_private: true,
+            name: jiraIssueCreatedJSON.issue.key.toLowerCase(),
             // 'user_ids': Array.from({length: 4}, () => userJSON.correct.user.id),
         };
         const expectedProjectRoomData = {
-            'is_private': true,
-            'name': jiraIssueCreatedJSON.issue.fields.project.key.toLowerCase(),
+            is_private: true,
+            name: jiraIssueCreatedJSON.issue.fields.project.key.toLowerCase(),
             // 'user_ids': [userJSON.correct.user.id],
         };
 
@@ -269,20 +269,19 @@ describe('Integ tests', () => {
     });
 
     it('GET /ignore return all ignore projects', async () => {
-        const {body} = await request.get('/ignore')
-            .expect(httpStatus.OK);
+        const { body } = await request.get('/ignore').expect(httpStatus.OK);
         expect(body).to.be.deep.eq(ignoreData);
     });
 
     it('POST /ignore add ignore project on key', async () => {
-        const newIgnoreKey = {testProject: {taskType: ['test'], autor: ['Doncova']}};
+        const newIgnoreKey = { testProject: { taskType: ['test'], autor: ['Doncova'] } };
         await request
             .post('/ignore')
             .send(newIgnoreKey)
             .expect(httpStatus.OK);
 
-        const {body} = await request.get('/ignore');
-        expect(body).to.be.deep.eq({...ignoreData, ...newIgnoreKey});
+        const { body } = await request.get('/ignore');
+        expect(body).to.be.deep.eq({ ...ignoreData, ...newIgnoreKey });
     });
     it('POST /ignore bad requests', async () => {
         const newIgnoreKey = 'bad key';
@@ -297,20 +296,19 @@ describe('Integ tests', () => {
             .expect(httpStatus.BAD_REQUEST);
     });
     it('PUT /ignore update ignore project on key', async () => {
-        const newData = {taskType: ['test'], autor: ['Doncova']};
+        const newData = { taskType: ['test'], autor: ['Doncova'] };
         await request
             .put('/ignore/INDEV')
             .send(newData)
             .expect(httpStatus.OK);
 
-        const {body} = await request.get('/ignore');
-        expect(body).to.be.deep.eq({...ignoreData, INDEV: newData});
+        const { body } = await request.get('/ignore');
+        expect(body).to.be.deep.eq({ ...ignoreData, INDEV: newData });
     });
     it('DELETE /ignore delete ignore projects', async () => {
-        await request.delete('/ignore/INDEV')
-            .expect(httpStatus.OK);
+        await request.delete('/ignore/INDEV').expect(httpStatus.OK);
 
-        const {body} = await request.get('/ignore');
+        const { body } = await request.get('/ignore');
         expect(body).to.be.deep.eq(Ramda.omit(['INDEV'], ignoreData));
     });
 });

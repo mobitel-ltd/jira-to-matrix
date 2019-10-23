@@ -1,15 +1,17 @@
 const nock = require('nock');
-const {expect} = require('chai');
+const { expect } = require('chai');
 const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
 const issueCommentedHook = require('../fixtures/webhooks/issue/updated/commented.json');
 // const issueGenericHook = require('../fixtures/webhooks/issue/updated/generic.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const redis = require('../../src/redis-client.js');
 const utils = require('../../src/lib/utils');
-const {jira: {url: jiraUrl}} = require('../../src/config');
-const {cleanRedis} = require('../test-utils');
+const {
+    jira: { url: jiraUrl },
+} = require('../../src/config');
+const { cleanRedis } = require('../test-utils');
 const proxyquire = require('proxyquire');
-const {stub} = require('sinon');
+const { stub } = require('sinon');
 const translate = require('../../src/locales');
 
 describe('get-parsed-save to redis', () => {
@@ -18,7 +20,7 @@ describe('get-parsed-save to redis', () => {
         funcName: 'postComment',
         data: {
             issueID: '26313',
-            headerText: translate('comment_created', {name: 'jira_test'}),
+            headerText: translate('comment_created', { name: 'jira_test' }),
             comment: {
                 body: '12345',
                 id: '31039',
@@ -27,16 +29,16 @@ describe('get-parsed-save to redis', () => {
         },
     };
 
-
     before(() => {
         nock(utils.getRestUrl())
             .get(`/project/${issueCommentedHook.issue.fields.project.id}`)
             .times(5)
-            .reply(200, {isPrivate: false})
+            .reply(200, { isPrivate: false })
             .get(`/issue/${utils.getIssueId(commentCreatedHook)}`)
             .times(2)
-            .reply(200, {isPrivate: false});
-        nock(jiraUrl).get('')
+            .reply(200, { isPrivate: false });
+        nock(jiraUrl)
+            .get('')
             .times(2)
             .reply(200, '<HTML>');
     });
@@ -48,7 +50,6 @@ describe('get-parsed-save to redis', () => {
     after(() => {
         nock.cleanAll();
     });
-
 
     it('isCommentEvent', () => {
         const result1 = utils.isCommentEvent(commentCreatedHook);
@@ -79,7 +80,7 @@ describe('get-parsed-save to redis', () => {
                 },
             },
         };
-        const ignoredBody = {...commentCreatedHook, ...ignoredName};
+        const ignoredBody = { ...commentCreatedHook, ...ignoredName };
         const parsedForQueue = await getParsedAndSaveToRedis(ignoredBody);
 
         expect(parsedForQueue).not.to.be.true;
@@ -91,7 +92,7 @@ describe('get-parsed-save to redis', () => {
             './bot-handler.js': {
                 getFuncAndBody: stub().throws(),
             },
-            '../queue/redis-data-handle.js': {saveIncoming},
+            '../queue/redis-data-handle.js': { saveIncoming },
         });
 
         let res;

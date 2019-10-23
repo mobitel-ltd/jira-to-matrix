@@ -1,5 +1,5 @@
 const logger = require('../modules/log.js')(module);
-const {getDataFromRedis, getRedisRooms, handleRedisData, handleRedisRooms} = require('./redis-data-handle.js');
+const { getDataFromRedis, getRedisRooms, handleRedisData, handleRedisRooms } = require('./redis-data-handle.js');
 
 module.exports = async chatApi => {
     try {

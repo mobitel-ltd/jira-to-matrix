@@ -1,17 +1,17 @@
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 const http = require('http');
 const Ramda = require('ramda');
-const {WebClient} = require('@slack/web-api');
+const { WebClient } = require('@slack/web-api');
 const htmlToText = require('html-to-text').fromString;
 const express = require('express');
 const bodyParser = require('body-parser');
 const MessengerAbstract = require('./messenger-abstract');
 
 const defaultLogger = {
-    info: () => { },
-    error: () => { },
-    warn: () => { },
-    debug: () => { },
+    info: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
 };
 
 module.exports = class SlackApi extends MessengerAbstract {
@@ -23,7 +23,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      * @param  {function} options.commandsHandler matrix event commands
      * @param  {Object} options.logger logger, winstone type, if no logger is set logger is off
      */
-    constructor({config, sdk, commandsHandler, logger = defaultLogger}) {
+    constructor({ config, sdk, commandsHandler, logger = defaultLogger }) {
         super();
         this.commandsHandler = commandsHandler;
         this.config = config;
@@ -70,14 +70,14 @@ module.exports = class SlackApi extends MessengerAbstract {
     _slashCommandsListener() {
         const app = express();
 
-        app
-            .use(bodyParser.urlencoded({
+        app.use(
+            bodyParser.urlencoded({
                 strict: false,
-            }))
-            .post('/commands', async (req, res, next) => {
-                await this._eventHandler(req.body);
-                res.send(200);
-            });
+            }),
+        ).post('/commands', async (req, res, next) => {
+            await this._eventHandler(req.body);
+            res.send(200);
+        });
 
         this.commandServer = http.createServer(app);
         this.commandServer.listen(this.config.eventPort, () => {
@@ -141,11 +141,13 @@ module.exports = class SlackApi extends MessengerAbstract {
     async sendHtmlMessage(channel, infoMessage, textBody) {
         try {
             const text = htmlToText(textBody);
-            const attachments = [{
-                text,
-                'mrkdwn_in': ['text'],
-            }];
-            await this.client.chat.postMessage({channel, attachments});
+            const attachments = [
+                {
+                    text,
+                    mrkdwn_in: ['text'],
+                },
+            ];
+            await this.client.chat.postMessage({ channel, attachments });
         } catch (err) {
             throw ['Error in sendHtmlMessage', err].join('\n');
         }
@@ -157,7 +159,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      */
     async _getUserIdByEmail(email) {
         try {
-            const userInfo = await this.client.users.lookupByEmail({email});
+            const userInfo = await this.client.users.lookupByEmail({ email });
 
             return Ramda.path(['user', 'id'], userInfo);
         } catch (error) {
@@ -173,7 +175,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      */
     async setRoomTopic(channel, topic) {
         try {
-            const res = await this.client.conversations.setTopic({channel, topic});
+            const res = await this.client.conversations.setTopic({ channel, topic });
 
             return res.ok;
         } catch (err) {
@@ -190,7 +192,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      */
     async setPurpose(channel, purpose) {
         try {
-            const res = await this.client.conversations.setPurpose({channel, purpose});
+            const res = await this.client.conversations.setPurpose({ channel, purpose });
 
             return res.ok;
         } catch (err) {
@@ -208,22 +210,26 @@ module.exports = class SlackApi extends MessengerAbstract {
      * @param  {String[]} options.purpose issue summary
      * @returns {string} Slack channel id
      */
-    async createRoom({name, topic, invite, purpose}) {
+    async createRoom({ name, topic, invite, purpose }) {
         try {
             const options = {
-                'is_private': true,
-                'name': name.toLowerCase(),
+                is_private: true,
+                name: name.toLowerCase(),
             };
-            const {channel} = await this.client.conversations.create(options);
+            const { channel } = await this.client.conversations.create(options);
             const roomId = channel.id;
-            await Promise.all(invite.map(async name => {
-                try {
-                    await this.invite(roomId, name);
-                } catch (error) {
-                    // eslint-disable-next-line
-                    this.logger.warn(`User ${name} is not in slack, try to add him. Room for jira issue ${name} will be without him.`);
-                }
-            }));
+            await Promise.all(
+                invite.map(async name => {
+                    try {
+                        await this.invite(roomId, name);
+                    } catch (error) {
+                        this.logger.warn(
+                            // eslint-disable-next-line
+                            `User ${name} is not in slack, try to add him. Room for jira issue ${name} will be without him.`,
+                        );
+                    }
+                }),
+            );
             await this.setRoomTopic(roomId, topic);
             await this.setPurpose(roomId, purpose);
 
@@ -235,15 +241,15 @@ module.exports = class SlackApi extends MessengerAbstract {
     }
 
     /**
-    * Get slack channel id by name
-    * @param  {string} name slack channel name
-    * @returns {string|undefined} channel id if exists
-    */
+     * Get slack channel id by name
+     * @param  {string} name slack channel name
+     * @returns {string|undefined} channel id if exists
+     */
     async getRoomId(name) {
         const searchingName = name.toLowerCase();
         try {
             // ? Limit of channels is only 1000 now
-            const {channels} = await this.client.users.conversations({limit: 1000, types: 'private_channel'});
+            const { channels } = await this.client.users.conversations({ limit: 1000, types: 'private_channel' });
             const channel = channels.find(item => item.name === searchingName);
 
             const roomId = Ramda.path(['id'], channel);
@@ -266,7 +272,7 @@ module.exports = class SlackApi extends MessengerAbstract {
     async isRoomMember(roomId, name) {
         const email = this._getEmail(name);
         const slackId = await this._getUserIdByEmail(email);
-        const roomMembers = await this.getRoomMembers({roomId});
+        const roomMembers = await this.getRoomMembers({ roomId });
 
         return roomMembers.includes(slackId);
     }
@@ -280,7 +286,7 @@ module.exports = class SlackApi extends MessengerAbstract {
         const email = this._getEmail(name);
         try {
             const userId = await this._getUserIdByEmail(email);
-            const response = await this.client.conversations.invite({channel, users: userId});
+            const response = await this.client.conversations.invite({ channel, users: userId });
 
             return response.ok;
         } catch (err) {
@@ -295,10 +301,10 @@ module.exports = class SlackApi extends MessengerAbstract {
      * @param {String} slack channel id
      * @returns {String[]} channel members like [nfakjgba, fabfaif]
      */
-    async getRoomMembers({name, roomId}) {
+    async getRoomMembers({ name, roomId }) {
         try {
-            const channel = roomId || await this.getRoomId(name);
-            const {members} = await this.client.conversations.members({channel});
+            const channel = roomId || (await this.getRoomId(name));
+            const { members } = await this.client.conversations.members({ channel });
 
             return members;
         } catch (err) {
@@ -314,7 +320,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      */
     async setRoomName(channel, name) {
         try {
-            const res = await this.client.conversations.rename({channel, name});
+            const res = await this.client.conversations.rename({ channel, name });
 
             return res.ok;
         } catch (err) {
@@ -329,7 +335,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      */
     async getRoomInfo(channel) {
         try {
-            const roomInfo = await this.client.conversations.info({channel});
+            const roomInfo = await this.client.conversations.info({ channel });
 
             return roomInfo.channel;
         } catch (err) {

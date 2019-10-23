@@ -3,22 +3,18 @@ const querystring = require('querystring');
 const proxyquire = require('proxyquire');
 
 const utils = require('../../src/lib/utils.js');
-const {expect} = require('chai');
-const {getRenderedValues, getIssueWatchers, getUsers, checkUser} = require('../../src/lib/jira-request');
-const {getRequestErrorLog} = require('../../src/lib/messages');
-const {url} = require('../../src/config').jira;
+const { expect } = require('chai');
+const { getRenderedValues, getIssueWatchers, getUsers, checkUser } = require('../../src/lib/jira-request');
+const { getRequestErrorLog } = require('../../src/lib/messages');
+const { url } = require('../../src/config').jira;
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
 const watchersJSON = require('../fixtures/jira-api-requests/watchers.json');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 
 // ii_ivanov pp_petrov bb_borisov
-const watchers = watchersJSON.watchers.map(({name}) => name);
+const watchers = watchersJSON.watchers.map(({ name }) => name);
 // ii_ivanov ao_fedorov oo_orlov
-const members = [
-    issueJSON.fields.reporter.name,
-    issueJSON.fields.creator.name,
-    issueJSON.fields.assignee.name,
-];
+const members = [issueJSON.fields.reporter.name, issueJSON.fields.creator.name, issueJSON.fields.assignee.name];
 const expectedWatchersUsers = [...new Set([...watchers, ...members])].sort();
 describe('Jira request test', () => {
     const users = [
@@ -51,7 +47,7 @@ describe('Jira request test', () => {
         startAt: 0,
         maxResults: 3,
     };
-    const errorParams = {...params, startAt: 5};
+    const errorParams = { ...params, startAt: 5 };
     const errorStatus = 400;
 
     before(() => {
@@ -69,7 +65,7 @@ describe('Jira request test', () => {
             .query(errorParams)
             .reply(errorStatus, 'ERROR!!!')
             .get('/user/search')
-            .query({...params, startAt: 3})
+            .query({ ...params, startAt: 3 })
             .reply(200, users.slice(3))
             .get('/user/search')
             .query(params)
@@ -82,7 +78,7 @@ describe('Jira request test', () => {
 
     it('getRenderedValues test', async () => {
         const getRenderedValuesData = await getRenderedValues(issue.key, ['description']);
-        expect(getRenderedValuesData).to.be.deep.equal({description: renderedIssueJSON.renderedFields.description});
+        expect(getRenderedValuesData).to.be.deep.equal({ description: renderedIssueJSON.renderedFields.description });
     });
 
     it('getRenderedValues error test', async () => {
@@ -109,32 +105,32 @@ describe('Jira request test', () => {
     });
 
     it('expect getIssueWatchers works correct', async () => {
-        const result = await getIssueWatchers({key: issue.key});
+        const result = await getIssueWatchers({ key: issue.key });
         expect(result.sort()).to.be.deep.eq([...expectedWatchersUsers]);
     });
 
     it('expect getIssueWatchers works correct with empty roomMembers', async () => {
-        const result = await getIssueWatchers({key: issue.key});
+        const result = await getIssueWatchers({ key: issue.key });
         expect(result.sort()).to.be.deep.eq(expectedWatchersUsers);
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list', async () => {
-        const {getIssueWatchers: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
+        const { getIssueWatchers: getCollectParticipantsProxy } = proxyquire('../../src/lib/jira-request', {
             '../config': {
                 inviteIgnoreUsers: ['pp_petrov', 'bb_borisov'],
             },
         });
-        const result = await getCollectParticipantsProxy({key: issue.key});
+        const result = await getCollectParticipantsProxy({ key: issue.key });
         expect(result.sort()).to.be.deep.eq(members.sort());
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list2', async () => {
-        const {getIssueWatchers: getCollectParticipantsProxy} = proxyquire('../../src/lib/jira-request', {
+        const { getIssueWatchers: getCollectParticipantsProxy } = proxyquire('../../src/lib/jira-request', {
             '../config': {
                 inviteIgnoreUsers: expectedWatchersUsers,
             },
         });
-        const result = await getCollectParticipantsProxy({key: issue.key});
+        const result = await getCollectParticipantsProxy({ key: issue.key });
         expect(result.sort()).to.be.deep.eq([]);
     });
 
@@ -150,10 +146,7 @@ describe('Jira request test', () => {
         const maxResults = 3;
         const startAt = 5;
         const fakeUrl = utils.getRestUrl('user', `search?${querystring.stringify(errorParams)}`);
-        const expected = [
-            utils.getDefaultErrorLog('getUsers'),
-            getRequestErrorLog(fakeUrl, errorStatus),
-        ].join('\n');
+        const expected = [utils.getDefaultErrorLog('getUsers'), getRequestErrorLog(fakeUrl, errorStatus)].join('\n');
 
         let allUsers;
         let res;
@@ -169,8 +162,8 @@ describe('Jira request test', () => {
 
     it('checkUser test', () => {
         const user = {
-            'name': 'test_name',
-            'displayName': 'My Test User',
+            name: 'test_name',
+            displayName: 'My Test User',
         };
         const result = [
             checkUser(user, 'My'),

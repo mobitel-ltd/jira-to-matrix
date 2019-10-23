@@ -12,7 +12,8 @@ const dict = Object.freeze({
     issue_updated: '%{name} изменил%{f} задачу',
     issueHasChanged: 'Задача изменена',
     statusHasChanged: '%{key} "%{summary}" теперь в статусе "%{status}"',
-    statusHasChangedMessage: '%{name} изменил%{f} статус связанной задачи [%{key} "%{summary}"](%{viewUrl}) на **%{status}**',
+    statusHasChangedMessage:
+        '%{name} изменил%{f} статус связанной задачи [%{key} "%{summary}"](%{viewUrl}) на **%{status}**',
     newIssueInEpic: 'Новая задача в эпике',
     issueAddedToEpic: 'К эпику добавлена задача [%{key} %{summary}](%{viewUrl})',
     newLink: 'Новый линк',
@@ -23,7 +24,8 @@ const dict = Object.freeze({
     epicAddedToProject: 'К проекту добавлен эпик [%{key} %{summary}](%{viewUrl})',
     newEpicInProject: 'Новый эпик в проекте',
     statusEpicChanged: 'Эпик изменён',
-    statusEpicChangedMessage: '%{name} изменил%{f} статус связанного эпика [%{key} "%{summary}"](%{viewUrl}) на **%{status}**',
+    statusEpicChangedMessage:
+        '%{name} изменил%{f} статус связанного эпика [%{key} "%{summary}"](%{viewUrl}) на **%{status}**',
     errorMatrixCommands: 'Что-то пошло не так! Ваш запрос не выполнен, пожалуйста, попробуйте еще раз',
     errorMatrixAssign: 'Наблюдатель %{userToFind} не добавлен! Проверьте имя пользователя и попробуйте еще раз',
     successMatrixInvite: 'Пользователь %{sender} приглашен в комнату %{roomName}',
@@ -45,8 +47,10 @@ const dict = Object.freeze({
     kickInfo: 'Пользователь %{sender} попытался исключить следующих пользователей из комнат:',
     powerUp: 'Пользователь %{targetUser} получил права модератора для комнаты %{roomName}',
     currentIgnoreSettings: 'Текущие настройки игнорирования для проекта "%{projectKey}": ',
-    varsComandsIgnoreSettings: 'Вы можете использовать команды добавления или удаления типов, например<br>!ignore add Error<br>!ignore del Error',
-    emptyIgnoreList: 'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете добавить тип командой !ignore add Error',
+    varsComandsIgnoreSettings:
+        'Вы можете использовать команды добавления или удаления типов, например<br>!ignore add Error<br>!ignore del Error',
+    emptyIgnoreList:
+        'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете добавить тип командой !ignore add Error',
     notIgnoreKey: 'Укажите ключи.<br>!ignore add <b>Task</b>',
     notKeyInProject: 'Такой ключ не предусмотрен в проекте "%{projectKey}".<br>Вы можете использовать ключи:',
     keyNotFoundForDelete: 'Ключ не найден в настройках проекта "%{projectKey}".',
@@ -60,16 +64,21 @@ const dict = Object.freeze({
 const getGenderVerbEnding = function getGenderVerbEnding(fullName) {
     const getGender = Ramda.pipe(
         Ramda.split(/\s+/),
-        Ramda.map(Ramda.pipe(Ramda.trim, Ramda.toLower)),
+        Ramda.map(
+            Ramda.pipe(
+                Ramda.trim,
+                Ramda.toLower,
+            ),
+        ),
         Ramda.reduce((result, part) => {
             const gender = names[part];
             return gender ? Ramda.reduced(gender) : undefined;
-        }, undefined)
+        }, undefined),
     );
     return Ramda.pipe(
         Ramda.ifElse(Ramda.is(String), getGender, Ramda.always(undefined)),
-        Ramda.prop(Ramda.__, {m: '', f: 'а'}),
-        Ramda.defaultTo('(а)')
+        Ramda.prop(Ramda.__, { m: '', f: 'а' }),
+        Ramda.defaultTo('(а)'),
     )(fullName);
 };
 
@@ -78,4 +87,4 @@ const tValues = function tValues(values, personName) {
     return Ramda.assoc('f', ending, values);
 };
 
-module.exports = {dict, tValues};
+module.exports = { dict, tValues };

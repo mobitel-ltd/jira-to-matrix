@@ -2,46 +2,47 @@ const http = require('http');
 const logger = require('../modules/log')(module);
 const StateMachine = require('javascript-state-machine');
 const StateMachineHistory = require('javascript-state-machine/lib/history');
-const {states} = require('./states');
+const { states } = require('./states');
 const ChatFasade = require('../messengers/chat-fasade');
 
-const getJiraFsm = (app, port) => new StateMachine({
-    init: states.init,
-    transitions: [
-        {name: 'start', from: states.init, to: states.ready},
-        {name: 'hookResponsed', from: '*', to: states.hookResponsed},
-        {name: 'handlingInProgress', from: [states.hookResponsed, states.ready], to: states.startHandling},
-        {name: 'finishHandle', from: '*', to: states.ready},
-        {name: 'stop', from: '*', to: states.init},
-    ],
-    data: {
-        server: null,
-    },
-    methods: {
-        onStart() {
-            this.server = http.createServer(app);
-            this.server.listen(port, () => {
-                logger.info(`Jira hooks are listening on port ${port}`);
-            });
+const getJiraFsm = (app, port) =>
+    new StateMachine({
+        init: states.init,
+        transitions: [
+            { name: 'start', from: states.init, to: states.ready },
+            { name: 'hookResponsed', from: '*', to: states.hookResponsed },
+            { name: 'handlingInProgress', from: [states.hookResponsed, states.ready], to: states.startHandling },
+            { name: 'finishHandle', from: '*', to: states.ready },
+            { name: 'stop', from: '*', to: states.init },
+        ],
+        data: {
+            server: null,
         },
-        // onEnterState() {
-        //     logger.debug('Now jira fsm state is "%s"', this.state);
-        // },
-        onStop() {
-            logger.info('Jira server close');
-            return this.is('init') || this.server.close();
+        methods: {
+            onStart() {
+                this.server = http.createServer(app);
+                this.server.listen(port, () => {
+                    logger.info(`Jira hooks are listening on port ${port}`);
+                });
+            },
+            // onEnterState() {
+            //     logger.debug('Now jira fsm state is "%s"', this.state);
+            // },
+            onStop() {
+                logger.info('Jira server close');
+                return this.is('init') || this.server.close();
+            },
+            // onPendingTransition(transition, from, to) {
+            //     logger.error('FSM error', transition, from, to);
+            // },
         },
-        // onPendingTransition(transition, from, to) {
-        //     logger.error('FSM error', transition, from, to);
-        // },
-    },
-});
+    });
 
 const timing = (startTime, now = Date.now()) => {
     const timeSync = Math.floor((now - startTime) / 1000);
     const min = Math.floor(timeSync / 60);
     const sec = timeSync % 60;
-    return {min, sec};
+    return { min, sec };
 };
 
 const getChatFsm = (chatApi, handler) => {
@@ -49,23 +50,25 @@ const getChatFsm = (chatApi, handler) => {
     const fsm = new StateMachine({
         init: states.init,
         transitions: [
-            {name: 'connect', from: states.init, to: states.startConnection},
-            {name: 'finishConnection', from: states.startConnection, to: states.ready},
-            {name: 'handleQueue', from: states.ready, to: states.startHandling},
-            {name: 'finishHandle', from: states.startHandling, to: states.ready},
-            {name: 'stop', from: '*', to: states.init},
+            { name: 'connect', from: states.init, to: states.startConnection },
+            { name: 'finishConnection', from: states.startConnection, to: states.ready },
+            { name: 'handleQueue', from: states.ready, to: states.startHandling },
+            { name: 'finishHandle', from: states.startHandling, to: states.ready },
+            { name: 'stop', from: '*', to: states.init },
         ],
         methods: {
             async onConnect() {
-                await Promise.all(chatApi.map(async item => {
-                    await item.connect();
-                    const {min, sec} = timing(startTime);
-                    logger.info(`Matrix bot ${item.config.user} was connected on ${min} min ${sec} sec`);
-                }));
+                await Promise.all(
+                    chatApi.map(async item => {
+                        await item.connect();
+                        const { min, sec } = timing(startTime);
+                        logger.info(`Matrix bot ${item.config.user} was connected on ${min} min ${sec} sec`);
+                    }),
+                );
             },
             onFinishConnection() {
                 logger.info('All chat bot are connected!!!');
-                const {min, sec} = timing(startTime);
+                const { min, sec } = timing(startTime);
                 logger.info(`All matrix bots were connected on ${min} min ${sec} sec`);
             },
             async onHandleQueue() {
@@ -87,9 +90,7 @@ const getChatFsm = (chatApi, handler) => {
             //     logger.error('FSM error', transition, from, to);
             // },
         },
-        plugins: [
-            new StateMachineHistory({max: 10}),
-        ],
+        plugins: [new StateMachineHistory({ max: 10 })],
     });
 
     return fsm;
@@ -124,7 +125,7 @@ module.exports = class {
             await this.chatFSM.handleQueue();
             this.chatFSM.finishHandle();
 
-            this.jiraFsm.is('hookResponsed') && await this._handle();
+            this.jiraFsm.is('hookResponsed') && (await this._handle());
         }
     }
 

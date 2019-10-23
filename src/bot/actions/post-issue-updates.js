@@ -1,6 +1,6 @@
 const utils = require('../../lib/utils');
 const logger = require('../../modules/log.js')(module);
-const {getIssueUpdateInfoMessageBody} = require('./helper.js');
+const { getIssueUpdateInfoMessageBody } = require('./helper.js');
 
 /**
  * post issue update
@@ -12,7 +12,7 @@ const {getIssueUpdateInfoMessageBody} = require('./helper.js');
  * @param  {object} options.changelog changes object
  * @param  {string} options.author changes author
  */
-module.exports = async ({chatApi, ...body}) => {
+module.exports = async ({ chatApi, ...body }) => {
     try {
         const roomID = await chatApi.getRoomId(body.oldKey);
 

@@ -1,7 +1,7 @@
 const logger = require('../modules/log.js')(module);
-const {getFuncAndBody} = require('./bot-handler.js');
+const { getFuncAndBody } = require('./bot-handler.js');
 const isIgnore = require('./is-ignore');
-const {saveIncoming} = require('../queue/redis-data-handle.js');
+const { saveIncoming } = require('../queue/redis-data-handle.js');
 
 module.exports = async body => {
     try {
