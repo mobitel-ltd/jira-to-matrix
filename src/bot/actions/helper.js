@@ -136,6 +136,13 @@ const helper = {
         // return ignoreList.taskType.includes(taskType) || ignoreList.issues.includes(issueKey);
     },
 
+    isTestCreater: issueCreator => {
+        const ignoreStatus = testMode.on
+            ? !testMode.users.includes(issueCreator)
+            : testMode.users.includes(issueCreator);
+        return ignoreStatus;
+    },
+
     getManuallyIgnore: async body => {
         const type = utils.getHookType(body);
         if (type === 'project') {
@@ -153,8 +160,9 @@ const helper = {
 
         const issue = await jiraRequests.getIssue(keyOrId);
         const projectKey = utils.getProjectKey({ issue });
+        const issueCreator = utils.handleIssueAsHook.getCreator({ issue });
 
-        return helper.isManuallyIgnore(projectKey, typeName);
+        return helper.isManuallyIgnore(projectKey, typeName) || helper.isTestCreater(issueCreator);
     },
 
     getIgnoreProject: async body => {
