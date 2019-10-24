@@ -4,27 +4,28 @@
 [![codecov](https://codecov.io/gh/mobitel-ltd/jira-to-matrix/branch/master/graph/badge.svg)](https://codecov.io/gh/mobitel-ltd/jira-to-matrix)
 [![dependencies Status](https://david-dm.org/grigori-gru/jira-to-matrix/status.svg)](https://david-dm.org/grigori-gru/jira-to-matrix)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+[![Maintainability](https://api.codeclimate.com/v1/badges/3d743958cafb7af84914/maintainability)](https://codeclimate.com/github/grigori-gru/jira-to-matrix/maintainability)
 
 A bot (web-service) which:
 
-* listens to JIRA Webhooks and sends some stuff to Matrix;
-* use command from Matrix Riot to integrate with Jira and make different actions.
+-   listens to JIRA Webhooks and sends some stuff to Matrix;
+-   use command from Matrix Riot to integrate with Jira and make different actions.
 
 ## What does this Bot do?
 
-+ Creates a room for every new issue;
-+ Invites new participants to the room;
-+ Posts any issue updates to the room;
-+ Appropriately renames the room if the issue was moved to another project;
-+ Post new links to related rooms. Notifies when a related issue's status changes;
-+ Talks in English or Russian only (easily extendible, see `src/locales`).
+-   Creates a room for every new issue;
+-   Invites new participants to the room;
+-   Posts any issue updates to the room;
+-   Appropriately renames the room if the issue was moved to another project;
+-   Post new links to related rooms. Notifies when a related issue's status changes;
+-   Talks in English or Russian only (easily extendible, see `src/locales`).
 
 ## Requirements
 
-- NodeJS stable
-- Redis 3+
-- Matrix synapse [free Matrix group chat homeserver](https://github.com/matrix-org/synapse) (in further we use `Riot` as synonym)
-- Jira [development tool used by agile teams](https://www.atlassian.com/software/jira)
+-   NodeJS stable
+-   Redis 3+
+-   Matrix synapse [free Matrix group chat homeserver](https://github.com/matrix-org/synapse) (in further we use `Riot` as synonym)
+-   Jira [development tool used by agile teams](https://www.atlassian.com/software/jira)
 
 ## Usage
 
@@ -45,17 +46,20 @@ After starting bot listen to all Jira [webhooks](https://developer.atlassian.com
 It means that all actions in your Jira server will be followed with webhooks. Its body we parse and save to Redis and if user is not ignored or issue is not private (it's very important for next gen Jira in cloud).
 
 If user is ignored or issue is private we can log:
+
 ```
         username: <name>, creator: <creator>, ignoreStatus: true
         timestamp: <timestamp>, webhookEvent: <webhook_event>, issueName: <issue_name>, ignoreStatus: true
 ```
 
 Redis data is handled:
+
 1. After starting Bot Redis.
 2. After saving data in Redis.
 3. Every 15 min if data is still in redis and something was wrong in last attempt.
 
 After succedded handling Redis records you can see logs with every key and result of handling:
+
 ```
 Result of handling redis key <redisKey> --- <true/false>
 ```
@@ -67,22 +71,23 @@ If handling is succedded data will be removed, if staus is `false` it will be in
 Work with `Riot` is based on input command in room with Bot.
 List of available commands:
 
-Command | Description
----|---
-!help|show all commands with description
-!comment|create comment in issue
-!assign <`user name or id`>|assign issue to choosen user
-!move|list all available statuses of issue to move
-!move <`status id`>/<`status name`>|move status of issue
-!spec <`user name or id`>|add watcher to issue
-!prio|list all available priorities of issue
-!prio <`index of priority`>/<`index of priority`>|change priority of issue
-(admins only) !op <`user name or id`>|gives admin status to user
-(admins only) !invite <`room name`>/<`room id`>|invite user to room with such issue name or matrix room id
+| Command                                           | Description                                                |
+| ------------------------------------------------- | ---------------------------------------------------------- |
+| !help                                             | show all commands with description                         |
+| !comment                                          | create comment in issue                                    |
+| !assign <`user name or id`>                       | assign issue to choosen user                               |
+| !move                                             | list all available statuses of issue to move               |
+| !move <`status id`>/<`status name`>               | move status of issue                                       |
+| !spec <`user name or id`>                         | add watcher to issue                                       |
+| !prio                                             | list all available priorities of issue                     |
+| !prio <`index of priority`>/<`index of priority`> | change priority of issue                                   |
+| (admins only) !op <`user name or id`>             | gives admin status to user                                 |
+| (admins only) !invite <`room name`>/<`room id`>   | invite user to room with such issue name or matrix room id |
 
 All commands are available only in rooms with Bot and that compares with Jira.
 Get all commands and their rules to use in `Riot` you can get with first command - `!help`.
 If you use command not correct you will get message:
+
 ```
 Command <command name> not found
 ```
@@ -94,6 +99,7 @@ More info about all commands you can get [here](./docs/en/commands)
 ### Matrix client
 
 To work with `Riot` we use [SDK Matrix](https://github.com/matrix-org/matrix-js-sdk). Starting bot connect to matrix domain from config as user like `@${config.matrix.user}:${config.matrix.domain}`. After succedded connection you will see in logs:
+
 ```
 createClient OK BaseUrl: https://<domain>, userId: @<user_name>:<domain>
 Started connect to chatApi
@@ -102,11 +108,13 @@ well connected
 ```
 
 If something is wrong in connection you will get error:
+
 ```
 createClient error. BaseUrl: ${baseUrl}, userId: ${userId}
 ```
 
 When Bot is stopped:
+
 ```
 Disconnected from Matrix
 ```
@@ -116,11 +124,15 @@ Disconnected from Matrix
 To be sure that no data is lost we use Redis to save parsed webhooks. Prefix in Redis which all data is saved is in config as `redis.prefix`.
 
 Structure of records:
-* redis.key
+
+-   redis.key
+
 ```
 <function_handler>_<jira_body_timestamp>
 ```
-* redis.value
+
+-   redis.value
+
 ```
 {
     funcName: <function_handler>,
@@ -130,10 +142,10 @@ Structure of records:
 
 ### Install Linux CentOS service with systemd
 
-* Give ownership of directory installed jira-to-matrix to dedicated user (for security issues)
-* Modify file `jira-to-matrix.service` with your configuration
-* Copy file `jira-to-matrix.service` to `/etc/systemd/system/` and enable it
-* Enable tcp-connection with firewalld from Jira webhook. Enable tcp listener with SELinux
+-   Give ownership of directory installed jira-to-matrix to dedicated user (for security issues)
+-   Modify file `jira-to-matrix.service` with your configuration
+-   Copy file `jira-to-matrix.service` to `/etc/systemd/system/` and enable it
+-   Enable tcp-connection with firewalld from Jira webhook. Enable tcp listener with SELinux
 
 ```bash
 # Add user jira-matrix-bot without homedirectory and deny system login
@@ -172,7 +184,8 @@ More information is [here](https://github.com/mobitel-ltd/jira-to-matrix/blob/ma
 ~~The project is in a rough shape and under active development.~~ Fixed
 It is successfully deployed in a medium-size company.
 
-___
+---
+
 Developed with Node 8.1. Probably will work on any version having async/await.
 
 [Russian README](./newReadme.md)
