@@ -23,15 +23,15 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 
     const [command, typeTaskFromUser] = bodyText.split(' ');
 
-    if (!typeTaskFromUser) {
-        return translate('notIgnoreKey');
-    }
-
-    if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
-        return utils.ignoreKeysInProject(projectKey, namesIssueTypeInProject);
-    }
     switch (command) {
         case 'add':
+            if (!typeTaskFromUser) {
+                return translate('notIgnoreKey');
+            }
+
+            if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
+                return utils.ignoreKeysInProject(projectKey, namesIssueTypeInProject);
+            }
             if (currentTaskTypes.includes(typeTaskFromUser)) {
                 return translate('keyAlreadyExistForAdd', { typeTaskFromUser, projectKey });
             }
@@ -39,6 +39,13 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 
             return translate('ignoreKeyAdded', { projectKey, typeTaskFromUser });
         case 'del':
+            if (!typeTaskFromUser) {
+                return translate('notIgnoreKey');
+            }
+
+            if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
+                return utils.ignoreKeysInProject(projectKey, namesIssueTypeInProject);
+            }
             if (!currentTaskTypes.includes(typeTaskFromUser)) {
                 return translate('keyNotFoundForDelete', { projectKey });
             }
