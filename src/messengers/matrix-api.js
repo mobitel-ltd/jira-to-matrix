@@ -223,7 +223,12 @@ module.exports = class Matrix extends MessengerAbstract {
 
         this.client.on('RoomMember.membership', async (event, member) => {
             if (member.membership === 'invite' && member.userId === this.userId) {
-                await this.client.joinRoom(member.roomId);
+                try {
+                    await this.client.joinRoom(member.roomId);
+                    this.logger.info(`${this.userId} joined to room with id = ${member.roomId}`);
+                } catch (error) {
+                    this.logger.error(`Error joining to room with id = ${member.roomId}`);
+                }
             }
         });
 
