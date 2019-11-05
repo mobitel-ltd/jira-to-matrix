@@ -152,7 +152,7 @@ module.exports = class Matrix extends MessengerAbstract {
     async _startClient() {
         try {
             await this._createClient();
-            this.client.startClient();
+            this.client.startClient({ initialSyncLimit: 1 });
 
             return new Promise(this._executor.bind(this));
         } catch (err) {
