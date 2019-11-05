@@ -21,7 +21,7 @@ const getRedisValue = async key => {
 
         const redisValue = await redis.getAsync(newKey);
         const parsedRedisValue = JSON.parse(redisValue);
-        logger.info(`Value from redis by key ${key}: `, parsedRedisValue);
+        // logger.info(`Value from redis by key ${key}: `, parsedRedisValue);
         const result = redisValue ? { redisKey: newKey, ...parsedRedisValue } : false;
 
         return result;
