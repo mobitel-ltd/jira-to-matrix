@@ -18,7 +18,6 @@ const { stub } = require('sinon');
 const sinonChai = require('sinon-chai');
 const { expect } = chai;
 chai.use(sinonChai);
-const logger = require('../../src/modules/log.js')(module);
 const { cleanRedis } = require('../test-utils');
 
 const createRoomStub = stub();
@@ -70,7 +69,7 @@ describe('redis-data-handle test', () => {
         },
     ];
 
-    const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
+    // const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
 
     const expectedData = [
         {
@@ -223,7 +222,7 @@ describe('redis-data-handle test', () => {
         it('test handleRedisRooms with error', async () => {
             await saveIncoming({ redisKey: 'newrooms', createRoomData });
             createRoomStub.callsFake(data => {
-                logger.debug('data', data);
+                // logger.debug('data', data);
                 if (data.issue.key === 'BBCOM-1111') {
                     throw 'createRoomStub';
                 }
