@@ -8,15 +8,18 @@ chai.use(sinonChai);
 const translate = require('../../src/locales');
 const redis = require('../../src/redis-client');
 const testUtils = require('../test-utils');
-const jiraProject = require('../fixtures/jira-api-requests/project.json');
+const jiraProject = require('../fixtures/jira-api-requests/project-gens/classic/correct.json');
+const jiraProjectNewGen = require('../fixtures/jira-api-requests/project-gens/new-gen/correct.json');
+const adminsProject = require('../fixtures/jira-api-requests/project-gens/admins-project.json');
 
 const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
 
-describe('ignore test test', () => {
+describe('Ignore setting for projects', () => {
     let chatApi;
     const roomName = `${jiraProject.key}-123`;
     const projectKey = jiraProject.key;
+    const projectId = jiraProject.id;
     const sender = jiraProject.lead.name;
     const roomId = random.number();
     const commandName = 'ignore';
@@ -37,7 +40,9 @@ describe('ignore test test', () => {
         anotherTaskName = projectIssueTypes.find(item => item !== issueType);
         nock(utils.getRestUrl())
             .get(`/project/${projectKey}`)
-            .reply(200, jiraProject);
+            .reply(200, jiraProject)
+            .get(`/project/${projectId}/role/10002`)
+            .reply(200, adminsProject);
     });
 
     afterEach(async () => {
@@ -73,6 +78,12 @@ describe('ignore test test', () => {
     it('Success add key', async () => {
         const post = translate('ignoreKeyAdded', { projectKey, typeTaskFromUser: issueType });
         const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}` });
+        expect(result).to.be.eq(post);
+    });
+
+    it('Success add key admin (not lead)', async () => {
+        const post = translate('ignoreKeyAdded', { projectKey, typeTaskFromUser: issueType });
+        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'gv_grudinin' });
         expect(result).to.be.eq(post);
     });
 
@@ -112,5 +123,50 @@ describe('ignore test test', () => {
             const result = await commandHandler(baseOptions);
             expect(result).to.be.eq(post);
         });
+    });
+});
+
+describe('Ignore setting for projects, check admins for next-gen projects', () => {
+    let chatApi;
+    const roomName = `${jiraProjectNewGen.key}-123`;
+    const projectKey = jiraProjectNewGen.key;
+    const projectId = jiraProjectNewGen.id;
+    const sender = jiraProjectNewGen.lead.name;
+    const roomId = random.number();
+    const commandName = 'ignore';
+    const bodyText = '';
+    const { issueTypes } = jiraProjectNewGen;
+    let baseOptions;
+    const projectIssueTypes = issueTypes.map(item => item.name);
+    let issueType;
+
+    beforeEach(() => {
+        // await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
+        chatApi = testUtils.getChatApi();
+        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
+        issueType = random.arrayElement(projectIssueTypes);
+        nock(utils.getRestUrl())
+            .get(`/project/${projectKey}`)
+            .reply(200, jiraProjectNewGen)
+            .get(`/project/${projectId}/role/10618`)
+            .reply(200, adminsProject);
+    });
+
+    afterEach(async () => {
+        nock.cleanAll();
+        await cleanRedis();
+    });
+
+    // TODO set readable test case names
+    it('Permition denided for not admin in projects', async () => {
+        const post = translate('notAdmin', { sender: 'notAdmin' });
+        const result = await commandHandler({ ...baseOptions, sender: 'notAdmin' });
+        expect(result).to.be.eq(post);
+    });
+
+    it('Success add key admin (not lead)', async () => {
+        const post = translate('ignoreKeyAdded', { projectKey, typeTaskFromUser: issueType });
+        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'gv_grudinin' });
+        expect(result).to.be.eq(post);
     });
 });

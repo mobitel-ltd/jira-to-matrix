@@ -3,16 +3,16 @@
     "webhookEvent": "jira:issue_updated",
     "issue_event_type_name": "issue_commented",
     "user": {
-        "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-        "key": "jira_test",
-        "emailAddress": "jira_test@test-example.ru",
+        "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+        "key": "correct_user",
+        "emailAddress": "correct_user@test-example.ru",
         "avatarUrls": {
             "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
             "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
             "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
             "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
         },
-        "displayName": "jira_test",
+        "displayName": "correct_user",
         "active": true,
         "timeZone": "Europe/Moscow"
     },
@@ -53,16 +53,16 @@
             "customfield_10600": null,
             "customfield_10602": [
                 {
-                    "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                    "key": "jira_test",
-                    "emailAddress": "jira_test@test-example.ru",
+                    "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                    "key": "correct_user",
+                    "emailAddress": "correct_user@test-example.ru",
                     "avatarUrls": {
                         "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                         "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                         "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                         "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                     },
-                    "displayName": "jira_test",
+                    "displayName": "correct_user",
                     "active": true,
                     "timeZone": "Europe/Moscow"
                 },
@@ -108,32 +108,32 @@
                 "isWatching": true
             },
             "creator": {
-                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "key": "jira_test",
-                "emailAddress": "jira_test@test-example.ru",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                "key": "correct_user",
+                "emailAddress": "correct_user@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                     "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                     "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                 },
-                "displayName": "jira_test",
+                "displayName": "correct_user",
                 "active": true,
                 "timeZone": "Europe/Moscow"
             },
             "subtasks": [],
             "created": "2017-09-08T11:43:48.626+0300",
             "reporter": {
-                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "key": "jira_test",
-                "emailAddress": "jira_test@test-example.ru",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                "key": "correct_user",
+                "emailAddress": "correct_user@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                     "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                     "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                 },
-                "displayName": "jira_test",
+                "displayName": "correct_user",
                 "active": true,
                 "timeZone": "Europe/Moscow"
             },
@@ -155,32 +155,32 @@
                         "self": "https://jira.test-example.ru/jira/rest/api/2/issue/26313/comment/28966",
                         "id": "28966",
                         "author": {
-                            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "name": "jira_test",
-                            "key": "jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
+                            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                            "name": "correct_user",
+                            "key": "correct_user",
+                            "emailAddress": "correct_user@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                                 "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                                 "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                             },
-                            "displayName": "jira_test",
+                            "displayName": "correct_user",
                             "active": true,
                             "timeZone": "Europe/Moscow"
                         },
                         "body": "еуые",
                         "updateAuthor": {
-                            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "key": "jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
+                            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                            "key": "correct_user",
+                            "emailAddress": "correct_user@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                                 "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                                 "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                             },
-                            "displayName": "jira_test",
+                            "displayName": "correct_user",
                             "active": true,
                             "timeZone": "Europe/Moscow"
                         },
@@ -191,31 +191,31 @@
                         "self": "https://jira.test-example.ru/jira/rest/api/2/issue/26313/comment/31023",
                         "id": "31023",
                         "author": {
-                            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "key": "jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
+                            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                            "key": "correct_user",
+                            "emailAddress": "correct_user@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                                 "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                                 "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                             },
-                            "displayName": "jira_test",
+                            "displayName": "correct_user",
                             "active": true,
                             "timeZone": "Europe/Moscow"
                         },
                         "body": "111",
                         "updateAuthor": {
-                            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "key": "jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
+                            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                            "key": "correct_user",
+                            "emailAddress": "correct_user@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                                 "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                                 "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                             },
-                            "displayName": "jira_test",
+                            "displayName": "correct_user",
                             "active": true,
                             "timeZone": "Europe/Moscow"
                         },
@@ -234,16 +234,16 @@
                 "hasVoted": false
             },
             "assignee": {
-                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "key": "jira_test",
-                "emailAddress": "jira_test@test-example.ru",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                "key": "correct_user",
+                "emailAddress": "correct_user@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                     "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                     "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                 },
-                "displayName": "jira_test",
+                "displayName": "correct_user",
                 "active": true,
                 "timeZone": "Europe/Moscow"
             },
@@ -340,31 +340,31 @@
             "self": "https://jira.test-example.ru/jira/rest/api/2/issue/26313/comment/31023",
             "id": "31023",
             "author": {
-                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "key": "jira_test",
-                "emailAddress": "jira_test@test-example.ru",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                "key": "correct_user",
+                "emailAddress": "correct_user@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                     "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                     "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                 },
-                "displayName": "jira_test",
+                "displayName": "correct_user",
                 "active": true,
                 "timeZone": "Europe/Moscow"
             },
             "body": "111",
             "updateAuthor": {
-                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "key": "jira_test",
-                "emailAddress": "jira_test@test-example.ru",
+                "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=correct_user",
+                "key": "correct_user",
+                "emailAddress": "correct_user@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                     "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                     "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
                 },
-                "displayName": "jira_test",
+                "displayName": "correct_user",
                 "active": true,
                 "timeZone": "Europe/Moscow"
             },

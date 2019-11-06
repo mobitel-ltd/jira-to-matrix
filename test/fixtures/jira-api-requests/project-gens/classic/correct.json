@@ -74,7 +74,7 @@
         "Service Desk Team": "https://jira.test-example.ru/rest/api/2/project/10305/role/10325",
         "Assistants": "https://jira.test-example.ru/rest/api/2/project/10305/role/10258",
         "Service Desk Customers": "https://jira.test-example.ru/rest/api/2/project/10305/role/10324",
-        "Administrators": "https://jira.test-example.ru/rest/api/2/project/10305/role/10002",
+        "Administrators": "https://jira.test-example.ru/jira/rest/api/2/project/10305/role/10002",
         "Members": "https://jira.test-example.ru/rest/api/2/project/10305/role/10257"
     },
     "avatarUrls": {

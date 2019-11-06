@@ -1,3 +1,5 @@
+const { getRestUrl } = require('../../src/lib/utils.js');
+const { pipe, set, clone } = require('lodash/fp');
 const projectCreatedJSON = require('../fixtures/webhooks/project/created.json');
 const issueCreatedJSON = require('../fixtures/webhooks/issue/created.json');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
@@ -9,47 +11,62 @@ const newLinksbody = require('../fixtures/webhooks/issuelink/created.json');
 const linksDeletedBody = require('../fixtures/webhooks/issuelink/deleted.json');
 const {
     jira: { url: jiraUrl },
+    usersToIgnore,
+    testMode,
 } = require('../../src/config');
+
 const assert = require('assert');
 
-const testNewUserAssignBody = require('../fixtures/webhooks/issue/updated/issue-assigned.json');
+// const testNewUserAssignBody = require('../fixtures/webhooks/issue/updated/issue-assigned.json');
 const newGenNotIgnoreProject = require('../fixtures/jira-api-requests/project-gens/new-gen/correct.json');
 const commentCreatedHook = require('../fixtures/webhooks/comment/created.json');
 const notIgnoredIssueHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
 const ignoredIssueHook = require('../fixtures/webhooks/issue/updated/generic.json');
-const issueBody = require('../fixtures/jira-api-requests/issue.json');
+const notIgnoreCreatorIssueBody = require('../fixtures/jira-api-requests/issue.json');
 const rankHook = require('../fixtures/webhooks/issue/updated/rank-changed.json');
 const utils = require('../../src/lib/utils');
 const messages = require('../../src/lib/messages');
 const nock = require('nock');
 
-const proxyquire = require('proxyquire');
 const chai = require('chai');
 const { expect } = chai;
 
+const ignnoreUsers = [...usersToIgnore, ...testMode.users];
+
 const {
     getPostStatusData,
-    getIgnoreBodyData,
+    getManuallyIgnore,
     getIgnoreProject,
     getDescription,
 } = require('../../src/bot/actions/helper.js');
 
-const { getIgnoreBodyData: isIgnoreStub } = proxyquire('../../src/bot/actions/helper.js', {
-    '../../config': {
-        testMode: {
-            on: false,
-        },
-    },
-});
+const testUserId = faker.random.arrayElement(testMode.users);
+
+const ignoreIssueKey = 'LALALLALA-1111';
+
+const ignoredCreatorHook = pipe(
+    clone,
+    set('issue.key', ignoreIssueKey),
+)(notIgnoredIssueHook);
+
+const ignoredBody = pipe(
+    clone,
+    set('fields.creator.key', testUserId),
+    set('fields.creator.name', testUserId),
+)(notIgnoreCreatorIssueBody);
 
 describe('Helper tests', () => {
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
     it('getPostStatusData with null', () => {
         const data = {
             key: 'BBCOM-956',
             summary: 'BBCOM-956',
             id: '26313',
             changelog: null,
-            name: 'jira_test',
+            name: testUserId,
         };
 
         const { body, htmlBody } = getPostStatusData(data);
@@ -57,57 +74,45 @@ describe('Helper tests', () => {
         assert.equal(htmlBody, null);
     });
 
-    describe('Test getIgnoreBodyData', () => {
-        it('not ignore user, creator, status', () => {
-            const user = {
-                name: 'bot',
-            };
-            const issue = {
-                fields: {
-                    comment: '',
-                    creator: {
-                        emailAddress: '123',
-                    },
-                },
-            };
-            const changelog = {};
-            const newBody = { ...notIgnoredIssueHook, issue, user, changelog };
-            const { username, creator, ignoreStatus } = getIgnoreBodyData(newBody);
-
-            expect(username).to.equal('bot');
-            expect(creator).to.equal('123');
-            expect(ignoreStatus).to.be.true;
+    describe('Test getManuallyIgnore', () => {
+        beforeEach(() => {
+            nock(getRestUrl())
+                .get(`/issue/${notIgnoredIssueHook.issue.key}`)
+                .reply(200, notIgnoreCreatorIssueBody)
+                .get(`/issue/${ignoredCreatorHook.issue.key}`)
+                .reply(200, ignoredBody);
         });
 
-        it('expect issue_update not to be ignore', () => {
-            const { username, creator, ignoreStatus } = getIgnoreBodyData(testNewUserAssignBody);
+        describe('Test mode TRUE', () => {
+            const testStatus = true;
 
-            expect(username).to.equal('jira_test');
-            expect(creator).to.equal('jira_test');
-            expect(ignoreStatus).to.be.false;
-        });
-    });
+            it('Issue creator is in the ignore-list, hook must NOT BE hundled (ignore-status=TRUE)', async () => {
+                const ignoreStatus = await getManuallyIgnore(notIgnoredIssueHook, ignnoreUsers, testStatus);
 
-    describe('Test getIgnoreBodyData in mode production (not test)', () => {
-        it('test mode false with no changelog', () => {
-            const newBody = { ...notIgnoredIssueHook, changelog: {} };
-            const { username, creator, ignoreStatus } = isIgnoreStub(newBody);
+                expect(ignoreStatus).to.be.true;
+            });
 
-            expect(username).to.equal('jira_test');
-            expect(creator).to.equal('jira_test');
-            expect(ignoreStatus).to.be.false;
+            it('Issue creator is NOT in the ignore-list, hook must BE hundled (ignore-status=FALSE)', async () => {
+                const ignoreStatus = await getManuallyIgnore(ignoredCreatorHook, ignnoreUsers, testStatus);
+
+                expect(ignoreStatus).to.be.false;
+            });
         });
 
-        it('test mode true with ignore username', () => {
-            const user = {
-                name: 'ivan_prod',
-            };
-            const newBody = { ...notIgnoredIssueHook, changelog: {}, user };
-            const { username, creator, ignoreStatus } = isIgnoreStub(newBody);
+        describe('Test mode FALSE', () => {
+            const testStatus = false;
 
-            expect(username).to.equal('ivan_prod');
-            expect(creator).to.equal('jira_test');
-            expect(ignoreStatus).to.be.true;
+            it('Issue creator in the ignore-list, hook must NOT BE hundled (ignore-status=TRUE)', async () => {
+                const ignoreStatus = await getManuallyIgnore(ignoredCreatorHook, ignnoreUsers, testStatus);
+
+                expect(ignoreStatus).to.be.true;
+            });
+
+            it('Issue creator is NOT in the ignore-list, hook must BE hundled (ignore-status=FALSE)', async () => {
+                const ignoreStatus = await getManuallyIgnore(notIgnoredIssueHook, ignnoreUsers, testStatus);
+
+                expect(ignoreStatus).to.be.false;
+            });
         });
     });
 
@@ -146,10 +151,6 @@ describe('Helper tests', () => {
                 .reply(200, renderedIssueJSON);
         });
 
-        after(() => {
-            nock.cleanAll();
-        });
-
         it('Description with epic should be created', async () => {
             const result = await getDescription(createRoomData.issue);
             expect(result).deep.eq({ body: expectedBody, htmlBody: expectedHTMLBody });
@@ -169,47 +170,69 @@ describe('Helper tests', () => {
     });
 
     describe('Test getIgnoreInfo', () => {
+        const testStatus = false;
+
         beforeEach(() => {
             nock(jiraUrl)
                 .get('')
                 .reply(200, '<HTML>');
 
             nock(utils.getRestUrl())
+                .get(`/issue/${ignoredCreatorHook.issue.key}`)
+                .reply(200, ignoredBody)
+                .get(`/issue/${ignoreIssueKey}`)
+                .times(2)
+                .reply(200, ignoredBody)
                 .get(`/issue/${rankHook.issue.key}`)
-                .reply(200, issueBody)
+                .reply(200, notIgnoreCreatorIssueBody)
                 .get(`/issue/${notIgnoredIssueHook.issue.key}`)
                 .times(2)
-                .reply(200, issueBody)
+                .reply(200, notIgnoreCreatorIssueBody)
                 .get(`/project/${projectCreatedJSON.project.key}`)
                 .reply(200, newGenNotIgnoreProject)
                 .get(`/issue/${utils.getIssueId(commentCreatedHook)}`)
                 .times(2)
-                .reply(200, issueBody)
+                .reply(200, notIgnoreCreatorIssueBody)
                 .get(`/issue/${linksDeletedBody.issueLink.sourceIssueId}`)
-                .reply(200, issueBody)
+                .reply(200, notIgnoreCreatorIssueBody)
                 .get(`/issue/${linksDeletedBody.issueLink.destinationIssueId}`)
-                .reply(200, issueBody)
+                .reply(200, notIgnoreCreatorIssueBody)
                 .get(`/issue/${newLinksbody.issueLink.sourceIssueId}`)
-                .reply(200, issueBody)
+                .reply(200, notIgnoreCreatorIssueBody)
                 .get(`/issue/${newLinksbody.issueLink.destinationIssueId}`)
-                .reply(200, issueBody);
-        });
-
-        afterEach(() => {
-            nock.cleanAll();
+                .reply(200, notIgnoreCreatorIssueBody);
         });
 
         it('Expect NOT ignore issue hook if issue is available', async () => {
-            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(notIgnoredIssueHook);
+            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+                notIgnoredIssueHook,
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(timestamp).to.be.eq(notIgnoredIssueHook.timestamp);
             expect(webhookEvent).to.be.eq(notIgnoredIssueHook.webhookEvent);
             expect(issueName).to.be.eq(notIgnoredIssueHook.issue.key);
+            console.log('TCL: ignoreStatus', ignoreStatus);
+            expect(ignoreStatus).to.be.false;
+        });
+
+        it('Expect ignore issue hook if creater is test-user', async () => {
+            const { ignoreStatus } = await getIgnoreProject(ignoredCreatorHook, ignnoreUsers, testStatus);
+            expect(ignoreStatus).to.be.true;
+        });
+
+        it('Expect NOT ignore issue hook if creater is NOT test-user', async () => {
+            const { ignoreStatus } = await getIgnoreProject(notIgnoredIssueHook, ignnoreUsers, testStatus);
             expect(ignoreStatus).to.be.false;
         });
 
         it('Expect rankHook to be ignore', async () => {
-            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(rankHook);
+            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+                rankHook,
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(timestamp).to.be.eq(rankHook.timestamp);
             expect(webhookEvent).to.be.eq(rankHook.webhookEvent);
@@ -218,7 +241,11 @@ describe('Helper tests', () => {
         });
 
         it('Expect IGNORE issue hook if issue is not available', async () => {
-            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(ignoredIssueHook);
+            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+                ignoredIssueHook,
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(timestamp).to.be.eq(ignoredIssueHook.timestamp);
             expect(webhookEvent).to.be.eq(ignoredIssueHook.webhookEvent);
@@ -227,7 +254,11 @@ describe('Helper tests', () => {
         });
 
         it('Expect NOT ignore comment create hook if issue with comment is available', async () => {
-            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(commentCreatedHook);
+            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+                commentCreatedHook,
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(timestamp).to.be.eq(commentCreatedHook.timestamp);
             expect(webhookEvent).to.be.eq(commentCreatedHook.webhookEvent);
@@ -241,7 +272,11 @@ describe('Helper tests', () => {
                 .get('')
                 .reply(200, '<HTML>');
 
-            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(commentCreatedHook);
+            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+                commentCreatedHook,
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(timestamp).to.be.eq(commentCreatedHook.timestamp);
             expect(webhookEvent).to.be.eq(commentCreatedHook.webhookEvent);
@@ -257,7 +292,7 @@ describe('Helper tests', () => {
 
             let result;
             try {
-                result = await getIgnoreProject(commentCreatedHook);
+                result = await getIgnoreProject(commentCreatedHook, ignnoreUsers, testStatus);
             } catch (err) {
                 result = err;
             }
@@ -271,7 +306,11 @@ describe('Helper tests', () => {
                 .reply(200, '<HTML>');
             const body = faker.random.arrayElement([linksDeletedBody, newLinksbody]);
 
-            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(body);
+            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+                body,
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(timestamp).to.be.eq(body.timestamp);
             expect(webhookEvent).to.be.eq(body.webhookEvent);
@@ -290,12 +329,16 @@ describe('Helper tests', () => {
             nock(utils.getRestUrl())
                 .get(`/issue/${body.issueLink.sourceIssueId}`)
                 .times(3)
-                .reply(status1, issueBody)
+                .reply(status1, notIgnoreCreatorIssueBody)
                 .get(`/issue/${body.issueLink.destinationIssueId}`)
                 .times(3)
-                .reply(status2, issueBody);
+                .reply(status2, notIgnoreCreatorIssueBody);
 
-            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(body);
+            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+                body,
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(timestamp).to.be.eq(body.timestamp);
             expect(webhookEvent).to.be.eq(body.webhookEvent);
@@ -304,7 +347,11 @@ describe('Helper tests', () => {
         });
 
         it('Expect getIgnoreProject not ignores project_created hook', async () => {
-            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(projectCreatedJSON);
+            const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+                projectCreatedJSON,
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(timestamp).to.be.eq(projectCreatedJSON.timestamp);
             expect(webhookEvent).to.be.eq(projectCreatedJSON.webhookEvent);
@@ -313,7 +360,11 @@ describe('Helper tests', () => {
         });
 
         it('Expect getIgnoreProject ignore unknown hook type', async () => {
-            const { ignoreStatus } = await getIgnoreProject({ ...projectCreatedJSON, webhookEvent: 'unknown_type' });
+            const { ignoreStatus } = await getIgnoreProject(
+                { ...projectCreatedJSON, webhookEvent: 'unknown_type' },
+                ignnoreUsers,
+                testStatus,
+            );
 
             expect(ignoreStatus).to.be.true;
         });
