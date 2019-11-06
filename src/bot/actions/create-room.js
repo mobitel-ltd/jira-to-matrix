@@ -74,7 +74,7 @@ const hasData = issue => issue.key && issue.summary;
  * post issue update
  * @param  {object} options options
  * @param  {object} options.chatApi messenger client instance
- * @param  {object} options.issue parsed webhook issue data
+ * @param  {object?} options.issue parsed webhook issue data
  * @param  {string} options.issue.id issue id
  * @param  {string?} options.issue.key issue key
  * @param  {string[]|undefined} options.issue.roomMembers issue roomMembers incudes author and assignee
@@ -87,9 +87,10 @@ const hasData = issue => issue.key && issue.summary;
  */
 module.exports = async ({ chatApi, issue, projectKey }) => {
     try {
-        const checkedIssue = hasData(issue) ? issue : await getCheckedIssue(issue);
+        if (issue && (issue.key || issue.id)) {
+            console.log('TCL: issue', issue);
+            const checkedIssue = hasData(issue) ? issue : await getCheckedIssue(issue);
 
-        if (checkedIssue.key) {
             (await chatApi.getRoomIdByName(checkedIssue.key)) || (await createIssueRoom(chatApi, checkedIssue));
         }
         if (projectKey) {
