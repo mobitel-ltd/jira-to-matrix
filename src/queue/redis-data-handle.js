@@ -21,7 +21,7 @@ const getRedisValue = async key => {
 
         const redisValue = await redis.getAsync(newKey);
         const parsedRedisValue = JSON.parse(redisValue);
-        logger.info(`Value from redis by key ${key}: `, parsedRedisValue);
+        // logger.info(`Value from redis by key ${key}: `, parsedRedisValue);
         const result = redisValue ? { redisKey: newKey, ...parsedRedisValue } : false;
 
         return result;
@@ -124,7 +124,7 @@ const handleRedisData = async (client, dataFromRedis) => {
         const newRoomRecords = result.map(({ newRoomRecord }) => newRoomRecord).filter(Boolean);
         const logs = result.map(({ log }) => log);
         if (newRoomRecords.length) {
-            logger.info('This room should be created', newRoomRecords);
+            logger.info('This room should be created', JSON.stringify(newRoomRecords));
             const redisRoomsData = (await getRedisRooms()) || [];
             await rewriteRooms([...redisRoomsData, ...newRoomRecords]);
         }
@@ -157,7 +157,7 @@ const handleRedisRooms = async (client, roomsData) => {
         const handledRooms = await Promise.all(roomsData.map(roomHandle));
         const filteredRooms = handledRooms.filter(Boolean);
         if (filteredRooms.length > 0) {
-            logger.warn('Rooms which not created', filteredRooms);
+            logger.warn('Rooms which not created', JSON.stringify(filteredRooms));
 
             await rewriteRooms(filteredRooms);
         } else {
@@ -180,7 +180,7 @@ const saveIncoming = async ({ redisKey, ...restData }) => {
             }
 
             const dataToAddToRedis = Array.isArray(createRoomData) ? createRoomData : [createRoomData];
-            logger.debug('New data for redis rooms:', dataToAddToRedis);
+            // logger.debug('New data for redis rooms:', dataToAddToRedis);
 
             const currentRedisRoomData = (await getRedisRooms()) || [];
             redisValue = Ramda.union(currentRedisRoomData, dataToAddToRedis);
