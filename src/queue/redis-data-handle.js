@@ -124,7 +124,7 @@ const handleRedisData = async (client, dataFromRedis) => {
         const newRoomRecords = result.map(({ newRoomRecord }) => newRoomRecord).filter(Boolean);
         const logs = result.map(({ log }) => log);
         if (newRoomRecords.length) {
-            logger.info('This room should be created', newRoomRecords);
+            logger.info('This room should be created', JSON.stringify(newRoomRecords));
             const redisRoomsData = (await getRedisRooms()) || [];
             await rewriteRooms([...redisRoomsData, ...newRoomRecords]);
         }
@@ -180,7 +180,7 @@ const saveIncoming = async ({ redisKey, ...restData }) => {
             }
 
             const dataToAddToRedis = Array.isArray(createRoomData) ? createRoomData : [createRoomData];
-            logger.debug('New data for redis rooms:', dataToAddToRedis);
+            // logger.debug('New data for redis rooms:', dataToAddToRedis);
 
             const currentRedisRoomData = (await getRedisRooms()) || [];
             redisValue = Ramda.union(currentRedisRoomData, dataToAddToRedis);
