@@ -157,7 +157,7 @@ const handleRedisRooms = async (client, roomsData) => {
         const handledRooms = await Promise.all(roomsData.map(roomHandle));
         const filteredRooms = handledRooms.filter(Boolean);
         if (filteredRooms.length > 0) {
-            logger.warn('Rooms which not created', filteredRooms);
+            logger.warn('Rooms which not created', JSON.stringify(filteredRooms));
 
             await rewriteRooms(filteredRooms);
         } else {

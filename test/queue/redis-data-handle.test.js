@@ -191,14 +191,11 @@ describe('redis-data-handle test', () => {
     });
 
     it('test handleRedisRooms with error', async () => {
-        await saveIncoming({ redisKey: 'newrooms', createRoomData });
-        createRoomStub.callsFake(data => {
-            if (data.issue.key === 'BBCOM-1111') {
-                throw 'createRoomStub';
-            }
-        });
+        const newCreateRoomData = [...createRoomData, { projectKey: 'Project' }];
+        await saveIncoming({ redisKey: 'newrooms', createRoomData: newCreateRoomData });
+        createRoomStub.onSecondCall().throws();
         const roomsData = await getRedisRooms();
-        expect(roomsData).to.have.deep.equal([...expectedRoom, ...createRoomData]);
+        expect(roomsData).to.have.deep.equal([...expectedRoom, ...newCreateRoomData]);
         await handleRedisRooms(chatApi, roomsData);
 
         const roomsKeysAfter = await getRedisRooms();
