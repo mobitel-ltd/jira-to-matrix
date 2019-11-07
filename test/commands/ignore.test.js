@@ -83,7 +83,7 @@ describe('Ignore setting for projects', () => {
 
     it('Success add key admin (not lead)', async () => {
         const post = translate('ignoreKeyAdded', { projectKey, typeTaskFromUser: issueType });
-        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'gv_grudinin' });
+        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'ii_ivanov' });
         expect(result).to.be.eq(post);
     });
 
@@ -166,7 +166,7 @@ describe('Ignore setting for projects, check admins for next-gen projects', () =
 
     it('Success add key admin (not lead)', async () => {
         const post = translate('ignoreKeyAdded', { projectKey, typeTaskFromUser: issueType });
-        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'gv_grudinin' });
+        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'ii_ivanov' });
         expect(result).to.be.eq(post);
     });
 });

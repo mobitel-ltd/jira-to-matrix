@@ -1,5 +1,4 @@
 const jiraRequests = require('../../../lib/jira-request');
-const { request } = require('../../../lib/request.js');
 const translate = require('../../../locales');
 const utils = require('../../../lib/utils');
 const { getAllIgnoreData, setIgnoreData } = require('../../settings');
@@ -9,14 +8,12 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     const {
         lead: { key: projectAdmin },
         issueTypes,
-        roles: { Administrator = '', Administrators = '' },
-    } = await jiraRequests.getProject(projectKey);
+        admins,
+    } = await jiraRequests.getProjectWithAdmins(projectKey);
 
-    const adminsURL = Administrators || Administrator;
-    const { actors = [{ name: '' }] } = await request(adminsURL);
-    const admins = [projectAdmin, ...actors.map(({ name }) => name)];
+    const allAdmins = [projectAdmin, ...admins.map(({ name }) => name)];
 
-    if (!admins.includes(sender)) {
+    if (!allAdmins.includes(sender)) {
         return translate('notAdmin', { sender });
     }
     const namesIssueTypeInProject = issueTypes.map(({ name }) => name);

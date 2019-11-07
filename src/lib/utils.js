@@ -264,14 +264,6 @@ const utils = {
 
     // * ------------------------- Request selectors ------------------------- *
 
-    getProjectPrivateStatus: body => Ramda.path(['isPrivate'], body),
-
-    getProjectStyle: body => Ramda.path(['style'], body),
-
-    isNewGenProjectStyle: body => utils.getProjectStyle(body) === 'new-gen',
-
-    isIgnoreProject: body => utils.isNewGenProjectStyle(body) && utils.getProjectPrivateStatus(body),
-
     getResponcedSummary: body => Ramda.path(['fields', 'summary'], body),
 
     getInwardLinkKey: body => Ramda.path(['inwardIssue', 'key'], body),

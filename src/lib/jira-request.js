@@ -116,10 +116,54 @@ const jiraRequests = {
 
     /**
      * Make GET request to jira by projectID
-     * @param {string} id project ID in jira
-     * @return {object} jira response with issue
+     * @param {string} projectKey project ID in jira
+     * @return {Promise<{key: string, id: number, name: str}>} jira response with issue
      */
-    getProject: id => request(utils.getRestUrl('project', id)),
+    getProject: async projectKey => {
+        const projectBody = await request(utils.getRestUrl('project', projectKey));
+        const {
+            id,
+            key,
+            lead: { key: leadKey, name: leadName },
+            name,
+            issueTypes,
+            roles: { Administrator = '', Administrators = '' },
+            isPrivate,
+            style,
+        } = projectBody;
+
+        const adminsURL = Administrators || Administrator;
+        const isIgnore = isPrivate && style === 'new-gen';
+
+        const project = {
+            id,
+            key,
+            lead: { name: leadName, key: leadKey },
+            name,
+            issueTypes: issueTypes.map(({ id, name, description }) => ({ id, name, description })),
+            adminsURL,
+            isIgnore,
+        };
+
+        return project;
+    },
+
+    getProjectWithAdmins: async projectKey => {
+        const projectBody = await jiraRequests.getProject(projectKey);
+        const { adminsURL } = projectBody;
+
+        const { actors = [{ name: '' }] } = await request(adminsURL);
+        const admins = [
+            ...actors.map(({ id, name }) => ({
+                id,
+                name,
+            })),
+        ];
+
+        const project = { ...projectBody, admins };
+
+        return project;
+    },
 
     /**
      * Make request to jira by issueID adding renderedFields

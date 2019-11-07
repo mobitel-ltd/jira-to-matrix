@@ -68,8 +68,8 @@ const helper = {
             },
             project: async body => {
                 const key = utils.getProjectKey(body);
-                const projectBody = await jiraRequests.getProject(key);
-                return utils.isIgnoreProject(projectBody);
+                const { isIgnore } = await jiraRequests.getProject(key);
+                return isIgnore;
             },
             comment: async body => {
                 const id = utils.getIssueId(body);
