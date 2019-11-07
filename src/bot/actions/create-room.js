@@ -88,7 +88,6 @@ const hasData = issue => issue.key && issue.summary;
 module.exports = async ({ chatApi, issue, projectKey }) => {
     try {
         if (issue && (issue.key || issue.id)) {
-            console.log('TCL: issue', issue);
             const checkedIssue = hasData(issue) ? issue : await getCheckedIssue(issue);
 
             (await chatApi.getRoomIdByName(checkedIssue.key)) || (await createIssueRoom(chatApi, checkedIssue));
