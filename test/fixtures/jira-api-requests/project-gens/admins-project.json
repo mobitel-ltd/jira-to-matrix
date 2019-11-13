@@ -1,0 +1,17 @@
+{
+    "self": "https://jira.test-example.ru/rest/api/2/project/10305/role/10002",
+    "name": "Administrators",
+    "id": 10305,
+    "description": "Admins can do most things, like update settings and add other admins.",
+    "actors": [
+        {
+            "id": 11891,
+            "displayName": "Иванов Иван Иванович",
+            "type": "atlassian-user-role-actor",
+            "name": "ii_ivanov",
+            "avatarUrl": "https://secure.gravatar.com/avatar/e3fff2e843129095bea6a8b2d8ebab70?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Fdefault-avatar-5.png&size=16&s=16",
+            "actorUser": { "accountId": "5b912e21fa38ae2c896099ae" }
+        }
+    ],
+    "scope": { "type": "PROJECT", "project": { "id": "10305" } }
+}
