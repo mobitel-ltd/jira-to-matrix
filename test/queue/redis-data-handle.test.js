@@ -2,6 +2,7 @@ const utils = require('../../src/lib/utils');
 const nock = require('nock');
 const {
     jira: { url: jiraUrl },
+    redis,
 } = require('../../src/config');
 const { getRestUrl, expandParams } = require('../../src/lib/utils.js');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
@@ -21,6 +22,7 @@ const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
 
 const {
+    getHandledKeys,
     saveIncoming,
     getRedisKeys,
     getDataFromRedis,
@@ -65,12 +67,13 @@ describe('redis-data-handle test', () => {
             },
         },
     ];
+    const redisKey = 'postEpicUpdates_2018-1-11 13:08:04,225';
 
-    const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
+    const expectedFuncKeys = [`${redis.prefix}${redisKey}`];
 
     const expectedData = [
         {
-            redisKey: 'postEpicUpdates_2018-1-11 13:08:04,225',
+            redisKey,
             funcName: 'postEpicUpdates',
             data: {
                 epicKey: 'BBCOM-801',
@@ -154,6 +157,30 @@ describe('redis-data-handle test', () => {
     it('test correct redisKeys', async () => {
         const redisKeys = await getRedisKeys();
         expect(redisKeys).to.have.all.members(expectedFuncKeys);
+    });
+
+    it('test correct not saving the same hook', async () => {
+        nock(getRestUrl())
+            .get(`/issue/${JSONbody.issue.key}`)
+            .times(2)
+            .reply(200, projectBody)
+            .get(`/issue/BBCOM-1398/watchers`)
+            .reply(200, { ...responce, id: 28516 })
+            .get(`/issue/30369`)
+            .query(expandParams)
+            .reply(200, issueBody)
+            .get(`/issue/BBCOM-801`)
+            .query(expandParams)
+            .reply(200, issueBody)
+            .get(url => url.indexOf('null') > 0)
+            .reply(404);
+
+        await getParsedAndSaveToRedis(JSONbody);
+
+        const redisKeys = await getRedisKeys();
+        expect(redisKeys).be.deep.eq(expectedFuncKeys);
+        const redisHandled = await getHandledKeys();
+        expect(redisHandled).be.deep.eq([redisKey]);
     });
 
     it('test correct dataFromRedis', async () => {
