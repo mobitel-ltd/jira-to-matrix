@@ -2,12 +2,12 @@ const logger = require('../modules/log.js')(module);
 const helper = require('../bot/actions/helper');
 const messages = require('../lib/messages');
 
-module.exports = async body => {
-    const userStatus = helper.getIgnoreBodyData(body);
-    const projectStatus = await helper.getIgnoreProject(body);
+module.exports = async (body, usersToIgnore, testMode) => {
+    const projectStatus = await helper.getIgnoreProject(body, usersToIgnore, testMode);
+    const msg = messages.getWebhookStatusLog({ projectStatus });
 
-    const msg = messages.getWebhookStatusLog({ userStatus, projectStatus });
     logger.info(msg);
 
-    return userStatus.ignoreStatus || projectStatus.ignoreStatus;
+    // return userStatus.ignoreStatus || projectStatus.ignoreStatus;
+    return projectStatus.ignoreStatus;
 };

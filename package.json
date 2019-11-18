@@ -34,13 +34,14 @@
     ]
   },
   "devDependencies": {
-    "eslint-config-prettier": "^6.4.0",
-    "eslint-plugin-prettier": "^3.1.1",
     "chai": "^4.2.0",
     "eslint": "^6.5.1",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-chai-friendly": "0.4.1",
+    "eslint-plugin-prettier": "^3.1.1",
     "faker": "latest",
+    "lodash": "^4.17.15",
     "mocha": "latest",
     "nock": "^11.4.0",
     "nodemon": "^1.19.4",

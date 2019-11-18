@@ -80,7 +80,7 @@ describe('Create room test', () => {
             .get(`/issue/${issueBodyJSON.key}`)
             .reply(200, issueBodyJSON)
             .get(`/issue/${createRoomData.issue.key}`)
-            .times(2)
+            .times(3)
             .reply(200, issueBodyJSON)
             .get(`/issue/${issueBodyJSON.key}/watchers`)
             .reply(200, watchersBody)

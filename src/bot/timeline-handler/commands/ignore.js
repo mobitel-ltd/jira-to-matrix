@@ -8,8 +8,12 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     const {
         lead: { key: projectAdmin },
         issueTypes,
-    } = await jiraRequests.getProject(projectKey);
-    if (projectAdmin !== sender) {
+        admins,
+    } = await jiraRequests.getProjectWithAdmins(projectKey);
+
+    const allAdmins = [projectAdmin, ...admins.map(({ name }) => name)];
+
+    if (!allAdmins.includes(sender)) {
         return translate('notAdmin', { sender });
     }
     const namesIssueTypeInProject = issueTypes.map(({ name }) => name);
@@ -23,15 +27,20 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 
     const [command, typeTaskFromUser] = bodyText.split(' ');
 
+    if (!['add', 'del'].includes(command)) {
+        return translate('commandNotFound');
+    }
+
+    if (!typeTaskFromUser) {
+        return translate('notIgnoreKey');
+    }
+
+    if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
+        return utils.ignoreKeysInProject(projectKey, namesIssueTypeInProject);
+    }
+
     switch (command) {
         case 'add':
-            if (!typeTaskFromUser) {
-                return translate('notIgnoreKey');
-            }
-
-            if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
-                return utils.ignoreKeysInProject(projectKey, namesIssueTypeInProject);
-            }
             if (currentTaskTypes.includes(typeTaskFromUser)) {
                 return translate('keyAlreadyExistForAdd', { typeTaskFromUser, projectKey });
             }
@@ -39,13 +48,6 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 
             return translate('ignoreKeyAdded', { projectKey, typeTaskFromUser });
         case 'del':
-            if (!typeTaskFromUser) {
-                return translate('notIgnoreKey');
-            }
-
-            if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
-                return utils.ignoreKeysInProject(projectKey, namesIssueTypeInProject);
-            }
             if (!currentTaskTypes.includes(typeTaskFromUser)) {
                 return translate('keyNotFoundForDelete', { projectKey });
             }

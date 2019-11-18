@@ -3,7 +3,7 @@ const Ramda = require('ramda');
 const logger = require('../../modules/log.js')(module);
 const translate = require('../../locales');
 const marked = require('marked');
-const { usersToIgnore, testMode } = require('../../config');
+// const { usersToIgnore, testMode } = require('../../config');
 const utils = require('../../lib/utils.js');
 const jiraRequests = require('../../lib/jira-request.js');
 const redis = require('../../redis-client');
@@ -68,8 +68,8 @@ const helper = {
             },
             project: async body => {
                 const key = utils.getProjectKey(body);
-                const projectBody = await jiraRequests.getProject(key);
-                return utils.isIgnoreProject(projectBody);
+                const { isIgnore } = await jiraRequests.getProject(key);
+                return isIgnore;
             },
             comment: async body => {
                 const id = utils.getIssueId(body);
@@ -82,7 +82,7 @@ const helper = {
         return handlers[type];
     },
 
-    getIgnoreStatus: async body => {
+    isHookTypeIgnore: async body => {
         const type = utils.getHookType(body);
         const handler = helper.getHookHandler(type);
         if (!handler) {
@@ -96,21 +96,6 @@ const helper = {
         }
 
         return status;
-    },
-
-    getIgnoreBodyData: body => {
-        const username = utils.getHookUserName(body);
-        const creator = utils.getCreatorDisplayName(body);
-
-        const isInUsersToIgnore = arr => [username, creator].some(user => arr.includes(user));
-
-        if (!username && !creator) {
-            return { username, creator, ignoreStatus: false };
-        }
-
-        const userIgnoreStatus = testMode.on ? !isInUsersToIgnore(testMode.users) : isInUsersToIgnore(usersToIgnore);
-
-        return { username, creator, ignoreStatus: userIgnoreStatus };
     },
 
     getAvailableIssueId: async body => {
@@ -136,9 +121,25 @@ const helper = {
         // return ignoreList.taskType.includes(taskType) || ignoreList.issues.includes(issueKey);
     },
 
-    getManuallyIgnore: async body => {
+    /**
+     * @param {string} creator creator
+     * @param  {string[]} usersToIgnore users to ignore
+     * @param {boolean} testMode test mode
+     * @return {boolean} status
+     */
+    isTestCreater: (creator, usersToIgnore, testMode) => {
+        const ignoreStatus = testMode ? !usersToIgnore.includes(creator) : usersToIgnore.includes(creator);
+
+        return ignoreStatus;
+    },
+
+    getManuallyIgnore: async (body, usersToIgnore, testMode) => {
         const type = utils.getHookType(body);
         if (type === 'project') {
+            return false;
+        }
+        const { typeName } = utils.getDescriptionFields(body);
+        if (!typeName) {
             return false;
         }
 
@@ -146,24 +147,25 @@ const helper = {
             type === 'issuelink'
                 ? await helper.getAvailableIssueId(body)
                 : utils.getIssueKey(body) || utils.getIssueId(body);
-        const { typeName } = utils.getDescriptionFields(body);
-        if (!typeName) {
-            return false;
-        }
 
         const issue = await jiraRequests.getIssue(keyOrId);
         const projectKey = utils.getProjectKey({ issue });
+        const issueCreator = utils.handleIssueAsHook.getCreator({ issue });
 
-        return helper.isManuallyIgnore(projectKey, typeName);
+        return (
+            (await helper.isManuallyIgnore(projectKey, typeName)) ||
+            helper.isTestCreater(issueCreator, usersToIgnore, testMode)
+        );
     },
 
-    getIgnoreProject: async body => {
+    getIgnoreProject: async (body, usersToIgnore, testMode) => {
         await jiraRequests.testJiraRequest();
         const webhookEvent = utils.getBodyWebhookEvent(body);
         const timestamp = utils.getBodyTimestamp(body);
         const issueName = utils.getIssueName(body);
 
-        const ignoreStatus = (await helper.getIgnoreStatus(body)) || (await helper.getManuallyIgnore(body));
+        const ignoreStatus =
+            (await helper.isHookTypeIgnore(body)) || (await helper.getManuallyIgnore(body, usersToIgnore, testMode));
 
         return { timestamp, webhookEvent, ignoreStatus, issueName };
     },

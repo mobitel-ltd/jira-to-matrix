@@ -2,11 +2,14 @@ const utils = require('../../src/lib/utils');
 const nock = require('nock');
 const {
     jira: { url: jiraUrl },
+    usersToIgnore,
+    testMode,
 } = require('../../src/config');
 const { getRestUrl, expandParams } = require('../../src/lib/utils.js');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
-const projectBody = require('../fixtures/jira-api-requests/project.json');
+// const projectBody = require('../fixtures/jira-api-requests/project.json');
+const projectBody = require('../fixtures/jira-api-requests/issue.json');
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const proxyquire = require('proxyquire');
@@ -66,7 +69,7 @@ describe('redis-data-handle test', () => {
         },
     ];
 
-    const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
+    // const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
 
     const expectedData = [
         {
@@ -127,7 +130,7 @@ describe('redis-data-handle test', () => {
 
     const chatApi = {};
 
-    beforeEach(async () => {
+    beforeEach(() => {
         nock(jiraUrl)
             .get('')
             .times(2)
@@ -147,72 +150,98 @@ describe('redis-data-handle test', () => {
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)
             .reply(404);
-
-        await getParsedAndSaveToRedis(JSONbody);
-    });
-
-    it('test correct redisKeys', async () => {
-        const redisKeys = await getRedisKeys();
-        expect(redisKeys).to.have.all.members(expectedFuncKeys);
-    });
-
-    it('test correct dataFromRedis', async () => {
-        const dataFromRedis = await getDataFromRedis();
-        expect(dataFromRedis).to.have.deep.members(expectedData);
-    });
-
-    it('test correct handleRedisData', async () => {
-        const dataFromRedisBefore = await getDataFromRedis();
-        await handleRedisData('client', dataFromRedisBefore);
-        const dataFromRedisAfter = await getDataFromRedis();
-
-        expect(dataFromRedisBefore).to.have.deep.members(expectedData);
-        expect(dataFromRedisAfter).to.be.null;
-        expect(postEpicUpdatesStub).to.be.called;
-    });
-
-    it('test error in key handleRedisData', async () => {
-        postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
-
-        const dataFromRedisBefore = await getDataFromRedis();
-        await handleRedisData('client', dataFromRedisBefore);
-        const dataFromRedisAfter = await getDataFromRedis();
-        const redisRooms = await getRedisRooms();
-
-        expect(dataFromRedisBefore).to.have.deep.members(expectedData);
-        expect(dataFromRedisAfter).to.have.deep.members(expectedData);
-        expect(redisRooms).deep.eq([{ issue: { key: JSONbody.issue.key } }]);
-        expect(postEpicUpdatesStub).to.be.called;
-    });
-
-    it('test correct roomsData', async () => {
-        const roomsData = await getRedisRooms();
-        expect(roomsData).to.have.deep.members(expectedRoom);
-    });
-
-    it('test handleRedisRooms with error', async () => {
-        const newCreateRoomData = [...createRoomData, { projectKey: 'Project' }];
-        await saveIncoming({ redisKey: 'newrooms', createRoomData: newCreateRoomData });
-        createRoomStub.onSecondCall().throws();
-        const roomsData = await getRedisRooms();
-        expect(roomsData).to.have.deep.equal([...expectedRoom, ...newCreateRoomData]);
-        await handleRedisRooms(chatApi, roomsData);
-
-        const roomsKeysAfter = await getRedisRooms();
-        expect(roomsKeysAfter).to.have.deep.equal(createRoomData);
-    });
-
-    it('test correct handleRedisRooms', async () => {
-        const roomsKeysBefore = await getRedisRooms();
-        await handleRedisRooms(chatApi, roomsKeysBefore);
-        expect(createRoomStub).to.be.called;
-        const roomsKeysAfter = await getRedisRooms();
-        expect(roomsKeysAfter).to.be.null;
     });
 
     it('test null handleRedisRooms', async () => {
         await handleRedisRooms(chatApi, null);
         expect(createRoomStub).not.to.be.called;
+    });
+
+    describe('Test mode ON', () => {
+        beforeEach(async () => {
+            const notIgnoreCreatorHook = JSONbody;
+
+            await getParsedAndSaveToRedis(notIgnoreCreatorHook);
+        });
+
+        it('Expect hook to be ignore and both redisKeys and redisData to be empty if hook issue creator is not in the list of config ignore users', async () => {
+            const redisKeys = await getRedisKeys();
+            const dataFromRedis = await getDataFromRedis();
+
+            expect(redisKeys).to.be.empty;
+            expect(dataFromRedis).to.be.null;
+        });
+    });
+
+    describe('Test mode OFF', () => {
+        const prodMode = { ...testMode, on: false };
+
+        beforeEach(async () => {
+            const notIgnoreCreatorHook = JSONbody;
+
+            await getParsedAndSaveToRedis(notIgnoreCreatorHook, usersToIgnore, prodMode);
+        });
+
+        it('Expect hook NOT to be ignore and both redisKeys and redisData to exist if hook issue creator is not in the list of config ignore users', async () => {
+            const redisKeys = await getRedisKeys();
+            const dataFromRedis = await getDataFromRedis();
+
+            expect(redisKeys).not.to.be.empty;
+            expect(dataFromRedis).not.to.be.null;
+        });
+
+        it('test correct handleRedisData', async () => {
+            const dataFromRedisBefore = await getDataFromRedis();
+            await handleRedisData('client', dataFromRedisBefore);
+            const dataFromRedisAfter = await getDataFromRedis();
+
+            expect(dataFromRedisBefore).to.have.deep.members(expectedData);
+            expect(dataFromRedisAfter).to.be.null;
+            expect(postEpicUpdatesStub).to.be.called;
+        });
+
+        it('test error in key handleRedisData', async () => {
+            postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
+
+            const dataFromRedisBefore = await getDataFromRedis();
+            await handleRedisData('client', dataFromRedisBefore);
+            const dataFromRedisAfter = await getDataFromRedis();
+            const redisRooms = await getRedisRooms();
+
+            expect(dataFromRedisBefore).to.have.deep.members(expectedData);
+            expect(dataFromRedisAfter).to.have.deep.members(expectedData);
+            expect(redisRooms).deep.eq([{ issue: { key: JSONbody.issue.key } }]);
+            expect(postEpicUpdatesStub).to.be.called;
+        });
+
+        it('test correct roomsData', async () => {
+            const roomsData = await getRedisRooms();
+            expect(roomsData).to.have.deep.members(expectedRoom);
+        });
+
+        it('test handleRedisRooms with error', async () => {
+            await saveIncoming({ redisKey: 'newrooms', createRoomData });
+            createRoomStub.callsFake(data => {
+                // logger.debug('data', data);
+                if (data.issue.key === 'BBCOM-1111') {
+                    throw 'createRoomStub';
+                }
+            });
+            const roomsData = await getRedisRooms();
+            expect(roomsData).to.have.deep.equal([...expectedRoom, ...createRoomData]);
+            await handleRedisRooms(chatApi, roomsData);
+
+            const roomsKeysAfter = await getRedisRooms();
+            expect(roomsKeysAfter).to.have.deep.equal(createRoomData);
+        });
+
+        it('test correct handleRedisRooms', async () => {
+            const roomsKeysBefore = await getRedisRooms();
+            await handleRedisRooms(chatApi, roomsKeysBefore);
+            expect(createRoomStub).to.be.called;
+            const roomsKeysAfter = await getRedisRooms();
+            expect(roomsKeysAfter).to.be.null;
+        });
     });
 
     afterEach(async () => {
