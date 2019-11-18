@@ -213,7 +213,6 @@ describe('Helper tests', () => {
             expect(timestamp).to.be.eq(notIgnoredIssueHook.timestamp);
             expect(webhookEvent).to.be.eq(notIgnoredIssueHook.webhookEvent);
             expect(issueName).to.be.eq(notIgnoredIssueHook.issue.key);
-            console.log('TCL: ignoreStatus', ignoreStatus);
             expect(ignoreStatus).to.be.false;
         });
 

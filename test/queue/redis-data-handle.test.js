@@ -2,6 +2,7 @@ const utils = require('../../src/lib/utils');
 const nock = require('nock');
 const {
     jira: { url: jiraUrl },
+    redis,
     usersToIgnore,
     testMode,
 } = require('../../src/config');
@@ -24,6 +25,7 @@ const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
 
 const {
+    getHandledKeys,
     saveIncoming,
     getRedisKeys,
     getDataFromRedis,
@@ -68,12 +70,14 @@ describe('redis-data-handle test', () => {
             },
         },
     ];
+    const redisKey = 'postEpicUpdates_2018-1-11 13:08:04,225';
 
+    const expectedFuncKeys = [`${redis.prefix}${redisKey}`];
     // const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
 
     const expectedData = [
         {
-            redisKey: 'postEpicUpdates_2018-1-11 13:08:04,225',
+            redisKey,
             funcName: 'postEpicUpdates',
             data: {
                 epicKey: 'BBCOM-801',
@@ -180,6 +184,30 @@ describe('redis-data-handle test', () => {
             const notIgnoreCreatorHook = JSONbody;
 
             await getParsedAndSaveToRedis(notIgnoreCreatorHook, usersToIgnore, prodMode);
+        });
+
+        it('test correct not saving the same hook', async () => {
+            nock(getRestUrl())
+                .get(`/issue/${JSONbody.issue.key}`)
+                .times(2)
+                .reply(200, projectBody)
+                .get(`/issue/BBCOM-1398/watchers`)
+                .reply(200, { ...responce, id: 28516 })
+                .get(`/issue/30369`)
+                .query(expandParams)
+                .reply(200, issueBody)
+                .get(`/issue/BBCOM-801`)
+                .query(expandParams)
+                .reply(200, issueBody)
+                .get(url => url.indexOf('null') > 0)
+                .reply(404);
+
+            await getParsedAndSaveToRedis(JSONbody);
+
+            const redisKeys = await getRedisKeys();
+            expect(redisKeys).be.deep.eq(expectedFuncKeys);
+            const redisHandled = await getHandledKeys();
+            expect(redisHandled).be.deep.eq([redisKey]);
         });
 
         it('Expect hook NOT to be ignore and both redisKeys and redisData to exist if hook issue creator is not in the list of config ignore users', async () => {
