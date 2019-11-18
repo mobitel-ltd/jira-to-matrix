@@ -44,7 +44,7 @@
     "name": "Dev Test Project",
     "roles": {
         "atlassian-addons-project-access": "https://jira.test-example.ru/rest/api/2/project/10181/role/10621",
-        "Administrator": "https://jira.test-example.ru/rest/api/2/project/10181/role/10618",
+        "Administrator": "https://jira.test-example.ru/jira/rest/api/2/project/10181/role/10618",
         "Viewer": "https://jira.test-example.ru/rest/api/2/project/10181/role/10620",
         "Member": "https://jira.test-example.ru/rest/api/2/project/10181/role/10619"
     },
