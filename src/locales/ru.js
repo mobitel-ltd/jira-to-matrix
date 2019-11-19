@@ -40,6 +40,7 @@ const dict = Object.freeze({
     successWatcherJira: 'Наблюдатель добавлен',
     notFoundUser: 'Пользователя %{user} нет в этой комнате',
     notFoundRoom: 'Комната "%{roomName}" не найдена',
+    notPrio: 'Эта задача не имеет приоритетов.',
     notFoundPrio: 'Новый приоритет с именем "%{bodyText}" не найден',
     setPriority: 'Теперь задача имеет приоритет %{name}',
     successUserKick: 'Пользователь %{user} исключен из комнаты %{roomName}',

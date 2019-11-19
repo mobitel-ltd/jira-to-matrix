@@ -4,6 +4,9 @@ const utils = require('../../../lib/utils');
 
 module.exports = async ({ bodyText, roomId, roomName, chatApi }) => {
     const allPriorities = await jiraRequests.getIssuePriorities(roomName);
+    if (!allPriorities) {
+        return translate('notPrio');
+    }
 
     if (!bodyText) {
         return utils.getCommandList(allPriorities);

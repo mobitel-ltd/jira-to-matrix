@@ -34,6 +34,7 @@ const dict = Object.freeze({
     successWatcherJira: 'Watcher is added',
     notFoundUser: 'User %{user} is not in current room',
     notFoundRoom: 'Room "%{roomName}" is not found',
+    notPrio: 'This issue has not priority.',
     notFoundPrio: 'New priority with name "%{bodyText}" is not found',
     setPriority: 'Now issue has the priority %{name}',
     successUserKick: 'User %{user} is kicked from room %{roomName}',

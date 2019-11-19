@@ -1,4 +1,5 @@
 const Ramda = require('ramda');
+const conf = require('../../config');
 const { errorTracing } = require('../../lib/utils.js');
 const { getIssueWatchers } = require('../../lib/jira-request.js');
 const logger = require('../../modules/log.js')(module);
@@ -11,7 +12,11 @@ module.exports = async ({ chatApi, issue }) => {
         const issueWatchers = await getIssueWatchers(issue);
         const issueWatchersChatIds = issueWatchers.map(user => chatApi.getChatUserId(user));
 
-        const newMembers = Ramda.difference(issueWatchersChatIds, chatRoomMembers).filter(Boolean);
+        const {
+            messenger: { bots },
+        } = conf;
+
+        const newMembers = Ramda.difference(issueWatchersChatIds, [...chatRoomMembers, ...bots]).filter(Boolean);
 
         await Promise.all(
             newMembers.map(async userID => {
