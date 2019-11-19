@@ -1,4 +1,5 @@
 const nock = require('nock');
+const { pipe, set, clone } = require('lodash/fp');
 const utils = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
 const watchersBody = require('../fixtures/jira-api-requests/watchers.json');
@@ -100,5 +101,30 @@ describe('inviteNewMembers test', () => {
     it('Expect inviteNewMembers works correct if some Jira users in upperCase', async () => {
         const result = await inviteNewMembers({ chatApi, ...inviteUpperCase });
         expect(result).to.deep.equal(expectedWatchers);
+    });
+
+    it('Do not add member-bot, if room alredy have bot ', async () => {
+        const issueBodyJSONbot = pipe(
+            clone,
+            set('fields.creator.key', 'any_bot'),
+            set('fields.creator.name', 'any_bot'),
+        )(issueBodyJSON);
+
+        nock.cleanAll();
+        nock(utils.getRestUrl())
+            .get(`/issue/${JSONbody.issue.key}`)
+            .times(4)
+            .reply(200, issueBodyJSONbot)
+            .get(`/issue/${JSONbody.issue.key}/watchers`)
+            .times(4)
+            .reply(200, watchersBody);
+
+        const [userToadd] = expectedWatchers;
+
+        chatApi.getRoomMembers.resolves([chatApi.getChatUserId('any_bot'), userToadd]);
+
+        const result = await inviteNewMembers({ chatApi, ...inviteNewMembersData });
+
+        expect(result).to.deep.equal(watchers);
     });
 });
