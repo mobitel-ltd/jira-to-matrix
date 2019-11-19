@@ -31,6 +31,7 @@ module.exports = class Matrix extends MessengerAbstract {
         this.sdk = sdk;
         // TODO: delete EVENT_EXCEPTION check in errors after resolving 'no-event' bug
         this.EVENT_EXCEPTION = 'Could not find event';
+        this.MESSAGE_TO_LARGE = 'event too large';
         this.baseUrl = `https://${config.domain}`;
         this.userId = `@${config.user}:${config.domain}`;
         this.BOT_OUT_OF_ROOM_EXEPTION = `User ${this.userId} not in room`;
@@ -100,7 +101,11 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {Boolean} true/false
      */
     _isEventExeptionError(err) {
-        return err.message.includes(this.EVENT_EXCEPTION) || err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION);
+        return (
+            err.message.includes(this.EVENT_EXCEPTION) ||
+            err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION) ||
+            err.message.includes(this.MESSAGE_TO_LARGE)
+        );
     }
 
     /**
