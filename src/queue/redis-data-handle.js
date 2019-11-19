@@ -3,7 +3,7 @@ const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot/actions');
 const { prefix } = require('../config').redis;
-const { REDIS_ROOM_KEY, isIgnoreKey } = require('../lib/utils.js');
+const { REDIS_ROOM_KEY, isIgnoreKey, HANDLED_KEY } = require('../lib/utils.js');
 const utils = require('../lib/utils');
 
 const getRedisKeys = async () => {
@@ -60,6 +60,33 @@ const getRedisRooms = async () => {
 
         return null;
     }
+};
+
+/**
+ * @returns {Promise<string[]>} handledKeys
+ */
+const getHandledKeys = async () => {
+    try {
+        const keys = await redis.getAsync(HANDLED_KEY);
+        const handledKeys = JSON.parse(keys);
+
+        return handledKeys || [];
+    } catch (err) {
+        logger.error('getRedisRooms error');
+
+        return null;
+    }
+};
+
+const isHandled = async key => {
+    const handledKeys = (await getHandledKeys(HANDLED_KEY)) || [];
+
+    return handledKeys.includes(key);
+};
+
+const saveToHandled = async newKey => {
+    const oldKeys = (await getHandledKeys()) || [];
+    await redis.setAsync(HANDLED_KEY, JSON.stringify([...oldKeys, newKey]));
 };
 
 const createRoomDataOnlyNew = createRoomData => {
@@ -187,6 +214,19 @@ const saveIncoming = async ({ redisKey, ...restData }) => {
         }
 
         const bodyToJSON = JSON.stringify(redisValue);
+        if (redisKey !== REDIS_ROOM_KEY) {
+            const handleStatus = await isHandled(redisKey);
+            if (handleStatus) {
+                logger.info('This key has already been handled: ', redisKey);
+
+                return;
+            }
+            await redis.setAsync(redisKey, bodyToJSON);
+            await saveToHandled(redisKey);
+            logger.info('data saved by redis. RedisKey: ', redisKey);
+
+            return;
+        }
 
         await redis.setAsync(redisKey, bodyToJSON);
         logger.info('data saved by redis. RedisKey: ', redisKey);
@@ -205,4 +245,5 @@ module.exports = {
     handleRedisRooms,
     getRedisValue,
     createRoomDataOnlyNew,
+    getHandledKeys,
 };

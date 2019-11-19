@@ -1,17 +1,16 @@
 language: node_js
 node_js:
-  - stable
+    - stable
 
 services:
-  - redis-server
+    - redis-server
 
 install:
-  - npm install -g codecov
-  - npm install
-
+    - npm install -g codecov
+    - npm ci
 
 script:
-  - npm run lint
-  - npm test
-  - npm run report-coverage
-  - codecov
+    - npm run lint
+    - npm test
+    - npm run report-coverage
+    - codecov
