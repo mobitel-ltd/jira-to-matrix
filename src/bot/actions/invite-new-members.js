@@ -19,7 +19,7 @@ module.exports = async ({ chatApi, issue }) => {
         } = conf;
 
         const newMembersBot = Ramda.intersection(bots, newMembers);
-        const botsInRoom = Ramda.intersection(bots, issueWatchersChatIds);
+        const botsInRoom = Ramda.intersection(bots, chatRoomMembers);
 
         const membersForInvite =
             newMembersBot.length && botsInRoom.length ? Ramda.difference(newMembers, bots) : newMembers;
