@@ -41,6 +41,59 @@ A bot (web-service) which:
 
 ## Work process description
 
+You can use one or several. If you use several bots - distribute rooms between them.
+Add bots to config:
+
+```
+ ...
+ // Matrix params
+    messenger: {
+        // users with admin status
+        admins: ['admin'],
+        // messenger name
+        name: 'matrix',
+        // messenger domain
+        domain: 'matrix.example.org',
+        // short name, before colomn, without @
+        user: 'jira_bot',
+        // password
+        password: 'key',
+        bots: [
+            {
+                user: 'jira_bot2',
+                password: 'key',
+            },
+            {
+                user: 'jira_bot3',
+                password: 'key',
+            },
+        ],
+    },
+```
+
+Bots start asynchronously together, but queue processing starts after all bots start.
+Time of starting depence of count room.
+
+Logs after starting all bots:
+
+```
+well connected
+2019-11-20 09:49:58.520	matrix-bots 		fluentd 		messenger-api
+Matrix bot jira_bot was connected on 1 min 12 sec
+2019-11-20 09:49:58.522	matrix-bots 		fluentd 		/fsm/index.js
+well connected
+2019-11-20 10:05:48.267	matrix-bots 		fluentd 		messenger-api
+Matrix bot jira_bot_2 was connected on 17 min 2 sec
+2019-11-20 10:05:48.272	matrix-bots 		fluentd 		/fsm/index.js
+well connected
+2019-11-20 10:11:09.108	matrix-bots 		fluentd 		messenger-api
+Matrix bot jira_bot_3 was connected on 22 min 23 sec
+2019-11-20 10:11:09.109	matrix-bots 		fluentd 		/fsm/index.js
+All matrix bots were connected on 22 min 23 sec
+2019-11-20 10:11:09.111	matrix-bots 		fluentd 		/fsm/index.js
+All chat bot are connected!!!
+```
+
 After starting bot listen to all Jira [webhooks](https://developer.atlassian.com/jiradev/jira-apis/webhooks).
 
 It means that all actions in your Jira server will be followed with webhooks. Its body we parse and save to Redis and if user is not ignored or issue is not private (it's very important for next gen Jira in cloud).
@@ -48,9 +101,15 @@ It means that all actions in your Jira server will be followed with webhooks. It
 If user is ignored or issue is private we can log:
 
 ```
-        username: <name>, creator: <creator>, ignoreStatus: true
-        timestamp: <timestamp>, webhookEvent: <webhook_event>, issueName: <issue_name>, ignoreStatus: true
+username: <name>, creator: <creator>, ignoreStatus: true
+timestamp: <timestamp>, webhookEvent: <webhook_event>, issueName: <issue_name>, ignoreStatus: true
 ```
+
+`ignoreStatus: true` is set depending on:
+
+1.  Hook type. Processing only: issue, issuelink, project, comment. Over types will be ignored.
+2.  Task type, settings from redis (set admin project, command !ignore).
+3.  Users ignore (section in config `usersToIgnore` and `testMode.users`). Use for dev mode.
 
 Redis data is handled:
 
@@ -71,18 +130,19 @@ If handling is succedded data will be removed, if staus is `false` it will be in
 Work with `Riot` is based on input command in room with Bot.
 List of available commands:
 
-| Command                                           | Description                                                |
-| ------------------------------------------------- | ---------------------------------------------------------- |
-| !help                                             | show all commands with description                         |
-| !comment                                          | create comment in issue                                    |
-| !assign <`user name or id`>                       | assign issue to choosen user                               |
-| !move                                             | list all available statuses of issue to move               |
-| !move <`status id`>/<`status name`>               | move status of issue                                       |
-| !spec <`user name or id`>                         | add watcher to issue                                       |
-| !prio                                             | list all available priorities of issue                     |
-| !prio <`index of priority`>/<`index of priority`> | change priority of issue                                   |
-| (admins only) !op <`user name or id`>             | gives admin status to user                                 |
-| (admins only) !invite <`room name`>/<`room id`>   | invite user to room with such issue name or matrix room id |
+| Command                                           | Description                                                         |
+| ------------------------------------------------- | ------------------------------------------------------------------- |
+| !help                                             | show all commands with description                                  |
+| !comment                                          | create comment in issue                                             |
+| !assign <`user name or id`>                       | assign issue to choosen user                                        |
+| !move                                             | list all available statuses of issue to move                        |
+| !move <`status id`>/<`status name`>               | move status of issue                                                |
+| !spec <`user name or id`>                         | add watcher to issue                                                |
+| !prio                                             | list all available priorities of issue                              |
+| !prio <`index of priority`>/<`index of priority`> | change priority of issue                                            |
+| (admins only) !op <`user name or id`>             | gives admin status to user                                          |
+| (admins only) !invite <`room name`>/<`room id`>   | invite user to room with such issue name or matrix room id          |
+| (admins only) !ignore [add`|`del] typeTask        | Ignore typeTask (task`|`error`|`bug`|`etc) for project current room |
 
 All commands are available only in rooms with Bot and that compares with Jira.
 Get all commands and their rules to use in `Riot` you can get with first command - `!help`.
