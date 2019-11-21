@@ -152,17 +152,21 @@ const jiraRequests = {
         const projectBody = await jiraRequests.getProject(projectKey);
         const { adminsURL } = projectBody;
 
-        const { actors = [{ name: '' }] } = await request(adminsURL);
-        const admins = [
-            ...actors.map(({ id, name }) => ({
-                id,
-                name,
-            })),
-        ];
+        try {
+            const { actors = [{ name: '' }] } = await request(adminsURL);
+            const admins = [
+                ...actors.map(({ id, name }) => ({
+                    id,
+                    name,
+                })),
+            ];
 
-        const project = { ...projectBody, admins };
+            return { ...projectBody, admins };
+        } catch (err) {
+            logger.warn('Not admins from request', err);
 
-        return project;
+            return projectBody;
+        }
     },
 
     /**

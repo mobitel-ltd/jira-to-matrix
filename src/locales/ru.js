@@ -49,6 +49,8 @@ const dict = Object.freeze({
     currentIgnoreSettings: 'Текущие настройки игнорирования для проекта "%{projectKey}": ',
     varsComandsIgnoreSettings:
         'Вы можете использовать команды добавления или удаления типов, например<br>!ignore add Error<br>!ignore del Error',
+    jiraBotWereAreNotInProject:
+        'Для испоьзования команды !ignore необходимо добавить "%{jiraBotUser}" в администраторы проекта',
     emptyIgnoreList:
         'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете добавить тип командой !ignore add Error',
     notIgnoreKey: 'Укажите ключи.<br>!ignore add <b>Task</b>',

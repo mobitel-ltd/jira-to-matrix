@@ -1,3 +1,6 @@
+const {
+    jira: { user: jiraBotUser },
+} = require('../../../config');
 const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
 const utils = require('../../../lib/utils');
@@ -10,6 +13,10 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         issueTypes,
         admins,
     } = await jiraRequests.getProjectWithAdmins(projectKey);
+
+    if (!admins) {
+        return translate('jiraBotWereAreNotInProject', { jiraBotUser });
+    }
 
     const allAdmins = [projectAdmin, ...admins.map(({ name }) => name)];
 

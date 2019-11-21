@@ -64,6 +64,16 @@ module.exports = Object.freeze({
         user: 'bot',
         // password
         password: 'key',
+        bots: [
+            {
+                user: 'bot2',
+                password: 'key',
+            },
+            {
+                user: 'bot3',
+                password: 'key',
+            },
+        ],
     },
     // log params based on winston https://github.com/winstonjs/winston
     log: {
