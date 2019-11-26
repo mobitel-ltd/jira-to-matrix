@@ -40,6 +40,7 @@ const dict = Object.freeze({
     successWatcherJira: 'Наблюдатель добавлен',
     notFoundUser: 'Пользователя %{user} нет в этой комнате',
     notFoundRoom: 'Комната "%{roomName}" не найдена',
+    notPrio: 'Эта задача не имеет приоритетов.',
     notFoundPrio: 'Новый приоритет с именем "%{bodyText}" не найден',
     setPriority: 'Теперь задача имеет приоритет %{name}',
     successUserKick: 'Пользователь %{user} исключен из комнаты %{roomName}',
@@ -49,6 +50,8 @@ const dict = Object.freeze({
     currentIgnoreSettings: 'Текущие настройки игнорирования для проекта "%{projectKey}": ',
     varsComandsIgnoreSettings:
         'Вы можете использовать команды добавления или удаления типов, например<br>!ignore add Error<br>!ignore del Error',
+    jiraBotWereAreNotInProject:
+        'Для испоьзования команды !ignore необходимо добавить "%{jiraBotUser}" в администраторы проекта',
     emptyIgnoreList:
         'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете добавить тип командой !ignore add Error',
     notIgnoreKey: 'Укажите ключи.<br>!ignore add <b>Task</b>',
