@@ -1,0 +1,21 @@
+{
+    "timestamp": "11/6/2019, 4:38:37 PM,626",
+    "webhookEvent": "issuelink_created",
+    "issueLink": {
+        "id": 15408,
+        "sourceIssueId": 18074,
+        "destinationIssueId": 25877,
+        "issueLinkType": {
+            "id": 10003,
+            "name": "Relates",
+            "outwardName": "relates to",
+            "inwardName": "relates to",
+            "isSubTaskLinkType": false,
+            "isSystemLinkType": false
+        },
+        "systemLink": false
+    },
+    "level": "silly",
+    "message": "Jira body",
+    "label": "/src/jira-app.js"
+}

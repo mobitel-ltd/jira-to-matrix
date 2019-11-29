@@ -114,6 +114,16 @@ const jiraRequests = {
         }
     },
 
+    createIssue: options => {
+        const uri = utils.getRestUrl('issue');
+        return requestPost(uri, JSON.stringify(options));
+    },
+
+    createIssueLink: options => {
+        const uri = utils.getRestUrl('issueLink');
+        return requestPost(uri, JSON.stringify(options));
+    },
+
     /**
      * Make GET request to jira by projectID
      * @param {string} projectKey project ID in jira
