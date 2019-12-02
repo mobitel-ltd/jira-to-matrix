@@ -36,7 +36,7 @@ describe('create test', () => {
         fields: {
             summary: 'abracadabra',
             issuetype: {
-                id: '10002',
+                id: '10005',
             },
             project: {
                 id: projectId,
@@ -82,7 +82,7 @@ describe('create test', () => {
         await testUtils.cleanRedis();
     });
 
-    it('Command !create without any params', async () => {
+    it('Expect message with list task types for current project IF command !create called without any params', async () => {
         const post = utils.ignoreKeysInProject(projectKey, projectIssueTypes);
         const result = await commandHandler(baseOptions);
 
@@ -90,16 +90,16 @@ describe('create test', () => {
         expect(result).to.be.eq(post);
     });
 
-    it('Command "!create Задача" with correct type issue and without new issue name', async () => {
+    it('Expect message "No name issue" IF command "!create TestTypeTask" called with correct type issue and without new issue name', async () => {
         const post = translate('issueNameExist');
-        const result = await commandHandler({ ...baseOptions, bodyText: 'Задача' });
+        const result = await commandHandler({ ...baseOptions, bodyText: 'TestTypeTask' });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, post, post);
     });
 
-    it('Command "!create Задача" with correct type issue and correct new issue name', async () => {
-        const result = await commandHandler({ ...baseOptions, bodyText: 'Задача abracadabra' });
+    it('Expect create new issue and receive hook "new link" IF command "!create TestTypeTask" with correct type issue and correct new issue name', async () => {
+        const result = await commandHandler({ ...baseOptions, bodyText: 'TestTypeTask abracadabra' });
 
         const body = getPostLinkMessageBody({
             relation: issueLinkBody.type.outward,

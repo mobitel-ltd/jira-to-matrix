@@ -1,27 +1,27 @@
 {
     "id": "15823",
-    "self": "https://bingoboom.atlassian.net/rest/api/2/issueLink/15823",
+    "self": "https://jira.test-example.ru/rest/api/2/issueLink/15823",
     "type": {
         "id": "10003",
         "name": "Relates",
         "inward": "relates to",
         "outward": "relates to",
-        "self": "https://bingoboom.atlassian.net/rest/api/2/issueLinkType/10003"
+        "self": "https://jira.test-example.ru/rest/api/2/issueLinkType/10003"
     },
     "inwardIssue": {
         "id": "26773",
-        "key": "INDEV-614",
-        "self": "https://bingoboom.atlassian.net/rest/api/2/issue/26773",
+        "key": "BBCOM-614",
+        "self": "https://jira.test-example.ru/rest/api/2/issue/26773",
         "fields": {
             "summary": "new issue from matrix 18",
             "status": {
-                "self": "https://bingoboom.atlassian.net/rest/api/2/status/10257",
+                "self": "https://jira.test-example.ru/rest/api/2/status/10257",
                 "description": "",
-                "iconUrl": "https://bingoboom.atlassian.net/",
+                "iconUrl": "https://jira.test-example.ru/",
                 "name": "To Do",
                 "id": "10257",
                 "statusCategory": {
-                    "self": "https://bingoboom.atlassian.net/rest/api/2/statuscategory/2",
+                    "self": "https://jira.test-example.ru/rest/api/2/statuscategory/2",
                     "id": 2,
                     "key": "new",
                     "colorName": "blue-gray",
@@ -29,16 +29,16 @@
                 }
             },
             "priority": {
-                "self": "https://bingoboom.atlassian.net/rest/api/2/priority/3",
-                "iconUrl": "https://bingoboom.atlassian.net/images/icons/priorities/medium.svg",
+                "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
                 "name": "Medium",
                 "id": "3"
             },
             "issuetype": {
-                "self": "https://bingoboom.atlassian.net/rest/api/2/issuetype/10180",
+                "self": "https://jira.test-example.ru/rest/api/2/issuetype/10180",
                 "id": "10180",
                 "description": "",
-                "iconUrl": "https://bingoboom.atlassian.net/secure/viewavatar?size=medium&avatarId=10321&avatarType=issuetype",
+                "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=medium&avatarId=10321&avatarType=issuetype",
                 "name": "test",
                 "subtask": false,
                 "avatarId": 10321,
@@ -55,17 +55,17 @@
     "outwardIssue": {
         "id": "26764",
         "key": "INDEV-608",
-        "self": "https://bingoboom.atlassian.net/rest/api/2/issue/26764",
+        "self": "https://jira.test-example.ru/rest/api/2/issue/26764",
         "fields": {
             "summary": "new issue from matrix 9",
             "status": {
-                "self": "https://bingoboom.atlassian.net/rest/api/2/status/10257",
+                "self": "https://jira.test-example.ru/rest/api/2/status/10257",
                 "description": "",
-                "iconUrl": "https://bingoboom.atlassian.net/",
+                "iconUrl": "https://jira.test-example.ru/",
                 "name": "To Do",
                 "id": "10257",
                 "statusCategory": {
-                    "self": "https://bingoboom.atlassian.net/rest/api/2/statuscategory/2",
+                    "self": "https://jira.test-example.ru/rest/api/2/statuscategory/2",
                     "id": 2,
                     "key": "new",
                     "colorName": "blue-gray",
@@ -73,16 +73,16 @@
                 }
             },
             "priority": {
-                "self": "https://bingoboom.atlassian.net/rest/api/2/priority/3",
-                "iconUrl": "https://bingoboom.atlassian.net/images/icons/priorities/medium.svg",
+                "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
                 "name": "Medium",
                 "id": "3"
             },
             "issuetype": {
-                "self": "https://bingoboom.atlassian.net/rest/api/2/issuetype/10180",
+                "self": "https://jira.test-example.ru/rest/api/2/issuetype/10180",
                 "id": "10180",
                 "description": "",
-                "iconUrl": "https://bingoboom.atlassian.net/secure/viewavatar?size=medium&avatarId=10321&avatarType=issuetype",
+                "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=medium&avatarId=10321&avatarType=issuetype",
                 "name": "test",
                 "subtask": false,
                 "avatarId": 10321,

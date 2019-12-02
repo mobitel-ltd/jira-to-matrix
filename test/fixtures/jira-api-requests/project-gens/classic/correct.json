@@ -63,6 +63,14 @@
             "iconUrl": "https://jira.test-example.ru/images/icons/issuetypes/epic.svg",
             "name": "Эпик",
             "subtask": false
+        },
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10005",
+            "id": "10005",
+            "description": "Created for testing",
+            "iconUrl": "https://jira.test-example.ru/images/icons/issuetypes/epic.svg",
+            "name": "TestTypeTask",
+            "subtask": false
         }
     ],
     "assigneeType": "UNASSIGNED",

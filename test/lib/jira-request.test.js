@@ -212,6 +212,11 @@ describe('Jira request test', () => {
                     description:
                         'Создано через Jira Software — не редактировать и не удалять. Это тип задачи нужен для большой пользовательской истории, которая требует упорядочивания.',
                 },
+                {
+                    id: '10005',
+                    description: 'Created for testing',
+                    name: 'TestTypeTask',
+                },
             ],
             isIgnore: false,
         };
