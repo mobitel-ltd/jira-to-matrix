@@ -460,6 +460,18 @@ const utils = {
         ${INDENT}You can use comands add or del types, for example<br>
         ${INDENT}!ignore add Error<br>
         ${INDENT}!ignore del Error<br>
+    <h5>Use "!create" command to create new issue in Jira and create links with current issue<br>
+    example:</h5>
+        ${INDENT}<font color="green"><strong>!create</strong></font><br>
+        ${INDENT}you will see a message:<br>
+        ${INDENT}Types of task for project "TCP":<br>
+        ${INDENT}${INDENT}1) - Task<br>
+        ${INDENT}${INDENT}2) - Epic<br>
+        ${INDENT}${INDENT}3) - Bug<br>
+        ${INDENT}${INDENT}...<br>
+        ${INDENT}You can use comands with taskTypes and new name for issue<br>
+        ${INDENT}<font color="green"><strong>!create</strong></font> Task My new task<br>
+        ${INDENT}New link, this task relates to "New-Jira-key" "My new task"
     `,
 };
 

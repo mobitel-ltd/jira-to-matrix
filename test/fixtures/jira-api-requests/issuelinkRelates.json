@@ -1,0 +1,99 @@
+{
+    "id": "15823",
+    "self": "https://jira.test-example.ru/rest/api/2/issueLink/15823",
+    "type": {
+        "id": "10003",
+        "name": "Relates",
+        "inward": "relates to",
+        "outward": "relates to",
+        "self": "https://jira.test-example.ru/rest/api/2/issueLinkType/10003"
+    },
+    "inwardIssue": {
+        "id": "26773",
+        "key": "BBCOM-614",
+        "self": "https://jira.test-example.ru/rest/api/2/issue/26773",
+        "fields": {
+            "summary": "new issue from matrix 18",
+            "status": {
+                "self": "https://jira.test-example.ru/rest/api/2/status/10257",
+                "description": "",
+                "iconUrl": "https://jira.test-example.ru/",
+                "name": "To Do",
+                "id": "10257",
+                "statusCategory": {
+                    "self": "https://jira.test-example.ru/rest/api/2/statuscategory/2",
+                    "id": 2,
+                    "key": "new",
+                    "colorName": "blue-gray",
+                    "name": "To Do"
+                }
+            },
+            "priority": {
+                "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
+                "name": "Medium",
+                "id": "3"
+            },
+            "issuetype": {
+                "self": "https://jira.test-example.ru/rest/api/2/issuetype/10180",
+                "id": "10180",
+                "description": "",
+                "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=medium&avatarId=10321&avatarType=issuetype",
+                "name": "test",
+                "subtask": false,
+                "avatarId": 10321,
+                "entityId": "c5a74263-2a6c-452c-9205-20a4a75b820a",
+                "scope": {
+                    "type": "PROJECT",
+                    "project": {
+                        "id": "10105"
+                    }
+                }
+            }
+        }
+    },
+    "outwardIssue": {
+        "id": "26764",
+        "key": "INDEV-608",
+        "self": "https://jira.test-example.ru/rest/api/2/issue/26764",
+        "fields": {
+            "summary": "new issue from matrix 9",
+            "status": {
+                "self": "https://jira.test-example.ru/rest/api/2/status/10257",
+                "description": "",
+                "iconUrl": "https://jira.test-example.ru/",
+                "name": "To Do",
+                "id": "10257",
+                "statusCategory": {
+                    "self": "https://jira.test-example.ru/rest/api/2/statuscategory/2",
+                    "id": 2,
+                    "key": "new",
+                    "colorName": "blue-gray",
+                    "name": "To Do"
+                }
+            },
+            "priority": {
+                "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
+                "name": "Medium",
+                "id": "3"
+            },
+            "issuetype": {
+                "self": "https://jira.test-example.ru/rest/api/2/issuetype/10180",
+                "id": "10180",
+                "description": "",
+                "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=medium&avatarId=10321&avatarType=issuetype",
+                "name": "test",
+                "subtask": false,
+                "avatarId": 10321,
+                "entityId": "c5a74263-2a6c-452c-9205-20a4a75b820a",
+                "scope": {
+                    "type": "PROJECT",
+                    "project": {
+                        "id": "10105"
+                    }
+                }
+            }
+        }
+    }
+}

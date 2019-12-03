@@ -22,4 +22,28 @@ module.exports = {
                 ],
             },
         }),
+    issue: (nameNewIssue, issueTypeId, projectId) =>
+        JSON.stringify({
+            fields: {
+                summary: nameNewIssue,
+                issuetype: {
+                    id: issueTypeId,
+                },
+                project: {
+                    id: projectId,
+                },
+            },
+        }),
+    issueLink: (issueKey1, issueKey2) =>
+        JSON.stringify({
+            outwardIssue: {
+                key: issueKey1,
+            },
+            inwardIssue: {
+                key: issueKey2,
+            },
+            type: {
+                name: 'Relates',
+            },
+        }),
 };

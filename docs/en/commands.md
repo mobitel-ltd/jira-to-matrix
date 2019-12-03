@@ -333,3 +333,31 @@ This key not found in ignore list for project "<current project for this room>".
 ### How it works
 
 Settings are saved in Redis by prefix `ignore:project` and saving to file such change.
+
+## create
+
+`!create <type task> name for new issue`
+
+Create new issue in Jira and add link to current issue:
+
+```
+!create Task My new task
+
+New link, this task relates to "New-Jira-key" "My new task"
+```
+
+variables:
+
+```
+!create
+Types of task for project "TCP":
+1) - Task
+2) - Epic
+3) - Bug
+```
+
+```
+!create Task
+Issue name exist.
+Use !create typeTask name task for jira
+```

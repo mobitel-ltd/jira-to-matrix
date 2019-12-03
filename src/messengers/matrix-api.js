@@ -35,6 +35,7 @@ module.exports = class Matrix extends MessengerAbstract {
         this.baseUrl = `https://${config.domain}`;
         this.userId = `@${config.user}:${config.domain}`;
         this.BOT_OUT_OF_ROOM_EXEPTION = `User ${this.userId} not in room`;
+        this.USER_ALREADY_IN_ROOM = 'is already in the room';
         this.postfix = `:${config.domain}`.length;
         this.logger = logger;
     }
@@ -104,7 +105,8 @@ module.exports = class Matrix extends MessengerAbstract {
         return (
             err.message.includes(this.EVENT_EXCEPTION) ||
             err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION) ||
-            err.message.includes(this.MESSAGE_TO_LARGE)
+            err.message.includes(this.MESSAGE_TO_LARGE) ||
+            err.message.includes(this.USER_ALREADY_IN_ROOM)
         );
     }
 
@@ -502,7 +504,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return roomId;
         } catch (err) {
-            this.logger.warn(err);
+            // this.logger.warn(err);
             this.logger.warn('No room id by alias ', text);
             return false;
         }
