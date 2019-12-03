@@ -15,6 +15,7 @@ const issueBody = require('../fixtures/jira-api-requests/issue.json');
 const postNewLinks = require('../../src/bot/actions/post-new-links.js');
 const { getPostNewLinksData } = require('../../src/jira-hook-parser/parse-body.js');
 const { getPostLinkMessageBody } = require('../../src/bot/actions/helper');
+const schemas = require('../../src/lib/schemas.js');
 
 const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
@@ -32,28 +33,6 @@ describe('create test', () => {
     const bodyText = '';
     const { issueTypes } = jiraProject;
     const projectIssueTypes = issueTypes.map(item => item.name);
-    const optionsCreateIssue = {
-        fields: {
-            summary: 'abracadabra',
-            issuetype: {
-                id: '10005',
-            },
-            project: {
-                id: projectId,
-            },
-        },
-    };
-    const optionsCreateIssueLink = {
-        outwardIssue: {
-            key: roomName,
-        },
-        inwardIssue: {
-            key: 'NEW-123',
-        },
-        type: {
-            name: 'Relates',
-        },
-    };
 
     beforeEach(() => {
         chatApi = testUtils.getChatApi();
@@ -63,9 +42,9 @@ describe('create test', () => {
         nock(utils.getRestUrl())
             .get(`/project/${projectKey}`)
             .reply(200, jiraProject)
-            .post(`/issue`, optionsCreateIssue)
+            .post(`/issue`, schemas.issue('abracadabra', '10005', projectId))
             .reply(201, { key: 'NEW-123' })
-            .post(`/issueLink`, optionsCreateIssueLink)
+            .post(`/issueLink`, schemas.issue(roomName, 'NEW-123'))
             .reply(201)
             .get(`/issueLink/${issueLinkId}`)
             .reply(200, issueLinkBody)
