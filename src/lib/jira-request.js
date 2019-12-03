@@ -114,14 +114,14 @@ const jiraRequests = {
         }
     },
 
-    createIssue: options => {
+    createIssue: (nameNewIssue, issueTypeId, projectId) => {
         const uri = utils.getRestUrl('issue');
-        return requestPost(uri, JSON.stringify(options));
+        return requestPost(uri, schemas.issue(nameNewIssue, issueTypeId, projectId));
     },
 
-    createIssueLink: options => {
+    createIssueLink: (issueKey1, issueKey2) => {
         const uri = utils.getRestUrl('issueLink');
-        return requestPost(uri, JSON.stringify(options));
+        return requestPost(uri, schemas.issueLink(issueKey1, issueKey2));
     },
 
     /**

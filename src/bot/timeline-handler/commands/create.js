@@ -24,32 +24,8 @@ module.exports = async ({ bodyText = '', roomId, roomName, sender, chatApi }) =>
         }
 
         const { id: issueTypeId } = Ramda.find(Ramda.propEq('name', issueType))(issueTypes);
-
-        const optionsCreateIssue = {
-            fields: {
-                summary: nameNewIssue,
-                issuetype: {
-                    id: issueTypeId,
-                },
-                project: {
-                    id: projectId,
-                },
-            },
-        };
-        const { key: newIssueKey } = await jiraRequests.createIssue(optionsCreateIssue);
-
-        const optionsCreateIssueLink = {
-            outwardIssue: {
-                key: roomName,
-            },
-            inwardIssue: {
-                key: newIssueKey,
-            },
-            type: {
-                name: 'Relates',
-            },
-        };
-        await jiraRequests.createIssueLink(optionsCreateIssueLink);
+        const { key: newIssueKey } = await jiraRequests.createIssue(nameNewIssue, issueTypeId, projectId);
+        await jiraRequests.createIssueLink(roomName, newIssueKey);
     } catch (err) {
         logger.error(err);
     }
