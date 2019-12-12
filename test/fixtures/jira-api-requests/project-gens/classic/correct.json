@@ -34,7 +34,7 @@
             "id": "10003",
             "description": "Подзадача задачи.",
             "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10316&avatarType=issuetype",
-            "name": "Подзадачи",
+            "name": "Sub-task",
             "subtask": true,
             "avatarId": 10316
         },

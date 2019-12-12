@@ -1,4 +1,5 @@
 const jiraRequest = require('../../lib/jira-request.js');
+const conf = require('../../config');
 const utils = require('../../lib/utils.js');
 const logger = require('../../modules/log.js')(module);
 const { getDescription } = require('./helper');
@@ -6,8 +7,11 @@ const { infoBody } = require('../../lib/messages');
 
 const createIssueRoom = async (chatApi, issue) => {
     try {
+        const {
+            jira: { user: jiraBot },
+        } = conf;
         const roomMembers = await jiraRequest.getIssueWatchers(issue);
-        const invite = roomMembers.map(user => chatApi.getChatUserId(user));
+        const invite = roomMembers.filter(user => user !== jiraBot).map(user => chatApi.getChatUserId(user));
 
         const { key, summary } = issue;
         const name = chatApi.composeRoomName(key, summary);

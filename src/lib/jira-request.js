@@ -114,9 +114,26 @@ const jiraRequests = {
         }
     },
 
-    createIssue: (nameNewIssue, issueTypeId, projectId) => {
+    createIssue: ({ summary, issueTypeId, projectId, parentId, isEpic, isSubtask, styleProject }) => {
         const uri = utils.getRestUrl('issue');
-        return requestPost(uri, schemas.issue(nameNewIssue, issueTypeId, projectId));
+        const fields = {
+            summary,
+            issuetype: {
+                id: issueTypeId,
+            },
+            project: {
+                id: projectId,
+            },
+        };
+        const propsParent = { ...fields, parent: { key: parentId } };
+        const props = isSubtask ? propsParent : isEpic ? (styleProject === 'classic' ? fields : propsParent) : fields;
+        return requestPost(uri, schemas.issue(props));
+    },
+
+    createEpicLinkClassic: ({ issueKey, parentId }) => {
+        const uri = utils.getRestUrl('issue', issueKey);
+        const props = { fields: { customfield_10013: parentId } };
+        return requestPut(uri, schemas.issueEpicLink(props));
     },
 
     createIssueLink: (issueKey1, issueKey2) => {
@@ -150,9 +167,10 @@ const jiraRequests = {
             key,
             lead: { name: leadName, key: leadKey },
             name,
-            issueTypes: issueTypes.map(({ id, name, description }) => ({ id, name, description })),
+            issueTypes: issueTypes.map(({ id, name, description, subtask }) => ({ id, name, description, subtask })),
             adminsURL,
             isIgnore,
+            style,
         };
 
         return project;

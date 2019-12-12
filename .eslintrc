@@ -50,7 +50,8 @@
             "error",
             4,
             {
-                "SwitchCase": 1
+                "SwitchCase": 1,
+                "flatTernaryExpressions": true
             }
         ],
         "max-depth": ["error", 4],
@@ -108,7 +109,6 @@
         "no-loop-func": ["error"],
         "no-multi-assign": ["error"],
         "no-negated-condition": ["error"],
-        "no-nested-ternary": ["error"],
         "no-new": ["error"],
         "no-new-func": ["error"],
         "no-new-require": ["error"],

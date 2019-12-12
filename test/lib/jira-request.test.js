@@ -198,17 +198,20 @@ describe('Jira request test', () => {
                     id: '10002',
                     name: 'Задача',
                     description: 'Задание для выполнения.',
+                    subtask: false,
                 },
                 {
                     id: '10003',
-                    name: 'Подзадачи',
+                    name: 'Sub-task',
                     description: 'Подзадача задачи.',
+                    subtask: true,
                 },
-                { id: '10001', name: 'История', description: '' },
-                { id: '10004', name: 'Баг', description: '' },
+                { id: '10001', name: 'История', description: '', subtask: false },
+                { id: '10004', name: 'Баг', description: '', subtask: false },
                 {
                     id: '10000',
                     name: 'Эпик',
+                    subtask: false,
                     description:
                         'Создано через Jira Software — не редактировать и не удалять. Это тип задачи нужен для большой пользовательской истории, которая требует упорядочивания.',
                 },
@@ -216,9 +219,11 @@ describe('Jira request test', () => {
                     id: '10005',
                     description: 'Created for testing',
                     name: 'TestTypeTask',
+                    subtask: false,
                 },
             ],
             isIgnore: false,
+            style: 'classic',
         };
 
         const expectedNewgenProject = {
@@ -228,15 +233,17 @@ describe('Jira request test', () => {
             lead: { name: 'jira_test', key: 'jira_test' },
             adminsURL: newgenProject.roles.Administrator,
             issueTypes: [
-                { id: '10349', name: 'История', description: '' },
+                { id: '10349', name: 'История', subtask: false, description: '' },
                 {
                     id: '10350',
                     name: 'Эпик',
+                    subtask: false,
                     description:
                         'Создано через Jira Software — не редактировать и не удалять. Это тип задачи нужен для большой пользовательской истории, которая требует упорядочивания.',
                 },
             ],
             isIgnore: false,
+            style: 'next-gen',
         };
 
         before(() => {

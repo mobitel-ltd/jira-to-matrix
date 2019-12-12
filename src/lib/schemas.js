@@ -22,18 +22,8 @@ module.exports = {
                 ],
             },
         }),
-    issue: (nameNewIssue, issueTypeId, projectId) =>
-        JSON.stringify({
-            fields: {
-                summary: nameNewIssue,
-                issuetype: {
-                    id: issueTypeId,
-                },
-                project: {
-                    id: projectId,
-                },
-            },
-        }),
+    issue: props => JSON.stringify({ fields: { ...props } }),
+    issueEpicLink: props => JSON.stringify({ ...props }),
     issueLink: (issueKey1, issueKey2) =>
         JSON.stringify({
             outwardIssue: {
