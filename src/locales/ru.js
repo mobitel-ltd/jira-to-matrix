@@ -65,7 +65,7 @@ const dict = Object.freeze({
     ignoreKeyAdded: 'Ключ "%{typeTaskFromUser}" был добавлен для проекта "%{projectKey}".',
     ignoreKeyDeleted: 'Ключ "%{typeTaskFromUser}" был удален для проекта "%{projectKey}".',
     epicShouldNotHaveSubtask: 'Эпик не может иметь подзадач, пожалуйста выберите другой тип задачи',
-    newTaskWasCreated: 'Новая задача [%{newIssueKey} %{summary}](%{realURL}) была создана',
+    newTaskWasCreated: 'Новая задача [%{newIssueKey} %{summary}](%{viewUrl}) была создана',
 });
 /* spell-checker: enable */
 

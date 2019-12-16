@@ -57,7 +57,7 @@ const dict = Object.freeze({
     ignoreKeyAdded: 'Key "%{typeTaskFromUser}" was added for project "%{projectKey}".',
     ignoreKeyDeleted: 'Key "%{typeTaskFromUser}" was deleted for project "%{projectKey}".',
     epicShouldNotHaveSubtask: 'Epic can not have sub-tasks, please choose other tyskType',
-    newTaskWasCreated: 'New issue [%{newIssueKey} %{summary}](%{realURL}) was created',
+    newTaskWasCreated: 'New issue [%{newIssueKey} %{summary}](%{viewUrl}) was created',
 });
 
 module.exports.dict = dict;

@@ -41,15 +41,15 @@ module.exports = async ({ bodyText = '', roomId, roomName, sender, chatApi }) =>
             styleProject,
         });
         if (!isEpic && !isSubtask) {
-            await jiraRequests.createIssueLink(roomName, newIssueKey);
+            await jiraRequests.createIssueLink(newIssueKey, roomName);
             return;
         }
         if (styleProject === 'classic' && isEpic) {
-            await jiraRequests.createEpicLinkClassic({ issueKey: newIssueKey, parentId: roomName });
+            await jiraRequests.createEpicLinkClassic(newIssueKey, roomName);
             return;
         }
-        const realURL = utils.getViewUrl(newIssueKey);
-        return marked(translate('newTaskWasCreated', { summary, newIssueKey, realURL }));
+        const viewUrl = utils.getViewUrl(newIssueKey);
+        return marked(translate('newTaskWasCreated', { summary, newIssueKey, viewUrl }));
     } catch (err) {
         logger.error(err);
     }

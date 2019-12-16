@@ -43,10 +43,10 @@ describe('create test', () => {
         nock(utils.getRestUrl())
             .get(`/project/${projectKey}`)
             .reply(200, jiraProject)
-            .post(`/issue`, schemas.issue('abracadabra', '10005', projectId))
+            .post(`/issue`, schemas.issueNotChild('abracadabra', '10005', projectId))
             .times(2)
             .reply(201, { key: 'BBCOM-123' })
-            .post(`/issueLink`, schemas.issue(roomName, 'BBCOM-123'))
+            .post(`/issueLink`, schemas.issueNotChild(roomName, 'BBCOM-123'))
             .reply(201)
             .get(`/issueLink/${issueLinkId}`)
             .reply(200, issueLinkBody)
@@ -104,19 +104,8 @@ describe('create test', () => {
             .reply(200, jiraProject)
             .get(`/issue/BBCOM-123`)
             .reply(200, issueBody)
-            .post(
-                `/issue`,
-                schemas.issue({
-                    summary: 'abracadabra',
-                    issuetype: {
-                        id: '10003',
-                    },
-                    project: {
-                        id: '10305',
-                    },
-                    parent: { key: 'BBCOM-123' },
-                }),
-            )
+            // issueChild: (summary, issueTypeId, projectId, parentId)
+            .post(`/issue`, schemas.issueChild('abracadabra', '10003', '10305', 'BBCOM-123'))
             .reply(201, { key: 'NEW-123' });
         const result = await commandHandler({
             ...baseOptions,
@@ -127,7 +116,7 @@ describe('create test', () => {
             translate('newTaskWasCreated', {
                 newIssueKey: 'NEW-123',
                 summary: 'abracadabra',
-                realURL: 'https://jira.test-example.ru/jira/browse/NEW-123',
+                viewUrl: 'https://jira.test-example.ru/jira/browse/NEW-123',
             }),
         );
 

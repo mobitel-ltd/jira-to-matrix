@@ -50,8 +50,7 @@
             "error",
             4,
             {
-                "SwitchCase": 1,
-                "flatTernaryExpressions": true
+                "SwitchCase": 1
             }
         ],
         "max-depth": ["error", 4],

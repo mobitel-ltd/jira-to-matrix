@@ -22,8 +22,37 @@ module.exports = {
                 ],
             },
         }),
-    issue: props => JSON.stringify({ fields: { ...props } }),
-    issueEpicLink: props => JSON.stringify({ ...props }),
+    issueNotChild: (summary, issueTypeId, projectId) =>
+        JSON.stringify({
+            fields: {
+                summary,
+                issuetype: {
+                    id: issueTypeId,
+                },
+                project: {
+                    id: projectId,
+                },
+            },
+        }),
+    issueChild: (summary, issueTypeId, projectId, parentId) =>
+        JSON.stringify({
+            fields: {
+                summary,
+                issuetype: {
+                    id: issueTypeId,
+                },
+                project: {
+                    id: projectId,
+                },
+                parent: { key: parentId },
+            },
+        }),
+    issueEpicLink: parentId =>
+        JSON.stringify({
+            fields: {
+                customfield_10013: parentId,
+            },
+        }),
     issueLink: (issueKey1, issueKey2) =>
         JSON.stringify({
             outwardIssue: {

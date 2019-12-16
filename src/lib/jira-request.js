@@ -113,31 +113,25 @@ const jiraRequests = {
             throw ['Error in get issue', err].join('\n');
         }
     },
-
     createIssue: ({ summary, issueTypeId, projectId, parentId, isEpic, isSubtask, styleProject }) => {
         const uri = utils.getRestUrl('issue');
-        const fields = {
-            summary,
-            issuetype: {
-                id: issueTypeId,
-            },
-            project: {
-                id: projectId,
-            },
-        };
-        const propsParent = { ...fields, parent: { key: parentId } };
-        const props = isSubtask ? propsParent : isEpic ? (styleProject === 'classic' ? fields : propsParent) : fields;
-        return requestPost(uri, schemas.issue(props));
+
+        if (isSubtask || (isEpic && styleProject !== 'classic')) {
+            return requestPost(uri, schemas.issueChild(summary, issueTypeId, projectId, parentId));
+        }
+
+        return requestPost(uri, schemas.issueNotChild(summary, issueTypeId, projectId));
     },
 
-    createEpicLinkClassic: ({ issueKey, parentId }) => {
+    createEpicLinkClassic: (issueKey, parentId) => {
         const uri = utils.getRestUrl('issue', issueKey);
-        const props = { fields: { customfield_10013: parentId } };
-        return requestPut(uri, schemas.issueEpicLink(props));
+
+        return requestPut(uri, schemas.issueEpicLink(parentId));
     },
 
     createIssueLink: (issueKey1, issueKey2) => {
         const uri = utils.getRestUrl('issueLink');
+
         return requestPost(uri, schemas.issueLink(issueKey1, issueKey2));
     },
 
