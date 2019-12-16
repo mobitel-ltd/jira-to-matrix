@@ -104,7 +104,7 @@ const helper = {
         return (await jiraRequests.getIssueSafety(sourceId)) ? sourceId : utils.getIssueLinkDestinationId(body);
     },
 
-    isManuallyIgnore: async (project, taskType) => {
+    isManuallyIgnore: async (project, taskType, type, body) => {
         // example {INDEV: {taskType: ['task', 'error'], BBQ: ['task']}}
         const result = await redis.getAsync(utils.REDIS_IGNORE_PREFIX);
         const redisIgnore = JSON.parse(result);
@@ -115,6 +115,10 @@ const helper = {
         const ignoreList = redisIgnore[project];
         if (!ignoreList) {
             return false;
+        }
+        if (type === 'issuelink' && ignoreList.taskType.includes('Sub-task')) {
+            const nameTypeIssueLink = utils.getNameIssueLinkType(body);
+            return nameTypeIssueLink === 'jira_subtask_link';
         }
 
         return ignoreList.taskType.includes(taskType);
@@ -153,7 +157,7 @@ const helper = {
         const issueCreator = utils.handleIssueAsHook.getCreator({ issue });
 
         return (
-            (await helper.isManuallyIgnore(projectKey, typeName)) ||
+            (await helper.isManuallyIgnore(projectKey, typeName, type, body)) ||
             helper.isTestCreater(issueCreator, usersToIgnore, testMode)
         );
     },

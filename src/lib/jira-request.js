@@ -113,14 +113,25 @@ const jiraRequests = {
             throw ['Error in get issue', err].join('\n');
         }
     },
-
-    createIssue: (nameNewIssue, issueTypeId, projectId) => {
+    createIssue: ({ summary, issueTypeId, projectId, parentId, isEpic, isSubtask, styleProject }) => {
         const uri = utils.getRestUrl('issue');
-        return requestPost(uri, schemas.issue(nameNewIssue, issueTypeId, projectId));
+
+        if (isSubtask || (isEpic && styleProject !== 'classic')) {
+            return requestPost(uri, schemas.issueChild(summary, issueTypeId, projectId, parentId));
+        }
+
+        return requestPost(uri, schemas.issueNotChild(summary, issueTypeId, projectId));
+    },
+
+    createEpicLinkClassic: (issueKey, parentId) => {
+        const uri = utils.getRestUrl('issue', issueKey);
+
+        return requestPut(uri, schemas.issueEpicLink(parentId));
     },
 
     createIssueLink: (issueKey1, issueKey2) => {
         const uri = utils.getRestUrl('issueLink');
+
         return requestPost(uri, schemas.issueLink(issueKey1, issueKey2));
     },
 
@@ -150,9 +161,10 @@ const jiraRequests = {
             key,
             lead: { name: leadName, key: leadKey },
             name,
-            issueTypes: issueTypes.map(({ id, name, description }) => ({ id, name, description })),
+            issueTypes: issueTypes.map(({ id, name, description, subtask }) => ({ id, name, description, subtask })),
             adminsURL,
             isIgnore,
+            style,
         };
 
         return project;

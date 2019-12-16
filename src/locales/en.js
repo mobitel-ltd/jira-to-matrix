@@ -56,6 +56,8 @@ const dict = Object.freeze({
         'Issue too long or contains control characters.<br>Please use max 255 characters and do not use control characters',
     ignoreKeyAdded: 'Key "%{typeTaskFromUser}" was added for project "%{projectKey}".',
     ignoreKeyDeleted: 'Key "%{typeTaskFromUser}" was deleted for project "%{projectKey}".',
+    epicShouldNotHaveSubtask: 'Epic can not have sub-tasks, please choose other tyskType',
+    newTaskWasCreated: 'New issue [%{newIssueKey} %{summary}](%{viewUrl}) was created',
 });
 
 module.exports.dict = dict;

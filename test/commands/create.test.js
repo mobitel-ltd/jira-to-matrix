@@ -2,6 +2,7 @@ const { random } = require('faker');
 const nock = require('nock');
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
+const marked = require('marked');
 const { expect } = chai;
 chai.use(sinonChai);
 const translate = require('../../src/locales');
@@ -42,9 +43,10 @@ describe('create test', () => {
         nock(utils.getRestUrl())
             .get(`/project/${projectKey}`)
             .reply(200, jiraProject)
-            .post(`/issue`, schemas.issue('abracadabra', '10005', projectId))
-            .reply(201, { key: 'NEW-123' })
-            .post(`/issueLink`, schemas.issue(roomName, 'NEW-123'))
+            .post(`/issue`, schemas.issueNotChild('abracadabra', '10005', projectId))
+            .times(2)
+            .reply(201, { key: 'BBCOM-123' })
+            .post(`/issueLink`, schemas.issueNotChild(roomName, 'BBCOM-123'))
             .reply(201)
             .get(`/issueLink/${issueLinkId}`)
             .reply(200, issueLinkBody)
@@ -52,6 +54,9 @@ describe('create test', () => {
             .times(2)
             .reply(200, issueBody)
             .get(`/issue/${issueLinkBody.inwardIssue.key}`)
+            .times(2)
+            .reply(200, issueBody)
+            .get(`/issue/BBCOM-123`)
             .times(2)
             .reply(200, issueBody);
     });
@@ -77,7 +82,7 @@ describe('create test', () => {
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, post, post);
     });
 
-    it('Expect create new issue and receive hook "new link" IF command "!create TestTypeTask" with correct type issue and correct new issue name', async () => {
+    it('Expect create new issue and receive hook "new link - relates to" IF command "!create TestTypeTask" with correct type issue and correct new issue name', async () => {
         const result = await commandHandler({ ...baseOptions, bodyText: 'TestTypeTask abracadabra' });
 
         const body = getPostLinkMessageBody({
@@ -91,5 +96,31 @@ describe('create test', () => {
         expect(result).to.be.undefined;
         expect(res).to.be.true;
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, body.body, body.htmlBody);
+    });
+    it('Expect create new issue SUB-TASK ', async () => {
+        nock.cleanAll();
+        nock(utils.getRestUrl())
+            .get(`/project/${projectKey}`)
+            .reply(200, jiraProject)
+            .get(`/issue/BBCOM-123`)
+            .reply(200, issueBody)
+            // issueChild: (summary, issueTypeId, projectId, parentId)
+            .post(`/issue`, schemas.issueChild('abracadabra', '10003', '10305', 'BBCOM-123'))
+            .reply(201, { key: 'NEW-123' });
+        const result = await commandHandler({
+            ...baseOptions,
+            bodyText: 'Sub-task abracadabra',
+        });
+
+        const post = marked(
+            translate('newTaskWasCreated', {
+                newIssueKey: 'NEW-123',
+                summary: 'abracadabra',
+                viewUrl: 'https://jira.test-example.ru/jira/browse/NEW-123',
+            }),
+        );
+
+        expect(result).not.to.be.undefined;
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, post, post);
     });
 });
