@@ -372,7 +372,7 @@ describe('Helper tests', () => {
     });
 
     describe('getNewAvatarUrl testing', () => {
-        const roomId = faker.random.word();
+        const roomId = 'TEST-1';
         const newStatusData = {
             field: 'status',
             fieldtype: 'jira',
@@ -392,12 +392,12 @@ describe('Helper tests', () => {
             'blue-gray': 'mxc://matrix.example/blue-gray',
         };
 
+        const expectedColorUrl = 'mxc://matrix.example/yellow';
+        const usingPojects = ['TEST'];
         const colors = {
             ...withoutExpectedColors,
-            [statusJSON.statusCategory.colorName]: 'mxc://matrix.example/yellow',
+            [statusJSON.statusCategory.colorName]: expectedColorUrl,
         };
-
-        const expectedColorUrl = colors[statusJSON.statusCategory.colorName];
 
         beforeEach(() => {
             nock(utils.getRestUrl())
@@ -418,8 +418,47 @@ describe('Helper tests', () => {
         });
 
         it('Expect getNewAvatarUrl should return correct color if statusId have this field id color link', async () => {
-            const res = await getNewAvatarUrl(roomId, { colors, statusId });
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+                usingPojects,
+            });
             expect(res).to.be.eq(expectedColorUrl);
+        });
+
+        it('Expect getNewAvatarUrl should return correct color if statusId have this field id color link and all project passed ({usingPojects: "all"})', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+                usingPojects: 'all',
+            });
+            expect(res).to.be.eq(expectedColorUrl);
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+                usingPojects: ['NOTTEST'],
+            });
+            expect(res).to.be.undefined;
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects (empty array)', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+                usingPojects: [],
+            });
+            expect(res).to.be.undefined;
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects (empty project field)', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+            });
+            expect(res).to.be.undefined;
         });
 
         it('Expect getNewAvatarUrl should return undefined if color is not exists in our colors data', async () => {

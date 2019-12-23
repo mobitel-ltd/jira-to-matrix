@@ -76,7 +76,10 @@ const schema = obj({
             .integer()
             .optional(),
     }),
-    colors: Joi.object().optional(),
+    colors: objOptional({
+        projects: Joi.alternatives(array(Joi.string()).optional(), 'all'),
+        links: Joi.object().optional(),
+    }),
 });
 
 /**

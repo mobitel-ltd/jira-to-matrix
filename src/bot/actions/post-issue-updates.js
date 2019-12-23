@@ -33,7 +33,11 @@ module.exports = async ({ chatApi, newStatusId, ...body }) => {
         await chatApi.sendHtmlMessage(roomID, info.body, info.htmlBody);
         logger.debug(`Posted updates to ${roomID}`);
 
-        const newAvatarUrl = await getNewAvatarUrl(roomID, { statusId: newStatusId, colors });
+        const newAvatarUrl = await getNewAvatarUrl(roomID, {
+            statusId: newStatusId,
+            colors: colors.links,
+            usingPojects: colors.projects,
+        });
 
         if (newAvatarUrl) {
             await chatApi.setRoomAvatar(roomID, newAvatarUrl);

@@ -268,14 +268,29 @@ const helper = {
         return { body, htmlBody };
     },
 
-    getNewAvatarUrl: async (roomId, { statusId, colors }) => {
-        if (colors && statusId) {
+    // usingPojects: 'all' | [string] | undefined
+    getNewAvatarUrl: async (roomId, { statusId, colors, usingPojects }) => {
+        if (!colors) {
+            logger.warn(`No color links is passed to update avatar for room ${roomId}`);
+        }
+        if (!statusId) {
+            logger.warn(`No statusId is passed to update avatar for room ${roomId}`);
+        }
+        if (!usingPojects) {
+            logger.warn(`No usingPojects is passed to update avatar for room ${roomId}`);
+        }
+
+        if (colors && statusId && usingPojects) {
+            const [projectName] = roomId.split('-');
+            if (!(usingPojects === 'all') && !usingPojects.includes(projectName)) {
+                logger.warn(`Project with name ${projectName} is not exist in config. Avatar will not be updated.`);
+
+                return;
+            }
             const { colorName } = await jiraRequests.getStatusData(statusId);
 
             return colors[colorName];
         }
-
-        logger.warn(`No color links or statusId is passed to update avatar for room ${roomId}`);
     },
 };
 

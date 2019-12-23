@@ -78,9 +78,12 @@ module.exports = Object.freeze({
         count: 10,
     },
     colors: {
-        purple: 'mxc://matrix.example/purple',
-        green: 'mxc://matrix.example/green',
-        yellow: 'mxc://matrix.example/yellow',
-        'blue-gray': 'mxc://matrix.example/blue-gray',
+        links: {
+            purple: 'mxc://matrix.example/purple',
+            green: 'mxc://matrix.example/green',
+            yellow: 'mxc://matrix.example/yellow',
+            'blue-gray': 'mxc://matrix.example/blue-gray',
+        },
+        projects: ['TEST'],
     },
 });
