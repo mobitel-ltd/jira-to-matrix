@@ -264,6 +264,20 @@ const jiraRequests = {
             return false;
         }
     },
+
+    getStatusData: async statusId => {
+        try {
+            const statusUrl = utils.getRestUrl('status', statusId);
+
+            const data = await request(statusUrl);
+
+            return { colorName: Ramda.path(['statusCategory', 'colorName'], data) };
+        } catch (error) {
+            logger.error(error);
+
+            return {};
+        }
+    },
 };
 
 module.exports = jiraRequests;

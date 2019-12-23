@@ -1,0 +1,20 @@
+{
+    "self": "https://jira.test-example.ru/rest/api/2/status/10279",
+    "description": "",
+    "iconUrl": "https://jira.test-example.ru/",
+    "name": "In Progress",
+    "id": "10279",
+    "statusCategory": {
+        "self": "https://jira.test-example.ru/rest/api/2/statuscategory/4",
+        "id": 4,
+        "key": "indeterminate",
+        "colorName": "yellow",
+        "name": "In Progress"
+    },
+    "scope": {
+        "type": "PROJECT",
+        "project": {
+            "id": "10112"
+        }
+    }
+}

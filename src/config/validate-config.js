@@ -76,6 +76,7 @@ const schema = obj({
             .integer()
             .optional(),
     }),
+    colors: Joi.object().optional(),
 });
 
 /**

@@ -1,6 +1,7 @@
 const utils = require('../../lib/utils');
 const logger = require('../../modules/log.js')(module);
-const { getIssueUpdateInfoMessageBody } = require('./helper.js');
+const { getIssueUpdateInfoMessageBody, getNewAvatarUrl } = require('./helper.js');
+const { colors } = require('../../config');
 
 /**
  * post issue update
@@ -9,10 +10,11 @@ const { getIssueUpdateInfoMessageBody } = require('./helper.js');
  * @param  {string} options.oldKey old key of issue
  * @param  {string?} options.newKey new key of issue
  * @param  {Object?} options.newNameData new name of room
- * @param  {object} options.changelog changes object
+ * @param  {object} options.changelog changes object\
  * @param  {string} options.author changes author
+ * @param  {string?} options.newStatusId new status id for issue
  */
-module.exports = async ({ chatApi, ...body }) => {
+module.exports = async ({ chatApi, newStatusId, ...body }) => {
     try {
         const roomID = await chatApi.getRoomId(body.oldKey);
 
@@ -30,6 +32,14 @@ module.exports = async ({ chatApi, ...body }) => {
         const info = await getIssueUpdateInfoMessageBody(body);
         await chatApi.sendHtmlMessage(roomID, info.body, info.htmlBody);
         logger.debug(`Posted updates to ${roomID}`);
+
+        const newAvatarUrl = await getNewAvatarUrl(roomID, { statusId: newStatusId, colors });
+
+        if (newAvatarUrl) {
+            await chatApi.setRoomAvatar(roomID, newAvatarUrl);
+
+            logger.debug(`Room ${roomID} have got new avatar ${newAvatarUrl}`);
+        }
 
         return true;
     } catch (err) {

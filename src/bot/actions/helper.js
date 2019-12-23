@@ -267,6 +267,16 @@ const helper = {
 
         return { body, htmlBody };
     },
+
+    getNewAvatarUrl: async (roomId, { statusId, colors }) => {
+        if (colors && statusId) {
+            const { colorName } = await jiraRequests.getStatusData(statusId);
+
+            return colors[colorName];
+        }
+
+        logger.warn(`No color links or statusId is passed to update avatar for room ${roomId}`);
+    },
 };
 
 module.exports = helper;

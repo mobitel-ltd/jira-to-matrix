@@ -84,7 +84,9 @@ module.exports = {
             ? { key: newKey, summary: utils.getSummary(body) }
             : utils.getNewSummary(body) && { key: oldKey, summary: utils.getNewSummary(body) };
 
-        return { oldKey, newKey, newNameData, changelog, author };
+        const newStatusId = utils.getNewStatusId(body);
+
+        return { oldKey, newKey, newNameData, changelog, author, newStatusId };
     },
 
     getPostLinksDeletedData: body => ({

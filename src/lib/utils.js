@@ -208,6 +208,8 @@ const utils = {
 
     getNewStatus: body => Ramda.path(['toString'], utils.getChangelogField('status', body)),
 
+    getNewStatusId: body => Ramda.path(['to'], utils.getChangelogField('status', body)),
+
     getNewKey: body => Ramda.path(['toString'], utils.getChangelogField('Key', body)),
 
     getOldKey: body => Ramda.path(['fromString'], utils.getChangelogField('Key', body)),

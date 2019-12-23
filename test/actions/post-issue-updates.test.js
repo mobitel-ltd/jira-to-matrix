@@ -1,8 +1,11 @@
+const { colors } = require('../../src/config');
 const nock = require('nock');
 const chai = require('chai');
 const translate = require('../../src/locales');
 const utils = require('../../src/lib/utils.js');
 const issueMovedJSON = require('../fixtures/webhooks/issue/updated/move-issue.json');
+const issueStatusChangedJSON = require('../fixtures/webhooks/issue/updated/status-changed.json');
+const statusJSON = require('../fixtures/jira-api-requests/status.json');
 const descriptionUpdateJSON = require('../fixtures/webhooks/issue/updated/description-update.json');
 const { getPostIssueUpdatesData } = require('../../src/jira-hook-parser/parse-body.js');
 const { isPostIssueUpdates } = require('../../src/jira-hook-parser/bot-handler.js');
@@ -36,7 +39,13 @@ describe('Post issue updates test', () => {
             .get(`/issue/${utils.getOldKey(issueMovedJSON)}`)
             .times(4)
             .query(utils.expandParams)
-            .reply(200, renderedIssueJSON);
+            .reply(200, renderedIssueJSON)
+            .get(`/issue/${utils.getKey(issueStatusChangedJSON)}`)
+            .times(4)
+            .query(utils.expandParams)
+            .reply(200, renderedIssueJSON)
+            .get(`/status/${issueStatusChangedJSON.changelog.items[0].to}`)
+            .reply(200, statusJSON);
     });
 
     beforeEach(() => {
@@ -142,5 +151,15 @@ describe('Post issue updates test', () => {
             summary: changelog.items[0].toString,
         });
         expect(res).to.be.true;
+    });
+
+    it('Expect status changes with room avatar color change', async () => {
+        const expectedColorLink = colors[statusJSON.statusCategory.colorName];
+
+        const data = getPostIssueUpdatesData(issueStatusChangedJSON);
+        const res = await postIssueUpdates({ chatApi, ...data });
+
+        expect(res).to.be.true;
+        expect(chatApi.setRoomAvatar).have.to.be.calledWithExactly(roomId, expectedColorLink);
     });
 });
