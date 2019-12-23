@@ -1,3 +1,4 @@
+/* eslint-disable no-undefined */
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
@@ -554,5 +555,19 @@ module.exports = class Matrix extends MessengerAbstract {
         const room = await this.client.getRoom(roomId);
 
         return Boolean(room);
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @param {string} url new avatar url
+     * @returns {Promise<void>} void
+     */
+    async setRoomAvatar(roomId, url) {
+        const method = 'PUT';
+        const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.avatar`;
+        const body = { url };
+
+        await this.client._http.authedRequest(undefined, method, path, {}, body);
     }
 };

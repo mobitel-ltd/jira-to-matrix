@@ -4,6 +4,7 @@ const projectCreatedJSON = require('../fixtures/webhooks/project/created.json');
 const issueCreatedJSON = require('../fixtures/webhooks/issue/created.json');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
+const statusJSON = require('../fixtures/jira-api-requests/status.json');
 const htmlToText = require('html-to-text').fromString;
 const faker = require('faker');
 const marked = require('marked');
@@ -38,6 +39,7 @@ const {
     getManuallyIgnore,
     getIgnoreProject,
     getDescription,
+    getNewAvatarUrl,
 } = require('../../src/bot/actions/helper.js');
 
 const testUserId = faker.random.arrayElement(testMode.users);
@@ -366,6 +368,107 @@ describe('Helper tests', () => {
             );
 
             expect(ignoreStatus).to.be.true;
+        });
+    });
+
+    describe('getNewAvatarUrl testing', () => {
+        const roomId = 'TEST-1';
+        const newStatusData = {
+            field: 'status',
+            fieldtype: 'jira',
+            fieldId: 'status',
+            from: '10257',
+            fromString: 'To Do',
+            to: '10279',
+            toString: 'In Progress',
+        };
+        const errStatusId = 100000;
+        const statusId = newStatusData.to;
+        const withoutExpectedColors = {
+            red: 'mxc://matrix.example/red',
+            purple: 'mxc://matrix.example/purple',
+            green: 'mxc://matrix.example/green',
+            white: 'mxc://matrix.example/white',
+            'blue-gray': 'mxc://matrix.example/blue-gray',
+        };
+
+        const expectedColorUrl = 'mxc://matrix.example/yellow';
+        const usingPojects = ['TEST'];
+        const colors = {
+            ...withoutExpectedColors,
+            [statusJSON.statusCategory.colorName]: expectedColorUrl,
+        };
+
+        beforeEach(() => {
+            nock(utils.getRestUrl())
+                .get(`/status/${newStatusData.to}`)
+                .reply(200, statusJSON)
+                .get(`/status/${errStatusId}`)
+                .reply(404);
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if no statusId is put', async () => {
+            const res = await getNewAvatarUrl(roomId, { colors });
+            expect(res).to.be.undefined;
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if no colors is put', async () => {
+            const res = await getNewAvatarUrl(roomId, { statusId });
+            expect(res).to.be.undefined;
+        });
+
+        it('Expect getNewAvatarUrl should return correct color if statusId have this field id color link', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+                usingPojects,
+            });
+            expect(res).to.be.eq(expectedColorUrl);
+        });
+
+        it('Expect getNewAvatarUrl should return correct color if statusId have this field id color link and all project passed ({usingPojects: "all"})', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+                usingPojects: 'all',
+            });
+            expect(res).to.be.eq(expectedColorUrl);
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+                usingPojects: ['NOTTEST'],
+            });
+            expect(res).to.be.undefined;
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects (empty array)', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+                usingPojects: [],
+            });
+            expect(res).to.be.undefined;
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects (empty project field)', async () => {
+            const res = await getNewAvatarUrl(roomId, {
+                colors,
+                statusId,
+            });
+            expect(res).to.be.undefined;
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if color is not exists in our colors data', async () => {
+            const res = await getNewAvatarUrl(roomId, { colors: withoutExpectedColors, statusId });
+            expect(res).to.be.undefined;
+        });
+
+        it('Expect getNewAvatarUrl should return undefined if request to get color has error inside', async () => {
+            const res = await getNewAvatarUrl(roomId, { colors, statusId: errStatusId });
+            expect(res).to.be.undefined;
         });
     });
 });

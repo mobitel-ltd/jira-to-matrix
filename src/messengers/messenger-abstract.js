@@ -159,4 +159,12 @@ module.exports = class {
      * @returns {boolean} return true if user in this room
      */
     async isInRoom(roomId) {}
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @param {string} url new avatar url
+     * @returns {Promise<void>} void
+     */
+    async setRoomAvatar(roomId, url) {}
 };
