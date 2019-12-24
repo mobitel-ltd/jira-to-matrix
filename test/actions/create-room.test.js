@@ -2,6 +2,7 @@ const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
 const createRoom = require('../../src/bot/actions/create-room.js');
+const config = require('../../src/config');
 
 const commentCreatedJSON = require('../fixtures/webhooks/comment/created.json');
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
@@ -26,6 +27,10 @@ describe('Create room test', () => {
         issueBodyJSON.fields.assignee.name,
     ].map(name => chatApi.getChatUserId(name));
 
+    // colors INDEV-749
+    const [projectForAvatar] = config.colors.projects;
+    const issueKeyAvatar = `${projectForAvatar}-123`;
+
     const watchers = watchersBody.watchers.map(({ name }) => chatApi.getChatUserId(name));
     const errorMsg = 'some error';
 
@@ -39,6 +44,7 @@ describe('Create room test', () => {
         name: chatApi.composeRoomName(epicJSON.issue.key, epicJSON.issue.fields.summary),
         topic: utils.getViewUrl(epicJSON.issue.key),
         purpose: utils.getSummary(epicJSON),
+        avatarUrl: undefined,
     };
 
     const expectedIssueRoomOptions = {
@@ -47,6 +53,7 @@ describe('Create room test', () => {
         name: chatApi.composeRoomName(createRoomData.issue.key, createRoomData.issue.summary),
         topic: utils.getViewUrl(createRoomData.issue.key),
         purpose: createRoomData.issue.summary,
+        avatarUrl: undefined,
     };
 
     const expectedIssueRoomOptionsNoSummary = {
@@ -55,6 +62,16 @@ describe('Create room test', () => {
         name: chatApi.composeRoomName(issueBodyJSON.key, issueBodyJSON.fields.summary),
         topic: utils.getViewUrl(issueBodyJSON.key),
         purpose: issueBodyJSON.fields.summary,
+        avatarUrl: undefined,
+    };
+
+    const expectedIssueAvatar = {
+        room_alias_name: issueKeyAvatar,
+        invite: [...new Set([...members, ...watchers])],
+        name: chatApi.composeRoomName(issueKeyAvatar, issueBodyJSON.fields.summary),
+        topic: utils.getViewUrl(issueKeyAvatar),
+        purpose: issueBodyJSON.fields.summary,
+        avatarUrl: config.colors.links.issue,
     };
 
     const expectedEpicProjectOptions = {
@@ -90,6 +107,15 @@ describe('Create room test', () => {
             // room created hook
             .get(`/issue/${createRoomData.issue.key}/watchers`)
             .reply(200, watchersBody)
+            // avatar
+            .get(`/issue/${issueKeyAvatar}`)
+            .times(3)
+            .reply(200, { ...issueBodyJSON, key: issueKeyAvatar })
+            .get(`/issue/${issueKeyAvatar}/watchers`)
+            .reply(200, watchersBody)
+            .get(`/issue/${issueKeyAvatar}`)
+            .query(utils.expandParams)
+            .reply(200, renderedIssueJSON)
             .get(`/issue/${epicJSON.issue.key}/watchers`)
             .reply(200, watchersBody)
             .get(`/project/${projectKey}`)
@@ -190,6 +216,7 @@ describe('Create room test', () => {
             name: chatApi.composeRoomName(issueBodyJSON.key, issueBodyJSON.fields.summary),
             topic: utils.getViewUrl(issueBodyJSON.key),
             purpose: issueBodyJSON.fields.summary,
+            avatarUrl: undefined,
         });
         expect(result).to.be.true;
     });
@@ -199,6 +226,15 @@ describe('Create room test', () => {
         chatApi.getRoomIdByName.resolves(false);
         const result = await createRoom({ chatApi, issue: { key: createRoomData.issue.key } });
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptionsNoSummary);
+        expect(result).to.be.true;
+    });
+
+    it("Expect room should be created if it's not exists with avatar url if no project is in the config list colors", async () => {
+        chatApi.getRoomIdByName.reset();
+        chatApi.getRoomIdByName.resolves(false);
+        const result = await createRoom({ chatApi, issue: { key: issueKeyAvatar } });
+
+        expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueAvatar);
         expect(result).to.be.true;
     });
 });

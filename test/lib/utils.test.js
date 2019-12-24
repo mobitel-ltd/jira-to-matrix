@@ -1,4 +1,3 @@
-/* eslint-disable no-undefined */
 const utils = require('../../src/lib/utils');
 const assert = require('assert');
 const issueChangedHook = require('../fixtures/webhooks/issue/updated/commented-changed.json');
