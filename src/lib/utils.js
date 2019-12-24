@@ -103,6 +103,7 @@ const handlers = {
         getIssueName: body => Ramda.path(['issueLink', 'id'], body),
         getIssueLinkSourceId: body => Ramda.path(['issueLink', 'sourceIssueId'], body),
         getIssueLinkDestinationId: body => Ramda.path(['issueLink', 'destinationIssueId'], body),
+        getNameIssueLinkType: body => Ramda.path(['issueLink', 'issueLinkType', 'name'], body),
         getSourceRelation: body => Ramda.path(['issueLink', 'issueLinkType', 'outwardName'], body),
         getDestinationRelation: body => Ramda.path(['issueLink', 'issueLinkType', 'inwardName'], body),
     },
@@ -174,6 +175,8 @@ const utils = {
     getIssueLinkSourceId: body => handlers.issuelink.getIssueLinkSourceId(body),
 
     getIssueLinkDestinationId: body => handlers.issuelink.getIssueLinkDestinationId(body),
+
+    getNameIssueLinkType: body => handlers.issuelink.getNameIssueLinkType(body),
 
     getSourceRelation: body => handlers.issuelink.getSourceRelation(body),
 
@@ -462,6 +465,18 @@ const utils = {
         ${INDENT}You can use comands add or del types, for example<br>
         ${INDENT}!ignore add Error<br>
         ${INDENT}!ignore del Error<br>
+    <h5>Use "!create" command to create new issue in Jira and create links with current issue<br>
+    example:</h5>
+        ${INDENT}<font color="green"><strong>!create</strong></font><br>
+        ${INDENT}you will see a message:<br>
+        ${INDENT}Types of task for project "TCP":<br>
+        ${INDENT}${INDENT}1) - Task<br>
+        ${INDENT}${INDENT}2) - Epic<br>
+        ${INDENT}${INDENT}3) - Bug<br>
+        ${INDENT}${INDENT}...<br>
+        ${INDENT}You can use comands with taskTypes and new name for issue<br>
+        ${INDENT}<font color="green"><strong>!create</strong></font> Task My new task<br>
+        ${INDENT}New link, this task relates to "New-Jira-key" "My new task"
     `,
 };
 

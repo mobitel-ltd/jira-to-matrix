@@ -32,9 +32,11 @@ module.exports = class Matrix extends MessengerAbstract {
         this.sdk = sdk;
         // TODO: delete EVENT_EXCEPTION check in errors after resolving 'no-event' bug
         this.EVENT_EXCEPTION = 'Could not find event';
+        this.MESSAGE_TO_LARGE = 'event too large';
         this.baseUrl = `https://${config.domain}`;
         this.userId = `@${config.user}:${config.domain}`;
         this.BOT_OUT_OF_ROOM_EXEPTION = `User ${this.userId} not in room`;
+        this.USER_ALREADY_IN_ROOM = 'is already in the room';
         this.postfix = `:${config.domain}`.length;
         this.logger = logger;
     }
@@ -101,7 +103,12 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {Boolean} true/false
      */
     _isEventExeptionError(err) {
-        return err.message.includes(this.EVENT_EXCEPTION) || err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION);
+        return (
+            err.message.includes(this.EVENT_EXCEPTION) ||
+            err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION) ||
+            err.message.includes(this.MESSAGE_TO_LARGE) ||
+            err.message.includes(this.USER_ALREADY_IN_ROOM)
+        );
     }
 
     /**
@@ -498,7 +505,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return roomId;
         } catch (err) {
-            this.logger.warn(err);
+            // this.logger.warn(err);
             this.logger.warn('No room id by alias ', text);
             return false;
         }

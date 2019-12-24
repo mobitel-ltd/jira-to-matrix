@@ -2,7 +2,7 @@ const { usersToIgnore, testMode } = require('../config');
 const logger = require('../modules/log.js')(module);
 const { getFuncAndBody } = require('./bot-handler.js');
 const isIgnore = require('./is-ignore');
-const { saveIncoming } = require('../queue/redis-data-handle.js');
+const { saveIncoming, saveToHandled } = require('../queue/redis-data-handle.js');
 
 /**
  * Is ignore data
@@ -21,7 +21,9 @@ module.exports = async (body, _usersToIgnore = usersToIgnore, _testMode = testMo
         }
 
         const parsedBody = getFuncAndBody(body);
-        await Promise.all(parsedBody.map(saveIncoming));
+        const handledKeys = (await Promise.all(parsedBody.map(saveIncoming))).filter(Boolean);
+
+        await saveToHandled(handledKeys);
 
         return true;
     } catch (err) {

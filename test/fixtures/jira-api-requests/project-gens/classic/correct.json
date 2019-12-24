@@ -34,7 +34,7 @@
             "id": "10003",
             "description": "Подзадача задачи.",
             "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=xsmall&avatarId=10316&avatarType=issuetype",
-            "name": "Подзадачи",
+            "name": "Sub-task",
             "subtask": true,
             "avatarId": 10316
         },
@@ -62,6 +62,14 @@
             "description": "Создано через Jira Software — не редактировать и не удалять. Это тип задачи нужен для большой пользовательской истории, которая требует упорядочивания.",
             "iconUrl": "https://jira.test-example.ru/images/icons/issuetypes/epic.svg",
             "name": "Эпик",
+            "subtask": false
+        },
+        {
+            "self": "https://jira.test-example.ru/rest/api/2/issuetype/10005",
+            "id": "10005",
+            "description": "Created for testing",
+            "iconUrl": "https://jira.test-example.ru/images/icons/issuetypes/epic.svg",
+            "name": "TestTypeTask",
             "subtask": false
         }
     ],

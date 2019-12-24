@@ -44,12 +44,14 @@ Required to be an administrator
 Gives the user rights for actions inside the room, such as: throwing other participants out of the room, banning, deleting other people's messages, editing room parameters, etc.
 
 In the absence of arguments, the command extends to its author:
+
 ```
 !op
 Bot changed the power level of @<user id>:matrix.yourdomain from Default (0) to Moderator (50).
 ```
 
 If you specify the id of another user, then his status will be changed:
+
 ```
 !op other_user
 Bot changed the power level of @<other_user>:matrix.yourdomain from Default (0) to Moderator (50).
@@ -75,6 +77,7 @@ User "<user id>" don't have admin status for this command
 Increases the priority of the current task in Jira.
 
 If there are no arguments, the command will display the available priority status.
+
 ```
 !prio
 
@@ -112,6 +115,7 @@ New priority with name "123" is not found
 Changes the status of the current task in Jira.
 
 If there are no arguments, the command will display the available task statuses.
+
 ```
 !move
 
@@ -122,10 +126,12 @@ List of available commands:
 ```
 
 If you specify the priority number or its name, the task status will be changed with the corresponding status (the command is case-insensitive):
+
 ```
 !move 1
 Issue status changed by user <user id> to To Do
 ```
+
 ```
 !move TO DO
 Issue status changed by user <user id> to To Do
@@ -143,6 +149,7 @@ New status with name "123" not found
 `!comment <text>`
 
 Adds a comment in the issue to Jira, then a message comes from Jira:
+
 ```
 !comment 123
 <bot id> добавил(а) комментарий:
@@ -150,6 +157,7 @@ Adds a comment in the issue to Jira, then a message comes from Jira:
 ```
 
 In the case of an empty message body, the command will not do anything in Jira and a warning will come:
+
 ```
 !comment
 Add comment body
@@ -160,6 +168,7 @@ Add comment body
 `!spec <part of user displayname/ user id>`
 
 Adds an observer to the current task in Jira and invites the user to the matrix room:
+
 ```
 !spec Иванов Иван
 
@@ -188,7 +197,6 @@ If no one is found, a message will be sent:
 !spec Иввввввванов
 The watcher is not added! Check user name and try again
 ```
-
 
 If the bot has an incorrect status in the project, the following notification will be displayed:
 
@@ -252,3 +260,111 @@ If the bot was removed from the project participants or another problem with the
 !assign Иванов Иван Александрович
 Bot don't have permission to watch or make actions in this Jira issue
 ```
+
+## ignore
+
+`!ignore <add|del> <taskType>`
+
+Command allows you to customize settings for processing hooks for current project. Task types are different for each project.
+
+Command could use only admins in current project.
+If user-not-admin try to use this command:
+
+```
+!ignore
+User "<user-not-admin>" don't have admin status for this command
+```
+
+If params was added earlier you will see a message.Task types from this list you can use for del ignore-setting.
+
+```
+!ignore
+Current ignore-settings for project "<current project for this room>":
+    1) - Task
+    2) - Epic
+    3) - Bug
+
+```
+
+If params was NOT added earlier you will see a message:
+
+```
+!ignore
+For project "<current project for this room>" ignore list is empty.
+You can add ignore key !ignore add Error
+```
+
+### For add:
+
+```
+!ignore add Error
+Key "Error" was added for project "<current project for this room>".
+or
+!ignore add Error
+Key "Error" already exist in project "<current project for this room>".
+```
+
+If taskType not found:
+
+```
+!ignore add wrongTaskType
+Such key not found in project "<current project for this room>"
+You can use keys:
+    1) - Story
+    2) - Epic
+    3) - Error
+    4) - Task
+    5) - test
+    6) - Discussion
+```
+
+After add suchessfully hooks from Jira with this task type will be ignored.
+
+### For delete:
+
+```
+!ignore del Error
+Key "Error" was deleted for project "<current project for this room>".
+or
+!ignore del Error
+This key not found in ignore list for project "<current project for this room>".
+```
+
+### How it works
+
+Settings are saved in Redis by prefix `ignore:project` and saving to file such change.
+
+## create
+
+`!create <type task> name for new issue`
+
+Create new issue in Jira and add link to current issue:
+
+```
+!create Task My new task
+
+New link, this task relates to "New-Jira-key" "My new task"
+```
+
+variables:
+
+```
+!create
+Types of task for project "TCP":
+1) - Task
+2) - Epic
+3) - Bug
+```
+
+```
+!create Task
+Issue name exist.
+Use !create typeTask name task for jira
+```
+
+The algorithm for creating a connection between a new task and the current one:
+
+1. If the current task is an epic, a child task is created for the current epic.
+2. If the task being created is a subtask, then a child task is created for the current task.
+3. In the epic, you cannot create subtasks.
+4. If the task being created is not a subtask and the current task is not epic, a connection `relates to` is created between the tasks

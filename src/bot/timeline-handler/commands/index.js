@@ -7,6 +7,7 @@ const op = require('./op.js');
 const invite = require('./invite.js');
 const help = require('./help.js');
 const ignore = require('./ignore.js');
+const create = require('./create.js');
 
 module.exports = {
     comment,
@@ -18,4 +19,5 @@ module.exports = {
     invite,
     help,
     ignore,
+    create,
 };

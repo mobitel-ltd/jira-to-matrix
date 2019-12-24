@@ -84,9 +84,9 @@ const isHandled = async key => {
     return handledKeys.includes(key);
 };
 
-const saveToHandled = async newKey => {
+const saveToHandled = async newKeys => {
     const oldKeys = (await getHandledKeys()) || [];
-    await redis.setAsync(HANDLED_KEY, JSON.stringify([...oldKeys, newKey]));
+    await redis.setAsync(HANDLED_KEY, JSON.stringify([...oldKeys, ...newKeys]));
 };
 
 const createRoomDataOnlyNew = createRoomData => {
@@ -222,10 +222,9 @@ const saveIncoming = async ({ redisKey, ...restData }) => {
                 return;
             }
             await redis.setAsync(redisKey, bodyToJSON);
-            await saveToHandled(redisKey);
             logger.info('data saved by redis. RedisKey: ', redisKey);
 
-            return;
+            return redisKey;
         }
 
         await redis.setAsync(redisKey, bodyToJSON);
@@ -246,4 +245,5 @@ module.exports = {
     getRedisValue,
     createRoomDataOnlyNew,
     getHandledKeys,
+    saveToHandled,
 };

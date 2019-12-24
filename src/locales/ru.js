@@ -40,6 +40,7 @@ const dict = Object.freeze({
     successWatcherJira: 'Наблюдатель добавлен',
     notFoundUser: 'Пользователя %{user} нет в этой комнате',
     notFoundRoom: 'Комната "%{roomName}" не найдена',
+    notPrio: 'Эта задача не имеет приоритетов.',
     notFoundPrio: 'Новый приоритет с именем "%{bodyText}" не найден',
     setPriority: 'Теперь задача имеет приоритет %{name}',
     successUserKick: 'Пользователь %{user} исключен из комнаты %{roomName}',
@@ -49,15 +50,22 @@ const dict = Object.freeze({
     currentIgnoreSettings: 'Текущие настройки игнорирования для проекта "%{projectKey}": ',
     varsComandsIgnoreSettings:
         'Вы можете использовать команды добавления или удаления типов, например<br>!ignore add Error<br>!ignore del Error',
+    jiraBotWereAreNotInProject:
+        'Для испоьзования команды !ignore необходимо добавить "%{jiraBotUser}" в администраторы проекта',
     emptyIgnoreList:
         'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете добавить тип командой !ignore add Error',
     notIgnoreKey: 'Укажите ключи.<br>!ignore add <b>Task</b>',
-    notKeyInProject: 'Такой ключ не предусмотрен в проекте "%{projectKey}".<br>Вы можете использовать ключи:',
+    notKeyInProject: 'Типы задач в проекте "%{projectKey}":',
     keyNotFoundForDelete: 'Ключ не найден в настройках проекта "%{projectKey}".',
     keyAlreadyExistForAdd: 'Ключ "%{typeTaskFromUser}" уже добавлен в игнор лист для проекта "%{projectKey}"',
     commandNotFound: 'Неправильная команда.',
+    issueNameExist: 'Не найдено название задачи.<br>Используйте команду !create ТИП_ЗАДАЧИ  название задачи в Jira',
+    issueNameTooLong:
+        'Название задачи слишком длинное или содержит управляющие символы<br>Пожалуйста используйте максимум 255 символов и не используйте управляющие символы',
     ignoreKeyAdded: 'Ключ "%{typeTaskFromUser}" был добавлен для проекта "%{projectKey}".',
     ignoreKeyDeleted: 'Ключ "%{typeTaskFromUser}" был удален для проекта "%{projectKey}".',
+    epicShouldNotHaveSubtask: 'Эпик не может иметь подзадач, пожалуйста выберите другой тип задачи',
+    newTaskWasCreated: 'Новая задача [%{newIssueKey} %{summary}](%{viewUrl}) была создана',
 });
 /* spell-checker: enable */
 
