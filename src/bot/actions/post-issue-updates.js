@@ -1,7 +1,8 @@
 const utils = require('../../lib/utils');
 const logger = require('../../modules/log.js')(module);
 const { getIssueUpdateInfoMessageBody, getNewAvatarUrl } = require('./helper.js');
-const { colors } = require('../../config');
+const config = require('../../config');
+const ramda = require('ramda');
 
 /**
  * post issue update
@@ -35,8 +36,8 @@ module.exports = async ({ chatApi, newStatusId, ...body }) => {
 
         const newAvatarUrl = await getNewAvatarUrl(body.oldKey, {
             statusId: newStatusId,
-            colors: colors.links,
-            usingPojects: colors.projects,
+            colors: ramda.path(['colors', 'links'], config),
+            usingPojects: ramda.path(['colors', 'projects'], config),
         });
 
         if (newAvatarUrl) {

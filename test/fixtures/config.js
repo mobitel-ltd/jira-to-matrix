@@ -83,6 +83,7 @@ module.exports = Object.freeze({
             green: 'mxc://matrix.example/green',
             yellow: 'mxc://matrix.example/yellow',
             'blue-gray': 'mxc://matrix.example/blue-gray',
+            issue: 'mxc://matrix.example/blue-gray',
         },
         projects: ['TEST'],
     },

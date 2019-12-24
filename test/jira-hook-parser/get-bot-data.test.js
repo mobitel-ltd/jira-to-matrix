@@ -1,4 +1,3 @@
-/* eslint-disable no-undefined */
 const assert = require('assert');
 const firstJSON = require('../fixtures/webhooks/comment/created.json');
 const secondJSON = require('../fixtures/webhooks/issue/updated/commented.json');
