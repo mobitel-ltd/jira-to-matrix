@@ -93,4 +93,20 @@ module.exports = Object.freeze({
         // how many times tring reconnect by default 10
         count: 10,
     },
+    // colors links to update according to every color in jira
+    // you must upload it before and get links to set them here
+    // Optionally
+    colors: {
+        links: {
+            purple: 'mxc://matrix.example/purple',
+            green: 'mxc://matrix.example/green',
+            yellow: 'mxc://matrix.example/yellow',
+            'blue-gray': 'mxc://matrix.example/blue-gray',
+        },
+        // Projects to use
+        // You can use this action for some projects only
+        // if you want to set all - projects: 'all'
+        // if you want to SKIP for all - just don't use this field or skip colors
+        projects: ['TEST'],
+    },
 });

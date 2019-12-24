@@ -1,3 +1,4 @@
+/* eslint-disable no-undefined */
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
@@ -35,6 +36,7 @@ module.exports = class Matrix extends MessengerAbstract {
         this.baseUrl = `https://${config.domain}`;
         this.userId = `@${config.user}:${config.domain}`;
         this.BOT_OUT_OF_ROOM_EXEPTION = `User ${this.userId} not in room`;
+        this.USER_ALREADY_IN_ROOM = 'is already in the room';
         this.postfix = `:${config.domain}`.length;
         this.logger = logger;
     }
@@ -104,7 +106,8 @@ module.exports = class Matrix extends MessengerAbstract {
         return (
             err.message.includes(this.EVENT_EXCEPTION) ||
             err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION) ||
-            err.message.includes(this.MESSAGE_TO_LARGE)
+            err.message.includes(this.MESSAGE_TO_LARGE) ||
+            err.message.includes(this.USER_ALREADY_IN_ROOM)
         );
     }
 
@@ -502,7 +505,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return roomId;
         } catch (err) {
-            this.logger.warn(err);
+            // this.logger.warn(err);
             this.logger.warn('No room id by alias ', text);
             return false;
         }
@@ -552,5 +555,19 @@ module.exports = class Matrix extends MessengerAbstract {
         const room = await this.client.getRoom(roomId);
 
         return Boolean(room);
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @param {string} url new avatar url
+     * @returns {Promise<void>} void
+     */
+    async setRoomAvatar(roomId, url) {
+        const method = 'PUT';
+        const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.avatar`;
+        const body = { url };
+
+        await this.client._http.authedRequest(undefined, method, path, {}, body);
     }
 };

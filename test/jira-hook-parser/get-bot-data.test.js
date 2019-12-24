@@ -41,6 +41,7 @@ describe('get-bot-data', () => {
                 redisKey: 'postIssueUpdates_2019-2-27 13:30:21,620',
                 funcName: 'postIssueUpdates',
                 data: {
+                    newStatusId: 10257,
                     oldKey: 'TCP-2',
                     newKey: 'INDEV-130',
                     newNameData: {

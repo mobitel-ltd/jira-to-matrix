@@ -113,6 +113,27 @@ const jiraRequests = {
             throw ['Error in get issue', err].join('\n');
         }
     },
+    createIssue: ({ summary, issueTypeId, projectId, parentId, isEpic, isSubtask, styleProject }) => {
+        const uri = utils.getRestUrl('issue');
+
+        if (isSubtask || (isEpic && styleProject !== 'classic')) {
+            return requestPost(uri, schemas.issueChild(summary, issueTypeId, projectId, parentId));
+        }
+
+        return requestPost(uri, schemas.issueNotChild(summary, issueTypeId, projectId));
+    },
+
+    createEpicLinkClassic: (issueKey, parentId) => {
+        const uri = utils.getRestUrl('issue', issueKey);
+
+        return requestPut(uri, schemas.issueEpicLink(parentId));
+    },
+
+    createIssueLink: (issueKey1, issueKey2) => {
+        const uri = utils.getRestUrl('issueLink');
+
+        return requestPost(uri, schemas.issueLink(issueKey1, issueKey2));
+    },
 
     /**
      * Make GET request to jira by projectID
@@ -140,9 +161,10 @@ const jiraRequests = {
             key,
             lead: { name: leadName, key: leadKey },
             name,
-            issueTypes: issueTypes.map(({ id, name, description }) => ({ id, name, description })),
+            issueTypes: issueTypes.map(({ id, name, description, subtask }) => ({ id, name, description, subtask })),
             adminsURL,
             isIgnore,
+            style,
         };
 
         return project;
@@ -266,6 +288,20 @@ const jiraRequests = {
         } catch (err) {
             logger.warn('No issue by ', id);
             return false;
+        }
+    },
+
+    getStatusData: async statusId => {
+        try {
+            const statusUrl = utils.getRestUrl('status', statusId);
+
+            const data = await request(statusUrl);
+
+            return { colorName: Ramda.path(['statusCategory', 'colorName'], data) };
+        } catch (error) {
+            logger.error(error);
+
+            return {};
         }
     },
 };
