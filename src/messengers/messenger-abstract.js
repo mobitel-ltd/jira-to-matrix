@@ -84,6 +84,7 @@ module.exports = class {
      * @param {string} options.name room name
      * @param {string} options.topic room topic
      * @param {string} options.purpose issue summary
+     * @param {string?} options.avatarUrl avatar url for room, optional
      * @returns {Promise<String>} chat room id
      */
     async createRoom(options) {}

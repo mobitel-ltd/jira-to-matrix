@@ -319,6 +319,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * @param {string[]} options.invite array of users to invite
      * @param {string} options.name room name
      * @param {string} options.topic room topic
+     * @param {string?} options.avatarUrl avatar url for room, optional
      * @returns {string} matrix room id
      */
     async createRoom({ invite, ...options }) {
@@ -330,6 +331,11 @@ module.exports = class Matrix extends MessengerAbstract {
                 invite: lowerNameList,
             };
             const { room_id: roomId } = await this.client.createRoom(createRoomOptions);
+
+            if (options.avatarUrl) {
+                await this.setRoomAvatar(roomId, options.avatarUrl);
+            }
+
             return roomId;
         } catch (err) {
             throw ['Error while creating room', err].join('\n');
@@ -564,10 +570,17 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {Promise<void>} void
      */
     async setRoomAvatar(roomId, url) {
-        const method = 'PUT';
-        const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.avatar`;
-        const body = { url };
+        try {
+            const method = 'PUT';
+            const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.avatar`;
+            const body = { url };
 
-        await this.client._http.authedRequest(undefined, method, path, {}, body);
+            await this.client._http.authedRequest(undefined, method, path, {}, body);
+
+            return true;
+        } catch (error) {
+            this.logger.error(`Error in avatar setting for roomId ${roomId} with avatar url ${url}`);
+            this.logger.error(error);
+        }
     }
 };
