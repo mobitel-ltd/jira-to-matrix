@@ -17,6 +17,7 @@ describe('move test', () => {
     const roomId = 12345;
     const { transitions } = transitionsJSON;
     const [newStatus] = transitions;
+    const [lastStatus] = transitions.slice().reverse();
 
     const chatApi = { sendHtmlMessage: stub() };
 
@@ -24,13 +25,13 @@ describe('move test', () => {
 
     const baseOptions = { roomId, roomName, commandName, chatApi, sender };
 
-    before(() => {
+    beforeEach(() => {
         nock(utils.getRestUrl())
             .get(`/issue/${roomName}/transitions`)
-            .times(4)
             .reply(200, transitionsJSON)
-            .post(`/issue/${roomName}/transitions`, schemas.move('2'))
-            .times(2)
+            .post(`/issue/${roomName}/transitions`, schemas.move(newStatus.id))
+            .reply(204)
+            .post(`/issue/${roomName}/transitions`, schemas.move(lastStatus.id))
             .reply(204)
             .post(`/issue/${roomName}/transitions`, schemas.move('5'))
             .reply(404);
@@ -48,24 +49,35 @@ describe('move test', () => {
         const body = utils.getCommandList(transitions);
         const result = await commandHandler(baseOptions);
 
+        expect(body.includes(1)).to.be.true;
+        expect(body.includes(transitions.length)).to.be.true;
         expect(result).to.be.eq(body);
         expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(roomId, body, body);
     });
 
-    it('Expect correct !move command', async () => {
-        const body = translate('successMoveJira', { ...newStatus, sender });
-        const result = await commandHandler({ ...baseOptions, bodyText: newStatus.id });
-
-        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, body, body);
-        expect(result).to.be.eq(body);
-    });
-
     it('Expect correct !move command with upper case body', async () => {
-        const body = translate('successMoveJira', { ...newStatus, sender });
+        const body = translate('successMoveJira', { name: newStatus.name, sender });
         const result = await commandHandler({ ...baseOptions, bodyText: newStatus.name.toUpperCase() });
 
         expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, body, body);
         expect(result).to.be.equal(body);
+    });
+
+    it('Expect correct !move command with numeric argument (!move 2)', async () => {
+        const body = translate('successMoveJira', { name: lastStatus.name, sender });
+        const result = await commandHandler({ ...baseOptions, bodyText: `${transitions.length}` });
+
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, body, body);
+        expect(result).to.be.equal(body);
+    });
+
+    it('Expect move command send message about not found command with 0 as argument ("!move 0")', async () => {
+        const bodyText = '0';
+        const post = translate('notFoundMove', { bodyText });
+        const result = await commandHandler({ ...baseOptions, bodyText });
+
+        expect(result).to.be.eq(post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, post, post);
     });
 
     it('Expect move command send message about not found command ("!move fake")', async () => {
