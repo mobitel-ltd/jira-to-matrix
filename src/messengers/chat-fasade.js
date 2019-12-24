@@ -89,4 +89,16 @@ module.exports = class ChatFasade extends MessengerAbstract {
     getChatUserId(shortName) {
         return this.worker.getChatUserId(shortName);
     }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @param {string} url new avatar url
+     * @returns {Promise<void>} void
+     */
+    async setRoomAvatar(roomId, url) {
+        const client = await this._getTargetClient(roomId);
+
+        return client.setRoomAvatar(roomId, url);
+    }
 };
