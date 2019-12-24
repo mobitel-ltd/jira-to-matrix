@@ -28,7 +28,7 @@ const dict = Object.freeze({
     listUsers: 'List users',
     successMatrixComment: 'Comment published',
     listJiraCommand: 'List of available commands',
-    errorMoveJira: 'New status with name "%{bodyText}" not found',
+    notFoundMove: 'New status with name "%{bodyText}" not found',
     successMoveJira: 'Issue status changed by user %{sender} to %{name}',
     errorWatcherJira: 'The watcher is not added! Check user name and try again',
     successWatcherJira: 'Watcher is added',

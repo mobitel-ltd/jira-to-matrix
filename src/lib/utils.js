@@ -364,8 +364,14 @@ const utils = {
     },
 
     getProjectKeyFromIssueKey: issueKey => issueKey.split('-').slice(0, 1),
-    getCommandAction: (val, collection) =>
-        collection.find(({ id, name }) => id === val || name.toLowerCase() === val.toLowerCase()),
+    getCommandAction: (val, collection) => {
+        const numberVal = Number(val);
+        if (Number.isInteger(numberVal)) {
+            return collection[numberVal - 1];
+        }
+
+        return collection.find(({ name }) => name.toLowerCase() === val.toLowerCase());
+    },
 
     getLimit: () => NEW_YEAR_2018.getTime(),
 
@@ -377,7 +383,7 @@ const utils = {
 
     getCommandList: list =>
         list.reduce(
-            (acc, { name, id }) => `${acc}<strong>${id})</strong> - ${name}<br>`,
+            (acc, { name, id }, index) => `${acc}<strong>${index + 1})</strong> - ${name}<br>`,
             `${translate('listJiraCommand')}:<br>`,
         ),
 
