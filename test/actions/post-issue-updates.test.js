@@ -18,7 +18,7 @@ const testUtils = require('../test-utils');
 chai.use(sinonChai);
 
 describe('Post issue updates test', () => {
-    const roomId = 'ROOMID-123';
+    const roomId = '!abcdefg:matrix';
     let chatApi;
 
     const postIssueUpdatesData = getPostIssueUpdatesData(issueMovedJSON);
@@ -155,8 +155,9 @@ describe('Post issue updates test', () => {
     });
 
     it('Expect status changes with room avatar color change', async () => {
+        const issueKey = issueStatusChangedJSON.issue.key;
         const postIssueUpdates = proxyquire('../../src/bot/actions/post-issue-updates.js', {
-            '../../config': { ...config, colors: { ...config.colors, projects: roomId.split('-')[0] } },
+            '../../config': { ...config, colors: { ...config.colors, projects: issueKey.split('-')[0] } },
         });
         const expectedColorLink = config.colors.links[statusJSON.statusCategory.colorName];
 
