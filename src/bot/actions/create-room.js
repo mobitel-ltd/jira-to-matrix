@@ -2,13 +2,14 @@ const jiraRequest = require('../../lib/jira-request.js');
 const conf = require('../../config');
 const utils = require('../../lib/utils.js');
 const logger = require('../../modules/log.js')(module);
-const { getDescription } = require('./helper');
+const { getDescription, getDefaultAvatarLink } = require('./helper');
 const { infoBody } = require('../../lib/messages');
 
 const createIssueRoom = async (chatApi, issue) => {
     try {
         const {
             jira: { user: jiraBot },
+            colors,
         } = conf;
         const roomMembers = await jiraRequest.getIssueWatchers(issue);
         const invite = roomMembers.filter(user => user !== jiraBot).map(user => chatApi.getChatUserId(user));
@@ -17,12 +18,15 @@ const createIssueRoom = async (chatApi, issue) => {
         const name = chatApi.composeRoomName(key, summary);
         const topic = utils.getViewUrl(key);
 
+        const avatarUrl = getDefaultAvatarLink(key, 'issue', colors);
+
         const options = {
             room_alias_name: key,
             invite,
             name,
             topic,
             purpose: summary,
+            avatarUrl,
         };
 
         const roomId = await chatApi.createRoom(options);

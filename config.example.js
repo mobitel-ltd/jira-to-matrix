@@ -97,11 +97,16 @@ module.exports = Object.freeze({
     // you must upload it before and get links to set them here
     // Optionally
     colors: {
+        //
         links: {
-            purple: 'mxc://matrix.example/purple',
+            // This link used when you create room
+            issue: 'mxc://matrix.example/purple',
+            // colors, at least green, yellow, blue-gray must be
             green: 'mxc://matrix.example/green',
             yellow: 'mxc://matrix.example/yellow',
             'blue-gray': 'mxc://matrix.example/blue-gray',
+            // additional is possible according to your custom jira color
+            purple: 'mxc://matrix.example/purple',
         },
         // Projects to use
         // You can use this action for some projects only

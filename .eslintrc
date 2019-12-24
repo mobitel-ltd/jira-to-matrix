@@ -219,7 +219,8 @@
                 "max-len": "off",
                 "no-unused-expressions": 0,
                 "chai-friendly/no-unused-expressions": 2,
-                "max-nested-callbacks": "off"
+                "max-nested-callbacks": "off",
+                "no-undefined": "off"
             }
         }
     ]

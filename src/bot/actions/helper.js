@@ -272,28 +272,53 @@ const helper = {
         return { body, htmlBody };
     },
 
+    isAvatarIssueKey: (issueKey, usingPojects) => {
+        if (!usingPojects) {
+            logger.warn(`No usingPojects is passed to update avatar for room ${issueKey}`);
+
+            return false;
+        }
+
+        if (usingPojects === 'all') {
+            return true;
+        }
+
+        const [projectKey] = issueKey.split('-');
+        if (usingPojects.includes(projectKey)) {
+            return true;
+        }
+        logger.warn(`Project with key ${projectKey} is not exist in config. Avatar will not be updated.`);
+
+        return false;
+    },
+
     // usingPojects: 'all' | [string] | undefined
-    getNewAvatarUrl: async (roomId, { statusId, colors, usingPojects }) => {
+    getNewAvatarUrl: async (issueKey, { statusId, colors, usingPojects }) => {
         if (!colors) {
-            logger.warn(`No color links is passed to update avatar for room ${roomId}`);
+            logger.warn(`No color links is passed to update avatar for room ${issueKey}`);
+
+            return;
         }
         if (!statusId) {
-            logger.warn(`No statusId is passed to update avatar for room ${roomId}`);
-        }
-        if (!usingPojects) {
-            logger.warn(`No usingPojects is passed to update avatar for room ${roomId}`);
+            logger.warn(`No statusId is passed to update avatar for room ${issueKey}`);
+
+            return;
         }
 
-        if (colors && statusId && usingPojects) {
-            const [projectName] = roomId.split('-');
-            if (!(usingPojects === 'all') && !usingPojects.includes(projectName)) {
-                logger.warn(`Project with name ${projectName} is not exist in config. Avatar will not be updated.`);
-
-                return;
-            }
+        if (helper.isAvatarIssueKey(issueKey, usingPojects)) {
             const { colorName } = await jiraRequests.getStatusData(statusId);
 
             return colors[colorName];
+        }
+    },
+
+    getDefaultAvatarLink: (key, type, colorsConfigData) => {
+        if (!colorsConfigData) {
+            return;
+        }
+
+        if (helper.isAvatarIssueKey(key, colorsConfigData.projects)) {
+            return colorsConfigData.links[type];
         }
     },
 };
