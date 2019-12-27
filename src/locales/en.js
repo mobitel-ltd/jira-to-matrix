@@ -11,6 +11,8 @@ const dict = Object.freeze({
     statusHasChangedMessage: '%{name} changed a linked issue status [%{key} "%{summary}"](%{viewUrl}) to **%{status}**',
     newIssueInEpic: 'New issue in epic',
     issueAddedToEpic: 'An issue [%{key} %{summary}](%{viewUrl}) was added to the epic',
+    newIssueInParent: 'New child issue',
+    issueAddedToParent: 'New child issue added [%{key} %{summary}](%{viewUrl})',
     newLink: 'New link',
     newLinkMessage: 'A new link. This issue **%{relation}** [%{key} "%{summary}"](%{viewUrl})',
     deleteLink: 'Delete link',

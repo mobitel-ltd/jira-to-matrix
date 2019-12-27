@@ -1,0 +1,240 @@
+{
+    "timestamp": "12/25/2019, 10:22:20 AM,826",
+    "webhookEvent": "jira:issue_updated",
+    "issue_event_type_name": "issue_generic",
+    "user": {
+        "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
+        "accountId": "5c07f55ba1b46046f530e0f3",
+        "avatarUrls": {
+            "48x48": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=48&s=48",
+            "24x24": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=24&s=24",
+            "16x16": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=16&s=16",
+            "32x32": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=32&s=32"
+        },
+        "displayName": "ii_ivanov",
+        "active": true,
+        "timeZone": "Europe/Moscow",
+        "accountType": "atlassian"
+    },
+    "issue": {
+        "id": "28075",
+        "self": "https://jira.test-example.ru/rest/api/2/28075",
+        "key": "DTP-5",
+        "fields": {
+            "statuscategorychangedate": "2019-12-25T10:22:20.370+0300",
+            "issuetype": {
+                "self": "https://jira.test-example.ru/rest/api/2/issuetype/10349",
+                "id": "10349",
+                "description": "Stories track functionality or features expressed as user goals.",
+                "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=medium&avatarId=10315&avatarType=issuetype",
+                "name": "Story",
+                "subtask": false,
+                "avatarId": 10315,
+                "entityId": "e1e6b6a0-29d3-430c-8c7d-f63adff64c34"
+            },
+            "parent": {
+                "id": "28074",
+                "key": "DTP-4",
+                "self": "https://jira.test-example.ru/rest/api/2/issue/28074",
+                "fields": {
+                    "summary": "Test epic",
+                    "status": {
+                        "self": "https://jira.test-example.ru/rest/api/2/status/10501",
+                        "description": "",
+                        "iconUrl": "https://jira.test-example.ru/",
+                        "name": "К выполнению",
+                        "id": "10501",
+                        "statusCategory": {
+                            "self": "https://jira.test-example.ru/rest/api/2/statuscategory/2",
+                            "id": 2,
+                            "key": "new",
+                            "colorName": "blue-gray",
+                            "name": "К выполнению"
+                        }
+                    },
+                    "priority": {
+                        "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                        "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
+                        "name": "Medium",
+                        "id": "3"
+                    },
+                    "issuetype": {
+                        "self": "https://jira.test-example.ru/rest/api/2/issuetype/10350",
+                        "id": "10350",
+                        "description": "Подборка похожих историй, заданий и связанных с ними ошибок.",
+                        "iconUrl": "https://jira.test-example.ru/secure/viewavatar?size=medium&avatarId=10307&avatarType=issuetype",
+                        "name": "Эпик",
+                        "subtask": false,
+                        "avatarId": 10307,
+                        "entityId": "11e93dc9-e031-49ac-a524-3a343ca00b0c"
+                    }
+                }
+            },
+            "timespent": null,
+            "customfield_10030": null,
+            "project": {
+                "self": "https://jira.test-example.ru/rest/api/2/project/10181",
+                "id": "10181",
+                "key": "DTP",
+                "name": "Dev Test Project",
+                "projectTypeKey": "software",
+                "simplified": true,
+                "avatarUrls": {
+                    "48x48": "https://jira.test-example.ru/secure/projectavatar?avatarId=10324",
+                    "24x24": "https://jira.test-example.ru/secure/projectavatar?size=small&s=small&avatarId=10324",
+                    "16x16": "https://jira.test-example.ru/secure/projectavatar?size=xsmall&s=xsmall&avatarId=10324",
+                    "32x32": "https://jira.test-example.ru/secure/projectavatar?size=medium&s=medium&avatarId=10324"
+                }
+            },
+            "fixVersions": [],
+            "aggregatetimespent": null,
+            "resolution": null,
+            "resolutiondate": null,
+            "workratio": -1,
+            "watches": {
+                "self": "https://jira.test-example.ru/rest/api/2/issue/DTP-5/watchers",
+                "watchCount": 1,
+                "isWatching": true
+            },
+            "lastViewed": "2019-12-25T10:22:19.909+0300",
+            "created": "2019-12-25T10:21:32.569+0300",
+            "customfield_10020": null,
+            "customfield_10021": [],
+            "priority": {
+                "self": "https://jira.test-example.ru/rest/api/2/priority/3",
+                "iconUrl": "https://jira.test-example.ru/images/icons/priorities/medium.svg",
+                "name": "Medium",
+                "id": "3"
+            },
+            "customfield_10025": null,
+            "labels": [],
+            "customfield_10026": null,
+            "customfield_10016": null,
+            "customfield_10017": null,
+            "customfield_10018": null,
+            "customfield_10019": "0|i02sl0:",
+            "aggregatetimeoriginalestimate": null,
+            "timeestimate": null,
+            "versions": [],
+            "issuelinks": [],
+            "assignee": null,
+            "updated": "2019-12-25T10:22:20.370+0300",
+            "status": {
+                "self": "https://jira.test-example.ru/rest/api/2/status/10502",
+                "description": "",
+                "iconUrl": "https://jira.test-example.ru/",
+                "name": "In Progress",
+                "id": "10502",
+                "statusCategory": {
+                    "self": "https://jira.test-example.ru/rest/api/2/statuscategory/4",
+                    "id": 4,
+                    "key": "indeterminate",
+                    "colorName": "yellow",
+                    "name": "In Progress"
+                }
+            },
+            "components": [],
+            "timeoriginalestimate": null,
+            "description": null,
+            "customfield_10055": null,
+            "customfield_10056": null,
+            "customfield_10013": null,
+            "customfield_10057": null,
+            "customfield_10014": null,
+            "customfield_10058": null,
+            "timetracking": {},
+            "customfield_10015": {
+                "hasEpicLinkFieldDependency": false,
+                "showField": false,
+                "nonEditableReason": {
+                    "reason": "EPIC_LINK_SHOULD_BE_USED",
+                    "message": "To set an epic as the parent, use the epic link instead"
+                }
+            },
+            "customfield_10005": null,
+            "customfield_10006": null,
+            "customfield_10007": null,
+            "security": null,
+            "customfield_10008": null,
+            "aggregatetimeestimate": null,
+            "attachment": [],
+            "customfield_10009": null,
+            "summary": "Test task into epic",
+            "creator": {
+                "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
+                "name": "ii_ivanov",
+                "key": "ii_ivanov",
+                "accountId": "5c07f55ba1b46046f530e0f3",
+                "emailAddress": "ii_ivanov@test-example.ru",
+                "avatarUrls": {
+                    "48x48": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=48&s=48",
+                    "24x24": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=24&s=24",
+                    "16x16": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=16&s=16",
+                    "32x32": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=32&s=32"
+                },
+                "displayName": "ii_ivanov",
+                "active": true,
+                "timeZone": "Europe/Moscow",
+                "accountType": "atlassian"
+            },
+            "subtasks": [],
+            "customfield_10040": null,
+            "customfield_10041": null,
+            "reporter": {
+                "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
+                "name": "ii_ivanov",
+                "key": "ii_ivanov",
+                "accountId": "5c07f55ba1b46046f530e0f3",
+                "emailAddress": "ii_ivanov@test-example.ru",
+                "avatarUrls": {
+                    "48x48": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=48&s=48",
+                    "24x24": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=24&s=24",
+                    "16x16": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=16&s=16",
+                    "32x32": "https://secure.gravatar.com/avatar/e9e6cac65dbe8c38c56b17b46ebb05ae?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FJ-3.png&size=32&s=32"
+                },
+                "displayName": "ii_ivanov",
+                "active": true,
+                "timeZone": "Europe/Moscow",
+                "accountType": "atlassian"
+            },
+            "customfield_10000": "{}",
+            "aggregateprogress": {
+                "progress": 0,
+                "total": 0
+            },
+            "customfield_10001": null,
+            "customfield_10002": null,
+            "customfield_10003": null,
+            "customfield_10004": null,
+            "customfield_10039": null,
+            "environment": null,
+            "duedate": null,
+            "progress": {
+                "progress": 0,
+                "total": 0
+            },
+            "votes": {
+                "self": "https://jira.test-example.ru/rest/api/2/issue/DTP-5/votes",
+                "votes": 0,
+                "hasVoted": false
+            }
+        }
+    },
+    "changelog": {
+        "id": "158972",
+        "items": [
+            {
+                "field": "status",
+                "fieldtype": "jira",
+                "fieldId": "status",
+                "from": "10501",
+                "fromString": "To Do",
+                "to": "10502",
+                "toString": "In Progress"
+            }
+        ]
+    },
+    "level": "silly",
+    "message": "Jira body",
+    "label": "/src/jira-app.js"
+}

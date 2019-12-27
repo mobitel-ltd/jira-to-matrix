@@ -1,10 +1,15 @@
+const proxyquire = require('proxyquire');
 const assert = require('assert');
 const firstJSON = require('../fixtures/webhooks/comment/created.json');
 const secondJSON = require('../fixtures/webhooks/issue/updated/commented.json');
+const issueStatusChangedJSON = require('../fixtures/webhooks/issue/updated/status-changed.json');
+const issueWithParentIssueCreatedJSON = require('../fixtures/webhooks/issue/parent/created.json');
+const issueWithParentIssueUpdatedJSON = require('../fixtures/webhooks/issue/parent/updated.json');
 const { getBotActions, getParserName, getFuncAndBody } = require('../../src/jira-hook-parser/bot-handler.js');
 const translate = require('../../src/locales');
 const issueMovedJSON = require('../fixtures/webhooks/issue/updated/move-issue.json');
 const utils = require('../../src/lib/utils');
+const config = require('../../src/config');
 
 describe('get-bot-data', () => {
     const firstBodyArr = getBotActions(firstJSON);
@@ -144,4 +149,135 @@ describe('get-bot-data', () => {
     // it('Expect project_create data have only project key, no issue data', () => {
 
     // });
+});
+
+describe('No issue rooms mode', () => {
+    const noIssuHandlers = proxyquire('../../src/jira-hook-parser/bot-handler.js', {
+        '../config': { ...config, features: { noIssueRooms: true } },
+    });
+
+    it('test correct getBotActions', () => {
+        const res = noIssuHandlers.getBotActions(issueStatusChangedJSON);
+        // const expected = ['postParentUpdates', 'inviteNewMembers'];
+        const expected = ['postParentUpdates'];
+
+        assert.deepEqual(expected, res);
+    });
+
+    it('Expect parent project room create and parent project updates return, but issue actions is not used', () => {
+        const res = noIssuHandlers.getFuncAndBody(issueStatusChangedJSON);
+
+        const expected = [
+            {
+                redisKey: 'newrooms',
+                createRoomData: {
+                    issue: {
+                        key: undefined,
+                    },
+                    projectKey: issueStatusChangedJSON.issue.fields.project.key,
+                },
+            },
+            // {
+            //     redisKey: `inviteNewMembers_${issueStatusChangedJSON.timestamp}`,
+            //     funcName: 'inviteNewMembers',
+            //     data: {
+            //         parentKey: issueStatusChangedJSON.issue.fields.project.key,
+            //     },
+            // },
+            {
+                redisKey: `postParentUpdates_${issueStatusChangedJSON.timestamp}`,
+                funcName: 'postParentUpdates',
+                data: {
+                    parentKey: issueStatusChangedJSON.issue.fields.project.key,
+                    childData: {
+                        key: issueStatusChangedJSON.issue.key,
+                        status: issueStatusChangedJSON.changelog.items[0].toString,
+                        id: issueStatusChangedJSON.issue.id,
+                        summary: issueStatusChangedJSON.issue.fields.summary,
+                        name: issueStatusChangedJSON.user.displayName,
+                    },
+                },
+            },
+        ];
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('Expect project issue room create and parent project updates return, but issue actions is not used if issue_created hook we get that has epic (no parent info in hook)', () => {
+        const res = noIssuHandlers.getFuncAndBody(issueWithParentIssueCreatedJSON);
+
+        const expected = [
+            {
+                redisKey: 'newrooms',
+                createRoomData: {
+                    issue: {
+                        key: undefined,
+                    },
+                    projectKey: issueWithParentIssueCreatedJSON.issue.fields.project.key,
+                },
+            },
+            // {
+            //     redisKey: `inviteNewMembers_${issueStatusChangedJSON.timestamp}`,
+            //     funcName: 'inviteNewMembers',
+            //     data: {
+            //         parentKey: issueStatusChangedJSON.issue.fields.project.key,
+            //     },
+            // },
+            {
+                redisKey: `postParentUpdates_${issueWithParentIssueCreatedJSON.timestamp}`,
+                funcName: 'postParentUpdates',
+                data: {
+                    parentKey: issueWithParentIssueCreatedJSON.issue.fields.project.key,
+                    childData: {
+                        key: issueWithParentIssueCreatedJSON.issue.key,
+                        status: issueWithParentIssueCreatedJSON.changelog.items[2].toString,
+                        id: issueWithParentIssueCreatedJSON.issue.id,
+                        summary: issueWithParentIssueCreatedJSON.issue.fields.summary,
+                        name: issueWithParentIssueCreatedJSON.user.displayName,
+                    },
+                },
+            },
+        ];
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('Expect project and parent issue room creates and parent issue updates return, but issue actions is not used if issue_updated hook that has epic (no parent info in hook) we get', () => {
+        const res = noIssuHandlers.getFuncAndBody(issueWithParentIssueUpdatedJSON);
+
+        const expected = [
+            {
+                redisKey: 'newrooms',
+                createRoomData: {
+                    issue: {
+                        key: issueWithParentIssueUpdatedJSON.issue.fields.parent.key,
+                    },
+                    projectKey: issueWithParentIssueUpdatedJSON.issue.fields.project.key,
+                },
+            },
+            // {
+            //     redisKey: `inviteNewMembers_${issueStatusChangedJSON.timestamp}`,
+            //     funcName: 'inviteNewMembers',
+            //     data: {
+            //         parentKey: issueStatusChangedJSON.issue.fields.project.key,
+            //     },
+            // },
+            {
+                redisKey: `postParentUpdates_${issueWithParentIssueUpdatedJSON.timestamp}`,
+                funcName: 'postParentUpdates',
+                data: {
+                    parentKey: issueWithParentIssueUpdatedJSON.issue.fields.parent.key,
+                    childData: {
+                        key: issueWithParentIssueUpdatedJSON.issue.key,
+                        status: issueWithParentIssueUpdatedJSON.changelog.items[0].toString,
+                        id: issueWithParentIssueUpdatedJSON.issue.id,
+                        name: issueWithParentIssueUpdatedJSON.user.displayName,
+                        summary: issueWithParentIssueUpdatedJSON.issue.fields.summary,
+                    },
+                },
+            },
+        ];
+
+        assert.deepEqual(res, expected);
+    });
 });

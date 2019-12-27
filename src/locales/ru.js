@@ -16,6 +16,8 @@ const dict = Object.freeze({
         '%{name} изменил%{f} статус связанной задачи [%{key} "%{summary}"](%{viewUrl}) на **%{status}**',
     newIssueInEpic: 'Новая задача в эпике',
     issueAddedToEpic: 'К эпику добавлена задача [%{key} %{summary}](%{viewUrl})',
+    newIssueInParent: 'Новая подзадача',
+    issueAddedToParent: 'Добавлена подзадача [%{key} %{summary}](%{viewUrl})',
     newLink: 'Новый линк',
     newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{viewUrl})',
     deleteLink: 'Связь удалена',

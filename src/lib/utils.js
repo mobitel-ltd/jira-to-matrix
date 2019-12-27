@@ -13,6 +13,7 @@ const REDIS_ROOM_KEY = 'newrooms';
 const ROOMS_OLD_NAME = 'rooms';
 const REDIS_LINK_PREFIX = 'link';
 const REDIS_EPIC_PREFIX = 'epic';
+const REDIS_PARENT_PREFIX = 'parent';
 const REDIS_IGNORE_PREFIX = 'ignore:project';
 const HANDLED_KEY = 'handled';
 
@@ -58,6 +59,7 @@ const handlers = {
         getDisplayName: body => Ramda.path(['user', 'displayName'], body),
         getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body),
         getUserName: body => Ramda.path(['user', 'name'], body),
+        getParentIssueKey: body => Ramda.path(['issue', 'fields', 'parent', 'key'], body),
         getEpicKey: body => Ramda.path(['issue', 'fields', epicField], body),
         getType: body => Ramda.path(['issue', 'fields', 'issuetype', 'name'], body),
         getIssueId: body => Ramda.path(['issue', 'id'], body),
@@ -168,7 +170,7 @@ const utils = {
 
     getUserName: body => handlers.issue.getUserName(body),
 
-    getEpicKey: body => handlers.issue.getEpicKey(body),
+    getEpicKey: body => handlers.issue.getEpicKey(body) || handlers.issue.getParentIssueKey(body),
 
     getKey: body => handlers.issue.getIssueKey(body) || Ramda.path(['key'], body),
 
@@ -205,7 +207,8 @@ const utils = {
      * @param {object} body webhook body
      * @return {object} changelog field
      */
-    getChangelogField: (fieldName, body) => utils.getChangelogItems(body).find(item => item.field === fieldName),
+    getChangelogField: (fieldName, body) =>
+        utils.getChangelogItems(body).find(item => item.field === fieldName || item.fieldId === fieldName),
 
     getNewSummary: body => Ramda.path(['toString'], utils.getChangelogField('summary', body)),
 
@@ -216,6 +219,10 @@ const utils = {
     getNewKey: body => Ramda.path(['toString'], utils.getChangelogField('Key', body)),
 
     getOldKey: body => Ramda.path(['fromString'], utils.getChangelogField('Key', body)),
+
+    getParentKey: body => handlers.issue.getParentIssueKey(body) || handlers.issue.getProjectKey(body),
+
+    getParentIssueKey: body => handlers.issue.getParentIssueKey(body),
 
     getRelations: issueLinkBody => ({
         inward: {
@@ -281,6 +288,8 @@ const utils = {
     getRedisLinkKey: id => [REDIS_LINK_PREFIX, DELIMITER, id].join(''),
 
     getRedisEpicKey: id => [REDIS_EPIC_PREFIX, DELIMITER, id].join(''),
+
+    getRedisParentKey: id => [REDIS_PARENT_PREFIX, DELIMITER, id].join(''),
 
     getRedisKey: (funcName, body) => [funcName, utils.getBodyTimestamp(body)].join('_'),
 

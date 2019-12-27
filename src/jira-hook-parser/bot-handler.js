@@ -7,7 +7,11 @@ const isPostComment = body => features.postComments && utils.isCommentEvent(body
 const isPostIssueUpdates = body =>
     features.postIssueUpdates && utils.isCorrectWebhook(body, 'jira:issue_updated') && utils.getChangelog(body);
 
-const isCreateRoom = body => features.createRoom && utils.getKey(body) && utils.getTypeEvent(body) !== 'issue_moved';
+const isCreateRoom = body =>
+    (features.createRoom || features.noIssueRooms) && utils.getKey(body) && utils.getTypeEvent(body) !== 'issue_moved';
+
+// const isMemberInvite = body =>
+//     (features.inviteNewMembers || features.noIssueRooms) && utils.isCorrectWebhook(body, 'jira:issue_updated');
 
 const isMemberInvite = body => features.inviteNewMembers && utils.isCorrectWebhook(body, 'jira:issue_updated');
 
@@ -38,6 +42,11 @@ const isPostLinkedChanges = body =>
 
 const isDeleteLinks = body => utils.getBodyWebhookEvent(body) === 'issuelink_deleted';
 
+const isPostParentUpdates = body =>
+    features.noIssueRooms &&
+    (utils.isCorrectWebhook(body, 'jira:issue_updated') ||
+        (utils.isCorrectWebhook(body, 'jira:issue_created') && utils.getChangelog(body)));
+
 const actionFuncs = {
     postIssueUpdates: isPostIssueUpdates,
     inviteNewMembers: isMemberInvite,
@@ -49,7 +58,16 @@ const actionFuncs = {
     postLinksDeleted: isDeleteLinks,
 };
 
-const getBotActions = body => Object.keys(actionFuncs).filter(key => actionFuncs[key](body));
+const noIssueRoomsFuncs = {
+    postParentUpdates: isPostParentUpdates,
+    // inviteNewMembers: isMemberInvite,
+};
+
+const getBotActions = body => {
+    const funcs = features.noIssueRooms ? noIssueRoomsFuncs : actionFuncs;
+
+    return Object.keys(funcs).filter(key => funcs[key](body));
+};
 
 const getParserName = func => `get${func[0].toUpperCase()}${func.slice(1)}Data`;
 
@@ -62,7 +80,7 @@ const getFuncRedisData = body => funcName => {
 };
 const getFuncAndBody = body => {
     const botFunc = getBotActions(body);
-    const createRoomData = isCreateRoom(body) && parsers.getCreateRoomData(body);
+    const createRoomData = isCreateRoom(body) && parsers.getCreateRoomData(body, features.noIssueRooms);
     const roomsData = { redisKey: utils.REDIS_ROOM_KEY, createRoomData };
     const funcsData = botFunc.map(getFuncRedisData(body));
 

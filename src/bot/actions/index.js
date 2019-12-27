@@ -7,6 +7,7 @@ const postProjectUpdates = require('./post-project-updates.js');
 const postNewLinks = require('./post-new-links.js');
 const postLinkedChanges = require('./post-linked-changes.js');
 const postLinksDeleted = require('./post-link-deleted');
+const postParentUpdates = require('./post-parent-updates');
 
 module.exports = {
     createRoom,
@@ -18,4 +19,5 @@ module.exports = {
     postNewLinks,
     postLinkedChanges,
     postLinksDeleted,
+    postParentUpdates,
 };

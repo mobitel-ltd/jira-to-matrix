@@ -10,8 +10,13 @@ module.exports = {
         return { issueID, headerText, comment, author };
     },
 
-    getCreateRoomData: body => {
+    getCreateRoomData: (body, noIssueRoomsMode) => {
         const projectKey = utils.getProjectKey(body);
+        if (noIssueRoomsMode) {
+            const key = utils.getParentIssueKey(body);
+
+            return { issue: { key }, projectKey };
+        }
         const summary = utils.getSummary(body);
         const key = utils.getIssueKey(body);
         const id = utils.getIssueId(body);
@@ -23,6 +28,7 @@ module.exports = {
     },
 
     getInviteNewMembersData: body => {
+        // const key = features.noIssueRooms ? utils.getParentKey(body) : utils.getKey(body);
         const key = utils.getKey(body);
 
         return { issue: { key } };
@@ -95,4 +101,18 @@ module.exports = {
         sourceRelation: utils.getSourceRelation(body),
         destinationRelation: utils.getDestinationRelation(body),
     }),
+
+    getPostParentUpdatesData: body => {
+        const parentKey = utils.getParentKey(body);
+
+        const childData = {
+            key: utils.getIssueKey(body),
+            status: utils.getNewStatus(body),
+            id: utils.getIssueId(body),
+            summary: utils.getSummary(body),
+            name: utils.getDisplayName(body),
+        };
+
+        return { parentKey, childData };
+    },
 };

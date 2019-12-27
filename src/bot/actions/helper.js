@@ -211,12 +211,12 @@ const helper = {
         return { body, htmlBody };
     },
 
-    getNewIssueMessageBody: ({ summary, key }) => {
+    getNewIssueMessageBody: ({ summary, key }, type = 'Epic') => {
         const viewUrl = utils.getViewUrl(key);
         const values = { key, viewUrl, summary };
 
-        const body = translate('newIssueInEpic');
-        const message = translate('issueAddedToEpic', values);
+        const body = translate(`newIssueIn${type}`);
+        const message = translate(`issueAddedTo${type}`, values);
         const htmlBody = marked(message);
 
         return { body, htmlBody };

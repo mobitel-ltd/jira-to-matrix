@@ -7,7 +7,7 @@ const utils = require('../../lib/utils');
 
 const postNewIssue = async (roomID, { epic, issue }, chatApi) => {
     const redisEpicKey = utils.getRedisEpicKey(epic.id);
-    if (await redis.isInEpic(redisEpicKey, issue.id)) {
+    if (await redis.hasChild(redisEpicKey, issue.id)) {
         logger.debug(`Issue ${issue.key} already saved in Redis by epic ${epic.key}`);
 
         return;
