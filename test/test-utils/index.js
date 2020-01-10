@@ -22,12 +22,13 @@ module.exports = {
     getAlias: () => defaultAlias,
 
     getChatApi: (options = {}) => {
-        const { type, alias, roomId } = {
+        const { type, alias, roomId, joinedRooms = [] } = {
             type: config.messenger.name,
             alias: defaultAlias,
             roomId: defaultRoomId,
             ...options,
         };
+
         const ChatApi = getChatApi(type);
         const realChatApi = new ChatApi({ config: config.messenger });
 
@@ -45,6 +46,7 @@ module.exports = {
             getRoomIdByName: stub().resolves(false),
             composeRoomName: stub().callsFake(realChatApi.composeRoomName.bind(realChatApi)),
             setRoomAvatar: stub(),
+            getRoomIdForJoinedRoom: stub().throws('No bot in room with id'),
         };
         if (Array.isArray(alias)) {
             alias.forEach(item => {
@@ -55,6 +57,10 @@ module.exports = {
             chatApi.getRoomId.withArgs(alias).resolves(roomId);
             chatApi.getRoomIdByName.withArgs(alias).resolves(roomId);
         }
+
+        [defaultRoomId, ...joinedRooms].forEach(id => {
+            chatApi.getRoomIdForJoinedRoom.withArgs(id).resolves(roomId);
+        });
 
         return chatApi;
     },
