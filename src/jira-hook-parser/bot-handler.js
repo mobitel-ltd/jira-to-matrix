@@ -64,9 +64,21 @@ const noIssueRoomsFuncs = {
 };
 
 const getBotActions = body => {
-    const funcs = features.noIssueRooms ? noIssueRoomsFuncs : actionFuncs;
+    let funcs;
 
-    return Object.keys(funcs).filter(key => funcs[key](body));
+    switch (typeof features.noIssueRooms) {
+        case 'boolean':
+            funcs = features.noIssueRooms ? noIssueRoomsFuncs : actionFuncs;
+            break;
+        case 'object':
+            funcs = features.noIssueRooms.includes(utils.getProjectKey(body)) && noIssueRoomsFuncs;
+            break;
+        default:
+            funcs = actionFuncs;
+            break;
+    }
+
+    return funcs ? Object.keys(funcs).filter(key => funcs[key](body)) : [];
 };
 
 const getParserName = func => `get${func[0].toUpperCase()}${func.slice(1)}Data`;
@@ -81,10 +93,10 @@ const getFuncRedisData = body => funcName => {
 const getFuncAndBody = body => {
     const botFunc = getBotActions(body);
     const createRoomData = isCreateRoom(body) && parsers.getCreateRoomData(body, features.noIssueRooms);
-    const roomsData = { redisKey: utils.REDIS_ROOM_KEY, createRoomData };
+    const roomsData = botFunc.length && { redisKey: utils.REDIS_ROOM_KEY, createRoomData };
     const funcsData = botFunc.map(getFuncRedisData(body));
 
-    return [roomsData, ...funcsData];
+    return roomsData ? [roomsData, ...funcsData] : [];
 };
 
 module.exports = {

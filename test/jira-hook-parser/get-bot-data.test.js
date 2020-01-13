@@ -177,13 +177,6 @@ describe('No issue rooms mode', () => {
                     projectKey: issueStatusChangedJSON.issue.fields.project.key,
                 },
             },
-            // {
-            //     redisKey: `inviteNewMembers_${issueStatusChangedJSON.timestamp}`,
-            //     funcName: 'inviteNewMembers',
-            //     data: {
-            //         parentKey: issueStatusChangedJSON.issue.fields.project.key,
-            //     },
-            // },
             {
                 redisKey: `postParentUpdates_${issueStatusChangedJSON.timestamp}`,
                 funcName: 'postParentUpdates',
@@ -273,6 +266,67 @@ describe('No issue rooms mode', () => {
                         id: issueWithParentIssueUpdatedJSON.issue.id,
                         name: issueWithParentIssueUpdatedJSON.user.displayName,
                         summary: issueWithParentIssueUpdatedJSON.issue.fields.summary,
+                    },
+                },
+            },
+        ];
+
+        assert.deepEqual(res, expected);
+    });
+});
+
+describe('No issue rooms mode with some another project in conf', () => {
+    const noIssuHandlers = proxyquire('../../src/jira-hook-parser/bot-handler.js', {
+        '../config': { ...config, features: { noIssueRooms: ['SOMEPROJECT'] } },
+    });
+
+    it('getBotActions is empty', () => {
+        const res = noIssuHandlers.getBotActions(issueStatusChangedJSON);
+
+        assert.deepEqual(res, []);
+    });
+
+    it('Expect empty', () => {
+        const res = noIssuHandlers.getFuncAndBody(issueStatusChangedJSON);
+
+        assert.deepEqual(res, []);
+    });
+});
+
+describe('No issue rooms mode with some existing project in conf', () => {
+    const noIssuHandlers = proxyquire('../../src/jira-hook-parser/bot-handler.js', {
+        '../config': { ...config, features: { noIssueRooms: [issueStatusChangedJSON.issue.fields.project.key] } },
+    });
+
+    it('getBotActions is empty', () => {
+        const res = noIssuHandlers.getBotActions(issueStatusChangedJSON);
+        const expected = ['postParentUpdates'];
+        assert.deepEqual(res, expected);
+    });
+
+    it('Expect empty', () => {
+        const res = noIssuHandlers.getFuncAndBody(issueStatusChangedJSON);
+        const expected = [
+            {
+                redisKey: 'newrooms',
+                createRoomData: {
+                    issue: {
+                        key: undefined,
+                    },
+                    projectKey: issueStatusChangedJSON.issue.fields.project.key,
+                },
+            },
+            {
+                redisKey: `postParentUpdates_${issueStatusChangedJSON.timestamp}`,
+                funcName: 'postParentUpdates',
+                data: {
+                    parentKey: issueStatusChangedJSON.issue.fields.project.key,
+                    childData: {
+                        key: issueStatusChangedJSON.issue.key,
+                        status: issueStatusChangedJSON.changelog.items[0].toString,
+                        id: issueStatusChangedJSON.issue.id,
+                        summary: issueStatusChangedJSON.issue.fields.summary,
+                        name: issueStatusChangedJSON.user.displayName,
                     },
                 },
             },

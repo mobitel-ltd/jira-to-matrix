@@ -222,7 +222,8 @@ const utils = {
 
     getParentKey: body => handlers.issue.getParentIssueKey(body) || handlers.issue.getProjectKey(body),
 
-    getParentIssueKey: body => handlers.issue.getParentIssueKey(body),
+    getParentIssueKey: body =>
+        handlers.issue.getParentIssueKey(body) || handlers.issue.getParentIssueKey({ issue: body }),
 
     getRelations: issueLinkBody => ({
         inward: {

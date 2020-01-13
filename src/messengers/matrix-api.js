@@ -508,6 +508,7 @@ module.exports = class Matrix extends MessengerAbstract {
         try {
             const alias = this._isRoomAlias(text) ? text : this._getMatrixRoomAlias(text.toUpperCase());
             const { room_id: roomId } = await this.client.getRoomIdForAlias(alias);
+            this.logger.debug(`Room id for key ${text} is ${roomId}`);
 
             return roomId;
         } catch (err) {

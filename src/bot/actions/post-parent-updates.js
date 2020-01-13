@@ -1,6 +1,6 @@
 const logger = require('../../modules/log.js')(module);
 const redis = require('../../redis-client');
-const { getIssue } = require('../../lib/jira-request.js');
+const { getParent } = require('../../lib/jira-request.js');
 const { getNewIssueMessageBody, getPostStatusData } = require('./helper.js');
 const utils = require('../../lib/utils');
 
@@ -17,8 +17,8 @@ const getParentLink = async (parent, child) => {
 
 module.exports = async ({ chatApi, parentKey, childData }) => {
     try {
-        const parentRoomId = await chatApi.getRoomId(parentKey);
-        const parentData = await getIssue(parentKey);
+        const parentData = await getParent(parentKey, childData.key);
+        const parentRoomId = await chatApi.getRoomId(parentData.key);
         const parentLink = await getParentLink(parentData, childData);
 
         if (parentLink) {
@@ -27,6 +27,8 @@ module.exports = async ({ chatApi, parentKey, childData }) => {
             logger.info(`Info about issue ${childData.key} added to parent ${parentKey}`);
 
             await chatApi.sendHtmlMessage(parentRoomId, body, htmlBody);
+
+            return true;
         }
 
         if (childData.status) {

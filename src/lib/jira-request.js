@@ -304,6 +304,16 @@ const jiraRequests = {
             return {};
         }
     },
+
+    getParent: async (parentKey, childKey) => {
+        if (parentKey.includes('-')) {
+            return jiraRequests.getIssue(parentKey);
+        }
+        const childIssue = await jiraRequests.getIssue(childKey);
+        const parentIssueKey = utils.getParentIssueKey(childIssue);
+
+        return parentIssueKey ? jiraRequests.getIssue(parentIssueKey) : jiraRequests.getProject(parentKey);
+    },
 };
 
 module.exports = jiraRequests;

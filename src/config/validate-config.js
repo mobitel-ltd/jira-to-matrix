@@ -18,8 +18,10 @@ const schema = obj({
         url: address,
         user: string,
         password: string,
+        // epicTypeName: Joi.array(Joi.string()).optional(),
     }),
     features: obj({
+        noIssueRooms: Joi.alternatives(array(Joi.string()).optional(), boolean),
         createRoom: boolean,
         inviteNewMembers: boolean,
         postComments: boolean,
