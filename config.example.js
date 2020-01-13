@@ -14,6 +14,10 @@ module.exports = Object.freeze({
     },
     // list of available actions for current user
     features: {
+        // If you don't need to create room for every issue you create but you can use this mode
+        // to use it for all projects just set --- noIssueRooms: true
+        // to use it for some projects  set --- noIssueRooms: ['PROJECTS', 'YOU', 'NEED']
+        noIssueRooms: ['DTP'],
         // create room
         createRoom: true,
         // invite new member in room
