@@ -36,6 +36,18 @@ module.exports = class ChatFasade extends MessengerAbstract {
     }
 
     /**
+     * Get room id, throws if no bot is in room
+     * @param {string} key - name of room
+     * @returns {Promise<string>} - returns roomId of this room
+     */
+    async getRoomIdForJoinedRoom(key) {
+        const roomId = await this.getRoomId(key);
+        await this._getTargetClient(roomId);
+
+        return roomId;
+    }
+
+    /**
      * Get room id
      * @param {string} data - name of room
      * @returns {Promise<string>} - chat room id

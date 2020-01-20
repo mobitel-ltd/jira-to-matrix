@@ -18,7 +18,8 @@ module.exports = async ({ chatApi, linksKeys, data }) => {
             }),
         );
         const availableIssues = checkedIssues.filter(Boolean);
-        const roomIDs = await Promise.all(availableIssues.map(chatApi.getRoomId.bind(chatApi)));
+        const roomIDs = await Promise.all(availableIssues.map(chatApi.getRoomIdForJoinedRoom.bind(chatApi)));
+
         await Promise.all(roomIDs.map(handler(chatApi, data)));
 
         return true;

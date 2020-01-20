@@ -18,6 +18,7 @@ describe('post New Links test', () => {
     let chatApi;
     const correctKey = testUtils.getAlias();
     const roomId = testUtils.getRoomId();
+    const existKeyNotJoined = 'ROOOOM';
 
     const ignoreKey = 'IGNORE-123';
     const notExistKeyInChat = 'NO-ROOM-ID';
@@ -31,11 +32,14 @@ describe('post New Links test', () => {
     const expectedHTMLBody = marked(translate('statusHasChangedMessage', { name, key, summary, status, viewUrl }));
 
     beforeEach(() => {
-        chatApi = testUtils.getChatApi();
+        chatApi = testUtils.getChatApi({ joinedRooms: [correctKey] });
+        // chatApi = testUtils.getChatApi({ joinedRooms: [existKeyNotJoined] });
         nock(utils.getRestUrl())
             .get(`/issue/${correctKey}`)
             .reply(200, issueJson)
             .get(`/issue/${notExistKeyInChat}`)
+            .reply(200, issueJson)
+            .get(`/issue/${existKeyNotJoined}`)
             .reply(200, issueJson);
     });
 
@@ -55,7 +59,7 @@ describe('post New Links test', () => {
         const res = await postLinkedChanges({ chatApi, ...data, linksKeys: [ignoreKey] });
 
         expect(res).to.be.true;
-        expect(chatApi.getRoomId).not.to.be.called;
+        expect(chatApi.getRoomIdForJoinedRoom).not.to.be.called;
         expect(chatApi.sendHtmlMessage).not.to.be.called;
     });
 
@@ -64,7 +68,7 @@ describe('post New Links test', () => {
         const res = await postLinkedChanges({ chatApi, ...data, linksKeys: [ignoreKey, correctKey] });
 
         expect(res).to.be.true;
-        expect(chatApi.getRoomId).to.be.calledOnce;
+        expect(chatApi.getRoomIdForJoinedRoom).to.be.calledOnce;
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedBody, expectedHTMLBody);
     });
 
@@ -76,6 +80,23 @@ describe('post New Links test', () => {
                 chatApi,
                 ...data,
                 linksKeys: [correctKey, ignoreKey, notExistKeyInChat],
+            });
+        } catch (err) {
+            res = err;
+        }
+
+        expect(chatApi.sendHtmlMessage).not.to.be.called;
+        expect(res).to.include('Error in postLinkedChanges');
+    });
+
+    it('Expect send status not to be sent if at least one of room is found but bot is NOT in room', async () => {
+        const data = getPostLinkedChangesData(body);
+        let res;
+        try {
+            res = await postLinkedChanges({
+                chatApi,
+                ...data,
+                linksKeys: [correctKey, existKeyNotJoined],
             });
         } catch (err) {
             res = err;
