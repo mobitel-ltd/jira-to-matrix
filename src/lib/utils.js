@@ -492,6 +492,20 @@ const utils = {
         ${INDENT}You can use comands with taskTypes and new name for issue<br>
         ${INDENT}<font color="green"><strong>!create</strong></font> Task My new task<br>
         ${INDENT}New link, this task relates to "New-Jira-key" "My new task"
+    <h5>Use "!autoignore" command to add or del matrixUser to any room in this project and this task-type<br>
+    example:</h5>
+        ${INDENT}<font color="green"><strong>!autoignore</strong></font><br>
+        ${INDENT}you will see a message:<br>
+        ${INDENT}Current ignore-settings for project "TCP":<br>
+        ${INDENT}${INDENT}1) - Task<br>
+        ${INDENT}${INDENT}@user1:matrix.server.com
+        ${INDENT}${INDENT}@user2:matrix.server.com
+        ${INDENT}${INDENT}2) - Epic<br>
+        ${INDENT}${INDENT}@user3:matrix.server.com
+        ${INDENT}${INDENT}...<br>
+        ${INDENT}You can use comands add or del types, for example<br>
+        ${INDENT}${INDENT}!autoinvite add Error ii_ivanov
+        ${INDENT}${INDENT}!autoinvite del Error ii_ivanov
     `,
 };
 

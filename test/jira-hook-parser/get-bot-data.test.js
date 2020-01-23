@@ -110,6 +110,7 @@ describe('get-bot-data', () => {
                         id: '26313',
                         key: 'BBCOM-956',
                         summary: 'BBCOM-956',
+                        projectKey: 'BBCOM',
                     },
                     projectKey: 'BBCOM',
                 },

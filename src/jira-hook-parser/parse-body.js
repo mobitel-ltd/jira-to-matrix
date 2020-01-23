@@ -17,7 +17,7 @@ module.exports = {
         const id = utils.getIssueId(body);
         const descriptionFields = utils.getDescriptionFields(body);
 
-        const parsedIssue = { key, id, summary, descriptionFields };
+        const parsedIssue = { key, id, summary, descriptionFields, projectKey };
 
         return { issue: parsedIssue, projectKey };
     },
