@@ -20,6 +20,7 @@ const schema = obj({
         password: string,
     }),
     features: obj({
+        noIssueRooms: boolean,
         createRoom: boolean,
         inviteNewMembers: boolean,
         postComments: boolean,

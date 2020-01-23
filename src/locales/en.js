@@ -44,8 +44,11 @@ const dict = Object.freeze({
     currentIgnoreSettings: 'Current ignore-settings for project "%{projectKey}": ',
     varsComandsIgnoreSettings:
         'You can use comands add or del types, for example<br>!ignore add Error<br>!ignore del Error',
+    currentInviteSettings: 'Current autoinvite-settings for project "%{projectKey}": ',
+    varsComandsInviteSettings:
+        'You can use comands add or del types and user, for example<br>!autoinvite add Error ii_ivanov<br>!autoinvite del Error ii_ivanov',
     jiraBotWereAreNotInProject: 'For use command !ignore add "%{jiraBotUser}" to admins this project',
-    emptyIgnoreList: 'For project %{projectKey} ignore list is empty.<br>You can add ignore key !ignore add Error',
+    emptySettingsList: 'For project %{projectKey} settings list is empty.<br>You can use !help',
     notIgnoreKey: 'Write key.<br>!ignore add <b>Task</b>',
     notKeyInProject: 'Types of task for project "%{projectKey}":',
     keyNotFoundForDelete: 'This key not found in ignore list for project "%{projectKey}".',
@@ -56,8 +59,11 @@ const dict = Object.freeze({
         'Issue too long or contains control characters.<br>Please use max 255 characters and do not use control characters',
     ignoreKeyAdded: 'Key "%{typeTaskFromUser}" was added for project "%{projectKey}".',
     ignoreKeyDeleted: 'Key "%{typeTaskFromUser}" was deleted for project "%{projectKey}".',
+    autoinviteKeyAdded: 'Key "%{matrixUserFromCommand}"  was added for project "%{projectKey}".',
+    autoinviteKeyDeleted: 'Key "%{matrixUserFromCommand}" was deleted for project "%{projectKey}".',
     epicShouldNotHaveSubtask: 'Epic can not have sub-tasks, please choose other tyskType',
     newTaskWasCreated: 'New issue [%{newIssueKey} %{summary}](%{viewUrl}) was created',
+    notInMatrix: '"%{userFromCommand}" not in matrix',
 });
 
 module.exports.dict = dict;

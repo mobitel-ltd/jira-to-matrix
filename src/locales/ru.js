@@ -49,11 +49,14 @@ const dict = Object.freeze({
     powerUp: 'Пользователь %{targetUser} получил права модератора для комнаты %{roomName}',
     currentIgnoreSettings: 'Текущие настройки игнорирования для проекта "%{projectKey}": ',
     varsComandsIgnoreSettings:
-        'Вы можете использовать команды добавления или удаления типов, например<br>!ignore add Error<br>!ignore del Error',
+        'Вы можете использовать команды добавления или удаления типов и пользователей, например<br>!ignore add Error<br>!ignore del Error',
+    currentInviteSettings: 'Текущие настройки автоприглашений для проекта "%{projectKey}": ',
+    varsComandsInviteSettings:
+        'Вы можете использовать команды добавления или удаления типов, например<br>!autoinvite add Error ii_ivanov<br>!autoinvite del Error ii_ivanov',
     jiraBotWereAreNotInProject:
         'Для испоьзования команды !ignore необходимо добавить "%{jiraBotUser}" в администраторы проекта',
-    emptyIgnoreList:
-        'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете добавить тип командой !ignore add Error',
+    emptySettingsList:
+        'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете добавить воспользоваться командой !help',
     notIgnoreKey: 'Укажите ключи.<br>!ignore add <b>Task</b>',
     notKeyInProject: 'Типы задач в проекте "%{projectKey}":',
     keyNotFoundForDelete: 'Ключ не найден в настройках проекта "%{projectKey}".',
@@ -64,8 +67,11 @@ const dict = Object.freeze({
         'Название задачи слишком длинное или содержит управляющие символы<br>Пожалуйста используйте максимум 255 символов и не используйте управляющие символы',
     ignoreKeyAdded: 'Ключ "%{typeTaskFromUser}" был добавлен для проекта "%{projectKey}".',
     ignoreKeyDeleted: 'Ключ "%{typeTaskFromUser}" был удален для проекта "%{projectKey}".',
+    autoinviteKeyAdded: 'Ключ "%{matrixUserFromCommand}" был добавлен для проекта "%{projectKey}".',
+    autoinviteKeyDeleted: 'Ключ "%{matrixUserFromCommand}" был удален для проекта "%{projectKey}".',
     epicShouldNotHaveSubtask: 'Эпик не может иметь подзадач, пожалуйста выберите другой тип задачи',
     newTaskWasCreated: 'Новая задача [%{newIssueKey} %{summary}](%{viewUrl}) была создана',
+    notInMatrix: 'Пользователя "%{userFromCommand}" нет в Matrix',
 });
 /* spell-checker: enable */
 

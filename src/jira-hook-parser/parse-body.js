@@ -24,8 +24,10 @@ module.exports = {
 
     getInviteNewMembersData: body => {
         const key = utils.getKey(body);
+        const projectKey = utils.getProjectKey(body);
+        const { typeName } = utils.getDescriptionFields(body);
 
-        return { issue: { key } };
+        return { issue: { key, typeName, projectKey } };
     },
 
     getPostNewLinksData: body => {

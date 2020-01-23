@@ -37,6 +37,7 @@ module.exports = {
             createRoom: stub().resolves('correct room'),
             getRoomMembers: stub(),
             invite: stub(),
+            getUser: stub().resolves(null),
             getChatUserId: stub().callsFake(realChatApi.getChatUserId.bind(realChatApi)),
             updateRoomName: stub(),
             updateRoomData: stub(),
@@ -46,6 +47,11 @@ module.exports = {
             composeRoomName: stub().callsFake(realChatApi.composeRoomName.bind(realChatApi)),
             setRoomAvatar: stub(),
         };
+
+        chatApi.getUser.withArgs('correctUser').resolves(true);
+        chatApi.getChatUserId.withArgs('correctUser').resolves('correctUser');
+        chatApi.getUser.withArgs('correctUser2').resolves(true);
+        chatApi.getChatUserId.withArgs('correctUser2').resolves('correctUser2');
         if (Array.isArray(alias)) {
             alias.forEach(item => {
                 chatApi.getRoomId.withArgs(item).resolves(roomId);

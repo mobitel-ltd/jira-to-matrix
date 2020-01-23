@@ -57,6 +57,8 @@ describe('get-bot-data', () => {
                 data: {
                     issue: {
                         key: 'INDEV-130',
+                        projectKey: 'INDEV',
+                        typeName: 'Story',
                     },
                 },
             },
@@ -118,6 +120,8 @@ describe('get-bot-data', () => {
                 data: {
                     issue: {
                         key: 'BBCOM-956',
+                        projectKey: 'BBCOM',
+                        typeName: 'Task',
                     },
                 },
             },

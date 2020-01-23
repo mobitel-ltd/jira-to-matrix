@@ -14,10 +14,11 @@ const ROOMS_OLD_NAME = 'rooms';
 const REDIS_LINK_PREFIX = 'link';
 const REDIS_EPIC_PREFIX = 'epic';
 const REDIS_IGNORE_PREFIX = 'ignore:project';
+const REDIS_INVITE_PREFIX = 'invite:project';
 const HANDLED_KEY = 'handled';
 
 const DELIMITER = '|';
-const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER, REDIS_IGNORE_PREFIX, HANDLED_KEY];
+const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER, REDIS_IGNORE_PREFIX, REDIS_INVITE_PREFIX, HANDLED_KEY];
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
@@ -381,15 +382,29 @@ const utils = {
             `${translate('listJiraCommand')}:<br>`,
         ),
 
-    getIgnoreTips: (projectKey, currentTaskType) => {
-        if (currentTaskType.length === 0) {
-            return `${translate('emptyIgnoreList', { projectKey })}`;
+    getIgnoreTips: (projectKey, currentSettingsList, command) => {
+        if (currentSettingsList.length === 0) {
+            return `${translate('emptySettingsList', { projectKey })}`;
         }
-        return `${translate('currentIgnoreSettings', { projectKey })}
+        switch (command) {
+            case 'ignore':
+                return `${translate('currentIgnoreSettings', { projectKey })}
                 <br>
-                ${currentTaskType.map((name, id) => `<strong>${id + 1})</strong> - ${name}`).join('<br>')}
-                <br>
-                ${translate('varsComandsIgnoreSettings')}`;
+                ${currentSettingsList.map((name, id) => `<strong>${id + 1})</strong> - ${name}`).join('<br>')}
+                    <br>
+                    ${translate('varsComandsIgnoreSettings')}`;
+            case 'autoinvite':
+                return `${translate('currentInviteSettings', { projectKey })}
+                    <br>
+                    ${currentSettingsList
+                        .map(
+                            ([name, userList], id) =>
+                                `<strong>${id + 1})</strong> - ${name}:<br> ${userList.join('<br>')}`,
+                        )
+                        .join('<br>')}
+                    <br>
+                    ${translate('varsComandsInviteSettings')}`;
+        }
     },
 
     ignoreKeysInProject: (projectKey, namesIssueTypeInProject) => `${translate('notKeyInProject', { projectKey })}
@@ -484,6 +499,7 @@ module.exports = {
     INDENT,
     REDIS_ROOM_KEY,
     REDIS_IGNORE_PREFIX,
+    REDIS_INVITE_PREFIX,
     COMMON_NAME,
     NO_ROOM_PATTERN,
     END_NO_ROOM_PATTERN,
