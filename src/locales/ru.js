@@ -72,6 +72,8 @@ const dict = Object.freeze({
     epicShouldNotHaveSubtask: 'Эпик не может иметь подзадач, пожалуйста выберите другой тип задачи',
     newTaskWasCreated: 'Новая задача [%{newIssueKey} %{summary}](%{viewUrl}) была создана',
     notInMatrix: 'Пользователя "%{userFromCommand}" нет в Matrix',
+    invalidCommand:
+        'Команда введена неверно, укажите все необходимые параметры.<br>!autoinvite <b>add | del</b> <b>TaskType</b> <b>chatUser</b><br>Например:<br>!autoinvite add Task ii_petrov',
 });
 /* spell-checker: enable */
 

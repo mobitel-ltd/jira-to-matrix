@@ -64,6 +64,8 @@ const dict = Object.freeze({
     epicShouldNotHaveSubtask: 'Epic can not have sub-tasks, please choose other tyskType',
     newTaskWasCreated: 'New issue [%{newIssueKey} %{summary}](%{viewUrl}) was created',
     notInMatrix: '"%{userFromCommand}" not in matrix',
+    invalidCommand:
+        'Command is invalid, Use all params.<br>!autoinvite <b>add | del</b> <b>TaskType</b> <b>chatUser</b><br>For example:<br>!autoinvite add Task ii_petrov',
 });
 
 module.exports.dict = dict;

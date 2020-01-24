@@ -2,8 +2,12 @@ const Ramda = require('ramda');
 const conf = require('../../config');
 const { errorTracing } = require('../../lib/utils.js');
 const { getIssueWatchers } = require('../../lib/jira-request.js');
-const { getAllSettingData } = require('../settings');
+const { getAutoinviteUsers } = require('../settings');
 const logger = require('../../modules/log.js')(module);
+
+const {
+    messenger: { bots },
+} = conf;
 
 module.exports = async ({ chatApi, issue }) => {
     try {
@@ -14,17 +18,13 @@ module.exports = async ({ chatApi, issue }) => {
         const issueWatchers = await getIssueWatchers(issue);
         const issueWatchersChatIds = issueWatchers.map(user => chatApi.getChatUserId(user));
 
-        const { [projectKey]: currentInvite = {} } = await getAllSettingData('autoinvite');
-        const { [typeName]: autoinviteUsers = [] } = currentInvite;
+        const autoinviteUsers = await getAutoinviteUsers(projectKey, typeName);
 
         const jiraUsers = Ramda.uniq([...issueWatchersChatIds, ...autoinviteUsers]);
 
-        const {
-            messenger: { bots },
-        } = conf;
-        const botsMatrixChatIds = bots.map(({ user }) => user).map(user => chatApi.getChatUserId(user));
+        const botsChatIds = bots.map(({ user }) => user).map(user => chatApi.getChatUserId(user));
 
-        const newMembers = Ramda.difference(jiraUsers, [...chatRoomMembers, ...botsMatrixChatIds]).filter(Boolean);
+        const newMembers = Ramda.difference(jiraUsers, [...chatRoomMembers, ...botsChatIds]).filter(Boolean);
 
         await Promise.all(
             newMembers.map(async userID => {

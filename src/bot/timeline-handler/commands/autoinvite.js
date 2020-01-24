@@ -34,12 +34,8 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     const [command, typeTaskFromUser, userFromCommand] = bodyText.split(' ');
     const { [typeTaskFromUser]: currentUsers = [] } = currentInvite;
 
-    if (!['add', 'del'].includes(command)) {
-        return translate('commandNotFound');
-    }
-
-    if (!typeTaskFromUser || !userFromCommand) {
-        return translate('notIgnoreKey');
+    if (!['add', 'del'].includes(command) || !typeTaskFromUser || !userFromCommand) {
+        return translate('invalidCommand');
     }
 
     if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
@@ -81,6 +77,6 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 
             return translate('autoinviteKeyDeleted', { projectKey, matrixUserFromCommand });
         default:
-            return translate('commandNotFound');
+            return translate('invalidCommand');
     }
 };

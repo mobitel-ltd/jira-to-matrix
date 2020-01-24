@@ -7,7 +7,7 @@ const utils = require('./utils.js');
 const messages = require('./messages');
 const schemas = require('./schemas');
 
-const { url: jiraUrl } = jira;
+const { url: jiraUrl, user: jiraBot } = jira;
 
 const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
 
@@ -79,7 +79,7 @@ const jiraRequests = {
 
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
-        return [...allWatchersSet].filter(isExpectedToInvite);
+        return [...allWatchersSet].filter(isExpectedToInvite).filter(user => user !== jiraBot);
     },
 
     /**
