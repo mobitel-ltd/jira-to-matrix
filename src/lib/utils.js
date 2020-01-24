@@ -397,10 +397,12 @@ const utils = {
                 return `${translate('currentInviteSettings', { projectKey })}
                     <br>
                     ${currentSettingsList
-                        .map(
-                            ([name, userList], id) =>
-                                `<strong>${id + 1})</strong> - ${name}:<br> ${userList.join('<br>')}`,
-                        )
+                        .map(([name, userList]) => {
+                            const result =
+                                userList.length > 0 ? `<strong>${name})</strong>:<br> ${userList.join('<br>')}` : '';
+                            return result;
+                        })
+                        .filter(Boolean)
                         .join('<br>')}
                     <br>
                     ${translate('varsComandsInviteSettings')}`;

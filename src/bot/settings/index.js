@@ -45,8 +45,17 @@ const delSettingsData = async (projectKey, prefix) => {
     }
 };
 
+const getAutoinviteUsers = async (projectKey, typeName) => {
+    const dataJSON = await redis.getAsync(getPrefix.autoinvite);
+    const data = dataJSON ? JSON.parse(dataJSON) : {};
+    const { [projectKey]: currentInvite = {} } = data;
+    const { [typeName]: autoinviteUsers = [] } = currentInvite;
+    return autoinviteUsers;
+};
+
 module.exports = {
     getAllSettingData,
+    getAutoinviteUsers,
     setSettingsData,
     delSettingsData,
 };

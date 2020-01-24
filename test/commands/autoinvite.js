@@ -64,7 +64,7 @@ describe('Invite setting for projects', () => {
     });
 
     it('Exist command and empty key', async () => {
-        const post = translate('notIgnoreKey', { projectKey });
+        const post = translate('invalidCommand');
         const result = await commandHandler({ ...baseOptions, bodyText: 'add' });
         expect(result).to.be.eq(post);
     });
@@ -104,7 +104,7 @@ describe('Invite setting for projects', () => {
     });
 
     it('Command not found', async () => {
-        const post = translate('commandNotFound');
+        const post = translate('invalidCommand');
         const result = await commandHandler({ ...baseOptions, bodyText: `${notExistedCommand} ${issueType}` });
         expect(result).to.be.eq(post);
     });
