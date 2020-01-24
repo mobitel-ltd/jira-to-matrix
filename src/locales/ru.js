@@ -56,19 +56,21 @@ const dict = Object.freeze({
     jiraBotWereAreNotInProject:
         'Для испоьзования команды !ignore необходимо добавить "%{jiraBotUser}" в администраторы проекта',
     emptySettingsList:
-        'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете добавить воспользоваться командой !help',
+        'Для проекта %{projectKey} настройки пока не сделаны.<br>Вы можете воспользоваться командой !help',
     notIgnoreKey: 'Укажите ключи.<br>!ignore add <b>Task</b>',
     notKeyInProject: 'Типы задач в проекте "%{projectKey}":',
     keyNotFoundForDelete: 'Ключ не найден в настройках проекта "%{projectKey}".',
-    keyAlreadyExistForAdd: 'Ключ "%{typeTaskFromUser}" уже добавлен в игнор лист для проекта "%{projectKey}"',
+    keyAlreadyExistForAdd: 'Ключ "%{typeTaskFromUser}" уже добавлен в настройки для проекта "%{projectKey}"',
     commandNotFound: 'Неправильная команда.',
     issueNameExist: 'Не найдено название задачи.<br>Используйте команду !create ТИП_ЗАДАЧИ  название задачи в Jira',
     issueNameTooLong:
         'Название задачи слишком длинное или содержит управляющие символы<br>Пожалуйста используйте максимум 255 символов и не используйте управляющие символы',
     ignoreKeyAdded: 'Ключ "%{typeTaskFromUser}" был добавлен для проекта "%{projectKey}".',
     ignoreKeyDeleted: 'Ключ "%{typeTaskFromUser}" был удален для проекта "%{projectKey}".',
-    autoinviteKeyAdded: 'Ключ "%{matrixUserFromCommand}" был добавлен для проекта "%{projectKey}".',
-    autoinviteKeyDeleted: 'Ключ "%{matrixUserFromCommand}" был удален для проекта "%{projectKey}".',
+    autoinviteKeyAdded:
+        'Пользователь "%{matrixUserFromCommand}" был добавлен для проекта "%{projectKey}" для типов задач "%{typeTaskFromUser}".',
+    autoinviteKeyDeleted:
+        'Пользователь "%{matrixUserFromCommand}" был удален для проекта "%{projectKey}" для типов задач "%{typeTaskFromUser}".',
     epicShouldNotHaveSubtask: 'Эпик не может иметь подзадач, пожалуйста выберите другой тип задачи',
     newTaskWasCreated: 'Новая задача [%{newIssueKey} %{summary}](%{viewUrl}) была создана',
     notInMatrix: 'Пользователя "%{userFromCommand}" нет в Matrix',
