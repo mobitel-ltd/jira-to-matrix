@@ -61,7 +61,7 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
                 'autoinvite',
             );
 
-            return translate('autoinviteKeyAdded', { projectKey, matrixUserFromCommand });
+            return translate('autoinviteKeyAdded', { projectKey, matrixUserFromCommand, typeTaskFromUser });
         case 'del':
             if (!currentUsers.includes(matrixUserFromCommand)) {
                 return translate('keyNotFoundForDelete', { projectKey });
@@ -75,7 +75,7 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
                 'autoinvite',
             );
 
-            return translate('autoinviteKeyDeleted', { projectKey, matrixUserFromCommand });
+            return translate('autoinviteKeyDeleted', { projectKey, matrixUserFromCommand, typeTaskFromUser });
         default:
             return translate('invalidCommand');
     }

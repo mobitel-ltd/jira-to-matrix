@@ -85,6 +85,7 @@ describe('Invite setting for projects', () => {
         const post = translate('autoinviteKeyAdded', {
             projectKey,
             matrixUserFromCommand: await chatApi.getChatUserId('correctUser'),
+            typeTaskFromUser: issueType,
         });
         const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType} correctUser` });
         expect(result).to.be.eq(post);
@@ -94,6 +95,7 @@ describe('Invite setting for projects', () => {
         const post = translate('autoinviteKeyAdded', {
             projectKey,
             matrixUserFromCommand: await chatApi.getChatUserId('correctUser'),
+            typeTaskFromUser: issueType,
         });
         const result = await commandHandler({
             ...baseOptions,
@@ -123,7 +125,11 @@ describe('Invite setting for projects', () => {
         });
 
         it('Success delete key', async () => {
-            const post = translate('autoinviteKeyDeleted', { projectKey, matrixUserFromCommand: 'correctUser' });
+            const post = translate('autoinviteKeyDeleted', {
+                projectKey,
+                matrixUserFromCommand: 'correctUser',
+                typeTaskFromUser: issueType,
+            });
             const result = await commandHandler({ ...baseOptions, bodyText: `del ${issueType} correctUser` });
             expect(result).to.be.eq(post);
         });
