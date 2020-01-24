@@ -583,4 +583,16 @@ module.exports = class Matrix extends MessengerAbstract {
             this.logger.error(error);
         }
     }
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} userId chat user id
+     * @returns {Promise<User>} void
+     */
+    async getUser(userId) {
+        try {
+            return await this.client.getUser(userId);
+        } catch (err) {
+            this.logger.error(err);
+        }
+    }
 };

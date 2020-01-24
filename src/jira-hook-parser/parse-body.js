@@ -17,15 +17,17 @@ module.exports = {
         const id = utils.getIssueId(body);
         const descriptionFields = utils.getDescriptionFields(body);
 
-        const parsedIssue = { key, id, summary, descriptionFields };
+        const parsedIssue = { key, id, summary, descriptionFields, projectKey };
 
         return { issue: parsedIssue, projectKey };
     },
 
     getInviteNewMembersData: body => {
         const key = utils.getKey(body);
+        const projectKey = utils.getProjectKey(body);
+        const { typeName } = utils.getDescriptionFields(body);
 
-        return { issue: { key } };
+        return { issue: { key, typeName, projectKey } };
     },
 
     getPostNewLinksData: body => {

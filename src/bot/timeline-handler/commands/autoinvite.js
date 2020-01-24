@@ -25,53 +25,61 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     }
     const namesIssueTypeInProject = issueTypes.map(({ name }) => name);
 
-    const { [projectKey]: currentIgnore = {} } = await getAllSettingData('ignore');
-    const { taskType: currentTaskTypes = [] } = currentIgnore;
+    const { [projectKey]: currentInvite = {} } = await getAllSettingData('autoinvite');
 
+    // to do
     if (!bodyText) {
-        return utils.getIgnoreTips(projectKey, currentTaskTypes, 'ignore');
+        return utils.getIgnoreTips(projectKey, Object.entries(currentInvite), 'autoinvite');
     }
-
-    const [command, typeTaskFromUser] = bodyText.split(' ');
+    const [command, typeTaskFromUser, userFromCommand] = bodyText.split(' ');
+    const { [typeTaskFromUser]: currentUsers = [] } = currentInvite;
 
     if (!['add', 'del'].includes(command)) {
         return translate('commandNotFound');
     }
 
-    if (!typeTaskFromUser) {
+    if (!typeTaskFromUser || !userFromCommand) {
         return translate('notIgnoreKey');
     }
 
     if (!namesIssueTypeInProject.includes(typeTaskFromUser)) {
         return utils.ignoreKeysInProject(projectKey, namesIssueTypeInProject);
     }
+    // to do
+    const matrixUserFromCommand = await chatApi.getChatUserId(userFromCommand);
+    if (!(await chatApi.getUser(matrixUserFromCommand))) {
+        return translate('notInMatrix', { userFromCommand });
+    }
 
     switch (command) {
         case 'add':
-            if (currentTaskTypes.includes(typeTaskFromUser)) {
-                return translate('keyAlreadyExistForAdd', { typeTaskFromUser, projectKey });
+            if (currentUsers.includes(matrixUserFromCommand)) {
+                return translate('keyAlreadyExistForAdd', { typeTaskFromUser: matrixUserFromCommand, projectKey });
             }
             await setSettingsData(
                 projectKey,
-                { ...currentIgnore, taskType: [...currentTaskTypes, typeTaskFromUser] },
-                'ignore',
+                {
+                    ...currentInvite,
+                    [typeTaskFromUser]: [...currentUsers, matrixUserFromCommand],
+                },
+                'autoinvite',
             );
 
-            return translate('ignoreKeyAdded', { projectKey, typeTaskFromUser });
+            return translate('autoinviteKeyAdded', { projectKey, matrixUserFromCommand });
         case 'del':
-            if (!currentTaskTypes.includes(typeTaskFromUser)) {
+            if (!currentUsers.includes(matrixUserFromCommand)) {
                 return translate('keyNotFoundForDelete', { projectKey });
             }
             await setSettingsData(
                 projectKey,
                 {
-                    ...currentIgnore,
-                    taskType: currentTaskTypes.filter(task => task !== typeTaskFromUser),
+                    ...currentInvite,
+                    [typeTaskFromUser]: currentUsers.filter(task => task !== matrixUserFromCommand),
                 },
-                'ignore',
+                'autoinvite',
             );
 
-            return translate('ignoreKeyDeleted', { projectKey, typeTaskFromUser });
+            return translate('autoinviteKeyDeleted', { projectKey, matrixUserFromCommand });
         default:
             return translate('commandNotFound');
     }

@@ -46,13 +46,6 @@
                 "exceptions": ["i", "j", "_"]
             }
         ],
-        "indent": [
-            "error",
-            4,
-            {
-                "SwitchCase": 1
-            }
-        ],
         "max-depth": ["error", 4],
         "max-len": [
             "error",
