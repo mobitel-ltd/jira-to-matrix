@@ -38,7 +38,7 @@ module.exports = Object.freeze({
         password: 'fakepasswprd',
     },
     features: {
-        noIssueRooms: true,
+        // noIssueRooms: true,
         createRoom: true,
         inviteNewMembers: true,
         postComments: true,
