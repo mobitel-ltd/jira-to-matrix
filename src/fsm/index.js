@@ -66,10 +66,14 @@ const getChatFsm = (chatApi, handler) => {
                     }),
                 );
             },
-            onFinishConnection() {
+            async onFinishConnection() {
                 logger.info('All chat bot are connected!!!');
                 const { min, sec } = timing(startTime);
-                logger.info(`All matrix bots were connected on ${min} min ${sec} sec`);
+                const message = `All matrix bots were connected on ${min} min ${sec} sec`;
+                logger.info(message);
+                const chatFasade = new ChatFasade(chatApi);
+
+                await chatFasade.sendNotify(message);
             },
             async onHandleQueue() {
                 logger.debug('Start queue handling');
@@ -135,7 +139,7 @@ module.exports = class {
     async start() {
         this.jiraFsm.start();
         await this.chatFSM.connect();
-        this.chatFSM.finishConnection();
+        await this.chatFSM.finishConnection();
         this.jiraFsm.handlingInProgress();
         await this.chatFSM.handleQueue();
         this.chatFSM.finishHandle();

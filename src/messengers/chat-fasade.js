@@ -49,11 +49,11 @@ module.exports = class ChatFasade extends MessengerAbstract {
 
     /**
      * Get room id
-     * @param {string} data - name of room
+     * @param {string} roomName - name of room
      * @returns {Promise<string>} - chat room id
      */
-    getRoomId(data) {
-        return this.worker.getRoomId(data);
+    getRoomId(roomName) {
+        return this.worker.getRoomId(roomName);
     }
 
     /**
@@ -87,10 +87,52 @@ module.exports = class ChatFasade extends MessengerAbstract {
      * @param  {string} htmlBody chat message body
      * @returns {Promise<void>} void
      */
-    async sendHtmlMessage(roomId, body, htmlBody) {
+    async sendHtmlMessage(roomId, body, htmlBody = body) {
         const client = await this._getTargetClient(roomId);
 
         return client.sendHtmlMessage(roomId, body, htmlBody);
+    }
+
+    /**
+     * @param {string} roomName room name
+     * @param {string[]} users users to invite
+     * @param {string?} alias room alias, optional
+     * @returns {Promise<string>} return room id of created room
+     */
+    createRoom(roomName, users, alias) {
+        const invite = users.filter(id => id !== this.worker.config.user).map(item => this.getChatUserId(item));
+
+        const options = {
+            invite,
+            name: roomName,
+            room_alias_name: alias,
+        };
+
+        return this.worker.createRoom(options);
+    }
+
+    /**
+     * @param {string} text message
+     * @returns {boolean} notified or not
+     */
+    async sendNotify(text) {
+        if (this.worker.config.infoRoom) {
+            const { infoRoom } = this.worker.config;
+            const botChatIdList = this.chatPool.map(item => item.config.user);
+            const users = infoRoom.users || this.worker.config.admins;
+            const inviteUsers = [...users, ...botChatIdList];
+
+            const roomId =
+                (await this.worker.getRoomIdByName(infoRoom.name)) ||
+                (await this.createRoom(infoRoom.name, inviteUsers, infoRoom.name));
+
+            await Promise.all(inviteUsers.map(user => this.invite(roomId, this.getChatUserId(user))));
+
+            await this.sendHtmlMessage(roomId, text, text);
+
+            return true;
+        }
+        return false;
     }
 
     /**

@@ -327,6 +327,7 @@ module.exports = class Matrix extends MessengerAbstract {
             const lowerNameList = invite.map(name => name.toLowerCase());
             const createRoomOptions = {
                 ...options,
+                room_alias_name: options.room_alias_name.toUpperCase(),
                 visibility: 'private',
                 invite: lowerNameList,
             };
@@ -336,6 +337,7 @@ module.exports = class Matrix extends MessengerAbstract {
                 await this.setRoomAvatar(roomId, options.avatarUrl);
             }
 
+            this.logger.info(`Room with alias "${options.name}" is created with id ${roomId}`);
             return roomId;
         } catch (err) {
             throw ['Error while creating room', err].join('\n');
