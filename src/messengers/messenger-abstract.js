@@ -168,4 +168,18 @@ module.exports = class {
      * @returns {Promise<void>} void
      */
     async setRoomAvatar(roomId, url) {}
+
+    /**
+     * @returns {string[]} list of user id of admins
+     */
+    getAdmins() {
+        return this.config.admins;
+    }
+
+    /**
+     * @returns {string} user id
+     */
+    getUserId() {
+        return this.config.user;
+    }
 };

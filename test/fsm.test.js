@@ -31,6 +31,10 @@ describe('Fsm test', () => {
             connect: async () => {
                 await delay(100);
             },
+            getUserId: () => config.user,
+            getRoomId: stub()
+                .withArgs(configWithUserInfo.infoRoom.name)
+                .resolves(chatRoomId),
             disconnect: stub(),
             getRoomIdByName: stub()
                 .withArgs(configWithUserInfo.infoRoom.name)
@@ -40,6 +44,12 @@ describe('Fsm test', () => {
             createRoom: stub().resolves(chatRoomId),
             getChatUserId: stub().callsFake(getId),
             invite: stub(),
+            joinRoom: stub(),
+            logger: {
+                error: stub(),
+                info: stub(),
+            },
+            isConnected: stub().returns(true),
             config,
         };
     });
@@ -107,7 +117,6 @@ describe('Fsm test', () => {
             room_alias_name: configWithUserInfo.infoRoom.name,
         });
         expect(chatApi.sendHtmlMessage).to.be.calledWithMatch(chatRoomId);
-        expect(chatApi.invite).to.be.calledWithExactly(chatRoomId, getId(config.user));
         expect(chatApi.invite).to.be.calledWithExactly(chatRoomId, ...configWithUserInfo.infoRoom.users.map(getId));
 
         expect(fsm.state()).to.be.eq(states.ready);

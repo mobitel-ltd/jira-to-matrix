@@ -12,6 +12,7 @@
     "lint": "eslint \"{src,test}/**/*.js\"",
     "start": "node src/app.js",
     "start-dev": "nodemon src/app.js",
+    "debug": "nodemon --inspect src/app.js",
     "test-single": "NODE_ENV=test nyc mocha",
     "test": "NODE_ENV=test nyc mocha test/* --exit",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"

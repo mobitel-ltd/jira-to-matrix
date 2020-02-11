@@ -13,6 +13,25 @@ module.exports = class ChatFasade extends MessengerAbstract {
     }
 
     /**
+     * @returns {string|undefined} room alias
+     */
+    getInfoRoom() {
+        const { infoRoom } = this.worker.config;
+
+        return infoRoom && infoRoom.name;
+    }
+
+    /**
+     * @returns {string[]} users which should be informed
+     */
+    getInfoUsers() {
+        const { infoRoom } = this.worker.config;
+        const users = (infoRoom && infoRoom.users) || this.worker.getAdmins();
+
+        return users.map(item => this.getChatUserId(item));
+    }
+
+    /**
      * Get bot which will create new room for new hooks
      * @returns {MessengerApi} - chat bot
      */
@@ -26,12 +45,13 @@ module.exports = class ChatFasade extends MessengerAbstract {
      * @param {MessengerApi[]} clientPool array of messenger api instance
      * @returns {MessengerApi} chat bot instance
      */
-    async _getTargetClient(roomId, clientPool = this.chatPool) {
+    async _getTargetClient(roomId, clientPool = this.chatPool.slice().reverse()) {
         const [client, ...restClients] = clientPool;
         if (!client) {
             throw new Error(`No bot in room with id = ${roomId}`);
         }
-        const status = await client.isInRoom(roomId);
+        const status = client.isConnected() && (await client.isInRoom(roomId));
+
         return status ? client : this._getTargetClient(roomId, restClients);
     }
 
@@ -95,20 +115,27 @@ module.exports = class ChatFasade extends MessengerAbstract {
 
     /**
      * @param {string} roomName room name
-     * @param {string[]} users users to invite
-     * @param {string?} alias room alias, optional
      * @returns {Promise<string>} return room id of created room
      */
-    createRoom(roomName, users, alias) {
-        const invite = users.filter(id => id !== this.worker.config.user).map(item => this.getChatUserId(item));
+    async getOrCreateNotifyRoom(roomName) {
+        const worker = this.chatPool.find(item => item.isConnected());
+        const roomId = await worker.getRoomIdByName(roomName);
+        if (roomId) {
+            return roomId;
+        }
+
+        const inviteUsers = this.getInfoUsers();
 
         const options = {
-            invite,
+            invite: inviteUsers,
             name: roomName,
-            room_alias_name: alias,
+            room_alias_name: roomName,
         };
 
-        return this.worker.createRoom(options);
+        const createdRoomId = await worker.createRoom(options);
+        await worker.setRoomJoinedByUrl(createdRoomId);
+
+        return createdRoomId;
     }
 
     /**
@@ -116,23 +143,21 @@ module.exports = class ChatFasade extends MessengerAbstract {
      * @returns {boolean} notified or not
      */
     async sendNotify(text) {
-        if (this.worker.config.infoRoom) {
-            const { infoRoom } = this.worker.config;
-            const botChatIdList = this.chatPool.map(item => item.config.user);
-            const users = infoRoom.users || this.worker.config.admins;
-            const inviteUsers = [...users, ...botChatIdList];
+        try {
+            const infoRoomName = this.getInfoRoom();
+            if (infoRoomName) {
+                const roomId = await this.getOrCreateNotifyRoom(infoRoomName);
+                await this.inviteInfoWatchers();
 
-            const roomId =
-                (await this.worker.getRoomIdByName(infoRoom.name)) ||
-                (await this.createRoom(infoRoom.name, inviteUsers, infoRoom.name));
+                await this.sendHtmlMessage(roomId, text);
 
-            await Promise.all(inviteUsers.map(user => this.invite(roomId, this.getChatUserId(user))));
-
-            await this.sendHtmlMessage(roomId, text, text);
-
-            return true;
+                return true;
+            }
+            return false;
+        } catch (error) {
+            this.worker.logger.error('Error in sending notify message');
+            this.worker.logger.error(error);
         }
-        return false;
     }
 
     /**
@@ -154,5 +179,46 @@ module.exports = class ChatFasade extends MessengerAbstract {
         const client = await this._getTargetClient(roomId);
 
         return client.setRoomAvatar(roomId, url);
+    }
+
+    /**
+     * Invite watchers to info room
+     */
+    async inviteInfoWatchers() {
+        try {
+            const alias = this.getInfoRoom();
+            if (alias) {
+                const connectedClient = this.getCurrentClient();
+                const roomId = await connectedClient.getRoomId(alias);
+                const inviteUsers = this.getInfoUsers();
+                await Promise.all(inviteUsers.map(user => this.invite(roomId, user)));
+            }
+        } catch (error) {
+            this.worker.logger.error('Error iviting watchers to info room');
+            this.worker.logger.error(error);
+        }
+    }
+
+    /**
+     * Get bot instance
+     * @param {string} id bot id
+     * @returns {MessengerApi} bot instance
+     */
+    getInstance(id) {
+        const worker = this.chatPool.find(item => item.getUserId() === id);
+
+        return worker;
+    }
+
+    /**
+     * @param {string} userId bot userId
+     */
+    async joinBotToInfoRoom(userId) {
+        const roomInfo = this.getInfoRoom();
+        if (roomInfo) {
+            const bot = this.getInstance(userId);
+
+            await bot.joinRoom({ aliasPart: roomInfo });
+        }
     }
 };

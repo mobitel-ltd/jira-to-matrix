@@ -58,11 +58,18 @@ const getChatFsm = (chatApi, handler) => {
         ],
         methods: {
             async onConnect() {
+                const chatFasade = new ChatFasade(chatApi);
                 await Promise.all(
                     chatApi.map(async item => {
                         await item.connect();
+                        const botId = item.getUserId();
                         const { min, sec } = timing(startTime);
-                        logger.info(`Matrix bot ${item.config.user} was connected on ${min} min ${sec} sec`);
+                        const message = `Matrix bot "${botId}" was connected on: ${min} min ${sec} sec`;
+
+                        logger.info(message);
+
+                        await chatFasade.sendNotify(message);
+                        await chatFasade.joinBotToInfoRoom(botId);
                     }),
                 );
             },

@@ -1,15 +1,15 @@
-// const ramda = require('ramda');
-// const translate = require('../../../locales');
+const ramda = require('ramda');
+const translate = require('../../../locales');
 
-// const isCommandRoom = (chatApi, roomName) => ramda.pathEq('config.roomInfo.name', roomName, chatApi);
+const isCommandRoom = (chatApi, roomName) => ramda.pathEq('config.roomInfo.name', roomName, chatApi);
 
-// module.exports = async ({ bodyText, roomId, roomName, chatApi }) => {
-//     if (isCommandRoom) {
-//         const message = `Bot ${chatApi.config.user} is alive!`;
-//         await chatApi.sendHtmlMessage(roomId, message);
+module.exports = ({ bodyText, roomId, roomName, chatApi }) => {
+    if (isCommandRoom) {
+        const botId = chatApi.getUserId();
+        const message = `Bot ${botId} is alive!`;
 
-//         return message;
-//     }
+        return message;
+    }
 
-//     return translate('notCommandRoom');
-// };
+    return translate('notCommandRoom');
+};
