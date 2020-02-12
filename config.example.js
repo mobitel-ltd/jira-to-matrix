@@ -74,6 +74,15 @@ module.exports = Object.freeze({
                 password: 'key',
             },
         ],
+        // info room
+        // optional
+        infoRoom: {
+            // users that will be in info room
+            // if no field, admins will be added
+            users: ['tt_test1', 'tt_test2'],
+            // room alias in chat
+            name: 'INFO',
+        },
     },
     // log params based on winston https://github.com/winstonjs/winston
     log: {

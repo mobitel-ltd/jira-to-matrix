@@ -68,6 +68,11 @@ Add bots to config:
                 password: 'key',
             },
         ],
+        infoRoom: {
+            users: ['tt_test1', 'tt_test2'],
+            name: 'INFO',
+        },
+
     },
 ```
 
@@ -144,6 +149,7 @@ List of available commands:
 | (admins only) !invite <`room name`>/<`room id`>   | invite user to room with such issue name or matrix room id          |
 | (admins only) !ignore [add`|`del] typeTask        | Ignore typeTask (task`|`error`|`bug`|`etc) for project current room |
 | !create <`task type`> "Name for issue"            | Create new issue in Jira and create link with current issue         |
+| !alive                                            | In info room only!!! Call for bot connection check                  |
 
 All commands are available only in rooms with Bot and that compares with Jira.
 Get all commands and their rules to use in `Riot` you can get with first command - `!help`.
