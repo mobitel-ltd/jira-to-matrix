@@ -179,7 +179,15 @@ module.exports = class {
     /**
      * @returns {string} user id
      */
-    getUserId() {
+    getMyId() {
         return this.config.user;
+    }
+
+    /**
+     * Get notify data to send messages about connections and other info data
+     * @returns {object|undefined} info data if exists
+     */
+    getNotifyData() {
+        return this.config.infoRoom;
     }
 };

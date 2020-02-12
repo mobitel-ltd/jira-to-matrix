@@ -45,7 +45,13 @@ const timing = (startTime, now = Date.now()) => {
     return { min, sec };
 };
 
-const getChatFsm = (chatApi, handler) => {
+/**
+ *
+ * @param {ChatFasade} chatFasade chat fasade
+ * @param {functions} handler hook handler
+ * @returns {StateMachine} state machine
+ */
+const getChatFsm = (chatFasade, handler) => {
     const startTime = Date.now();
     const fsm = new StateMachine({
         init: states.init,
@@ -58,15 +64,15 @@ const getChatFsm = (chatApi, handler) => {
         ],
         methods: {
             async onConnect() {
-                const chatFasade = new ChatFasade(chatApi);
+                const bots = chatFasade.getAllInstance();
                 await Promise.all(
-                    chatApi.map(async item => {
+                    bots.map(async item => {
                         await item.connect();
-                        const botId = item.getUserId();
+                        // const message = await item.connect();
+
+                        const botId = item.getMyId();
                         const { min, sec } = timing(startTime);
                         const message = `Matrix bot "${botId}" was connected on: ${min} min ${sec} sec`;
-
-                        logger.info(message);
 
                         await chatFasade.sendNotify(message);
                         await chatFasade.joinBotToInfoRoom(botId);
@@ -74,17 +80,20 @@ const getChatFsm = (chatApi, handler) => {
                 );
             },
             async onFinishConnection() {
-                logger.info('All chat bot are connected!!!');
                 const { min, sec } = timing(startTime);
                 const message = `All matrix bots were connected on ${min} min ${sec} sec`;
-                logger.info(message);
-                const chatFasade = new ChatFasade(chatApi);
 
                 await chatFasade.sendNotify(message);
+                // const bots = chatFasade.getAllInstance();
+                // await Promise.all(
+                //     bots.map(async item => {
+                //         const botId = item.getMyId();
+                //         await chatFasade.joinBotToInfoRoom(botId);
+                //     }),
+                // );
             },
             async onHandleQueue() {
                 logger.debug('Start queue handling');
-                const chatFasade = new ChatFasade(chatApi);
                 await handler(chatFasade);
             },
             onFinishHandle() {
@@ -95,7 +104,7 @@ const getChatFsm = (chatApi, handler) => {
             // },
             onStop() {
                 logger.info('Messenger disconnected');
-                return this.is('init') || chatApi.map(item => item.disconnect());
+                return this.is('init') || chatFasade.disconnect();
             },
             // onPendingTransition(transition, from, to) {
             //     logger.error('FSM error', transition, from, to);
@@ -115,7 +124,8 @@ module.exports = class {
      * @param {integer} port jira server port
      */
     constructor(chatApi, queueHandler, app, port) {
-        this.chatFSM = getChatFsm(chatApi, queueHandler);
+        const chatFasade = new ChatFasade(chatApi);
+        this.chatFSM = getChatFsm(chatFasade, queueHandler);
         this.jiraFsm = getJiraFsm(app(this.handleHook.bind(this)), port);
     }
 

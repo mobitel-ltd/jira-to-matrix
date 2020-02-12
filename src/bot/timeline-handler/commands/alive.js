@@ -5,7 +5,7 @@ const isCommandRoom = (chatApi, roomName) => ramda.pathEq('config.roomInfo.name'
 
 module.exports = ({ bodyText, roomId, roomName, chatApi }) => {
     if (isCommandRoom) {
-        const botId = chatApi.getUserId();
+        const botId = chatApi.getMyId();
         const message = `Bot ${botId} is alive!`;
 
         return message;

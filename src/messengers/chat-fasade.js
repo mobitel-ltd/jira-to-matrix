@@ -1,5 +1,6 @@
 const ramda = require('ramda');
 const MessengerAbstract = require('./messenger-abstract');
+const logger = require('../modules/log')(module);
 
 module.exports = class ChatFasade extends MessengerAbstract {
     /**
@@ -16,17 +17,17 @@ module.exports = class ChatFasade extends MessengerAbstract {
      * @returns {string|undefined} room alias
      */
     getInfoRoom() {
-        const { infoRoom } = this.worker.config;
+        const infoData = this.worker.getNotifyData();
 
-        return infoRoom && infoRoom.name;
+        return infoData && infoData.name;
     }
 
     /**
      * @returns {string[]} users which should be informed
      */
     getInfoUsers() {
-        const { infoRoom } = this.worker.config;
-        const users = (infoRoom && infoRoom.users) || this.worker.getAdmins();
+        const infoData = this.worker.getNotifyData();
+        const users = (infoData && infoData.users) || this.worker.getAdmins();
 
         return users.map(item => this.getChatUserId(item));
     }
@@ -144,6 +145,8 @@ module.exports = class ChatFasade extends MessengerAbstract {
      */
     async sendNotify(text) {
         try {
+            logger.info(text);
+
             const infoRoomName = this.getInfoRoom();
             if (infoRoomName) {
                 const roomId = await this.getOrCreateNotifyRoom(infoRoomName);
@@ -155,8 +158,8 @@ module.exports = class ChatFasade extends MessengerAbstract {
             }
             return false;
         } catch (error) {
-            this.worker.logger.error('Error in sending notify message');
-            this.worker.logger.error(error);
+            logger.error('Error in sending notify message');
+            logger.error(error);
         }
     }
 
@@ -194,8 +197,8 @@ module.exports = class ChatFasade extends MessengerAbstract {
                 await Promise.all(inviteUsers.map(user => this.invite(roomId, user)));
             }
         } catch (error) {
-            this.worker.logger.error('Error iviting watchers to info room');
-            this.worker.logger.error(error);
+            logger.error('Error iviting watchers to info room');
+            logger.error(error);
         }
     }
 
@@ -205,7 +208,7 @@ module.exports = class ChatFasade extends MessengerAbstract {
      * @returns {MessengerApi} bot instance
      */
     getInstance(id) {
-        const worker = this.chatPool.find(item => item.getUserId() === id);
+        const worker = this.chatPool.find(item => item.getMyId() === id);
 
         return worker;
     }
@@ -220,5 +223,20 @@ module.exports = class ChatFasade extends MessengerAbstract {
 
             await bot.joinRoom({ aliasPart: roomInfo });
         }
+    }
+
+    /**
+     * Get each instance of bots
+     * @returns {MessengerApi[]} chat instances
+     */
+    getAllInstance() {
+        return this.chatPool;
+    }
+
+    /**
+     * Disconnect each bot
+     */
+    disconnect() {
+        this.chatPool.map(item => item.disconnect());
     }
 };

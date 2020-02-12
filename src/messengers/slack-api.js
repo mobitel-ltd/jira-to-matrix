@@ -100,6 +100,15 @@ module.exports = class SlackApi extends MessengerAbstract {
     }
 
     /**
+     * Get bot which joined to room in chat
+     * @param {string} userId chat user id
+     * @returns {Promise<User>} void
+     */
+    getUser(userId) {
+        return true;
+    }
+
+    /**
      * @returns {Object} connected slackClient with api for Jira
      */
     async connect() {
