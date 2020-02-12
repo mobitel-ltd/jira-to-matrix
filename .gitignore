@@ -91,3 +91,4 @@ dump.rdb
 /test/start.js
 
 ignore-list*
+autoinvite-list*

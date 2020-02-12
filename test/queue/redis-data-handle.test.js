@@ -108,6 +108,7 @@ describe('redis-data-handle test', () => {
                     description: 'Info',
                     priority: 'Medium',
                 },
+                projectKey: 'BBCOM',
             },
             projectKey: 'BBCOM',
         },

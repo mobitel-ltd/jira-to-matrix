@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const logger = require('./modules/log.js')(module);
 const getParsedAndSaveToRedis = require('./jira-hook-parser');
-const { getAllIgnoreData, setIgnoreData, delIgnoreData } = require('./bot/settings');
+const { getAllSettingData, setSettingsData, delSettingsData } = require('./bot/settings');
 const { httpStatus } = require('./lib/utils');
 
 const app = express();
@@ -31,7 +31,7 @@ module.exports = handleFunc => {
         })
         .get('/ignore', async (req, res) => {
             try {
-                const result = (await getAllIgnoreData()) || 'Ignore list is empty.';
+                const result = (await getAllSettingData('ignore')) || 'Ignore list is empty.';
                 res.json(result).end();
             } catch (err) {
                 logger.error(err);
@@ -42,7 +42,7 @@ module.exports = handleFunc => {
             const [ignoreData] = Object.entries(req.body);
             try {
                 const [key, data] = ignoreData;
-                await setIgnoreData(key, data);
+                await setSettingsData(key, data, 'ignore');
                 res.end();
             } catch (err) {
                 logger.error(err);
@@ -53,7 +53,7 @@ module.exports = handleFunc => {
             const { key } = req.params;
             const data = req.body;
             try {
-                await setIgnoreData(key, data);
+                await setSettingsData(key, data, 'ignore');
                 res.end();
             } catch (err) {
                 logger.error(err);
@@ -63,7 +63,7 @@ module.exports = handleFunc => {
         .delete('/ignore/:key', async (req, res) => {
             const { key } = req.params;
             try {
-                await delIgnoreData(key);
+                await delSettingsData(key, 'ignore');
                 res.end();
             } catch (err) {
                 logger.error(err);

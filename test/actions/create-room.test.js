@@ -224,7 +224,14 @@ describe('Create room test', () => {
     it("Expect room should be created if it's not exists and project creates if we run create room with only key", async () => {
         chatApi.getRoomIdByName.reset();
         chatApi.getRoomIdByName.resolves(false);
-        const result = await createRoom({ chatApi, issue: { key: createRoomData.issue.key } });
+        const result = await createRoom({
+            chatApi,
+            issue: {
+                key: createRoomData.issue.key,
+                projectKey: createRoomData.projectKey,
+                descriptionFields: { typeName: createRoomData.issue.descriptionFields.typeName },
+            },
+        });
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptionsNoSummary);
         expect(result).to.be.true;
     });
@@ -232,7 +239,10 @@ describe('Create room test', () => {
     it("Expect room should be created if it's not exists with avatar url if no project is in the config list colors", async () => {
         chatApi.getRoomIdByName.reset();
         chatApi.getRoomIdByName.resolves(false);
-        const result = await createRoom({ chatApi, issue: { key: issueKeyAvatar } });
+        const result = await createRoom({
+            chatApi,
+            issue: { key: issueKeyAvatar, projectKey: projectForAvatar, descriptionFields: { typeName: 'Task' } },
+        });
 
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueAvatar);
         expect(result).to.be.true;

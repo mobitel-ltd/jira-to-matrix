@@ -4,7 +4,7 @@ const {
 const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
 const utils = require('../../../lib/utils');
-const { getAllIgnoreData, setIgnoreData } = require('../../settings');
+const { getAllSettingData, setSettingsData } = require('../../settings');
 
 module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     const projectKey = utils.getProjectKeyFromIssueKey(roomName);
@@ -25,11 +25,11 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     }
     const namesIssueTypeInProject = issueTypes.map(({ name }) => name);
 
-    const { [projectKey]: currentIgnore = {} } = await getAllIgnoreData();
+    const { [projectKey]: currentIgnore = {} } = await getAllSettingData('ignore');
     const { taskType: currentTaskTypes = [] } = currentIgnore;
 
     if (!bodyText) {
-        return utils.getIgnoreTips(projectKey, currentTaskTypes);
+        return utils.getIgnoreTips(projectKey, currentTaskTypes, 'ignore');
     }
 
     const [command, typeTaskFromUser] = bodyText.split(' ');
@@ -51,17 +51,25 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
             if (currentTaskTypes.includes(typeTaskFromUser)) {
                 return translate('keyAlreadyExistForAdd', { typeTaskFromUser, projectKey });
             }
-            await setIgnoreData(projectKey, { ...currentIgnore, taskType: [...currentTaskTypes, typeTaskFromUser] });
+            await setSettingsData(
+                projectKey,
+                { ...currentIgnore, taskType: [...currentTaskTypes, typeTaskFromUser] },
+                'ignore',
+            );
 
             return translate('ignoreKeyAdded', { projectKey, typeTaskFromUser });
         case 'del':
             if (!currentTaskTypes.includes(typeTaskFromUser)) {
                 return translate('keyNotFoundForDelete', { projectKey });
             }
-            await setIgnoreData(projectKey, {
-                ...currentIgnore,
-                taskType: currentTaskTypes.filter(task => task !== typeTaskFromUser),
-            });
+            await setSettingsData(
+                projectKey,
+                {
+                    ...currentIgnore,
+                    taskType: currentTaskTypes.filter(task => task !== typeTaskFromUser),
+                },
+                'ignore',
+            );
 
             return translate('ignoreKeyDeleted', { projectKey, typeTaskFromUser });
         default:
