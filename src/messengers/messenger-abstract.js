@@ -185,9 +185,19 @@ module.exports = class {
 
     /**
      * Get notify data to send messages about connections and other info data
-     * @returns {object|undefined} info data if exists
+     * @returns {{name: string, users: string[]}|undefined} info data if exists
      */
     getNotifyData() {
         return this.config.infoRoom;
+    }
+
+    /**
+     * Get get command room name
+     * @returns {string|undefined} info data if exists
+     */
+    getCommandRoomName() {
+        const data = this.getNotifyData();
+
+        return data && data.name;
     }
 };

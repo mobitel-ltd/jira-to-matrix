@@ -313,7 +313,19 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {array} matrix rooms
      */
     getRooms() {
-        return this.client.getRooms();
+        const getParsedRooms = room => {
+            const joinedMembers = room.getJoinedMembers();
+
+            return {
+                name: room.name,
+                id: room.roomId,
+                members: joinedMembers.map(({ userId }) => userId),
+            };
+        };
+
+        const rooms = this.client.getRooms();
+
+        return rooms.map(getParsedRooms);
     }
 
     /**
