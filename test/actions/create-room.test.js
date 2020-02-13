@@ -247,4 +247,15 @@ describe('Create room test', () => {
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueAvatar);
         expect(result).to.be.true;
     });
+    it('Expect room should be created if descriptionFields not exist in roomdata', async () => {
+        chatApi.getRoomIdByName.reset();
+        chatApi.getRoomIdByName.resolves(false);
+        const result = await createRoom({
+            chatApi,
+            issue: { key: issueKeyAvatar, projectKey: projectForAvatar },
+        });
+
+        expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueAvatar);
+        expect(result).to.be.true;
+    });
 });
