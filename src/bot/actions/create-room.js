@@ -81,6 +81,7 @@ const getCheckedIssue = async issueData => {
         key: utils.getKey(issueBody),
         roomMembers: utils.getMembers(issueBody),
         summary: utils.getSummary(issueBody),
+        descriptionFields: utils.getDescriptionFields(issueBody),
     };
 };
 
