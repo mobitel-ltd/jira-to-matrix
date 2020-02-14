@@ -150,6 +150,7 @@ List of available commands:
 | (admins only) !ignore [add`|`del] typeTask        | Ignore typeTask (task`|`error`|`bug`|`etc) for project current room |
 | !create <`task type`> "Name for issue"            | Create new issue in Jira and create link with current issue         |
 | !alive                                            | In info room only!!! Call for bot connection check                  |
+| !getInfo <`project name`>                         | In info room only!!! Show info about rooms where bot is joined      |
 
 All commands are available only in rooms with Bot and that compares with Jira.
 Get all commands and their rules to use in `Riot` you can get with first command - `!help`.

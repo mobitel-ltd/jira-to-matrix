@@ -25,8 +25,6 @@ describe('Fsm test', () => {
     let fsm;
     let chatApi;
     const chatRoomId = 'roomId';
-    const config = { user: 'fakeName', admins: ['admin'] };
-    const configWithUserInfo = { ...config, infoRoom: { users: ['user1'], name: 'roomName' } };
     const configMatrix = { ...defaultConfig, messenger: matrix };
 
     const handler = stub().resolves();
@@ -38,7 +36,7 @@ describe('Fsm test', () => {
 
     describe('Test without notify room', () => {
         beforeEach(() => {
-            chatApi = getChatApi({ roomId: chatRoomId, config: configMatrix, alias: configWithUserInfo.infoRoom.name });
+            chatApi = getChatApi({ roomId: chatRoomId, config: configMatrix });
             chatApi.connect = async () => {
                 await delay(100);
             };
@@ -79,13 +77,13 @@ describe('Fsm test', () => {
     });
 
     describe('Test with notify room', () => {
+        const matrixMessengerDataWithRoom = { ...matrix, infoRoom: { users: ['user1'], name: 'roomName' } };
         beforeEach(() => {
-            const matrixMessengerDataWithRoom = { ...matrix, infoRoom: { users: ['user1'], name: 'roomName' } };
             const configWithInfo = { ...defaultConfig, messenger: matrixMessengerDataWithRoom };
             chatApi = getChatApi({
                 roomId: chatRoomId,
                 config: configWithInfo,
-                alias: configWithUserInfo.infoRoom.name,
+                alias: matrixMessengerDataWithRoom.infoRoom.name,
             });
         });
 
@@ -113,14 +111,14 @@ describe('Fsm test', () => {
                 await fsm.start();
 
                 expect(chatApi.createRoom).to.be.calledOnceWithExactly({
-                    invite: configWithUserInfo.infoRoom.users.map(chatApi.getChatUserId),
-                    name: configWithUserInfo.infoRoom.name,
-                    room_alias_name: configWithUserInfo.infoRoom.name,
+                    invite: matrixMessengerDataWithRoom.infoRoom.users.map(chatApi.getChatUserId),
+                    name: matrixMessengerDataWithRoom.infoRoom.name,
+                    room_alias_name: matrixMessengerDataWithRoom.infoRoom.name,
                 });
                 expect(chatApi.sendHtmlMessage).to.be.calledWithMatch(chatRoomId);
                 expect(chatApi.invite).to.be.calledWithExactly(
                     chatRoomId,
-                    ...configWithUserInfo.infoRoom.users.map(chatApi.getChatUserId),
+                    ...matrixMessengerDataWithRoom.infoRoom.users.map(chatApi.getChatUserId),
                 );
                 expect(fsm.state()).to.be.eq(states.ready);
             });

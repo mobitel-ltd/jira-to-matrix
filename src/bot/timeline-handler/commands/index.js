@@ -10,6 +10,7 @@ const ignore = require('./ignore.js');
 const create = require('./create.js');
 const autoinvite = require('./autoinvite.js');
 const alive = require('./alive');
+const getInfo = require('./getInfo');
 
 module.exports = {
     comment,
@@ -24,4 +25,5 @@ module.exports = {
     create,
     autoinvite,
     alive,
+    getInfo,
 };

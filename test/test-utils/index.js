@@ -50,6 +50,7 @@ module.exports = {
             getNotifyData: realChatApi.getNotifyData(),
             isConnected: stub().returns(true),
             isInRoom: stub().resolves(true),
+            getCommandRoomName: realChatApi.getCommandRoomName(),
         });
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
