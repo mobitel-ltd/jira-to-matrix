@@ -62,6 +62,12 @@ const schema = obj({
                 password: string,
             }),
         ).optional(),
+        infoRoom: objOptional({
+            name: Joi.string()
+                .alphanum()
+                .uppercase(),
+            users: array(Joi.string()).optional(),
+        }),
     }),
     log: {
         type: string,

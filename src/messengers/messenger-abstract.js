@@ -168,4 +168,36 @@ module.exports = class {
      * @returns {Promise<void>} void
      */
     async setRoomAvatar(roomId, url) {}
+
+    /**
+     * @returns {string[]} list of user id of admins
+     */
+    getAdmins() {
+        return this.config.admins;
+    }
+
+    /**
+     * @returns {string} user id
+     */
+    getMyId() {
+        return this.config.user;
+    }
+
+    /**
+     * Get notify data to send messages about connections and other info data
+     * @returns {{name: string, users: string[]}|undefined} info data if exists
+     */
+    getNotifyData() {
+        return this.config.infoRoom;
+    }
+
+    /**
+     * Get get command room name
+     * @returns {string|undefined} info data if exists
+     */
+    getCommandRoomName() {
+        const data = this.getNotifyData();
+
+        return data && data.name;
+    }
 };

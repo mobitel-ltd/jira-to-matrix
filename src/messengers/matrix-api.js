@@ -104,10 +104,11 @@ module.exports = class Matrix extends MessengerAbstract {
      */
     _isEventExeptionError(err) {
         return (
-            err.message.includes(this.EVENT_EXCEPTION) ||
-            err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION) ||
-            err.message.includes(this.MESSAGE_TO_LARGE) ||
-            err.message.includes(this.USER_ALREADY_IN_ROOM)
+            err.message &&
+            (err.message.includes(this.EVENT_EXCEPTION) ||
+                err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION) ||
+                err.message.includes(this.MESSAGE_TO_LARGE) ||
+                err.message.includes(this.USER_ALREADY_IN_ROOM))
         );
     }
 
@@ -145,6 +146,7 @@ module.exports = class Matrix extends MessengerAbstract {
         const syncHandler = state => {
             if (state === 'SYNCING') {
                 this.logger.info('well connected');
+                this.connection = true;
                 resolve(this.client);
             } else {
                 this.client.once('sync', syncHandler);
@@ -257,9 +259,8 @@ module.exports = class Matrix extends MessengerAbstract {
      */
     isConnected() {
         if (this.client) {
-            return !!this.client.clientRunning;
+            return !!this.client.clientRunning && this.connection;
         }
-        this.logger.error('Matrix client is not initialized');
 
         return false;
     }
@@ -291,13 +292,16 @@ module.exports = class Matrix extends MessengerAbstract {
      * Set power level for current user in matrix room
      * @param  {string} roomId matrix room
      * @param  {string} userId matrix userId
+     * @param  {number} level=50 power level, 50 by default
      */
-    async setPower(roomId, userId) {
+    async setPower(roomId, userId, level = 50) {
         try {
             const content = await this.client.getStateEvent(roomId, 'm.room.power_levels', '');
             const event = getEvent(content);
 
             await this.client.setPowerLevel(roomId, userId, 50, event);
+
+            this.logger.info(`Power level for room with id ${roomId} is set to ${level} for user ${userId}`);
             return true;
         } catch (err) {
             throw [`Error setting power level for user ${userId} in room ${roomId}`, err].join('\n');
@@ -309,7 +313,19 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {array} matrix rooms
      */
     getRooms() {
-        return this.client.getRooms();
+        const getParsedRooms = room => {
+            const joinedMembers = room.getJoinedMembers();
+
+            return {
+                name: room.name,
+                id: room.roomId,
+                members: joinedMembers.map(({ userId }) => userId),
+            };
+        };
+
+        const rooms = this.client.getRooms();
+
+        return rooms.map(getParsedRooms);
     }
 
     /**
@@ -322,20 +338,22 @@ module.exports = class Matrix extends MessengerAbstract {
      * @param {string?} options.avatarUrl avatar url for room, optional
      * @returns {string} matrix room id
      */
-    async createRoom({ invite, ...options }) {
+    async createRoom({ invite, avatarUrl, ...options }) {
         try {
             const lowerNameList = invite.map(name => name.toLowerCase());
             const createRoomOptions = {
                 ...options,
+                room_alias_name: options.room_alias_name.toUpperCase(),
                 visibility: 'private',
                 invite: lowerNameList,
             };
             const { room_id: roomId } = await this.client.createRoom(createRoomOptions);
 
-            if (options.avatarUrl) {
-                await this.setRoomAvatar(roomId, options.avatarUrl);
+            if (avatarUrl) {
+                await this.setRoomAvatar(roomId, avatarUrl);
             }
 
+            this.logger.info(`Room with alias "${options.name}" is created with id ${roomId}`);
             return roomId;
         } catch (err) {
             throw ['Error while creating room', err].join('\n');
@@ -583,6 +601,25 @@ module.exports = class Matrix extends MessengerAbstract {
             this.logger.error(error);
         }
     }
+
+    /**
+     * @param {string} roomId room id
+     */
+    async setRoomJoinedByUrl(roomId) {
+        try {
+            const method = 'PUT';
+            const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.join_rules`;
+            const body = { join_rule: 'public' };
+
+            await this.client._http.authedRequest(undefined, method, path, {}, body);
+
+            return true;
+        } catch (error) {
+            this.logger.error(`Error in setting public acceess for roomId ${roomId}`);
+            this.logger.error(error);
+        }
+    }
+
     /**
      * Get bot which joined to room in chat
      * @param {string} userId chat user id
@@ -592,6 +629,28 @@ module.exports = class Matrix extends MessengerAbstract {
         try {
             return await this.client.getUser(userId);
         } catch (err) {
+            this.logger.error(err);
+        }
+    }
+
+    /**
+     * @param {object} options join options
+     * @param {string} options.roomId room id to join
+     * @param {string} options.aliasPart alias part to join
+     */
+    async joinRoom({ roomId, aliasPart }) {
+        try {
+            if (aliasPart) {
+                const alias = this._getMatrixRoomAlias(aliasPart);
+
+                await this.client.joinRoom(alias);
+
+                return;
+            }
+
+            await this.client.joinRoom(roomId);
+        } catch (err) {
+            this.logger.error('Error with joining to room');
             this.logger.error(err);
         }
     }

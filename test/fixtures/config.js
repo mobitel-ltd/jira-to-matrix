@@ -1,35 +1,7 @@
 const faker = require('faker');
+const { slack, matrix } = require('./messenger-settings');
 
-const slack = {
-    name: 'slack',
-    admins: ['jira_test'],
-    domain: faker.internet.domainName(),
-    eventPort: 3001,
-    user: 'jirabot',
-    password: faker.random.uuid(),
-    bots: [
-        {
-            user: 'jirabot',
-            password: faker.random.uuid(),
-        },
-    ],
-};
-
-const matrix = {
-    name: 'matrix',
-    admins: ['jira_test'],
-    domain: 'matrix.test-example.ru',
-    user: 'jira_test_bot',
-    password: 'fakepasswprd',
-    bots: [
-        {
-            user: 'jira_test_bot',
-            password: 'fakepasswprd',
-        },
-    ],
-};
-
-module.exports = Object.freeze({
+module.exports = {
     port: 4300,
     lang: faker.random.arrayElement(['ru', 'en']),
     jira: {
@@ -88,4 +60,4 @@ module.exports = Object.freeze({
         },
         projects: ['TEST'],
     },
-});
+};

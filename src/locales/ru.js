@@ -76,6 +76,9 @@ const dict = Object.freeze({
     notInMatrix: 'Пользователя "%{userFromCommand}" нет в Matrix',
     invalidCommand:
         'Команда введена неверно, укажите все необходимые параметры.<br>!autoinvite <b>add | del</b> <b>TaskType</b> <b>chatUser</b><br>Например:<br>!autoinvite add Task ii_petrov',
+    notCommandRoom: 'Команда недоступна в этой комнате',
+    alive: 'Бот "%{botId}" подключен!!!',
+    getInfo: 'Всего комнат = %{allRooms}<br>Только с ботом = %{single}<br>С двумя и более пользователями = %{many}',
 });
 /* spell-checker: enable */
 

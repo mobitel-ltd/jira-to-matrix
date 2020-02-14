@@ -68,6 +68,9 @@ const dict = Object.freeze({
     notInMatrix: '"%{userFromCommand}" not in matrix',
     invalidCommand:
         'Command is invalid, Use all params.<br>!autoinvite <b>add | del</b> <b>TaskType</b> <b>chatUser</b><br>For example:<br>!autoinvite add Task ii_petrov',
+    notCommandRoom: 'This command is not available in current room',
+    alive: 'Bot "%{botId}" is connected!!!',
+    getInfo: 'All rooms = %{allRooms}<br>Single rooms = %{single}<br>Multiple joined members = %{many}',
 });
 
 module.exports.dict = dict;
