@@ -1,5 +1,6 @@
 const ramda = require('ramda');
 const MessengerAbstract = require('./messenger-abstract');
+const logger = require('../modules/log')(module);
 
 module.exports = class ChatFasade extends MessengerAbstract {
     /**
@@ -10,6 +11,25 @@ module.exports = class ChatFasade extends MessengerAbstract {
         super();
         this.chatPool = chatPool;
         this.worker = ramda.last(chatPool);
+    }
+
+    /**
+     * @returns {string|undefined} room alias
+     */
+    getInfoRoom() {
+        const infoData = this.worker.getNotifyData();
+
+        return infoData && infoData.name;
+    }
+
+    /**
+     * @returns {string[]} users which should be informed
+     */
+    getInfoUsers() {
+        const infoData = this.worker.getNotifyData();
+        const users = (infoData && infoData.users) || this.worker.getAdmins();
+
+        return users.map(item => this.getChatUserId(item));
     }
 
     /**
@@ -26,12 +46,13 @@ module.exports = class ChatFasade extends MessengerAbstract {
      * @param {MessengerApi[]} clientPool array of messenger api instance
      * @returns {MessengerApi} chat bot instance
      */
-    async _getTargetClient(roomId, clientPool = this.chatPool) {
+    async _getTargetClient(roomId, clientPool = this.chatPool.slice().reverse()) {
         const [client, ...restClients] = clientPool;
         if (!client) {
             throw new Error(`No bot in room with id = ${roomId}`);
         }
-        const status = await client.isInRoom(roomId);
+        const status = client.isConnected() && (await client.isInRoom(roomId));
+
         return status ? client : this._getTargetClient(roomId, restClients);
     }
 
@@ -49,11 +70,11 @@ module.exports = class ChatFasade extends MessengerAbstract {
 
     /**
      * Get room id
-     * @param {string} data - name of room
+     * @param {string} roomName - name of room
      * @returns {Promise<string>} - chat room id
      */
-    getRoomId(data) {
-        return this.worker.getRoomId(data);
+    getRoomId(roomName) {
+        return this.worker.getRoomId(roomName);
     }
 
     /**
@@ -87,10 +108,59 @@ module.exports = class ChatFasade extends MessengerAbstract {
      * @param  {string} htmlBody chat message body
      * @returns {Promise<void>} void
      */
-    async sendHtmlMessage(roomId, body, htmlBody) {
+    async sendHtmlMessage(roomId, body, htmlBody = body) {
         const client = await this._getTargetClient(roomId);
 
         return client.sendHtmlMessage(roomId, body, htmlBody);
+    }
+
+    /**
+     * @param {string} roomName room name
+     * @returns {Promise<string>} return room id of created room
+     */
+    async getOrCreateNotifyRoom(roomName) {
+        const worker = this.chatPool.find(item => item.isConnected());
+        const roomId = await worker.getRoomIdByName(roomName);
+        if (roomId) {
+            return roomId;
+        }
+
+        const inviteUsers = this.getInfoUsers();
+
+        const options = {
+            invite: inviteUsers,
+            name: roomName,
+            room_alias_name: roomName,
+        };
+
+        const createdRoomId = await worker.createRoom(options);
+        await worker.setRoomJoinedByUrl(createdRoomId);
+
+        return createdRoomId;
+    }
+
+    /**
+     * @param {string} text message
+     * @returns {boolean} notified or not
+     */
+    async sendNotify(text) {
+        try {
+            logger.info(text);
+
+            const infoRoomName = this.getInfoRoom();
+            if (infoRoomName) {
+                const roomId = await this.getOrCreateNotifyRoom(infoRoomName);
+                await this.inviteInfoWatchers();
+
+                await this.sendHtmlMessage(roomId, text);
+
+                return true;
+            }
+            return false;
+        } catch (error) {
+            logger.error('Error in sending notify message');
+            logger.error(error);
+        }
     }
 
     /**
@@ -112,5 +182,61 @@ module.exports = class ChatFasade extends MessengerAbstract {
         const client = await this._getTargetClient(roomId);
 
         return client.setRoomAvatar(roomId, url);
+    }
+
+    /**
+     * Invite watchers to info room
+     */
+    async inviteInfoWatchers() {
+        try {
+            const alias = this.getInfoRoom();
+            if (alias) {
+                const connectedClient = this.getCurrentClient();
+                const roomId = await connectedClient.getRoomId(alias);
+                const inviteUsers = this.getInfoUsers();
+                await Promise.all(inviteUsers.map(user => this.invite(roomId, user)));
+            }
+        } catch (error) {
+            logger.error('Error iviting watchers to info room');
+            logger.error(error);
+        }
+    }
+
+    /**
+     * Get bot instance
+     * @param {string} id bot id
+     * @returns {MessengerApi} bot instance
+     */
+    getInstance(id) {
+        const worker = this.chatPool.find(item => item.getMyId() === id);
+
+        return worker;
+    }
+
+    /**
+     * @param {string} userId bot userId
+     */
+    async joinBotToInfoRoom(userId) {
+        const roomInfo = this.getInfoRoom();
+        if (roomInfo) {
+            const bot = this.getInstance(userId);
+
+            await bot.joinRoom({ aliasPart: roomInfo });
+        }
+    }
+
+    /**
+     * Get each instance of bots
+     * @returns {MessengerApi[]} chat instances
+     */
+    getAllInstance() {
+        return this.chatPool;
+    }
+
+    /**
+     * Disconnect each bot
+     */
+    disconnect() {
+        this.chatPool.map(item => item.disconnect());
     }
 };
