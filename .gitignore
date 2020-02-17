@@ -4,7 +4,6 @@
 
 # IDE project files
 .idea
-.vscode
 *.suo
 *.ntvs*
 *.njsproj
