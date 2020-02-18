@@ -110,8 +110,6 @@
         ],
         "assignee": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-            "name": "ii_ivanov",
-            "key": "ii_ivanov",
             "accountId": "5b912f5c8a96e82b9549361c",
             "emailAddress": "ii_ivanov@test-example.ru",
             "avatarUrls": {
@@ -168,8 +166,6 @@
         "summary": "Prueba de creación de tareas en un proyecto público",
         "creator": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-            "name": "ao_fedorov",
-            "key": "ao_fedorov",
             "accountId": "5b912f5c8a96e82b9549361c",
             "emailAddress": "ao_fedorov@test-example.ru",
             "avatarUrls": {
@@ -187,8 +183,6 @@
         "customfield_10041": null,
         "reporter": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-            "name": "oo_orlov",
-            "key": "oo_orlov",
             "accountId": "5b912f5c8a96e82b9549361c",
             "emailAddress": "oo_orlov@test-example.ru",
             "avatarUrls": {
