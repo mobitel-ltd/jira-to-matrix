@@ -31,12 +31,19 @@ describe('Create room test', () => {
     const [projectForAvatar] = config.colors.projects;
     const issueKeyAvatar = `${projectForAvatar}-123`;
 
-    const watchers = watchersBody.watchers.map(({ emailAddress, displayName }) => {
-        if (emailAddress) {
-            return chatApi.getChatUserId(utils.getNameFromMail(emailAddress));
-        }
-        return chatApi.getChatUserId(displayName);
-    });
+    const watchers = watchersBody.watchers
+        .map(({ emailAddress, displayName }) => {
+            if (emailAddress) {
+                return chatApi.getChatUserId(utils.getNameFromMail(emailAddress));
+            }
+            if (displayName.match(/\w+/g)) {
+                return chatApi.getChatUserId(displayName);
+            }
+
+            return false;
+        })
+        .filter(Boolean);
+
     const errorMsg = 'some error';
 
     const createRoomData = getCreateRoomData(JSONbody);

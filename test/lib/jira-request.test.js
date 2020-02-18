@@ -23,12 +23,19 @@ const newgenProject = require('../fixtures/jira-api-requests/project-gens/new-ge
 const adminsProject = require('../fixtures/jira-api-requests/project-gens/admins-project.json');
 
 // ii_ivanov pp_petrov bb_borisov
-const watchers = watchersJSON.watchers.map(({ emailAddress, displayName }) => {
-    if (emailAddress) {
-        return utils.getNameFromMail(emailAddress);
-    }
-    return displayName;
-});
+const watchers = watchersJSON.watchers
+    .map(({ emailAddress, displayName }) => {
+        if (emailAddress) {
+            return utils.getNameFromMail(emailAddress);
+        }
+        if (displayName.match(/\w+/g)) {
+            return displayName;
+        }
+
+        return false;
+    })
+    .filter(Boolean);
+
 // ii_ivanov ao_fedorov oo_orlov
 const members = [
     utils.getNameFromMail(issueJSON.fields.reporter.emailAddress),

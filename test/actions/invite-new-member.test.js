@@ -20,12 +20,19 @@ describe('inviteNewMembers test', () => {
         utils.getNameFromMail(issueBodyJSON.fields.creator.emailAddress),
         utils.getNameFromMail(issueBodyJSON.fields.assignee.emailAddress),
     ].map(name => chatApi.getChatUserId(name));
-    const watchers = watchersBody.watchers.map(({ emailAddress, displayName }) => {
-        if (emailAddress) {
-            return chatApi.getChatUserId(utils.getNameFromMail(emailAddress));
-        }
-        return chatApi.getChatUserId(displayName);
-    });
+    // ONLY english
+    const watchers = watchersBody.watchers
+        .map(({ emailAddress, displayName }) => {
+            if (emailAddress) {
+                return chatApi.getChatUserId(utils.getNameFromMail(emailAddress));
+            }
+            if (displayName.match(/\w+/g)) {
+                return chatApi.getChatUserId(displayName);
+            }
+
+            return false;
+        })
+        .filter(Boolean);
     const expectedWatchers = [...new Set([...members, ...watchers])];
 
     // const upperWatchersBody = {

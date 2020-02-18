@@ -73,9 +73,7 @@ const jiraRequests = {
         const url = utils.getRestUrl('issue', key, 'watchers');
         const body = await request(url);
         const watchers =
-            body && Array.isArray(body.watchers)
-                ? body.watchers.map(item => utils.getNameFromMail(item.emailAddress))
-                : [];
+            body && Array.isArray(body.watchers) ? body.watchers.map(item => utils.extractName([], item)) : [];
 
         const issue = await jiraRequests.getIssue(key);
         const roomMembers = utils.getIssueMembers(issue);

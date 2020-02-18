@@ -48,12 +48,14 @@ const getIdFromUrl = url => {
 const getNameFromMail = mail => mail && mail.split('@')[0];
 
 const extractName = (path, body) => {
-    const creatorMail = Ramda.path([...path, 'emailAddress'], body);
-    if (creatorMail) {
-        return getNameFromMail(creatorMail);
+    const emailAddress = Ramda.path([...path, 'emailAddress'], body);
+    if (emailAddress) {
+        return getNameFromMail(emailAddress);
     }
 
-    return Ramda.path([...path, 'displayName'], body);
+    const displayName = Ramda.path([...path, 'displayName'], body);
+
+    return displayName.match(/\w+/g) && displayName;
 };
 
 const handlers = {
@@ -529,6 +531,7 @@ const utils = {
 };
 
 module.exports = {
+    extractName,
     getNameFromMail,
     INDENT,
     REDIS_ROOM_KEY,

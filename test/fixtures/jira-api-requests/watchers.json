@@ -5,7 +5,6 @@
     "watchers": [
         {
             "self": "https://jira.example.org/jira/rest/api/2/user?username=ii_ivanov",
-            "key": "ii_ivanov",
             "avatarUrls": {
                 "48x48": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=48",
                 "24x24": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=24",
@@ -18,8 +17,6 @@
         },
         {
             "self": "https://jira.example.org/jira/rest/api/2/user?username=pp_petrov",
-            "key": "pp_petrov",
-            "emailAddress": "pp_petrov@exmaple.com",
             "avatarUrls": {
                 "48x48": "https://jira.example.org/jira/secure/useravatar?ownerId=pp_petrov&avatarId=11002",
                 "24x24": "https://jira.example.org/jira/secure/useravatar?size=small&ownerId=pp_petrov&avatarId=11002",
@@ -32,7 +29,6 @@
         },
         {
             "self": "https://jira.example.org/jira/rest/api/2/user?username=bb_borisov",
-            "key": "bb_borisov",
             "emailAddress": "bb_borisov@exmaple.com",
             "avatarUrls": {
                 "48x48": "https://jira.example.org/jira/secure/useravatar?ownerId=bb_borisov&avatarId=10701",
