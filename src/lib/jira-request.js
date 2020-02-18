@@ -72,10 +72,13 @@ const jiraRequests = {
     getIssueWatchers: async ({ key }) => {
         const url = utils.getRestUrl('issue', key, 'watchers');
         const body = await request(url);
-        const watchers = body && Array.isArray(body.watchers) ? body.watchers.map(item => item.name) : [];
+        const watchers =
+            body && Array.isArray(body.watchers)
+                ? body.watchers.map(item => utils.getNameFromMail(item.emailAddress))
+                : [];
 
         const issue = await jiraRequests.getIssue(key);
-        const roomMembers = utils.handleIssueAsHook.getMembers({ issue });
+        const roomMembers = utils.getIssueMembers(issue);
 
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 

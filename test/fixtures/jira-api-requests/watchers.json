@@ -5,22 +5,19 @@
     "watchers": [
         {
             "self": "https://jira.example.org/jira/rest/api/2/user?username=ii_ivanov",
-            "name": "ii_ivanov",
             "key": "ii_ivanov",
-            "emailAddress": "",
             "avatarUrls": {
                 "48x48": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=48",
                 "24x24": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=24",
                 "16x16": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=16",
                 "32x32": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=32"
             },
-            "displayName": "Иванов Иван Иванович",
+            "displayName": "ii_ivanov",
             "active": false,
             "timeZone": "Europe/Moscow"
         },
         {
             "self": "https://jira.example.org/jira/rest/api/2/user?username=pp_petrov",
-            "name": "pp_petrov",
             "key": "pp_petrov",
             "emailAddress": "pp_petrov@exmaple.com",
             "avatarUrls": {
@@ -35,7 +32,6 @@
         },
         {
             "self": "https://jira.example.org/jira/rest/api/2/user?username=bb_borisov",
-            "name": "bb_borisov",
             "key": "bb_borisov",
             "emailAddress": "bb_borisov@exmaple.com",
             "avatarUrls": {

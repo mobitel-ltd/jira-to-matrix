@@ -173,7 +173,8 @@ const testUserId = faker.random.arrayElement(testMode.users);
 const ignoredBody = pipe(
     clone,
     set('fields.creator.key', testUserId),
-    set('fields.creator.name', testUserId),
+    set('fields.creator.emailAddress', `${testUserId}@test.com`),
+    // set('fields.creator.name', testUserId),
 )(notIgnoreCreatorIssueBody);
 
 describe('Integ tests', () => {

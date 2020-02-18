@@ -22,16 +22,21 @@ chai.use(sinonChai);
 describe('Create room test', () => {
     let chatApi = testUtils.getChatApi();
     const members = [
-        issueBodyJSON.fields.reporter.name,
-        issueBodyJSON.fields.creator.name,
-        issueBodyJSON.fields.assignee.name,
+        utils.getNameFromMail(issueBodyJSON.fields.reporter.emailAddress),
+        utils.getNameFromMail(issueBodyJSON.fields.creator.emailAddress),
+        utils.getNameFromMail(issueBodyJSON.fields.assignee.emailAddress),
     ].map(name => chatApi.getChatUserId(name));
 
     // colors INDEV-749
     const [projectForAvatar] = config.colors.projects;
     const issueKeyAvatar = `${projectForAvatar}-123`;
 
-    const watchers = watchersBody.watchers.map(({ name }) => chatApi.getChatUserId(name));
+    const watchers = watchersBody.watchers.map(({ emailAddress, displayName }) => {
+        if (emailAddress) {
+            return chatApi.getChatUserId(utils.getNameFromMail(emailAddress));
+        }
+        return chatApi.getChatUserId(displayName);
+    });
     const errorMsg = 'some error';
 
     const createRoomData = getCreateRoomData(JSONbody);
