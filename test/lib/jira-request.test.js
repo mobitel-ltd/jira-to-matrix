@@ -23,9 +23,19 @@ const newgenProject = require('../fixtures/jira-api-requests/project-gens/new-ge
 const adminsProject = require('../fixtures/jira-api-requests/project-gens/admins-project.json');
 
 // ii_ivanov pp_petrov bb_borisov
-const watchers = watchersJSON.watchers.map(({ name }) => name);
+const watchers = watchersJSON.watchers.map(({ emailAddress, displayName }) => {
+    if (emailAddress) {
+        return utils.getNameFromMail(emailAddress);
+    }
+    return displayName;
+});
 // ii_ivanov ao_fedorov oo_orlov
-const members = [issueJSON.fields.reporter.name, issueJSON.fields.creator.name, issueJSON.fields.assignee.name];
+const members = [
+    utils.getNameFromMail(issueJSON.fields.reporter.emailAddress),
+    utils.getNameFromMail(issueJSON.fields.creator.emailAddress),
+    utils.getNameFromMail(issueJSON.fields.assignee.emailAddress),
+];
+
 const expectedWatchersUsers = [...new Set([...watchers, ...members])].sort();
 describe('Jira request test', () => {
     const users = [

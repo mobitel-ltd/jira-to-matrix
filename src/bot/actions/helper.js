@@ -154,7 +154,7 @@ const helper = {
 
         const issue = await jiraRequests.getIssue(keyOrId);
         const projectKey = utils.getProjectKey({ issue });
-        const issueCreator = utils.handleIssueAsHook.getCreator({ issue });
+        const issueCreator = utils.getIssueCreator(issue);
 
         return (
             (await helper.isManuallyIgnore(projectKey, typeName, type, body)) ||

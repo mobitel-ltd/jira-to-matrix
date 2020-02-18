@@ -54,7 +54,8 @@ const ignoredCreatorHook = pipe(
 const ignoredBody = pipe(
     clone,
     set('fields.creator.key', testUserId),
-    set('fields.creator.name', testUserId),
+    // set('fields.creator.name', testUserId),
+    set('fields.creator.emailAddress', `${testUserId}@test.com`),
 )(notIgnoreCreatorIssueBody);
 
 describe('Helper tests', () => {

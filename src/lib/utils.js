@@ -47,6 +47,15 @@ const getIdFromUrl = url => {
 
 const getNameFromMail = mail => mail && mail.split('@')[0];
 
+const extractName = (path, body) => {
+    const creatorMail = Ramda.path([...path, 'emailAddress'], body);
+    if (creatorMail) {
+        return getNameFromMail(creatorMail);
+    }
+
+    return Ramda.path([...path, 'displayName'], body);
+};
+
 const handlers = {
     project: {
         getProjectKey: body => Ramda.path(['project', 'key'], body),
@@ -65,9 +74,9 @@ const handlers = {
         getIssueKey: body => Ramda.path(['issue', 'key'], body),
         getCreatorDisplayName: body =>
             getNameFromMail(Ramda.path(['issue', 'fields', 'creator', 'emailAddress'], body)),
-        getCreator: body => Ramda.path(['issue', 'fields', 'creator', 'name'], body),
-        getReporter: body => Ramda.path(['issue', 'fields', 'reporter', 'name'], body),
-        getAssignee: body => Ramda.path(['issue', 'fields', 'assignee', 'name'], body),
+        getCreator: body => extractName(['issue', 'fields', 'creator'], body),
+        getReporter: body => extractName(['issue', 'fields', 'reporter'], body),
+        getAssignee: body => extractName(['issue', 'fields', 'assignee'], body),
         getMembers: body => {
             const possibleMembers = ['getReporter', 'getCreator', 'getAssignee']
                 .map(func => handlers.issue[func](body))
@@ -113,7 +122,9 @@ const handlers = {
 const utils = {
     // * ----------------------- Webhook selectors ------------------------- *
 
-    handleIssueAsHook: handlers.issue,
+    getIssueCreator: issue => handlers.issue.getCreator({ issue }),
+
+    getIssueMembers: issue => handlers.issue.getMembers({ issue }),
 
     getHookType: body => {
         const eventType = utils.getTypeEvent(body);
@@ -518,6 +529,7 @@ const utils = {
 };
 
 module.exports = {
+    getNameFromMail,
     INDENT,
     REDIS_ROOM_KEY,
     REDIS_IGNORE_PREFIX,
