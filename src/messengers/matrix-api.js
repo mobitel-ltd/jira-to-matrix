@@ -48,7 +48,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {String} matrix user id like @ii_ivanov:matrix.example.com
      */
     getChatUserId(shortName) {
-        return `@${shortName.toLowerCase()}:${this.config.domain}`;
+        return shortName && `@${shortName.toLowerCase()}:${this.config.domain}`;
     }
 
     /**
@@ -364,7 +364,7 @@ module.exports = class Matrix extends MessengerAbstract {
      */
     async createRoom({ invite, avatarUrl, ...options }) {
         try {
-            const lowerNameList = invite.map(name => name.toLowerCase());
+            const lowerNameList = invite.filter(Boolean).map(name => name.toLowerCase());
             const createRoomOptions = {
                 ...options,
                 room_alias_name: options.room_alias_name.toUpperCase(),
