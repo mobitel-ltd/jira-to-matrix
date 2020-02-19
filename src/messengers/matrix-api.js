@@ -311,7 +311,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
     /**
      * @param {string} searchParam param to search
-     * @returns {string} user id in matrix
+     * @returns {Promies<string|undefined>} user id in matrix if exists
      */
     async getUserIdByDisplayName(searchParam) {
         try {
@@ -324,6 +324,10 @@ module.exports = class Matrix extends MessengerAbstract {
 
             const result = await this.client._http.authedRequest(undefined, method, path, {}, body);
             const userId = get(result, 'results[0].user_id');
+
+            if (!userId) {
+                this.logger.warn(`Not found user by search params ${searchParam}`);
+            }
 
             return userId;
         } catch (error) {
