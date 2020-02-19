@@ -39,7 +39,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      * @returns {String} user email like ii_ivanov@ example.com
      */
     getChatUserId(shortName) {
-        return `${shortName.toLocaleLowerCase()}@${this.config.domain}`;
+        return shortName && `${shortName.toLocaleLowerCase()}@${this.config.domain}`;
     }
 
     /**
