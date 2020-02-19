@@ -4,7 +4,6 @@
     "issue_event_type_name": "issue_generic",
     "user": {
         "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-        "emailAddress": "jira_test@test-example.ru",
         "avatarUrls": {
             "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
             "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -177,7 +176,6 @@
             ],
             "assignee": {
                 "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=test_jira",
-                "emailAddress": "test_jira@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -212,7 +210,6 @@
             "customfield_10602": [
                 {
                     "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                    "emailAddress": "jira_test@test-example.ru",
                     "avatarUrls": {
                         "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                         "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -225,7 +222,6 @@
                 },
                 {
                     "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=aa_makarov",
-                    "emailAddress": "aa_makarov@test-example.ru",
                     "avatarUrls": {
                         "48x48": "https://jira.test-example.ru/jira/secure/useravatar?ownerId=aa_makarov&avatarId=12702",
                         "24x24": "https://jira.test-example.ru/jira/secure/useravatar?size=small&ownerId=aa_makarov&avatarId=12702",
@@ -253,7 +249,6 @@
             "summary": "POupok",
             "creator": {
                 "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -267,7 +262,6 @@
             "subtasks": [],
             "reporter": {
                 "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                "emailAddress": "jira_test@test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                     "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -296,7 +290,6 @@
                         "id": "32353",
                         "author": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -310,7 +303,6 @@
                         "body": "111",
                         "updateAuthor": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -329,7 +321,6 @@
                         "id": "32355",
                         "author": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=aa_makarov",
-                            "emailAddress": "aa_makarov@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://jira.test-example.ru/jira/secure/useravatar?ownerId=aa_makarov&avatarId=12702",
                                 "24x24": "https://jira.test-example.ru/jira/secure/useravatar?size=small&ownerId=aa_makarov&avatarId=12702",
@@ -343,7 +334,6 @@
                         "body": "asdasd",
                         "updateAuthor": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=aa_makarov",
-                            "emailAddress": "aa_makarov@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://jira.test-example.ru/jira/secure/useravatar?ownerId=aa_makarov&avatarId=12702",
                                 "24x24": "https://jira.test-example.ru/jira/secure/useravatar?size=small&ownerId=aa_makarov&avatarId=12702",
@@ -362,7 +352,6 @@
                         "id": "32356",
                         "author": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -376,7 +365,6 @@
                         "body": "111",
                         "updateAuthor": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -395,7 +383,6 @@
                         "id": "32357",
                         "author": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
@@ -409,7 +396,6 @@
                         "body": "11112",
                         "updateAuthor": {
                             "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
-                            "emailAddress": "jira_test@test-example.ru",
                             "avatarUrls": {
                                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",

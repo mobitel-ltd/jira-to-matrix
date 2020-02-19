@@ -10,10 +10,10 @@ module.exports = async ({ bodyText, roomId, roomName, chatApi }) => {
                 return translate('errorWatcherJira');
             }
             case 1: {
-                const [{ name }] = users;
+                const [{ displayName, accountId }] = users;
 
-                await jiraRequests.addWatcher(name, roomName);
-                const userId = chatApi.getChatUserId(name);
+                await jiraRequests.addWatcher(accountId, roomName);
+                const userId = await chatApi.getUserIdByDisplayName(displayName);
                 await chatApi.invite(roomId, userId);
 
                 return translate('successWatcherJira');

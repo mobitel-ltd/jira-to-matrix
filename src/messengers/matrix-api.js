@@ -3,6 +3,7 @@
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
 const MessengerAbstract = require('./messenger-abstract');
+const { get } = require('lodash');
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -305,6 +306,29 @@ module.exports = class Matrix extends MessengerAbstract {
             return true;
         } catch (err) {
             throw [`Error setting power level for user ${userId} in room ${roomId}`, err].join('\n');
+        }
+    }
+
+    /**
+     * @param {string} searchParam param to search
+     * @returns {string} user id in matrix
+     */
+    async getUserIdByDisplayName(searchParam) {
+        try {
+            const method = 'POST';
+            const path = '/user_directory/search';
+            const body = {
+                search_term: searchParam,
+                limit: 10000,
+            };
+
+            const result = await this.client._http.authedRequest(undefined, method, path, {}, body);
+            const userId = get(result, 'results[0].user_id');
+
+            return userId;
+        } catch (error) {
+            this.logger.error(error);
+            throw error;
         }
     }
 

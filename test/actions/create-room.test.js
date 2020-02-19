@@ -22,21 +22,20 @@ chai.use(sinonChai);
 describe('Create room test', () => {
     let chatApi = testUtils.getChatApi();
     const members = [
-        utils.getNameFromMail(issueBodyJSON.fields.reporter.emailAddress),
-        utils.getNameFromMail(issueBodyJSON.fields.creator.emailAddress),
-        utils.getNameFromMail(issueBodyJSON.fields.assignee.emailAddress),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.reporter.displayName),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.creator.displayName),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.assignee.displayName),
     ].map(name => chatApi.getChatUserId(name));
 
     // colors INDEV-749
     const [projectForAvatar] = config.colors.projects;
     const issueKeyAvatar = `${projectForAvatar}-123`;
 
-    const watchers = watchersBody.watchers.map(({ emailAddress, displayName }) => {
-        if (emailAddress) {
-            return chatApi.getChatUserId(utils.getNameFromMail(emailAddress));
-        }
-        return chatApi.getChatUserId(displayName);
-    });
+    const watchers = watchersBody.watchers
+        .map(({ displayName }) => displayName !== 'jira_bot' && displayName)
+        .filter(Boolean)
+        .map(testUtils.getUserIdByDisplayName)
+        .map(chatApi.getChatUserId);
     const errorMsg = 'some error';
 
     const createRoomData = getCreateRoomData(JSONbody);
@@ -81,14 +80,14 @@ describe('Create room test', () => {
 
     const expectedEpicProjectOptions = {
         room_alias_name: projectKey,
-        invite: [chatApi.getChatUserId(projectData.lead.key)],
+        invite: [chatApi.getChatUserId(testUtils.getUserIdByDisplayName(projectData.lead.displayName))],
         name: chatApi.composeRoomName(projectData.key, projectData.name),
         topic: utils.getViewUrl(projectKey),
     };
 
     const expectedCreateProjectOptions = {
         room_alias_name: projectJSON.project.key,
-        invite: [chatApi.getChatUserId(projectData.lead.key)],
+        invite: [chatApi.getChatUserId(testUtils.getUserIdByDisplayName(projectData.lead.displayName))],
         name: chatApi.composeRoomName(projectData.key, projectData.name),
         topic: utils.getViewUrl(projectJSON.project.key),
     };

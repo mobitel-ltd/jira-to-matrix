@@ -53,9 +53,8 @@ const ignoredCreatorHook = pipe(
 
 const ignoredBody = pipe(
     clone,
-    set('fields.creator.key', testUserId),
+    set('fields.creator.displayName', testUserId),
     // set('fields.creator.name', testUserId),
-    set('fields.creator.emailAddress', `${testUserId}@test.com`),
 )(notIgnoreCreatorIssueBody);
 
 describe('Helper tests', () => {
@@ -129,10 +128,8 @@ describe('Helper tests', () => {
         const post = `
             Assignee:
                 <br>${utils.INDENT}${descriptionFields.assigneeName}
-                <br>${utils.INDENT}${descriptionFields.assigneeEmail}<br>
             <br>Reporter:
                 <br>${utils.INDENT}${descriptionFields.reporterName}
-                <br>${utils.INDENT}${descriptionFields.reporterEmail}<br>
             <br>Type:
                 <br>${utils.INDENT}${descriptionFields.typeName}<br>
             <br>Estimate time:
@@ -157,18 +154,6 @@ describe('Helper tests', () => {
         it('Description with epic should be created', async () => {
             const result = await getDescription(createRoomData.issue);
             expect(result).deep.eq({ body: expectedBody, htmlBody: expectedHTMLBody });
-        });
-
-        it('Description with error', async () => {
-            let res;
-            const expectedError = utils.getDefaultErrorLog('getDescription');
-            try {
-                res = await getDescription(createRoomData.issue);
-            } catch (error) {
-                res = error;
-            }
-
-            expect(res).to.include(expectedError);
         });
     });
 

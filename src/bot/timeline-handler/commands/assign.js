@@ -13,10 +13,10 @@ module.exports = async ({ bodyText, sender, roomName, chatApi, roomId }) => {
                 return translate('errorMatrixAssign', { userToFind });
             }
             case 1: {
-                const [{ displayName, name }] = users;
+                const [{ displayName, accountId }] = users;
 
-                await jiraRequests.addAssignee(name, roomName);
-                const userId = chatApi.getChatUserId(name);
+                await jiraRequests.addAssignee(accountId, roomName);
+                const userId = await chatApi.getUserIdByDisplayName(displayName);
                 await chatApi.invite(roomId, userId);
 
                 return translate('successMatrixAssign', { displayName });

@@ -20,10 +20,8 @@ const getPost = body => {
     const post = `
             Assignee:
                 ${utils.getOpenedDescriptionBlock(body.assigneeName)}
-                ${utils.getClosedDescriptionBlock(body.assigneeEmail)}
             <br>Reporter:
                 ${utils.getOpenedDescriptionBlock(body.reporterName)}
-                ${utils.getClosedDescriptionBlock(body.reporterEmail)}
             <br>Type:
                 ${utils.getClosedDescriptionBlock(body.typeName)}
             <br>Estimate time:

@@ -1,5 +1,5 @@
 const { random } = require('faker');
-const { cleanRedis } = require('../test-utils');
+const { cleanRedis, getUserIdByDisplayName } = require('../test-utils');
 const nock = require('nock');
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
@@ -20,7 +20,7 @@ describe('Ignore setting for projects', () => {
     const roomName = `${jiraProject.key}-123`;
     const projectKey = jiraProject.key;
     const projectId = jiraProject.id;
-    const sender = jiraProject.lead.name;
+    const sender = getUserIdByDisplayName(jiraProject.lead.displayName);
     const roomId = random.number();
     const commandName = 'ignore';
     const bodyText = '';
@@ -83,7 +83,11 @@ describe('Ignore setting for projects', () => {
 
     it('Success add key admin (not lead)', async () => {
         const post = translate('ignoreKeyAdded', { projectKey, typeTaskFromUser: issueType });
-        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'ii_ivanov' });
+        const result = await commandHandler({
+            ...baseOptions,
+            bodyText: `add ${issueType}`,
+            sender: testUtils.getUserIdByDisplayName(adminsProject.actors[0].displayName),
+        });
         expect(result).to.be.eq(post);
     });
 
