@@ -8,19 +8,17 @@ const { getAllSettingData, setSettingsData } = require('../../settings');
 
 module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     const projectKey = utils.getProjectKeyFromIssueKey(roomName);
-    const {
-        lead: { key: projectAdmin },
-        issueTypes,
-        admins,
-    } = await jiraRequests.getProjectWithAdmins(projectKey);
+    const { lead, issueTypes, admins } = await jiraRequests.getProjectWithAdmins(projectKey);
 
     if (!admins) {
         return translate('jiraBotWereAreNotInProject', { jiraBotUser });
     }
 
-    const allAdmins = [projectAdmin, ...admins.map(({ name }) => name)];
+    const allAdmins = await Promise.all(
+        [lead, ...admins].map(displayName => chatApi.getUserIdByDisplayName(displayName)),
+    );
 
-    if (!allAdmins.includes(sender)) {
+    if (!allAdmins.some(name => name.includes(sender))) {
         return translate('notAdmin', { sender });
     }
     const namesIssueTypeInProject = issueTypes.map(({ name }) => name);
@@ -42,28 +40,29 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         return utils.ignoreKeysInProject(projectKey, namesIssueTypeInProject);
     }
     // to do
-    const matrixUserFromCommand = await chatApi.getChatUserId(userFromCommand);
+    const matrixUserFromCommand = chatApi.getChatUserId(userFromCommand);
+    // TODO rename to isUser
     if (!(await chatApi.getUser(matrixUserFromCommand))) {
         return translate('notInMatrix', { userFromCommand });
     }
 
     switch (command) {
         case 'add':
-            if (currentUsers.includes(matrixUserFromCommand)) {
-                return translate('keyAlreadyExistForAdd', { typeTaskFromUser: matrixUserFromCommand, projectKey });
+            if (currentUsers.includes(userFromCommand)) {
+                return translate('keyAlreadyExistForAdd', { typeTaskFromUser: userFromCommand, projectKey });
             }
             await setSettingsData(
                 projectKey,
                 {
                     ...currentInvite,
-                    [typeTaskFromUser]: [...currentUsers, matrixUserFromCommand],
+                    [typeTaskFromUser]: [...currentUsers, userFromCommand],
                 },
                 'autoinvite',
             );
 
             return translate('autoinviteKeyAdded', { projectKey, matrixUserFromCommand, typeTaskFromUser });
         case 'del':
-            if (!currentUsers.includes(matrixUserFromCommand)) {
+            if (!currentUsers.includes(userFromCommand)) {
                 return translate('keyNotFoundForDelete', { projectKey });
             }
             await setSettingsData(
@@ -75,7 +74,11 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
                 'autoinvite',
             );
 
-            return translate('autoinviteKeyDeleted', { projectKey, matrixUserFromCommand, typeTaskFromUser });
+            return translate('autoinviteKeyDeleted', {
+                projectKey,
+                matrixUserFromCommand: userFromCommand,
+                typeTaskFromUser,
+            });
         default:
             return translate('invalidCommand');
     }

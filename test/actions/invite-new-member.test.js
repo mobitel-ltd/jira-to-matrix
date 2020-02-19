@@ -1,4 +1,5 @@
 const nock = require('nock');
+const config = require('../../src/config');
 const { pipe, set, clone } = require('lodash/fp');
 const utils = require('../../src/lib/utils.js');
 const JSONbody = require('../fixtures/webhooks/issue/updated/generic.json');
@@ -16,23 +17,16 @@ chai.use(sinonChai);
 describe('inviteNewMembers test', () => {
     let chatApi = testUtils.getChatApi();
     const members = [
-        utils.getNameFromMail(issueBodyJSON.fields.reporter.emailAddress),
-        utils.getNameFromMail(issueBodyJSON.fields.creator.emailAddress),
-        utils.getNameFromMail(issueBodyJSON.fields.assignee.emailAddress),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.reporter.displayName),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.creator.displayName),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.assignee.displayName),
     ].map(name => chatApi.getChatUserId(name));
     // ONLY english
     const watchers = watchersBody.watchers
-        .map(({ emailAddress, displayName }) => {
-            if (emailAddress) {
-                return chatApi.getChatUserId(utils.getNameFromMail(emailAddress));
-            }
-            if (displayName.match(/\w+/g)) {
-                return chatApi.getChatUserId(displayName);
-            }
-
-            return false;
-        })
-        .filter(Boolean);
+        .map(({ displayName }) => displayName !== 'jira_bot' && displayName)
+        .filter(Boolean)
+        .map(testUtils.getUserIdByDisplayName)
+        .map(chatApi.getChatUserId);
     const expectedWatchers = [...new Set([...members, ...watchers])];
 
     // const upperWatchersBody = {
@@ -128,12 +122,14 @@ describe('inviteNewMembers test', () => {
     });
 
     it('Do not add member-bot, if room alredy have bot ', async () => {
+        const botName = `${config.jira.user}_cloud`;
         const issueBodyJSONbot = pipe(
             clone,
-            set('fields.creator.key', 'any_bot'),
-            // set('fields.creator.name', 'any_bot'),
-            set('fields.creator.emailAddress', 'any_bot@test.com'),
+            set('fields.creator.displayName', botName),
         )(issueBodyJSON);
+        const expectedWatcherWithoutCreator = expectedWatchers.filter(
+            user => user !== testUtils.getUserIdByDisplayName(issueBodyJSON.fields.creator.displayName),
+        );
 
         nock.cleanAll();
         nock(utils.getRestUrl())
@@ -144,12 +140,8 @@ describe('inviteNewMembers test', () => {
             .times(4)
             .reply(200, watchersBody);
 
-        const [userToadd] = expectedWatchers;
-
-        chatApi.getRoomMembers.resolves([chatApi.getChatUserId('any_bot'), userToadd]);
-
         const result = await inviteNewMembers({ chatApi, ...inviteNewMembersData });
 
-        expect(result).to.deep.equal(watchers);
+        expect(result.sort()).to.deep.equal(expectedWatcherWithoutCreator.sort());
     });
 });

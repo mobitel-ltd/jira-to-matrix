@@ -15,16 +15,17 @@ describe('spec test', () => {
     let baseOptions;
     const noRulesUser = {
         displayName: 'No Rules User',
-        name: 'noRules',
+        accountId: 'noRulesUserAccountId',
     };
 
     const noPermissionUser = {
         displayName: 'Ignore User',
-        name: 'ignore',
+        accountId: 'noPermissionAccountId',
     };
 
-    const userA = { displayName: 'Ivan Andreevich A', name: 'ia_a' };
-    const userB = { displayName: 'Ivan Sergeevich B', name: 'is_b' };
+    const userA = { displayName: testUtils.usersWithSamePartName[0], accountId: 'userAaccountId' };
+    const userB = { displayName: testUtils.usersWithSamePartName[1], accountId: 'userBaccountId' };
+    const partName = testUtils.usersWithSamePartName[0].slice(0, 5);
 
     const users = [userA, userB];
 
@@ -38,18 +39,18 @@ describe('spec test', () => {
                 Authorization: utils.auth(),
             },
         })
-            .post(`/issue/${roomName}/watchers`, schemas.watcher(userB.name))
+            .post(`/issue/${roomName}/watchers`, schemas.watcher(userB.accountId))
             .times(2)
             .reply(204)
-            .post(`/issue/${roomName}/watchers`, schemas.watcher(userA.name))
+            .post(`/issue/${roomName}/watchers`, schemas.watcher(userA.accountId))
             .times(2)
             .reply(204)
-            .post(`/issue/${roomName}/watchers`, schemas.watcher(noPermissionUser.name))
+            .post(`/issue/${roomName}/watchers`, schemas.watcher(noPermissionUser.accountId))
             .reply(403)
-            .post(`/issue/${roomName}/watchers`, schemas.watcher(noRulesUser.name))
+            .post(`/issue/${roomName}/watchers`, schemas.watcher(noRulesUser.accountId))
             .reply(404)
             .get('/user/search')
-            .query({ username: 'Ivan' })
+            .query({ username: partName })
             .reply(200, users)
             .get('/user/search')
             .query({ username: userA.displayName })
@@ -96,7 +97,10 @@ describe('spec test', () => {
 
     it('should show list of users ("!spec Ivan")', async () => {
         const post = utils.getListToHTML(users);
-        const result = await commandHandler({ bodyText: 'Ivan', ...baseOptions });
+        const result = await commandHandler({
+            ...baseOptions,
+            bodyText: partName,
+        });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);

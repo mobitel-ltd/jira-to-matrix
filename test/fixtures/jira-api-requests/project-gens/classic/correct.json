@@ -6,9 +6,7 @@
     "description": "",
     "lead": {
         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
-        "key": "jira_test",
         "accountId": "5c07f55ba1b46046f530e0f3",
-        "name": "jira_test",
         "avatarUrls": {
             "16x16": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
             "24x24": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",

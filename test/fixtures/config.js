@@ -6,7 +6,7 @@ module.exports = {
     lang: faker.random.arrayElement(['ru', 'en']),
     jira: {
         url: 'https://jira.test-example.ru/jira',
-        user: 'jira_test_bot',
+        user: 'jira_bot',
         password: 'fakepasswprd',
     },
     features: {

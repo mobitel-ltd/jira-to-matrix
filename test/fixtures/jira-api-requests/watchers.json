@@ -4,14 +4,14 @@
     "watchCount": 3,
     "watchers": [
         {
-            "self": "https://jira.example.org/jira/rest/api/2/user?username=ii_ivanov",
+            "self": "https://jira.example.org/jira/rest/api/2/user?username=jira_bot",
             "avatarUrls": {
                 "48x48": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=48",
                 "24x24": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=24",
                 "16x16": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=16",
                 "32x32": "https://www.gravatar.com/avatar/d41d8cd98f00b204e9800998ecf8427e?d=mm&s=32"
             },
-            "displayName": "ii_ivanov",
+            "displayName": "jira_bot",
             "active": false,
             "timeZone": "Europe/Moscow"
         },
@@ -29,7 +29,6 @@
         },
         {
             "self": "https://jira.example.org/jira/rest/api/2/user?username=bb_borisov",
-            "emailAddress": "bb_borisov@exmaple.com",
             "avatarUrls": {
                 "48x48": "https://jira.example.org/jira/secure/useravatar?ownerId=bb_borisov&avatarId=10701",
                 "24x24": "https://jira.example.org/jira/secure/useravatar?size=small&ownerId=bb_borisov&avatarId=10701",

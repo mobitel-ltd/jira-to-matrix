@@ -102,6 +102,15 @@ module.exports = class ChatFasade extends MessengerAbstract {
     }
 
     /**
+     * Invite user to chat
+     * @param {string} displayName - chat user id
+     * @returns {Promise<string>} true if user invited
+     */
+    getUserIdByDisplayName(displayName) {
+        return this.worker.getUserIdByDisplayName(displayName);
+    }
+
+    /**
      * Send message to chat room
      * @param  {string} roomId chat room id
      * @param  {string} body chat info message body

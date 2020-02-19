@@ -16,7 +16,9 @@ module.exports = async ({ chatApi, issue }) => {
         const chatRoomMembers = await chatApi.getRoomMembers({ name: key });
 
         const issueWatchers = await getIssueWatchers(issue);
-        const issueWatchersChatIds = issueWatchers.map(user => chatApi.getChatUserId(user));
+        const issueWatchersChatIds = await Promise.all(
+            issueWatchers.map(displayName => chatApi.getUserIdByDisplayName(displayName)),
+        );
 
         const autoinviteUsers = await getAutoinviteUsers(projectKey, typeName);
 

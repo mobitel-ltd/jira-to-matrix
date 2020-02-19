@@ -58,9 +58,7 @@ describe('redis-data-handle test', () => {
                 summary: 'Test',
                 descriptionFields: {
                     assigneeName: 'jira_test',
-                    assigneeEmail: 'jira_test@test-example.ru',
                     reporterName: 'jira_test',
-                    reporterEmail: 'jira_test@test-example.ru',
                     typeName: 'Task',
                     epicLink: 'BBCOM-801',
                     estimateTime: '1h',
@@ -99,9 +97,7 @@ describe('redis-data-handle test', () => {
                 summary: 'Test',
                 descriptionFields: {
                     assigneeName: JSONbody.issue.fields.assignee.displayName,
-                    assigneeEmail: JSONbody.issue.fields.assignee.emailAddress,
                     reporterName: JSONbody.issue.fields.reporter.displayName,
-                    reporterEmail: JSONbody.issue.fields.reporter.emailAddress,
                     typeName: 'Task',
                     epicLink: 'BBCOM-801',
                     estimateTime: '1h',

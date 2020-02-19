@@ -97,13 +97,11 @@ describe('get-bot-data', () => {
                 createRoomData: {
                     issue: {
                         descriptionFields: {
-                            assigneeEmail: 'jira_test@test-example.ru',
                             assigneeName: 'jira_test',
                             description: 'dafdasfadf',
                             epicLink: 'BBCOM-801',
                             estimateTime: translate('miss'),
                             priority: 'Blocker',
-                            reporterEmail: 'jira_test@test-example.ru',
                             reporterName: 'jira_test',
                             typeName: 'Task',
                         },

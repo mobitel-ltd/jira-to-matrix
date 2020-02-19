@@ -249,6 +249,15 @@ module.exports = class SlackApi extends MessengerAbstract {
         }
     }
 
+    // ! TODO OVERRIDE
+    /**
+     * @param {string} name displayName
+     * @returns {string} slack id
+     */
+    getUserIdByDisplayName(name) {
+        return name;
+    }
+
     /**
      * Get slack channel id by name
      * @param  {string} name slack channel name

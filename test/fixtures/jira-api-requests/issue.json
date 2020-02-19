@@ -111,14 +111,13 @@
         "assignee": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
             "accountId": "5b912f5c8a96e82b9549361c",
-            "emailAddress": "ii_ivanov@test-example.ru",
             "avatarUrls": {
                 "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                 "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
                 "16x16": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
                 "32x32": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
             },
-            "displayName": "Иванов Иван Иванович",
+            "displayName": "Сидоров Егор Ильич",
             "active": true,
             "timeZone": "Europe/Moscow"
         },
@@ -167,14 +166,13 @@
         "creator": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
             "accountId": "5b912f5c8a96e82b9549361c",
-            "emailAddress": "ao_fedorov@test-example.ru",
             "avatarUrls": {
                 "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                 "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
                 "16x16": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=16&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D16%26noRedirect%3Dtrue",
                 "32x32": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=32&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D32%26noRedirect%3Dtrue"
             },
-            "displayName": "Иванов Иван Иванович",
+            "displayName": "Петров Петр Петрович",
             "active": true,
             "timeZone": "Europe/Moscow"
         },
@@ -184,7 +182,6 @@
         "reporter": {
             "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
             "accountId": "5b912f5c8a96e82b9549361c",
-            "emailAddress": "oo_orlov@test-example.ru",
             "avatarUrls": {
                 "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                 "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -223,10 +220,7 @@
                     "id": "10749",
                     "author": {
                         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                        "name": "ii_ivanov",
-                        "key": "ii_ivanov",
                         "accountId": "5b912f5c8a96e82b9549361c",
-                        "emailAddress": "ii_ivanov@test-example.ru",
                         "avatarUrls": {
                             "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                             "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -240,10 +234,7 @@
                     "body": "Proyecto privado \\- no se puede asignar",
                     "updateAuthor": {
                         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                        "name": "ii_ivanov",
-                        "key": "ii_ivanov",
                         "accountId": "5b912f5c8a96e82b9549361c",
-                        "emailAddress": "ii_ivanov@test-example.ru",
                         "avatarUrls": {
                             "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                             "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -263,10 +254,7 @@
                     "id": "10750",
                     "author": {
                         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                        "name": "ii_ivanov",
-                        "key": "ii_ivanov",
                         "accountId": "5b912f5c8a96e82b9549361c",
-                        "emailAddress": "ii_ivanov@test-example.ru",
                         "avatarUrls": {
                             "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                             "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -280,10 +268,7 @@
                     "body": "Proyecto público \\- puede asignar",
                     "updateAuthor": {
                         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                        "name": "ii_ivanov",
-                        "key": "ii_ivanov",
                         "accountId": "5b912f5c8a96e82b9549361c",
-                        "emailAddress": "ii_ivanov@test-example.ru",
                         "avatarUrls": {
                             "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                             "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -303,10 +288,7 @@
                     "id": "10752",
                     "author": {
                         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                        "name": "ii_ivanov",
-                        "key": "ii_ivanov",
                         "accountId": "5b912f5c8a96e82b9549361c",
-                        "emailAddress": "ii_ivanov@test-example.ru",
                         "avatarUrls": {
                             "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                             "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -320,10 +302,7 @@
                     "body": "Proyecto limitada \\- no se puede asignar",
                     "updateAuthor": {
                         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
-                        "name": "ii_ivanov",
-                        "key": "ii_ivanov",
                         "accountId": "5b912f5c8a96e82b9549361c",
-                        "emailAddress": "ii_ivanov@test-example.ru",
                         "avatarUrls": {
                             "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                             "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
