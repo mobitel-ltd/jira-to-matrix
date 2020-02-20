@@ -206,4 +206,11 @@ module.exports = class {
      * @param {string} name searching param
      */
     async getUserIdByDisplayName(name) {}
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} userId chat user id
+     * @returns {Promise<({displayname:string, avatarUrl:string}|undefined)>} user profile info or nothing
+     */
+    async getUser(userId) {}
 };

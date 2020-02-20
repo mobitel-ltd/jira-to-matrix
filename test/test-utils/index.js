@@ -6,7 +6,10 @@ const { stub, createStubInstance } = require('sinon');
 
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
-const defaultExistedUsers = ['correctUser', 'correctUser2'];
+const defaultExistedUsers = [
+    { userId: 'correctUser', displayName: 'Correct User 1' },
+    { userId: 'correctUser2', displayName: 'Correct User 2' },
+];
 
 const usersWithSamePartName = ['Ivan Andreevich A', 'Ivan Sergeevich B'];
 
@@ -48,6 +51,7 @@ module.exports = {
      * @param {object} options.type config params
      * @param {string} options.alias alias to return correct roomId
      * @param {string} options.roomId roomId to return
+     * @param {({userId: string, displayName:string}|string)[]} options.existedUsers users which id will be returned
      * @returns {object} instance of messenger class
      */
     getChatApi: (options = {}) => {
@@ -80,7 +84,11 @@ module.exports = {
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
         // console.log('TCL: stubInstance', chatApi);
 
-        existedUsers.map(user => chatApi.getUser.withArgs(chatApi.getChatUserId(user)).resolves(true));
+        existedUsers.forEach(item => {
+            const user = typeof item === 'string' ? { userId: item, displayName: 'Some Display Name' } : item;
+            chatApi.getUser.withArgs(chatApi.getChatUserId(user.userId)).resolves({ displayName: user.displayName });
+        });
+
         if (Array.isArray(alias)) {
             alias.forEach(item => {
                 chatApi.getRoomId.withArgs(item).resolves(roomId);
