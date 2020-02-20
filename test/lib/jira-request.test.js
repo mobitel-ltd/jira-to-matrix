@@ -1,5 +1,5 @@
+const Ramda = require('ramda');
 const nock = require('nock');
-const querystring = require('querystring');
 const proxyquire = require('proxyquire');
 
 const utils = require('../../src/lib/utils.js');
@@ -7,7 +7,6 @@ const { expect } = require('chai');
 const {
     getRenderedValues,
     getIssueWatchers,
-    getUsers,
     checkUser,
     getProject,
     getProjectWithAdmins,
@@ -23,17 +22,15 @@ const newgenProject = require('../fixtures/jira-api-requests/project-gens/new-ge
 const adminsProject = require('../fixtures/jira-api-requests/project-gens/admins-project.json');
 
 // ii_ivanov pp_petrov bb_borisov
-const watchers = watchersJSON.watchers.map(({ emailAddress, displayName }) => {
-    if (emailAddress) {
-        return utils.getNameFromMail(emailAddress);
-    }
-    return displayName;
-});
+const watchers = watchersJSON.watchers
+    .map(({ displayName }) => displayName !== 'jira_bot' && displayName)
+    .filter(Boolean);
+
 // ii_ivanov ao_fedorov oo_orlov
 const members = [
-    utils.getNameFromMail(issueJSON.fields.reporter.emailAddress),
-    utils.getNameFromMail(issueJSON.fields.creator.emailAddress),
-    utils.getNameFromMail(issueJSON.fields.assignee.emailAddress),
+    issueJSON.fields.reporter.displayName,
+    issueJSON.fields.creator.displayName,
+    issueJSON.fields.assignee.displayName,
 ];
 
 const expectedWatchersUsers = [...new Set([...watchers, ...members])].sort();
@@ -138,52 +135,29 @@ describe('Jira request test', () => {
     it('expect getIssueWatchers avoid users from ignore invite list', async () => {
         const { getIssueWatchers: getCollectParticipantsProxy } = proxyquire('../../src/lib/jira-request', {
             '../config': {
-                inviteIgnoreUsers: ['pp_petrov', 'bb_borisov'],
+                inviteIgnoreUsers: watchers,
             },
         });
+        const expected = Ramda.difference(members, watchers);
         const result = await getCollectParticipantsProxy({ key: issue.key });
-        expect(result.sort()).to.be.deep.eq(members.sort());
+
+        expect(result.sort()).to.be.deep.eq(expected.sort());
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list2', async () => {
+        const [addUser, ...usersToIgnore] = members;
+        const expected = Ramda.difference([...watchers, addUser], usersToIgnore);
         const { getIssueWatchers: getCollectParticipantsProxy } = proxyquire('../../src/lib/jira-request', {
             '../config': {
-                inviteIgnoreUsers: expectedWatchersUsers,
+                inviteIgnoreUsers: usersToIgnore,
             },
         });
         const result = await getCollectParticipantsProxy({ key: issue.key });
-        expect(result.sort()).to.be.deep.eq([]);
-    });
-
-    it('Expect getUsers returns correct users witn right length', async () => {
-        const maxResults = 3;
-        const startAt = 0;
-        const allUsers = await getUsers(maxResults, startAt);
-
-        expect(allUsers).to.be.deep.equal(users);
-    });
-
-    it('Expect getUsers test throws error if start is incorrect', async () => {
-        const maxResults = 3;
-        const startAt = 5;
-        const fakeUrl = utils.getRestUrl('user', `search?${querystring.stringify(errorParams)}`);
-        const expected = [utils.getDefaultErrorLog('getUsers'), getRequestErrorLog(fakeUrl, errorStatus)].join('\n');
-
-        let allUsers;
-        let res;
-        try {
-            allUsers = await getUsers(maxResults, startAt);
-        } catch (err) {
-            res = err;
-        }
-
-        expect(allUsers).to.be.undefined;
-        expect(res).to.be.deep.equal(expected);
+        expect(result.sort()).to.be.deep.eq(expected);
     });
 
     it('checkUser test', () => {
         const user = {
-            name: 'test_name',
             displayName: 'My Test User',
         };
         const result = [
@@ -193,7 +167,7 @@ describe('Jira request test', () => {
             checkUser(user, '_NAMe'),
             checkUser(user, '_NMe'),
         ];
-        expect(result).to.deep.equal([true, true, true, true, false]);
+        expect(result).to.deep.equal([true, true, true, false, false]);
     });
 
     describe('getProject', () => {
@@ -201,7 +175,7 @@ describe('Jira request test', () => {
             id: classicProject.id,
             key: classicProject.key,
             name: classicProject.name,
-            lead: { name: 'jira_test', key: 'jira_test' },
+            lead: classicProject.lead.displayName,
             adminsURL: classicProject.roles.Administrators,
             issueTypes: [
                 {
@@ -240,7 +214,7 @@ describe('Jira request test', () => {
             id: newgenProject.id,
             key: newgenProject.key,
             name: newgenProject.name,
-            lead: { name: 'jira_test', key: 'jira_test' },
+            lead: newgenProject.lead.displayName,
             adminsURL: newgenProject.roles.Administrator,
             issueTypes: [
                 { id: '10349', name: 'История', subtask: false, description: '' },
@@ -283,7 +257,10 @@ describe('Jira request test', () => {
         it('check classic project with admins', async () => {
             const project = await getProjectWithAdmins(classicProject.id);
 
-            expect(project).to.be.deep.eq({ ...expectedClassicProject, admins: [{ id: 11891, name: 'ii_ivanov' }] });
+            expect(project).to.be.deep.eq({
+                ...expectedClassicProject,
+                admins: adminsProject.actors.map(item => item.displayName),
+            });
         });
 
         it('check newgen project', async () => {
@@ -295,7 +272,10 @@ describe('Jira request test', () => {
         it('check newgen project with admins', async () => {
             const project = await getProjectWithAdmins(newgenProject.id);
 
-            expect(project).to.be.deep.eq({ ...expectedNewgenProject, admins: [{ id: 11891, name: 'ii_ivanov' }] });
+            expect(project).to.be.deep.eq({
+                ...expectedNewgenProject,
+                admins: adminsProject.actors.map(item => item.displayName),
+            });
         });
     });
 });

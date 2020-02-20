@@ -6,8 +6,30 @@ const { stub, createStubInstance } = require('sinon');
 
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
+const defaultExistedUsers = ['correctUser', 'correctUser2'];
+
+const usersWithSamePartName = ['Ivan Andreevich A', 'Ivan Sergeevich B'];
+
+const usersDict = {
+    'Иванов Иван Иванович': 'ii_ivanov',
+    'Петров Петр Петрович': 'pp_petrov',
+    'Сидоров Егор Ильич': 'ei_sidorov',
+    'Борисов Борис Борисович': 'bb_borisov',
+    jira_bot: 'jira_bot',
+    // project lead
+    'Fred F. User': 'ff_user',
+    jira_test: 'jira_test',
+    [usersWithSamePartName[0]]: 'ivan_A',
+    [usersWithSamePartName[1]]: 'ivan_B',
+};
 
 module.exports = {
+    usersWithSamePartName,
+
+    getExistingDisplayName: () => Object.keys(usersDict)[0],
+
+    getUserIdByDisplayName: name => usersDict[name],
+
     cleanRedis: async () => {
         const keys = await redis.keysAsync('*');
 
@@ -29,10 +51,11 @@ module.exports = {
      * @returns {object} instance of messenger class
      */
     getChatApi: (options = {}) => {
-        const { config, alias, roomId, joinedRooms = [] } = {
+        const { config, alias, roomId, existedUsers, joinedRooms = [] } = {
             config: defaultConfig,
             alias: defaultAlias,
             roomId: defaultRoomId,
+            existedUsers: defaultExistedUsers,
             ...options,
         };
 
@@ -51,15 +74,13 @@ module.exports = {
             isConnected: stub().returns(true),
             isInRoom: stub().resolves(true),
             getCommandRoomName: realChatApi.getCommandRoomName(),
+            getUserIdByDisplayName: stub().callsFake(name => realChatApi.getChatUserId(usersDict[name])),
         });
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
         // console.log('TCL: stubInstance', chatApi);
 
-        chatApi.getUser.withArgs('correctUser').resolves(true);
-        chatApi.getChatUserId.withArgs('correctUser').resolves('correctUser');
-        chatApi.getUser.withArgs('correctUser2').resolves(true);
-        chatApi.getChatUserId.withArgs('correctUser2').resolves('correctUser2');
+        existedUsers.map(user => chatApi.getUser.withArgs(chatApi.getChatUserId(user)).resolves(true));
         if (Array.isArray(alias)) {
             alias.forEach(item => {
                 chatApi.getRoomId.withArgs(item).resolves(roomId);

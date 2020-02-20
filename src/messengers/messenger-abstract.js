@@ -200,4 +200,10 @@ module.exports = class {
 
         return data && data.name;
     }
+
+    /**
+     * Get chat id by displayName
+     * @param {string} name searching param
+     */
+    async getUserIdByDisplayName(name) {}
 };

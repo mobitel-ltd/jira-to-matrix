@@ -4,7 +4,7 @@ module.exports = {
         return JSON.stringify({ body });
     },
 
-    assignee: name => JSON.stringify({ name }),
+    assignee: accountId => JSON.stringify({ accountId }),
 
     watcher: watcher => `"${watcher}"`,
 

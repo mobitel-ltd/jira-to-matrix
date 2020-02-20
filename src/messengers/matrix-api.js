@@ -3,6 +3,7 @@
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
 const MessengerAbstract = require('./messenger-abstract');
+const { get } = require('lodash');
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -47,7 +48,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {String} matrix user id like @ii_ivanov:matrix.example.com
      */
     getChatUserId(shortName) {
-        return `@${shortName.toLowerCase()}:${this.config.domain}`;
+        return shortName && `@${shortName.toLowerCase()}:${this.config.domain}`;
     }
 
     /**
@@ -309,6 +310,33 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * @param {string} searchParam param to search
+     * @returns {Promies<string|undefined>} user id in matrix if exists
+     */
+    async getUserIdByDisplayName(searchParam) {
+        try {
+            const method = 'POST';
+            const path = '/user_directory/search';
+            const body = {
+                search_term: searchParam,
+                limit: 10000,
+            };
+
+            const result = await this.client._http.authedRequest(undefined, method, path, {}, body);
+            const userId = get(result, 'results[0].user_id');
+
+            if (!userId) {
+                this.logger.warn(`Not found user by search params ${searchParam}`);
+            }
+
+            return userId;
+        } catch (error) {
+            this.logger.error(error);
+            throw error;
+        }
+    }
+
+    /**
      * Get rooms from matrix
      * @returns {array} matrix rooms
      */
@@ -340,7 +368,7 @@ module.exports = class Matrix extends MessengerAbstract {
      */
     async createRoom({ invite, avatarUrl, ...options }) {
         try {
-            const lowerNameList = invite.map(name => name.toLowerCase());
+            const lowerNameList = invite.filter(Boolean).map(name => name.toLowerCase());
             const createRoomOptions = {
                 ...options,
                 room_alias_name: options.room_alias_name.toUpperCase(),

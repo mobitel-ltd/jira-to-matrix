@@ -14,9 +14,7 @@ const isExpectedToInvite = name => name && !inviteIgnoreUsers.includes(name);
 // Checking occurrences of current name
 
 const jiraRequests = {
-    checkUser: ({ name, displayName }, expectedName) =>
-        name.toLowerCase().includes(expectedName.toLowerCase()) ||
-        displayName.toLowerCase().includes(expectedName.toLowerCase()),
+    checkUser: ({ displayName }, expectedName) => displayName.toLowerCase().includes(expectedName.toLowerCase()),
 
     postComment: (roomName, sender, bodyText) => {
         const url = utils.getRestUrl('issue', roomName, 'comment');
@@ -72,17 +70,14 @@ const jiraRequests = {
     getIssueWatchers: async ({ key }) => {
         const url = utils.getRestUrl('issue', key, 'watchers');
         const body = await request(url);
-        const watchers =
-            body && Array.isArray(body.watchers)
-                ? body.watchers.map(item => utils.getNameFromMail(item.emailAddress))
-                : [];
+        const watchers = body && Array.isArray(body.watchers) ? body.watchers.map(item => utils.extractName(item)) : [];
 
         const issue = await jiraRequests.getIssue(key);
         const roomMembers = utils.getIssueMembers(issue);
 
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
-        return [...allWatchersSet].filter(isExpectedToInvite).filter(user => user !== jiraBot);
+        return [...allWatchersSet].filter(isExpectedToInvite).filter(user => !user.includes(jiraBot));
     },
 
     /**
@@ -141,14 +136,14 @@ const jiraRequests = {
     /**
      * Make GET request to jira by projectID
      * @param {string} projectKey project ID in jira
-     * @return {Promise<{key: string, id: number, name: str}>} jira response with issue
+     * @return {Promise<{key: string, id: number, name: string, lead: string}>} jira response with issue
      */
     getProject: async projectKey => {
         const projectBody = await request(utils.getRestUrl('project', projectKey));
         const {
             id,
             key,
-            lead: { key: leadKey, name: leadName },
+            lead: { displayName },
             name,
             issueTypes,
             roles: { Administrator = '', Administrators = '' },
@@ -162,7 +157,7 @@ const jiraRequests = {
         const project = {
             id,
             key,
-            lead: { name: leadName, key: leadKey },
+            lead: displayName,
             name,
             issueTypes: issueTypes.map(({ id, name, description, subtask }) => ({ id, name, description, subtask })),
             adminsURL,
@@ -178,13 +173,8 @@ const jiraRequests = {
         const { adminsURL } = projectBody;
 
         try {
-            const { actors = [{ name: '' }] } = await request(adminsURL);
-            const admins = [
-                ...actors.map(({ id, name }) => ({
-                    id,
-                    name,
-                })),
-            ];
+            const { actors } = await request(adminsURL);
+            const admins = actors.map(item => utils.extractName(item));
 
             return { ...projectBody, admins };
         } catch (err) {
@@ -238,49 +228,25 @@ const jiraRequests = {
     },
 
     // Search users by part of name
-    searchUser: async name => {
-        if (!name) {
+    searchUser: async partName => {
+        if (!partName) {
             return [];
         }
-        const allUsers = await jiraRequests.getUsersByParam(name);
+        const allUsers = await jiraRequests.getUsersByParam(partName);
 
-        return allUsers.reduce((prev, cur) => (jiraRequests.checkUser(cur, name) ? [...prev, cur] : prev), []);
+        return allUsers.filter(user => jiraRequests.checkUser(user, partName));
     },
 
-    // recursive function to get users by num and startAt (start position in jira list of users)
-    getUsers: async (maxResults, startAt, acc = []) => {
-        try {
-            const params = {
-                username: utils.COMMON_NAME,
-                startAt,
-                maxResults,
-            };
-
-            const queryPararms = querystring.stringify(params);
-            const url = utils.getRestUrl('user', `search?${queryPararms}`);
-
-            const users = await request(url);
-            let resultAcc = [...acc, ...users];
-            if (users.length >= maxResults) {
-                resultAcc = await jiraRequests.getUsers(maxResults, startAt + maxResults, resultAcc);
-            }
-
-            return resultAcc;
-        } catch (err) {
-            throw utils.errorTracing('getUsers', err);
-        }
-    },
-
-    addWatcher: (name, roomName) => {
+    addWatcher: (accountId, roomName) => {
         const watchersUrl = utils.getRestUrl('issue', roomName, 'watchers');
 
-        return requestPost(watchersUrl, schemas.watcher(name));
+        return requestPost(watchersUrl, schemas.watcher(accountId));
     },
 
-    addAssignee: (name, roomName) => {
+    addAssignee: (accountId, roomName) => {
         const assigneeUrl = utils.getRestUrl('issue', roomName, 'assignee');
 
-        return requestPut(assigneeUrl, schemas.assignee(name));
+        return requestPut(assigneeUrl, schemas.assignee(accountId));
     },
 
     getIssueSafety: async id => {

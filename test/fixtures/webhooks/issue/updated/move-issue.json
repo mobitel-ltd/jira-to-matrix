@@ -5,7 +5,6 @@
     "user": {
         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
         "accountId": "5c07f55ba1b46046f530e0f3",
-        "emailAddress": "jira_test@example.com",
         "avatarUrls": {
             "48x48": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
             "24x24": "https://avatar-cdn.atlassian.com/e9e6cac65dbe8c38c56b17b46ebb05ae?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Fe9e6cac65dbe8c38c56b17b46ebb05ae%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -122,7 +121,6 @@
             "creator": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
                 "accountId": "5b912f5c8a96e82b9549361c",
-                "emailAddress": "ii_ivanov@example.com",
                 "avatarUrls": {
                     "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                     "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",
@@ -139,7 +137,6 @@
             "reporter": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
                 "accountId": "5b912f5c8a96e82b9549361c",
-                "emailAddress": "ii_ivanov@example.com",
                 "avatarUrls": {
                     "48x48": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=48&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D48%26noRedirect%3Dtrue",
                     "24x24": "https://avatar-cdn.atlassian.com/fea50ba67a952c46cd128d3dea7c7b5a?s=24&d=https%3A%2F%2Fsecure.gravatar.com%2Favatar%2Ffea50ba67a952c46cd128d3dea7c7b5a%3Fd%3Dmm%26s%3D24%26noRedirect%3Dtrue",

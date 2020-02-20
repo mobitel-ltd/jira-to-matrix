@@ -1,3 +1,4 @@
+const { pipe, set, clone } = require('lodash/fp');
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
@@ -20,23 +21,30 @@ const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Create room test', () => {
+    const notFoundUserIssueKey = 'KEY';
+    const notFoundUser = 'not_found_user';
+    const issueWithIncorrectCreator = pipe(
+        clone,
+        set('fields.creator.displayName', notFoundUser),
+        set('key', notFoundUserIssueKey),
+    )(issueBodyJSON);
+
     let chatApi = testUtils.getChatApi();
     const members = [
-        utils.getNameFromMail(issueBodyJSON.fields.reporter.emailAddress),
-        utils.getNameFromMail(issueBodyJSON.fields.creator.emailAddress),
-        utils.getNameFromMail(issueBodyJSON.fields.assignee.emailAddress),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.reporter.displayName),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.creator.displayName),
+        testUtils.getUserIdByDisplayName(issueBodyJSON.fields.assignee.displayName),
     ].map(name => chatApi.getChatUserId(name));
 
     // colors INDEV-749
     const [projectForAvatar] = config.colors.projects;
     const issueKeyAvatar = `${projectForAvatar}-123`;
 
-    const watchers = watchersBody.watchers.map(({ emailAddress, displayName }) => {
-        if (emailAddress) {
-            return chatApi.getChatUserId(utils.getNameFromMail(emailAddress));
-        }
-        return chatApi.getChatUserId(displayName);
-    });
+    const watchers = watchersBody.watchers
+        .map(({ displayName }) => displayName !== 'jira_bot' && displayName)
+        .filter(Boolean)
+        .map(testUtils.getUserIdByDisplayName)
+        .map(chatApi.getChatUserId);
     const errorMsg = 'some error';
 
     const createRoomData = getCreateRoomData(JSONbody);
@@ -81,14 +89,14 @@ describe('Create room test', () => {
 
     const expectedEpicProjectOptions = {
         room_alias_name: projectKey,
-        invite: [chatApi.getChatUserId(projectData.lead.key)],
+        invite: [chatApi.getChatUserId(testUtils.getUserIdByDisplayName(projectData.lead.displayName))],
         name: chatApi.composeRoomName(projectData.key, projectData.name),
         topic: utils.getViewUrl(projectKey),
     };
 
     const expectedCreateProjectOptions = {
         room_alias_name: projectJSON.project.key,
-        invite: [chatApi.getChatUserId(projectData.lead.key)],
+        invite: [chatApi.getChatUserId(testUtils.getUserIdByDisplayName(projectData.lead.displayName))],
         name: chatApi.composeRoomName(projectData.key, projectData.name),
         topic: utils.getViewUrl(projectJSON.project.key),
     };
@@ -101,6 +109,14 @@ describe('Create room test', () => {
             .reply(200, issueBodyJSON)
             .get(`/issue/${issueBodyJSON.key}`)
             .reply(200, issueBodyJSON)
+            .get(`/issue/${notFoundUserIssueKey}`)
+            .times(4)
+            .reply(200, issueWithIncorrectCreator)
+            .get(`/issue/${notFoundUserIssueKey}/watchers`)
+            .reply(200, watchersBody)
+            .get(`/issue/${notFoundUserIssueKey}`)
+            .query(utils.expandParams)
+            .reply(200, renderedIssueJSON)
             .get(`/issue/${createRoomData.issue.key}`)
             .times(3)
             .reply(200, issueBodyJSON)
@@ -262,5 +278,12 @@ describe('Create room test', () => {
 
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueAvatar);
         expect(result).to.be.true;
+    });
+
+    it('Expect create room not invite user without chat id', async () => {
+        const result = await createRoom({ chatApi, issue: { key: notFoundUserIssueKey } });
+
+        expect(result).to.be.true;
+        expect(chatApi.createRoom).to.be.called;
     });
 });

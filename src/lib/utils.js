@@ -47,14 +47,7 @@ const getIdFromUrl = url => {
 
 const getNameFromMail = mail => mail && mail.split('@')[0];
 
-const extractName = (path, body) => {
-    const creatorMail = Ramda.path([...path, 'emailAddress'], body);
-    if (creatorMail) {
-        return getNameFromMail(creatorMail);
-    }
-
-    return Ramda.path([...path, 'displayName'], body);
-};
+const extractName = (body, path = []) => Ramda.path([...path, 'displayName'], body);
 
 const handlers = {
     project: {
@@ -74,9 +67,9 @@ const handlers = {
         getIssueKey: body => Ramda.path(['issue', 'key'], body),
         getCreatorDisplayName: body =>
             getNameFromMail(Ramda.path(['issue', 'fields', 'creator', 'emailAddress'], body)),
-        getCreator: body => extractName(['issue', 'fields', 'creator'], body),
-        getReporter: body => extractName(['issue', 'fields', 'reporter'], body),
-        getAssignee: body => extractName(['issue', 'fields', 'assignee'], body),
+        getCreator: body => extractName(body, ['issue', 'fields', 'creator']),
+        getReporter: body => extractName(body, ['issue', 'fields', 'reporter']),
+        getAssignee: body => extractName(body, ['issue', 'fields', 'assignee']),
         getMembers: body => {
             const possibleMembers = ['getReporter', 'getCreator', 'getAssignee']
                 .map(func => handlers.issue[func](body))
@@ -242,9 +235,7 @@ const utils = {
 
     getDescriptionFields: body => ({
         assigneeName: utils.getTextIssue(body, 'assignee.displayName'),
-        assigneeEmail: utils.getTextIssue(body, 'assignee.emailAddress'),
         reporterName: utils.getTextIssue(body, 'reporter.displayName'),
-        reporterEmail: utils.getTextIssue(body, 'reporter.emailAddress'),
         typeName: utils.getTextIssue(body, 'issuetype.name'),
         epicLink: utils.getTextIssue(body, 'customfield_10006'),
         estimateTime: utils.getTextIssue(body, 'timetracking.originalEstimate'),
@@ -388,10 +379,7 @@ const utils = {
     getLimit: () => NEW_YEAR_2018.getTime(),
 
     getListToHTML: list =>
-        list.reduce(
-            (acc, { name, displayName }) => `${acc}<strong>${name}</strong> - ${displayName}<br>`,
-            `${translate('listUsers')}:<br>`,
-        ),
+        list.reduce((acc, { displayName }) => `${acc}<strong>${displayName}<br>`, `${translate('listUsers')}:<br>`),
 
     getCommandList: list =>
         list.reduce(
@@ -529,6 +517,7 @@ const utils = {
 };
 
 module.exports = {
+    extractName,
     getNameFromMail,
     INDENT,
     REDIS_ROOM_KEY,

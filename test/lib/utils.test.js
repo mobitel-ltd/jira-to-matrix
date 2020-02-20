@@ -96,7 +96,7 @@ describe('Utils testing', () => {
     it('Test correct auth', () => {
         const currentAuth = utils.auth();
 
-        expect(currentAuth).to.be.equal('Basic amlyYV90ZXN0X2JvdDpmYWtlcGFzc3dwcmQ=');
+        expect(currentAuth).to.be.equal('Basic amlyYV9ib3Q6ZmFrZXBhc3N3cHJk');
     });
 
     it('Test correct getChangelogField', () => {

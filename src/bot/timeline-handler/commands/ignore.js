@@ -8,19 +8,17 @@ const { getAllSettingData, setSettingsData } = require('../../settings');
 
 module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     const projectKey = utils.getProjectKeyFromIssueKey(roomName);
-    const {
-        lead: { key: projectAdmin },
-        issueTypes,
-        admins,
-    } = await jiraRequests.getProjectWithAdmins(projectKey);
+    const { lead, issueTypes, admins } = await jiraRequests.getProjectWithAdmins(projectKey);
 
     if (!admins) {
         return translate('jiraBotWereAreNotInProject', { jiraBotUser });
     }
 
-    const allAdmins = [projectAdmin, ...admins.map(({ name }) => name)];
+    const allAdmins = await Promise.all(
+        [lead, ...admins].map(displayName => chatApi.getUserIdByDisplayName(displayName)),
+    );
 
-    if (!allAdmins.includes(sender)) {
+    if (!allAdmins.some(name => name.includes(sender))) {
         return translate('notAdmin', { sender });
     }
     const namesIssueTypeInProject = issueTypes.map(({ name }) => name);

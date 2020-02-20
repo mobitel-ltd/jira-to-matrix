@@ -4,10 +4,7 @@
     "issue_event_type_name": "issue_updated",
     "user": {
         "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5c07f55ba1b46046f530e0f3",
-        "name": "jira_test",
-        "key": "jira_test",
         "accountId": "5c07f55ba1b46046f530e0f3",
-        "emailAddress": "jira_test@jira.test-example.ru",
         "avatarUrls": {
             "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/initials/J-3.png?size=48&s=48",
             "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/initials/J-3.png?size=24&s=24",
@@ -165,10 +162,7 @@
             "summary": "test new me_b",
             "creator": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5d034a895b75cc0c04cca79c",
-                "name": "i_ivanov",
-                "key": "i_ivanov",
                 "accountId": "5d034a895b75cc0c04cca79c",
-                "emailAddress": "i_ivanov@jira.test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://avatar-cdn.atlassian.com/5d034a895b75cc0c04cca79c?by=id&sg=YCLhnIggRf8%2F%2Fz2w7%2BcDkt7N%2BGM%3D&d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FM-1.png&size=48&s=48",
                     "24x24": "https://avatar-cdn.atlassian.com/5d034a895b75cc0c04cca79c?by=id&sg=YCLhnIggRf8%2F%2Fz2w7%2BcDkt7N%2BGM%3D&d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FM-1.png&size=24&s=24",
@@ -185,10 +179,7 @@
             "customfield_10041": null,
             "reporter": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5d034a895b75cc0c04cca79c",
-                "name": "i_ivanov",
-                "key": "i_ivanov",
                 "accountId": "5d034a895b75cc0c04cca79c",
-                "emailAddress": "i_ivanov@jira.test-example.ru",
                 "avatarUrls": {
                     "48x48": "https://avatar-cdn.atlassian.com/5d034a895b75cc0c04cca79c?by=id&sg=YCLhnIggRf8%2F%2Fz2w7%2BcDkt7N%2BGM%3D&d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FM-1.png&size=48&s=48",
                     "24x24": "https://avatar-cdn.atlassian.com/5d034a895b75cc0c04cca79c?by=id&sg=YCLhnIggRf8%2F%2Fz2w7%2BcDkt7N%2BGM%3D&d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FM-1.png&size=24&s=24",

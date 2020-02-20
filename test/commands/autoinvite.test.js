@@ -1,5 +1,5 @@
 const { random } = require('faker');
-const { cleanRedis } = require('../test-utils');
+const { cleanRedis, getUserIdByDisplayName } = require('../test-utils');
 const nock = require('nock');
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
@@ -20,7 +20,7 @@ describe('Invite setting for projects', () => {
     const roomName = `${jiraProject.key}-123`;
     const projectKey = jiraProject.key;
     const projectId = jiraProject.id;
-    const sender = jiraProject.lead.name;
+    const sender = getUserIdByDisplayName(jiraProject.lead.displayName);
     const roomId = random.number();
     const commandName = 'autoinvite';
     const bodyText = '';
@@ -31,10 +31,12 @@ describe('Invite setting for projects', () => {
     let anotherTaskName;
     const notUsedIssueTypes = random.word();
     const notExistedCommand = random.word();
+    const correctUser = 'myCorrectUser';
+    const anotherCorrectUser = 'myCorrectUser2';
 
     beforeEach(() => {
         // await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
-        chatApi = testUtils.getChatApi();
+        chatApi = testUtils.getChatApi({ existedUsers: [correctUser, anotherCorrectUser] });
         baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
         issueType = random.arrayElement(projectIssueTypes);
         anotherTaskName = projectIssueTypes.find(item => item !== issueType);
@@ -84,22 +86,25 @@ describe('Invite setting for projects', () => {
     it('Success add key', async () => {
         const post = translate('autoinviteKeyAdded', {
             projectKey,
-            matrixUserFromCommand: await chatApi.getChatUserId('correctUser'),
+            matrixUserFromCommand: await chatApi.getChatUserId(correctUser),
             typeTaskFromUser: issueType,
         });
-        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType} correctUser` });
+        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType} ${correctUser}` });
         expect(result).to.be.eq(post);
+
+        const res = await redis.getAsync(utils.REDIS_INVITE_PREFIX);
+        expect(res).include(correctUser);
     });
 
     it('Success add key admin (not lead)', async () => {
         const post = translate('autoinviteKeyAdded', {
             projectKey,
-            matrixUserFromCommand: await chatApi.getChatUserId('correctUser'),
+            matrixUserFromCommand: chatApi.getChatUserId(correctUser),
             typeTaskFromUser: issueType,
         });
         const result = await commandHandler({
             ...baseOptions,
-            bodyText: `add ${issueType} correctUser`,
+            bodyText: `add ${issueType} ${correctUser}`,
             sender: 'ii_ivanov',
         });
         expect(result).to.be.eq(post);
@@ -111,37 +116,41 @@ describe('Invite setting for projects', () => {
         expect(result).to.be.eq(post);
     });
 
-    describe('test', () => {
+    describe('With already exists key in redis', () => {
         beforeEach(async () => {
             await redis.setAsync(
                 utils.REDIS_INVITE_PREFIX,
-                JSON.stringify({ [projectKey]: { [issueType]: ['correctUser'] } }),
+                JSON.stringify({ [projectKey]: { [issueType]: [correctUser] } }),
             );
         });
+
         it('Delete key, not in ignore list', async () => {
             const post = translate('keyNotFoundForDelete', { projectKey });
-            const result = await commandHandler({ ...baseOptions, bodyText: `del ${anotherTaskName} correctUser2` });
+            const result = await commandHandler({
+                ...baseOptions,
+                bodyText: `del ${anotherTaskName} ${anotherCorrectUser}`,
+            });
             expect(result).to.be.eq(post);
         });
 
         it('Success delete key', async () => {
             const post = translate('autoinviteKeyDeleted', {
                 projectKey,
-                matrixUserFromCommand: 'correctUser',
+                matrixUserFromCommand: correctUser,
                 typeTaskFromUser: issueType,
             });
-            const result = await commandHandler({ ...baseOptions, bodyText: `del ${issueType} correctUser` });
+            const result = await commandHandler({ ...baseOptions, bodyText: `del ${issueType} ${correctUser}` });
             expect(result).to.be.eq(post);
         });
 
         it('Add key, such already added', async () => {
-            const post = translate('keyAlreadyExistForAdd', { typeTaskFromUser: 'correctUser', projectKey });
-            const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType} correctUser` });
+            const post = translate('keyAlreadyExistForAdd', { typeTaskFromUser: correctUser, projectKey });
+            const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType} ${correctUser}` });
             expect(result).to.be.eq(post);
         });
 
         it('Expect empty body - full list', async () => {
-            const post = utils.getIgnoreTips(projectKey, [[issueType, ['correctUser']]], 'autoinvite');
+            const post = utils.getIgnoreTips(projectKey, [[issueType, [correctUser]]], 'autoinvite');
             const result = await commandHandler(baseOptions);
             expect(result).to.be.eq(post);
         });

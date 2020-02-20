@@ -18,10 +18,12 @@ const createIssueRoom = async (chatApi, issue) => {
 
         const autoinviteUsers = await getAutoinviteUsers(projectKey, typeName);
 
-        const roomMembers = await jiraRequest.getIssueWatchers(issue);
-        const roomMembersChatId = roomMembers.map(user => chatApi.getChatUserId(user));
+        const issueWatchers = await jiraRequest.getIssueWatchers(issue);
+        const issueWatchersChatIds = await Promise.all(
+            issueWatchers.map(displayName => chatApi.getUserIdByDisplayName(displayName)),
+        );
 
-        const invite = [...roomMembersChatId, ...autoinviteUsers];
+        const invite = [...issueWatchersChatIds, ...autoinviteUsers];
 
         const name = chatApi.composeRoomName(key, summary);
         const topic = utils.getViewUrl(key);
@@ -53,12 +55,12 @@ const createProjectRoom = async (chatApi, projectKey) => {
     try {
         const { lead, name: projectName } = await jiraRequest.getProject(projectKey);
         const name = chatApi.composeRoomName(projectKey, projectName);
-        const invite = [chatApi.getChatUserId(lead.key)];
+        const leadUserId = await chatApi.getUserIdByDisplayName(lead);
         const topic = utils.getViewUrl(projectKey);
 
         const options = {
             room_alias_name: projectKey,
-            invite,
+            invite: [leadUserId],
             name,
             topic,
         };

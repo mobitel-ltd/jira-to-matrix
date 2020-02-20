@@ -39,7 +39,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      * @returns {String} user email like ii_ivanov@ example.com
      */
     getChatUserId(shortName) {
-        return `${shortName.toLocaleLowerCase()}@${this.config.domain}`;
+        return shortName && `${shortName.toLocaleLowerCase()}@${this.config.domain}`;
     }
 
     /**
@@ -247,6 +247,15 @@ module.exports = class SlackApi extends MessengerAbstract {
             this.logger.error(err);
             throw ['Error while creating room', err].join('\n');
         }
+    }
+
+    // ! TODO OVERRIDE
+    /**
+     * @param {string} name displayName
+     * @returns {string} slack id
+     */
+    getUserIdByDisplayName(name) {
+        return name;
     }
 
     /**
