@@ -3,9 +3,16 @@ const translate = require('../../../locales');
 // const messages = require('../../../lib/messages');
 const jiraRequests = require('../../../lib/jira-request');
 
+const getSenderDisplayName = async (chatApi, senderId) => {
+    const chatId = chatApi.getChatUserId(senderId);
+    const userData = await chatApi.getUser(chatId);
+
+    return userData && userData.displayName;
+};
+
 module.exports = async ({ bodyText, sender, roomName, chatApi, roomId }) => {
     try {
-        const userToFind = bodyText || sender;
+        const userToFind = bodyText || (await getSenderDisplayName(chatApi, sender));
         const users = await jiraRequests.searchUser(userToFind);
 
         switch (users.length) {
