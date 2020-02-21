@@ -30,18 +30,19 @@ describe('assign test', () => {
     const partName = testUtils.usersWithSamePartName[0].slice(0, 5);
 
     const ivanUsers = [userA, userB];
-    const sender = 'my_sender';
-    const senderDisplayName = 'My Sender S';
+    const existingSenderDisplayName = testUtils.getExistingDisplayName();
+    const existingSenderId = testUtils.getUserIdByDisplayName(existingSenderDisplayName);
+    const existingUserChatData = { userId: existingSenderId, displayName: existingSenderDisplayName };
 
-    const userSender = { displayName: senderDisplayName, accountId: 'userSenderAccountId' };
+    const userSender = { displayName: existingSenderDisplayName, accountId: 'userSenderAccountId' };
 
     const roomName = 'BBCOM-123';
 
     const roomId = testUtils.getRoomId();
 
     beforeEach(() => {
-        chatApi = testUtils.getChatApi();
-        baseOptions = { roomId, roomName, commandName, sender, chatApi };
+        chatApi = testUtils.getChatApi({ existedUsers: [existingUserChatData] });
+        baseOptions = { roomId, roomName, commandName, sender: existingSenderId, chatApi };
         nock(utils.getRestUrl())
             .put(`/issue/${roomName}/assignee`, schemas.assignee(userSender.accountId))
             .reply(204)
@@ -54,7 +55,7 @@ describe('assign test', () => {
             .put(`/issue/${roomName}/assignee`, schemas.assignee(noRulesUser.accountId))
             .reply(404)
             .get('/user/search')
-            .query({ username: sender })
+            .query({ username: existingSenderDisplayName })
             .reply(200, [userSender])
             .get('/user/search')
             .query({ username: partName })
@@ -75,8 +76,8 @@ describe('assign test', () => {
     });
 
     // TODO need the way how to get diplayname of sender
-    it.skip('Expect assign sender ("!assign")', async () => {
-        const post = translate('successMatrixAssign', { displayName: senderDisplayName });
+    it('Expect assign sender ("!assign")', async () => {
+        const post = translate('successMatrixAssign', { displayName: existingSenderDisplayName });
         const result = await commandHandler(baseOptions);
 
         expect(result).to.be.eq(post);

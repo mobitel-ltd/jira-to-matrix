@@ -1,9 +1,10 @@
+// @ts-check
 /* eslint-disable no-undefined */
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
 const MessengerAbstract = require('./messenger-abstract');
-const { get } = require('lodash');
+const Ramda = require('ramda');
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -22,7 +23,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * Matrix-sdk fasade for bot building
      * @param  {Object} options api options
      * @param  {Object} options.config config object
-     * @param  {Object} options.sdk=matrixSdk} matrix sdk lib, by default - https://github.com/matrix-org/matrix-js-sdk
+     * @param  {matrixSdk} options.sdk=matrixSdk} matrix sdk lib, by default - https://github.com/matrix-org/matrix-js-sdk
      * @param  {Object} options.commandsHandler matrix event commands
      * @param  {Object} options.logger logger, winstone type, if no logger is set logger is off
      */
@@ -323,7 +324,7 @@ module.exports = class Matrix extends MessengerAbstract {
             };
 
             const result = await this.client._http.authedRequest(undefined, method, path, {}, body);
-            const userId = get(result, 'results[0].user_id');
+            const userId = Ramda.path(['results', 0, 'user_id'], result);
 
             if (!userId) {
                 this.logger.warn(`Not found user by search params ${searchParam}`);
@@ -651,13 +652,18 @@ module.exports = class Matrix extends MessengerAbstract {
     /**
      * Get bot which joined to room in chat
      * @param {string} userId chat user id
-     * @returns {Promise<User>} void
+     * @returns {Promise<({displayname:string, avatarUrl:string}|undefined)>} user profile info or nothing
      */
     async getUser(userId) {
         try {
-            return await this.client.getUser(userId);
+            const user = await this.client.getProfileInfo(userId);
+
+            return {
+                displayName: user.displayname,
+                avatarUrl: user.avatar_url,
+            };
         } catch (err) {
-            this.logger.error(err);
+            this.logger.error(`User profile ${userId} is not found. \nError: ${JSON.stringify(err)}`);
         }
     }
 
