@@ -117,6 +117,8 @@ const utils = {
 
     getIssueCreator: issue => handlers.issue.getCreator({ issue }),
 
+    getIssueAssignee: issue => handlers.issue.getAssignee({ issue }),
+
     getIssueMembers: issue => handlers.issue.getMembers({ issue }),
 
     getHookType: body => {

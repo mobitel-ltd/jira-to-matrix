@@ -420,6 +420,26 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * Get matrix room by alias
+     * @param  {string?} name matrix room alias
+     * @param  {string?} roomId matrix roomId
+     * @returns {Promise<String[]>} matrix room members
+     */
+    async getRoomAdmins({ name, roomId }) {
+        try {
+            const id = roomId || (await this.getRoomId(name));
+            const room = await this.client.getRoom(id);
+            const joinedMembers = room.getJoinedMembers();
+
+            return joinedMembers
+                .filter(({ powerLevel }) => powerLevel === 100)
+                .map(({ rawDisplayName }) => rawDisplayName);
+        } catch (err) {
+            throw [`Error while getting matrix members from room ${name}`, err].join('\n');
+        }
+    }
+
+    /**
      * Check if user is in matrix room
      * @param {String} roomId matrix room id
      * @param {String} user matrix user id
@@ -626,6 +646,36 @@ module.exports = class Matrix extends MessengerAbstract {
             return true;
         } catch (error) {
             this.logger.error(`Error in avatar setting for roomId ${roomId} with avatar url ${url}`);
+            this.logger.error(error);
+        }
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    async getAllMessagesFromRoom(roomId) {
+        try {
+            const method = 'GET';
+            const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
+            const qweryParams = { limit: 10000, dir: 'b' };
+            const body = {};
+
+            const { chunk } = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+
+            const allMessages = chunk
+                .filter(({ type }) => type === 'm.room.message')
+                .map(event => {
+                    const { user_id: author, content, origin_server_ts: timestamp } = event;
+                    const body = content.msgtype === 'm.text' && content.body;
+                    const date = new Date(timestamp);
+
+                    return { author, date, body };
+                });
+            return allMessages;
+        } catch (error) {
+            this.logger.error(`Error in request to all messages for ${roomId}.`);
             this.logger.error(error);
         }
     }

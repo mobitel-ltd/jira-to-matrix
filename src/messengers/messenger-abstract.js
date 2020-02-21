@@ -206,4 +206,12 @@ module.exports = class {
      * @param {string} name searching param
      */
     async getUserIdByDisplayName(name) {}
+
+    /**
+     * Get matrix room by alias
+     * @param  {string?} name matrix room alias
+     * @param  {string?} roomId matrix roomId
+     * @returns {Promise<String[]>} matrix room members
+     */
+    async getRoomAdmins({ name, roomId }) {}
 };

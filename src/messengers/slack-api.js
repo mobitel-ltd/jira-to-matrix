@@ -441,4 +441,14 @@ module.exports = class SlackApi extends MessengerAbstract {
             return false;
         }
     }
+
+    /**
+     * Get matrix room by alias
+     * @param  {string?} name matrix room alias
+     * @param  {string?} roomId matrix roomId
+     * @returns {Promise<String[]>} matrix room members
+     */
+    getRoomAdmins({ name, roomId }) {
+        return [];
+    }
 };

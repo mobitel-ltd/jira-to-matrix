@@ -7,6 +7,7 @@ const { stub, createStubInstance } = require('sinon');
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
 const defaultExistedUsers = ['correctUser', 'correctUser2'];
+const roomAdmins = ['Room Admin 1', 'Room Admin 2'];
 
 const usersWithSamePartName = ['Ivan Andreevich A', 'Ivan Sergeevich B'];
 
@@ -24,6 +25,8 @@ const usersDict = {
 };
 
 module.exports = {
+    roomAdmins,
+
     usersWithSamePartName,
 
     getExistingDisplayName: () => Object.keys(usersDict)[0],
@@ -75,12 +78,14 @@ module.exports = {
             isInRoom: stub().resolves(true),
             getCommandRoomName: realChatApi.getCommandRoomName(),
             getUserIdByDisplayName: stub().callsFake(name => realChatApi.getChatUserId(usersDict[name])),
+            getRoomAdmins: stub().resolves([]),
         });
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
         // console.log('TCL: stubInstance', chatApi);
 
         existedUsers.map(user => chatApi.getUser.withArgs(chatApi.getChatUserId(user)).resolves(true));
+        chatApi.getRoomAdmins.withArgs({ roomId }).resolves(roomAdmins);
         if (Array.isArray(alias)) {
             alias.forEach(item => {
                 chatApi.getRoomId.withArgs(item).resolves(roomId);
