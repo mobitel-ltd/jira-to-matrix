@@ -13,7 +13,7 @@ const roomAdmins = [
     { userId: 'admin2', displayName: 'Room Admin 2' },
 ];
 
-const roomAdmins3 = ['Room Admin 1', 'Room Admin 2'];
+// const roomAdmins3 = ['Room Admin 1', 'Room Admin 2'];
 
 const defaultExistedUsers = [
     { userId: 'correctUser', displayName: 'Correct User 1' },
@@ -105,12 +105,10 @@ module.exports = {
         chatApi.getRoomAdmins.withArgs({ roomId }).resolves(roomAdmins.map(({ displayName }) => displayName));
         existedUsers.forEach(item => {
             const user = typeof item === 'string' ? { userId: item, displayName: 'Some Display Name' } : item;
-            console.log('TCL: user', user);
             chatApi.getUser.withArgs(chatApi.getChatUserId(user.userId)).resolves({ displayName: user.displayName });
         });
         roomAdmins.forEach(item => {
             const user = typeof item === 'string' ? { userId: item, displayName: 'Some Display Name' } : item;
-            console.log('TCL: user', user);
             chatApi.getUser.withArgs(chatApi.getChatUserId(user.userId)).resolves({ displayName: user.displayName });
         });
 

@@ -50,7 +50,6 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {String} matrix user id like @ii_ivanov:matrix.example.com
      */
     getChatUserId(shortName) {
-        console.log('TCL: getChatUserId -> shortNameMatrix', shortName);
         return shortName && `@${shortName.toLowerCase()}:${this.config.domain}`;
     }
 
