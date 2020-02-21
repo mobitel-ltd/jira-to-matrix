@@ -214,4 +214,10 @@ module.exports = class {
      * @returns {Promise<String[]>} matrix room members
      */
     async getRoomAdmins({ name, roomId }) {}
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} userId chat user id
+     * @returns {Promise<({displayname:string, avatarUrl:string}|undefined)>} user profile info or nothing
+     */
+    async getUser(userId) {}
 };
