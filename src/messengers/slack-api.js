@@ -39,6 +39,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      * @returns {String} user email like ii_ivanov@ example.com
      */
     getChatUserId(shortName) {
+        console.log('TCL: getChatUserId -> shortNameSlack', shortName);
         return shortName && `${shortName.toLocaleLowerCase()}@${this.config.domain}`;
     }
 
@@ -446,9 +447,18 @@ module.exports = class SlackApi extends MessengerAbstract {
      * Get matrix room by alias
      * @param  {string?} name matrix room alias
      * @param  {string?} roomId matrix roomId
-     * @returns {Promise<String[]>} matrix room members
+     * @returns {Array} matrix room members
      */
     getRoomAdmins({ name, roomId }) {
+        return [];
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Array} void
+     */
+    getAllMessagesFromRoom(roomId) {
         return [];
     }
 };

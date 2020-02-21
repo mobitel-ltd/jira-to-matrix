@@ -220,4 +220,11 @@ module.exports = class {
      * @returns {Promise<({displayname:string, avatarUrl:string}|undefined)>} user profile info or nothing
      */
     async getUser(userId) {}
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    async getAllMessagesFromRoom(roomId) {}
 };

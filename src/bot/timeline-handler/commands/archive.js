@@ -10,7 +10,7 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     const assigneeIssueName = utils.getIssueAssignee(issue);
     const roomAdmins = await chatApi.getRoomAdmins({ roomId });
     const admins = [creatorIssueName, assigneeIssueName, ...roomAdmins].filter(Boolean);
-
+    const members = await chatApi.getRoomMembers(roomName);
     const { displayName: senderDisplayName = '' } = await chatApi.getUser(chatApi.getChatUserId(sender));
 
     if (!admins.includes(senderDisplayName)) {
@@ -21,5 +21,6 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 
     const allMessagesMDtext = getMDtext(allMessages);
 
+    return 'ok';
     return `${allMessagesMDtext}`;
 };
