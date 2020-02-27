@@ -11,7 +11,7 @@ const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
 
-describe.skip('Ignore setting for projects', () => {
+describe('Ignore setting for projects', () => {
     let chatApi;
     const roomName = issueJSON.key;
     const sender = getUserIdByDisplayName(issueJSON.fields.creator);
@@ -41,8 +41,8 @@ describe.skip('Ignore setting for projects', () => {
         expect(result).to.be.eq(post);
     });
 
-    it('Access for admin', async () => {
-        const result = await commandHandler({ ...baseOptions, sender: adminSender });
+    it.skip('Access for admin', async () => {
+        const result = await commandHandler({ ...baseOptions, sender: adminSender.userId });
         expect(result).to.be.eq('ok');
     });
 });

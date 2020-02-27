@@ -1,6 +1,10 @@
 const translate = require('../locales');
 const Ramda = require('ramda');
-const { jira, features, messenger, ping } = require('../config');
+const fsPromises = require('fs').promises;
+const path = require('path');
+const os = require('os');
+const git = require('simple-git/promise');
+const { jira, features, messenger, ping, gitArchive } = require('../config');
 const { epicUpdates, postChangesToLinks } = features;
 const messages = require('./messages');
 const delay = require('delay');
@@ -368,6 +372,12 @@ const utils = {
         }
     },
 
+    getMDtext: messages =>
+        messages.map(({ author, date, body }) => `  \n${date}  \n${author}  \n${body}  \n`).join(`* * *`),
+
+    getHTMLtext: messages =>
+        messages.map(({ author, date, body }) => `<br>${date}<br>${author}<br>${body}<br>`).join(`<hr>`),
+
     getProjectKeyFromIssueKey: issueKey => issueKey.split('-').slice(0, 1),
     getCommandAction: (val, collection) => {
         const numberVal = Number(val);
@@ -430,6 +440,27 @@ const utils = {
     getClosedDescriptionBlock: data => [utils.getOpenedDescriptionBlock(data), LINE_BREAKE_TAG].join(''),
 
     getOpenedDescriptionBlock: data => [LINE_BREAKE_TAG, INDENT, data].join(''),
+
+    createDirAndSaveFiles: async (listEvents, MDtext, roomName) => {
+        const tmpPath = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'arhive-'));
+        await fsPromises.writeFile(path.join(tmpPath, `${roomName}.md`), MDtext);
+        await Promise.all(
+            listEvents.map(async event => {
+                await fsPromises.writeFile(path.join(tmpPath, `${event.eventId}.json`), JSON.stringify(event));
+            }),
+        );
+        return tmpPath;
+    },
+
+    gitPullArchive: async (pathTMPdirWithFiles, project) => {
+        const tmpPath = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'git-'));
+        const { user, password, repoPrefix } = gitArchive;
+        const remote = `https://${user}:${password}@${repoPrefix}${project}.git`;
+        await git(tmpPath).clone(remote);
+        await git(`${tmpPath}/${project}`).mv(pathTMPdirWithFiles, `${tmpPath}/${project}`);
+        // console.log(await git(`${tmpPath}/${project}`).status());
+        return tmpPath;
+    },
 
     helpPost: `
     <h5>Use "!comment" command to comment in jira issue<br>

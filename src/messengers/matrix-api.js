@@ -435,7 +435,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return joinedMembers
                 .filter(({ powerLevel }) => powerLevel === 100)
-                .map(({ rawDisplayName }) => rawDisplayName);
+                .map(({ name, userId }) => ({ name, userId }));
         } catch (err) {
             throw [`Error while getting matrix members from room ${name}`, err].join('\n');
         }
@@ -669,15 +669,56 @@ module.exports = class Matrix extends MessengerAbstract {
             const allMessages = chunk
                 .filter(({ type }) => type === 'm.room.message')
                 .map(event => {
-                    const { user_id: author, content, origin_server_ts: timestamp } = event;
+                    const { user_id: author, content, origin_server_ts: timestamp, event_id: eventId } = event;
                     const body = content.msgtype === 'm.text' && content.body;
                     const date = new Date(timestamp);
 
-                    return { author, date, body };
+                    return { author, date, body, eventId };
                 });
             return allMessages;
         } catch (error) {
             this.logger.error(`Error in request to all messages for ${roomId}.`);
+            this.logger.error(error);
+        }
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    async getAllEventsFromRoom(roomId) {
+        try {
+            const method = 'GET';
+            const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
+            const qweryParams = { limit: 10000, dir: 'b' };
+            const body = {};
+
+            const { chunk } = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+            return chunk;
+        } catch (error) {
+            this.logger.error(`Error in request to all events for ${roomId}.`);
+            this.logger.error(error);
+        }
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    async kickUserByRoom({ roomId, userId }) {
+        try {
+            const method = 'PUT';
+            const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.member/${encodeURIComponent(userId)}`;
+            const qweryParams = {};
+            const body = { membership: 'leave', reason: 'cick' };
+
+            const result = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+
+            return result;
+        } catch (error) {
+            this.logger.error(`Error in request for kick ${userId} from ${roomId}.`);
             this.logger.error(error);
         }
     }

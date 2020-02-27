@@ -21,10 +21,6 @@
     "type": "git",
     "url": "git@github.com:grigori-gru/jira-to-matrix.git"
   },
-  "pre-commit": [
-    "lint",
-    "test"
-  ],
   "nyc": {
     "exclude": [
       "src/redis-client.js",
@@ -71,6 +67,7 @@
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "ru-names": "^1.0.7",
+    "simple-git": "^1.131.0",
     "winston": "^2.4.4"
   }
 }

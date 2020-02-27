@@ -460,4 +460,13 @@ module.exports = class SlackApi extends MessengerAbstract {
     getAllMessagesFromRoom(roomId) {
         return [];
     }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {object} { roomId, userId } chat room id
+     * @returns {Object} void
+     */
+    kickUserByRoom({ roomId, userId }) {
+        return {};
+    }
 };

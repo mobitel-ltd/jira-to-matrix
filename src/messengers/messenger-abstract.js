@@ -227,4 +227,11 @@ module.exports = class {
      * @returns {Promise<void>} void
      */
     async getAllMessagesFromRoom(roomId) {}
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {object} { roomId, userId } chat room id
+     * @returns {Promise<void>} void
+     */
+    async kickUserByRoom({ roomId, userId }) {}
 };

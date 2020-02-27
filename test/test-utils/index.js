@@ -3,7 +3,7 @@ const redis = require('../../src/redis-client.js');
 const defaultConfig = require('../../src/config');
 const getChatApi = require('../../src/messengers');
 const { stub, createStubInstance } = require('sinon');
-const allMessagesFromRoom = require('../fixtures/allMessagesFromRoom.json');
+const allMessagesFromRoom = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
 
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
