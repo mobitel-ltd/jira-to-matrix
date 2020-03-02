@@ -208,9 +208,30 @@ module.exports = class {
     async getUserIdByDisplayName(name) {}
 
     /**
+     * Get matrix room by alias
+     * @param  {string?} name matrix room alias
+     * @param  {string?} roomId matrix roomId
+     * @returns {Promise<String[]>} matrix room members
+     */
+    async getRoomAdmins({ name, roomId }) {}
+    /**
      * Get bot which joined to room in chat
      * @param {string} userId chat user id
      * @returns {Promise<({displayname:string, avatarUrl:string}|undefined)>} user profile info or nothing
      */
     async getUser(userId) {}
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    async getAllMessagesFromRoom(roomId) {}
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {object} { roomId, userId } chat room id
+     * @returns {Promise<void>} void
+     */
+    async kickUserByRoom({ roomId, userId }) {}
 };

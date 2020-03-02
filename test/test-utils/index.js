@@ -3,9 +3,18 @@ const redis = require('../../src/redis-client.js');
 const defaultConfig = require('../../src/config');
 const getChatApi = require('../../src/messengers');
 const { stub, createStubInstance } = require('sinon');
+const allMessagesFromRoom = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
 
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
+
+const roomAdmins = [
+    { userId: 'admin1', displayName: 'Room Admin 1' },
+    { userId: 'admin2', displayName: 'Room Admin 2' },
+];
+
+// const roomAdmins3 = ['Room Admin 1', 'Room Admin 2'];
+
 const defaultExistedUsers = [
     { userId: 'correctUser', displayName: 'Correct User 1' },
     { userId: 'correctUser2', displayName: 'Correct User 2' },
@@ -27,6 +36,8 @@ const usersDict = {
 };
 
 module.exports = {
+    roomAdmins,
+
     usersWithSamePartName,
 
     getExistingDisplayName: () => Object.keys(usersDict)[0],
@@ -79,12 +90,24 @@ module.exports = {
             isInRoom: stub().resolves(true),
             getCommandRoomName: realChatApi.getCommandRoomName(),
             getUserIdByDisplayName: stub().callsFake(name => realChatApi.getChatUserId(usersDict[name])),
+            getRoomAdmins: stub().resolves([]),
+            getAllMessagesFromRoom: stub().resolves(allMessagesFromRoom),
         });
+
+        const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId }) => chatApi.getChatUserId(userId));
+        chatApi.getRoomMembers = stub().resolves(allMembers);
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
         // console.log('TCL: stubInstance', chatApi);
-
+        existedUsers.map(({ displayName, userId }) =>
+            chatApi.getUser.withArgs(chatApi.getChatUserId(userId)).resolves(true),
+        );
+        chatApi.getRoomAdmins.withArgs({ roomId }).resolves(roomAdmins.map(({ displayName }) => displayName));
         existedUsers.forEach(item => {
+            const user = typeof item === 'string' ? { userId: item, displayName: 'Some Display Name' } : item;
+            chatApi.getUser.withArgs(chatApi.getChatUserId(user.userId)).resolves({ displayName: user.displayName });
+        });
+        roomAdmins.forEach(item => {
             const user = typeof item === 'string' ? { userId: item, displayName: 'Some Display Name' } : item;
             chatApi.getUser.withArgs(chatApi.getChatUserId(user.userId)).resolves({ displayName: user.displayName });
         });

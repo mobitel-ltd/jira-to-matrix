@@ -441,4 +441,32 @@ module.exports = class SlackApi extends MessengerAbstract {
             return false;
         }
     }
+
+    /**
+     * Get matrix room by alias
+     * @param  {string?} name matrix room alias
+     * @param  {string?} roomId matrix roomId
+     * @returns {Array} matrix room members
+     */
+    getRoomAdmins({ name, roomId }) {
+        return [];
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Array} void
+     */
+    getAllMessagesFromRoom(roomId) {
+        return [];
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {object} { roomId, userId } chat room id
+     * @returns {Object} void
+     */
+    kickUserByRoom({ roomId, userId }) {
+        return {};
+    }
 };
