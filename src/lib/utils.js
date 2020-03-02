@@ -441,24 +441,27 @@ const utils = {
 
     getOpenedDescriptionBlock: data => [LINE_BREAKE_TAG, INDENT, data].join(''),
 
-    createDirAndSaveFiles: async (listEvents, MDtext, roomName) => {
+    gitPullToRepo: async (listEvents, MDtext, project, roomName) => {
         const tmpPath = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'arhive-'));
-        await fsPromises.writeFile(path.join(tmpPath, `${roomName}.md`), MDtext);
-        await Promise.all(
-            listEvents.map(async event => {
-                await fsPromises.writeFile(path.join(tmpPath, `${event.eventId}.json`), JSON.stringify(event));
-            }),
-        );
-        return tmpPath;
-    },
-
-    gitPullArchive: async (pathTMPdirWithFiles, project) => {
-        const tmpPath = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'git-'));
         const { user, password, repoPrefix } = gitArchive;
         const remote = `https://${user}:${password}@${repoPrefix}${project}.git`;
         await git(tmpPath).clone(remote);
-        await git(`${tmpPath}/${project}`).mv(pathTMPdirWithFiles, `${tmpPath}/${project}`);
-        // console.log(await git(`${tmpPath}/${project}`).status());
+        const repoPath = `${tmpPath}/${project}`;
+        const repoRoomPath = `${repoPath}/${roomName}`;
+        const repoRoomResPath = `${repoRoomPath}/res`;
+        await fsPromises.mkdir(repoRoomResPath, { recursive: true });
+
+        await fsPromises.writeFile(path.join(repoRoomPath, `${roomName}.md`), MDtext);
+        await Promise.all(
+            listEvents.map(async event => {
+                await fsPromises.writeFile(path.join(repoRoomResPath, `${event.eventId}.json`), JSON.stringify(event));
+            }),
+        );
+
+        await git(repoPath).add('./*');
+        await git(repoPath).commit('first commit!');
+        await git(repoPath).push('origin', 'master');
+
         return tmpPath;
     },
 

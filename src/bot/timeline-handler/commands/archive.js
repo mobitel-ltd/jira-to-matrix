@@ -1,4 +1,4 @@
-// const Ramda = require('ramda');
+const Ramda = require('ramda');
 const jiraRequests = require('../../../lib/jira-request');
 const utils = require('../../../lib/utils');
 const translate = require('../../../locales');
@@ -8,7 +8,7 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     try {
         // 1. Permitions
         const issue = await jiraRequests.getIssue(roomName);
-        // const projectKey = utils.getProjectKeyFromIssueKey(roomName);
+        const projectKey = utils.getProjectKeyFromIssueKey(roomName);
         const creatorIssueName = utils.getIssueCreator(issue);
         const assigneeIssueName = utils.getIssueAssignee(issue);
 
@@ -24,35 +24,32 @@ module.exports = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         }
         // 2. Handle all events and archive
         // const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-        // const allMessagesMDtext = utils.getMDtext(allMessages);
+        const allMessages = await chatApi.getAllMessagesFromRoom(roomId);
+        // todo change to allEvents
+        // todo main task - getMDtext render MD
+        const allMessagesMDtext = utils.getMDtext(allMessages);
 
-        // const allMessages = await chatApi.getAllMessagesFromRoom(roomId);
-        // const allMessagesMDtext = utils.getMDtext(allMessages);
-
-        // const pathTMPdirWithFiles = await utils.createDirAndSaveFiles(allMessages, allMessagesMDtext, roomName);
-        // console.log('TCL: pathTMPdirWithFiles', pathTMPdirWithFiles);
-
-        // const pathTMPgit = await utils.gitPullArchive(pathTMPdirWithFiles, projectKey);
-        // console.log('TCL: pathTMPgit', pathTMPgit);
+        // return tmpPath
+        await utils.gitPullToRepo(allMessages, allMessagesMDtext, projectKey, roomName);
 
         // 3. Kick if was flag
-        // const members = await chatApi.getRoomMembers({ roomId });
-        // const membersNotAdmins = Ramda.difference(members, matrixRoomAdmins.map(({ userId }) => userId)).filter(
-        //     Boolean,
-        // );
+        const members = await chatApi.getRoomMembers({ roomId });
+        const membersNotAdmins = Ramda.difference(members, matrixRoomAdmins.map(({ userId }) => userId)).filter(
+            Boolean,
+        );
 
-        // await Promise.all(
-        //     membersNotAdmins.map(async userId => {
-        //         await chatApi.kickUserByRoom({ roomId, userId });
-        //         logger.info(`Member ${userId} kicked from ${roomId}`);
-        //     }),
-        // );
-        // await Promise.all(
-        //     matrixRoomAdmins.map(async ({ userId }) => {
-        //         await chatApi.kickUserByRoom({ roomId, userId });
-        //         logger.info(`Admin ${userId} kicked from ${roomId}`);
-        //     }),
-        // );
+        await Promise.all(
+            membersNotAdmins.map(async userId => {
+                await chatApi.kickUserByRoom({ roomId, userId });
+                logger.info(`Member ${userId} kicked from ${roomId}`);
+            }),
+        );
+        await Promise.all(
+            matrixRoomAdmins.map(async ({ userId }) => {
+                await chatApi.kickUserByRoom({ roomId, userId });
+                logger.info(`Admin ${userId} kicked from ${roomId}`);
+            }),
+        );
     } catch (err) {
         logger.error(err);
     }
