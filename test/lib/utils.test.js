@@ -10,15 +10,6 @@ const sinonChai = require('sinon-chai');
 const { expect } = chai;
 chai.use(sinonChai);
 
-const messagesJSON = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
-const fs = require('fs');
-const path = require('path');
-const messagesMD = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.md'), 'utf8');
-const messagesHTML = fs.readFileSync(
-    path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.html'),
-    'utf8',
-);
-
 describe('Utils testing', () => {
     const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
 
@@ -218,18 +209,6 @@ describe('Utils testing', () => {
                 expect(err).to.be.equal('No connection.');
             }
             expect(func).to.be.callCount(countCall);
-        });
-    });
-
-    describe.skip('Render list of messages to MD and HTML', () => {
-        it('Render MD', () => {
-            const result = utils.getMDtext(messagesJSON);
-            expect(result).to.equal(messagesMD);
-        });
-
-        it('Render HTML', () => {
-            const result = utils.getHTMLtext(messagesJSON);
-            expect(result).to.deep.equal(messagesHTML);
         });
     });
 });

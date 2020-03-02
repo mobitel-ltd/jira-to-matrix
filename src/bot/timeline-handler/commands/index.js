@@ -11,7 +11,7 @@ const create = require('./create.js');
 const autoinvite = require('./autoinvite.js');
 const alive = require('./alive');
 const getInfo = require('./getInfo');
-const archive = require('./archive');
+const { archive } = require('./archive');
 
 module.exports = {
     comment,

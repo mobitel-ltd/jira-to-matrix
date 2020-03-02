@@ -1,10 +1,6 @@
 const translate = require('../locales');
 const Ramda = require('ramda');
-const fsPromises = require('fs').promises;
-const path = require('path');
-const os = require('os');
-const git = require('simple-git/promise');
-const { jira, features, messenger, ping, gitArchive } = require('../config');
+const { jira, features, messenger, ping } = require('../config');
 const { epicUpdates, postChangesToLinks } = features;
 const messages = require('./messages');
 const delay = require('delay');
@@ -372,12 +368,6 @@ const utils = {
         }
     },
 
-    getMDtext: messages =>
-        messages.map(({ author, date, body }) => `  \n${date}  \n${author}  \n${body}  \n`).join(`* * *`),
-
-    getHTMLtext: messages =>
-        messages.map(({ author, date, body }) => `<br>${date}<br>${author}<br>${body}<br>`).join(`<hr>`),
-
     getProjectKeyFromIssueKey: issueKey => issueKey.split('-').slice(0, 1),
     getCommandAction: (val, collection) => {
         const numberVal = Number(val);
@@ -440,30 +430,6 @@ const utils = {
     getClosedDescriptionBlock: data => [utils.getOpenedDescriptionBlock(data), LINE_BREAKE_TAG].join(''),
 
     getOpenedDescriptionBlock: data => [LINE_BREAKE_TAG, INDENT, data].join(''),
-
-    gitPullToRepo: async (listEvents, MDtext, project, roomName) => {
-        const tmpPath = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'arhive-'));
-        const { user, password, repoPrefix } = gitArchive;
-        const remote = `https://${user}:${password}@${repoPrefix}${project}.git`;
-        await git(tmpPath).clone(remote);
-        const repoPath = `${tmpPath}/${project}`;
-        const repoRoomPath = `${repoPath}/${roomName}`;
-        const repoRoomResPath = `${repoRoomPath}/res`;
-        await fsPromises.mkdir(repoRoomResPath, { recursive: true });
-
-        await fsPromises.writeFile(path.join(repoRoomPath, `${roomName}.md`), MDtext);
-        await Promise.all(
-            listEvents.map(async event => {
-                await fsPromises.writeFile(path.join(repoRoomResPath, `${event.eventId}.json`), JSON.stringify(event));
-            }),
-        );
-
-        await git(repoPath).add('./*');
-        await git(repoPath).commit('first commit!');
-        await git(repoPath).push('origin', 'master');
-
-        return tmpPath;
-    },
 
     helpPost: `
     <h5>Use "!comment" command to comment in jira issue<br>
