@@ -1,5 +1,6 @@
 const faker = require('faker');
 const { slack, matrix } = require('./messenger-settings');
+const settings = require('./settings');
 
 module.exports = {
     port: 4300,
@@ -59,5 +60,11 @@ module.exports = {
             issue: 'mxc://matrix.example/blue-gray',
         },
         projects: ['TEST'],
+    },
+    gitArchive: {
+        user: 'git_test',
+        password: 'test_passw0rd',
+        repoPrefix: `localhost:${settings.gitServerPort}/test`,
+        protocol: 'http',
     },
 };

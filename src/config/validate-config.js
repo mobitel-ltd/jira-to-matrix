@@ -96,6 +96,7 @@ const schema = obj({
         user: string,
         password: string,
         repoPrefix: string,
+        protocol: string.optional(),
     },
 });
 

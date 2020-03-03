@@ -1,3 +1,6 @@
+const gitSimple = require('simple-git');
+const config = require('../../src/config');
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const { getUserIdByDisplayName } = require('../test-utils');
@@ -9,8 +12,14 @@ chai.use(sinonChai);
 const translate = require('../../src/locales');
 const testUtils = require('../test-utils');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
-const { getHTMLtext, getMDtext } = require('../../src/bot/timeline-handler/commands/archive');
+const {
+    getHTMLtext,
+    getMDtext,
+    gitPullToRepo,
+    EVENTS_DIR_NAME,
+} = require('../../src/bot/timeline-handler/commands/archive');
 
+const rawEvents = require('../fixtures/archiveRoom/raw-events');
 const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
 const messagesJSON = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
@@ -19,6 +28,7 @@ const messagesHTML = fs.readFileSync(
     path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.html'),
     'utf8',
 );
+const fsProm = fs.promises;
 
 describe('Archive command', () => {
     let chatApi;
@@ -64,6 +74,39 @@ describe('Archive command', () => {
         it.skip('Render HTML', () => {
             const result = getHTMLtext(messagesJSON);
             expect(result).to.deep.equal(messagesHTML);
+        });
+    });
+
+    describe.only('gitPull', () => {
+        const projectKey = 'TEST';
+        const expectedRemote = `${config.baseRemote + projectKey}.git`;
+        let server;
+        let basePath;
+
+        beforeEach(async () => {
+            basePath = await fsProm.mkdtemp(path.join(os.tmpdir(), 'test'));
+            const gitServerPath = path.resolve(basePath, 'git-server');
+            server = testUtils.startGitServer(gitServerPath);
+            const initGitPath = path.resolve(basePath, 'git-init');
+            await fsProm.mkdir(initGitPath);
+            await testUtils.setRepo(initGitPath, expectedRemote);
+        });
+
+        afterEach(() => {
+            server.close();
+        });
+
+        it('expect git pull send event data', async () => {
+            const roomName = 'ROOM-123';
+            const remote = await gitPullToRepo(config.baseRemote, rawEvents, projectKey, roomName);
+
+            expect(remote).to.eq(expectedRemote);
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(basePath);
+            await gitLocal.clone(expectedRemote, cloneName);
+            const files = await fsProm.readdir(path.resolve(basePath, cloneName, roomName, EVENTS_DIR_NAME));
+            expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
         });
     });
 });

@@ -71,6 +71,7 @@ const dict = Object.freeze({
     notCommandRoom: 'This command is not available in current room',
     alive: 'Bot "%{botId}" is connected!!!',
     getInfo: 'All rooms = %{allRooms}<br>Single rooms = %{single}<br>Multiple joined members = %{many}',
+    gitCommand: 'Error git command for project "%{projectKey}"',
 });
 
 module.exports.dict = dict;

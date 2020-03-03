@@ -1,5 +1,5 @@
-const { gitArchive } = require('../../../config');
-const fsPromises = require('fs').promises;
+const config = require('../../../config');
+const fs = require('fs').promises;
 const path = require('path');
 const os = require('os');
 const git = require('simple-git/promise');
@@ -15,29 +15,40 @@ const getMDtext = messages =>
 const getHTMLtext = messages =>
     messages.map(({ author, date, body }) => [date, author, body].join('<br>')).join(`\n<br><hr>`);
 
-const gitPullToRepo = async (gitParams, listEvents, projectKey, roomName) => {
-    const tmpPath = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'arhive-'));
-    const { user, password, repoPrefix } = gitParams;
-    const remote = `https://${user}:${password}@${repoPrefix}${projectKey}.git`;
-    await git(tmpPath).clone(remote);
-    const repoPath = `${tmpPath}/${projectKey}`;
-    const repoRoomPath = `${repoPath}/${roomName}`;
-    const repoRoomResPath = `${repoRoomPath}/res`;
-    await fsPromises.mkdir(repoRoomResPath, { recursive: true });
-    const renderedText = getMDtext(listEvents);
-    await fsPromises.writeFile(path.join(repoRoomPath, `${roomName}.md`), renderedText);
+const EVENTS_DIR_NAME = 'res';
 
-    await Promise.all(
-        listEvents.map(async event => {
-            await fsPromises.writeFile(path.join(repoRoomResPath, `${event.eventId}.json`), JSON.stringify(event));
-        }),
-    );
+const gitPullToRepo = async (baseRemote, listEvents, projectKey, roomName) => {
+    try {
+        const tmpPath = await fs.mkdtemp(path.join(os.tmpdir(), 'arhive-'));
+        const remote = `${baseRemote}${projectKey}.git`;
+        const localGit = git(tmpPath);
+        await localGit.clone(remote, projectKey);
+        const repoPath = path.resolve(tmpPath, projectKey);
+        const repoRoomPath = path.resolve(repoPath, roomName);
+        const repoRoomResPath = path.resolve(repoRoomPath, EVENTS_DIR_NAME);
+        await fs.mkdir(repoRoomResPath, { recursive: true });
+        // const renderedText = getMDtext(listEvents);
+        // await fs.writeFile(path.join(repoRoomPath, `${roomName}.md`), renderedText);
 
-    await git(repoPath).add('./*');
-    await git(repoPath).commit('first commit!');
-    await git(repoPath).push('origin', 'master');
+        await Promise.all(
+            listEvents.map(async event => {
+                await fs.writeFile(path.join(repoRoomResPath, `${event.event_id}.json`), JSON.stringify(event));
+            }),
+        );
 
-    return tmpPath;
+        const repoGit = git(repoPath);
+
+        repoGit.addConfig('user.name', 'Some One');
+        repoGit.addConfig('user.email', 'some@one.com');
+
+        await repoGit.add('./*');
+        await repoGit.commit('first commit!');
+        await repoGit.push('origin', 'master');
+
+        return remote;
+    } catch (err) {
+        logger.error(err);
+    }
 };
 
 const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
@@ -63,7 +74,13 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         const allMessages = await chatApi.getAllMessagesFromRoom(roomId);
 
         // return tmpPath
-        await gitPullToRepo(gitArchive, allMessages, projectKey, roomName);
+        const remote = await gitPullToRepo(config.baseRemote, allMessages, projectKey, roomName);
+
+        if (!remote) {
+            return translate('gitCommand', { projectKey });
+        }
+
+        logger.debug(`Git push successfully complited!!!`);
 
         // 3. Kick if was flag
         const members = await chatApi.getRoomMembers({ roomId });
@@ -96,4 +113,5 @@ module.exports = {
     getHTMLtext,
     getMDtext,
     gitPullToRepo,
+    EVENTS_DIR_NAME,
 };

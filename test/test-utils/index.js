@@ -1,9 +1,15 @@
+/* eslint-disable handle-callback-err */
+const simpleGit = require('simple-git');
+const fs = require('fs').promises;
+const path = require('path');
+const Server = require('node-git-server');
 const { prefix } = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
 const defaultConfig = require('../../src/config');
 const getChatApi = require('../../src/messengers');
 const { stub, createStubInstance } = require('sinon');
 const allMessagesFromRoom = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
+const settings = require('../fixtures/settings');
 
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
@@ -127,5 +133,51 @@ module.exports = {
         });
 
         return chatApi;
+    },
+
+    startGitServer: tmpDirName => {
+        const repos = new Server(path.resolve(__dirname, tmpDirName), {
+            autoCreate: true,
+        });
+
+        repos.on('push', push => {
+            // console.log(`push ${push.repo}/${push.commit} (${push.branch})`);
+            repos.list((err, results) => {
+                push.log(' ');
+                push.log('Hey!');
+                push.log('Checkout these other repos:');
+                for (const repo of results) {
+                    push.log(`- ${repo}`);
+                }
+                push.log(' ');
+            });
+
+            push.accept();
+        });
+
+        repos.on('fetch', fetch => {
+            // console.log(`fetch ${fetch.commit}`);
+            fetch.accept();
+        });
+
+        repos.listen(settings.gitServerPort, () => {
+            // console.log(`node-git-server running at http://localhost:${settings.gitServerPort}`);
+        });
+
+        return repos;
+    },
+
+    setRepo: async (tmpPath, remote) => {
+        await fs.writeFile(path.join(tmpPath, 'readme.txt'));
+
+        const git = simpleGit(tmpPath);
+        await git
+            .init()
+            .add('./*')
+            .addConfig('user.name', 'Some One')
+            .addConfig('user.email', 'some@one.com')
+            .commit('first commit!')
+            .addRemote('origin', remote)
+            .push('origin', 'master');
     },
 };

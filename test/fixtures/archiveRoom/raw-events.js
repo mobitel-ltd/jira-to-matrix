@@ -1,5 +1,5 @@
 /* eslint-disable id-length */
-[
+module.exports = [
     // Edited message
     {
         type: 'm.room.redaction',
