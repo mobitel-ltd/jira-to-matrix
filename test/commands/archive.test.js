@@ -77,7 +77,7 @@ describe('Archive command', () => {
         });
     });
 
-    describe.only('gitPull', () => {
+    describe('gitPull', () => {
         const projectKey = 'TEST';
         const expectedRemote = `${config.baseRemote + projectKey}.git`;
         let server;
