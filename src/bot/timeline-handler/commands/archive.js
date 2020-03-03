@@ -1,7 +1,7 @@
+const tmp = require('tmp-promise');
 const config = require('../../../config');
 const fs = require('fs').promises;
 const path = require('path');
-const os = require('os');
 const git = require('simple-git/promise');
 const Ramda = require('ramda');
 const jiraRequests = require('../../../lib/jira-request');
@@ -18,8 +18,8 @@ const getHTMLtext = messages =>
 const EVENTS_DIR_NAME = 'res';
 
 const gitPullToRepo = async (baseRemote, listEvents, projectKey, roomName) => {
+    const { path: tmpPath, cleanup } = await tmp.dir({ unsafeCleanup: true });
     try {
-        const tmpPath = await fs.mkdtemp(path.join(os.tmpdir(), 'arhive-'));
         const remote = `${baseRemote}${projectKey}.git`;
         const localGit = git(tmpPath);
         await localGit.clone(remote, projectKey);
@@ -38,16 +38,18 @@ const gitPullToRepo = async (baseRemote, listEvents, projectKey, roomName) => {
 
         const repoGit = git(repoPath);
 
-        repoGit.addConfig('user.name', 'Some One');
-        repoGit.addConfig('user.email', 'some@one.com');
+        repoGit.addConfig('user.name', 'bot');
+        repoGit.addConfig('user.email', 'bot@example.com');
 
         await repoGit.add('./*');
-        await repoGit.commit('first commit!');
+        await repoGit.commit('set event data');
         await repoGit.push('origin', 'master');
 
         return remote;
     } catch (err) {
         logger.error(err);
+    } finally {
+        await cleanup();
     }
 };
 

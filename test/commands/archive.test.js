@@ -1,6 +1,6 @@
-const gitSimple = require('simple-git');
+const tmp = require('tmp-promise');
+const gitSimple = require('simple-git/promise');
 const config = require('../../src/config');
-const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const { getUserIdByDisplayName } = require('../test-utils');
@@ -81,19 +81,17 @@ describe('Archive command', () => {
         const projectKey = 'TEST';
         const expectedRemote = `${config.baseRemote + projectKey}.git`;
         let server;
-        let basePath;
+        let tmpDir;
 
         beforeEach(async () => {
-            basePath = await fsProm.mkdtemp(path.join(os.tmpdir(), 'test'));
-            const gitServerPath = path.resolve(basePath, 'git-server');
-            server = testUtils.startGitServer(gitServerPath);
-            const initGitPath = path.resolve(basePath, 'git-init');
-            await fsProm.mkdir(initGitPath);
-            await testUtils.setRepo(initGitPath, expectedRemote);
+            tmpDir = await tmp.dir({ unsafeCleanup: true });
+            server = testUtils.startGitServer(path.resolve(tmpDir.path, 'git-server'));
+            await testUtils.setRepo(tmpDir.path, expectedRemote);
         });
 
         afterEach(() => {
             server.close();
+            tmpDir.cleanup();
         });
 
         it('expect git pull send event data', async () => {
@@ -103,9 +101,9 @@ describe('Archive command', () => {
             expect(remote).to.eq(expectedRemote);
 
             const cloneName = 'clone-repo';
-            const gitLocal = gitSimple(basePath);
+            const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(basePath, cloneName, roomName, EVENTS_DIR_NAME));
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, roomName, EVENTS_DIR_NAME));
             expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
         });
     });

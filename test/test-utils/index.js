@@ -1,5 +1,5 @@
 /* eslint-disable handle-callback-err */
-const simpleGit = require('simple-git');
+const simpleGit = require('simple-git/promise');
 const fs = require('fs').promises;
 const path = require('path');
 const Server = require('node-git-server');
@@ -167,17 +167,18 @@ module.exports = {
         return repos;
     },
 
-    setRepo: async (tmpPath, remote) => {
+    setRepo: async (basePath, remote) => {
+        const tmpPath = path.resolve(basePath, 'git-init');
+        await fs.mkdir(tmpPath);
         await fs.writeFile(path.join(tmpPath, 'readme.txt'));
 
         const git = simpleGit(tmpPath);
-        await git
-            .init()
-            .add('./*')
-            .addConfig('user.name', 'Some One')
-            .addConfig('user.email', 'some@one.com')
-            .commit('first commit!')
-            .addRemote('origin', remote)
-            .push('origin', 'master');
+        await git.init();
+        await git.add('./*');
+        await git.addConfig('user.name', 'Some One');
+        await git.addConfig('user.email', 'some@one.com');
+        await git.commit('first commit!');
+        await git.addRemote('origin', remote);
+        await git.push('origin', 'master');
     },
 };

@@ -69,6 +69,7 @@
     "request-promise-native": "^1.0.7",
     "ru-names": "^1.0.7",
     "simple-git": "^1.131.0",
+    "tmp-promise": "^2.0.2",
     "winston": "^2.4.4"
   }
 }
