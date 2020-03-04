@@ -33,7 +33,7 @@ const messagesHTML = fs.readFileSync(
 );
 const fsProm = fs.promises;
 
-describe.only('Archive command', () => {
+describe('Archive command', () => {
     let chatApi;
     const roomName = issueJSON.key;
     const sender = getUserIdByDisplayName(issueJSON.fields.creator);
