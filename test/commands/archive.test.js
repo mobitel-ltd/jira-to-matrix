@@ -19,6 +19,7 @@ const {
     gitPullToRepo,
     EVENTS_DIR_NAME,
     KICK_ALL_OPTION,
+    VIEW_FILE_NAME,
 } = require('../../src/bot/timeline-handler/commands/archive');
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
@@ -32,7 +33,7 @@ const messagesHTML = fs.readFileSync(
 );
 const fsProm = fs.promises;
 
-describe('Archive command', () => {
+describe.only('Archive command', () => {
     let chatApi;
     const roomName = issueJSON.key;
     const sender = getUserIdByDisplayName(issueJSON.fields.creator);
@@ -73,7 +74,7 @@ describe('Archive command', () => {
 
     describe('Render list of messages', () => {
         it('Render MD', () => {
-            const result = getMDtext(messagesJSON).split('\n');
+            const result = getMDtext(rawEvents).split('\n');
             expect(result).to.deep.equal(messagesMD.split('\n'));
         });
 
@@ -83,7 +84,7 @@ describe('Archive command', () => {
         });
     });
 
-    describe.only('gitPull', () => {
+    describe('gitPull', () => {
         const expectedRemote = `${`${config.baseRemote}/${projectKey.toLowerCase()}`}.git`;
         let server;
         let tmpDir;
@@ -100,27 +101,18 @@ describe('Archive command', () => {
         });
 
         it('expect git pull send event data', async () => {
-            const remote = await gitPullToRepo(config.baseRemote, rawEvents, projectKey, roomName);
+            const remote = await gitPullToRepo(config.baseRemote, rawEvents, existingRoomName);
 
             expect(remote).to.eq(expectedRemote);
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, roomName, EVENTS_DIR_NAME));
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
             expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
-        });
 
-        it('expect git pull send event data', async () => {
-            const remote = await gitPullToRepo(config.baseRemote, rawEvents, projectKey, roomName);
-
-            expect(remote).to.eq(expectedRemote);
-
-            const cloneName = 'clone-repo';
-            const gitLocal = gitSimple(tmpDir.path);
-            await gitLocal.clone(expectedRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, roomName, EVENTS_DIR_NAME));
-            expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
+            const viewFilePath = path.resolve(tmpDir.path, cloneName, existingRoomName, VIEW_FILE_NAME);
+            expect(fs.existsSync(viewFilePath)).to.be.true;
         });
 
         it('expect command succeded', async () => {
@@ -164,7 +156,7 @@ describe('Archive command', () => {
                 sender: adminSender.name,
                 roomName: roomNameNotGitProject,
             });
-            const expected = translate('gitCommand', { projectKey: notExistProject });
+            const expected = translate('gitCommand', { roomName: roomNameNotGitProject });
 
             expect(result).to.be.eq(expected);
 

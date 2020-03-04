@@ -7,6 +7,9 @@
         {
             "type": "node",
             "request": "launch",
+            "env": {
+                "NODE_ENV": "test"
+            },
             "name": "Mocha Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "args": ["--timeout", "999999", "--colors", "${workspaceFolder}/test/**/*.js"],

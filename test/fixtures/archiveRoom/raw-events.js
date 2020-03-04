@@ -111,10 +111,8 @@ module.exports = [
         content: {
             msgtype: 'm.text',
             format: 'org.matrix.custom.html',
-            body:
-                "2020-02-20T11: 56: 27.735Z\n@jira_test_bot:matrix.example.com\nПользователь 'ii_ivanov' не имеет прав администратора для данного действия\n\n---\n\n2020-02-20T11: 56: 25.518Z\n@ii_ivanov:matrix.example.com\n!archive\n\n---\n\n2020-02-20T11: 55: 25.292Z\n@jira_test_bot:matrix.example.com\nПользователь 'ii_ivanov' не имеет прав администратора для данного действия\n\n---\n\n2020-02-20T11: 55: 20.863Z\n@ii_ivanov:matrix.example.com\n!archive\n\n---\n\n2020-02-19T13: 33: 26.707Z\n@jira_test_bot:matrix.example.com\nПривет кожаный ублюдок\n\n---\n\n2020-02-19T13: 28: 12.261Z\n@ii_ivanov:matrix.example.com\nПривет бот\n\n---\n\n2020-01-23T14: 03: 16.510Z\n@jira_test_bot:matrix.example.com\nЗадача изменена",
-            formatted_body:
-                "<p>2020-02-20T11: 56: 27.735Z<br />@jira_test_bot:matrix.example.com<br />Пользователь 'ii_ivanov' не имеет прав администратора для данного действия</p>\n<hr />\n<p>2020-02-20T11: 56: 25.518Z<br />@ii_ivanov:matrix.example.com<br />!archive</p>\n<hr />\n<p>2020-02-20T11: 55: 25.292Z<br />@jira_test_bot:matrix.example.com<br />Пользователь 'ii_ivanov' не имеет прав администратора для данного действия</p>\n<hr />\n<p>2020-02-20T11: 55: 20.863Z<br />@ii_ivanov:matrix.example.com<br />!archive</p>\n<hr />\n<p>2020-02-19T13: 33: 26.707Z<br />@jira_test_bot:matrix.example.com<br />Привет кожаный ублюдок</p>\n<hr />\n<p>2020-02-19T13: 28: 12.261Z<br />@ii_ivanov:matrix.example.com<br />Привет бот</p>\n<hr />\n<p>2020-01-23T14: 03: 16.510Z<br />@jira_test_bot:matrix.example.com<br />Задача изменена</p>\n",
+            body: 'lalalal00000',
+            formatted_body: '<p>lalalal00000<br /></p>\n',
         },
         event_id: '$158315135640617JeoRb:matrix.example.com',
         origin_server_ts: 1583151356651,
