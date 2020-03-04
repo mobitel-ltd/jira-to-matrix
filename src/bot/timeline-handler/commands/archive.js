@@ -48,7 +48,19 @@ const getProjectRemote = (baseRemote, projectKey) => {
     return [baseRemote, projectExt].join('/');
 };
 
-const transformEvent = event => JSON.stringify(event, null, 2).concat('\n');
+const transformEvent = event => {
+    // TODO add recursive
+    const pureEvent = Ramda.pipe(
+        Ramda.dissocPath(['age']),
+        Ramda.dissocPath(['unsigned', 'age']),
+        Ramda.dissocPath(['unsigned', 'redacted_because', 'age']),
+        Ramda.dissocPath(['redacted_because', 'age']),
+        Ramda.dissocPath(['redacted_because', 'unsigned', 'age']),
+        Ramda.dissocPath(['unsigned', 'redacted_because', 'unsigned', 'age']),
+    )(event);
+
+    return JSON.stringify(pureEvent, null, 4).concat('\n');
+};
 
 const writeOneEvent = async (repoRoomResPath, event) => {
     const dataToSave = transformEvent(event);
@@ -165,4 +177,5 @@ module.exports = {
     EVENTS_DIR_NAME,
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,
+    transformEvent,
 };

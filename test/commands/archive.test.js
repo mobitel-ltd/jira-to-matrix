@@ -20,6 +20,7 @@ const {
     EVENTS_DIR_NAME,
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,
+    transformEvent,
 } = require('../../src/bot/timeline-handler/commands/archive');
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
@@ -70,6 +71,13 @@ describe('Archive command', () => {
         const post = translate('notAdmin', { sender: 'notAdmin' });
         const result = await commandHandler({ ...baseOptions, sender: 'notAdmin' });
         expect(result).to.be.eq(post);
+    });
+
+    it('transform event', () => {
+        const res = rawEvents.map(transformEvent);
+        res.forEach(element => {
+            expect(element).not.includes('"age"');
+        });
     });
 
     describe('Render list of messages', () => {
