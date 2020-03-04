@@ -10,13 +10,14 @@ const getChatApi = require('../../src/messengers');
 const { stub, createStubInstance } = require('sinon');
 const allMessagesFromRoom = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
 const settings = require('../fixtures/settings');
+const rawEvents = require('../fixtures/archiveRoom/raw-events');
 
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
 
 const roomAdmins = [
-    { userId: 'admin1', displayName: 'Room Admin 1' },
-    { userId: 'admin2', displayName: 'Room Admin 2' },
+    { name: 'admin1', displayName: 'Room Admin 1', userId: 'admin1' },
+    { name: 'admin2', displayName: 'Room Admin 2', userId: 'admin2' },
 ];
 
 // const roomAdmins3 = ['Room Admin 1', 'Room Admin 2'];
@@ -98,6 +99,7 @@ module.exports = {
             getUserIdByDisplayName: stub().callsFake(name => realChatApi.getChatUserId(usersDict[name])),
             getRoomAdmins: stub().resolves([]),
             getAllMessagesFromRoom: stub().resolves(allMessagesFromRoom),
+            getAllEventsFromRoom: stub().resolves(rawEvents),
         });
 
         const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId }) => chatApi.getChatUserId(userId));
@@ -108,7 +110,12 @@ module.exports = {
         existedUsers.map(({ displayName, userId }) =>
             chatApi.getUser.withArgs(chatApi.getChatUserId(userId)).resolves(true),
         );
-        chatApi.getRoomAdmins.withArgs({ roomId }).resolves(roomAdmins.map(({ displayName }) => displayName));
+        chatApi.getRoomAdmins.withArgs({ roomId }).resolves(
+            roomAdmins.map(({ name }) => ({
+                userId: realChatApi.getChatUserId(name),
+                name,
+            })),
+        );
         existedUsers.forEach(item => {
             const user = typeof item === 'string' ? { userId: item, displayName: 'Some Display Name' } : item;
             chatApi.getUser.withArgs(chatApi.getChatUserId(user.userId)).resolves({ displayName: user.displayName });
@@ -136,12 +143,14 @@ module.exports = {
     },
 
     startGitServer: tmpDirName => {
-        const repos = new Server(path.resolve(__dirname, tmpDirName), {
+        const repoDir = path.resolve(__dirname, tmpDirName);
+        // console.log('repoDir', repoDir);
+        const repos = new Server(repoDir, {
             autoCreate: true,
         });
 
         repos.on('push', push => {
-            // console.log(`push ${push.repo}/${push.commit} (${push.branch})`);
+            // console.log(`push ${push.repo}${push.commit} (${push.branch})`);
             repos.list((err, results) => {
                 push.log(' ');
                 push.log('Hey!');
@@ -156,12 +165,13 @@ module.exports = {
         });
 
         repos.on('fetch', fetch => {
+            // console.log('fetch', fetch);
             // console.log(`fetch ${fetch.commit}`);
             fetch.accept();
         });
 
         repos.listen(settings.gitServerPort, () => {
-            // console.log(`node-git-server running at http://localhost:${settings.gitServerPort}`);
+            // console.log(`node-git-server running at http:localhost:${settings.gitServerPort}`);
         });
 
         return repos;

@@ -1,3 +1,4 @@
+const faker = require('faker');
 const tmp = require('tmp-promise');
 const gitSimple = require('simple-git/promise');
 const config = require('../../src/config');
@@ -17,6 +18,7 @@ const {
     getMDtext,
     gitPullToRepo,
     EVENTS_DIR_NAME,
+    KICK_ALL_OPTION,
 } = require('../../src/bot/timeline-handler/commands/archive');
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
@@ -36,16 +38,25 @@ describe('Archive command', () => {
     const sender = getUserIdByDisplayName(issueJSON.fields.creator);
     const roomId = testUtils.getRoomId();
     const commandName = 'archive';
-    const bodyText = '';
     let baseOptions;
+    let roomNameNotGitProject;
+    let notExistProject;
     const notAdminSender = 'notAdmin';
     const [adminSender] = testUtils.roomAdmins;
+    const projectKey = faker.name.firstName().toUpperCase();
+    const existingRoomName = `${projectKey}-123`;
 
     beforeEach(() => {
+        notExistProject = faker.name.firstName().toUpperCase();
+        roomNameNotGitProject = `${notExistProject}-123`;
         chatApi = testUtils.getChatApi({ existedUsers: [notAdminSender] });
-        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
+        baseOptions = { roomId, roomName, commandName, sender, chatApi };
         nock(utils.getRestUrl())
             .get(`/issue/${issueJSON.key}`)
+            .reply(200, issueJSON)
+            .get(`/issue/${existingRoomName}`)
+            .reply(200, issueJSON)
+            .get(`/issue/${roomNameNotGitProject}`)
             .reply(200, issueJSON);
     });
 
@@ -60,11 +71,6 @@ describe('Archive command', () => {
         expect(result).to.be.eq(post);
     });
 
-    it.skip('Access for admin', async () => {
-        const result = await commandHandler({ ...baseOptions, sender: adminSender.userId });
-        expect(result).to.be.eq('ok');
-    });
-
     describe('Render list of messages', () => {
         it('Render MD', () => {
             const result = getMDtext(messagesJSON).split('\n');
@@ -77,9 +83,8 @@ describe('Archive command', () => {
         });
     });
 
-    describe('gitPull', () => {
-        const projectKey = 'TEST';
-        const expectedRemote = `${config.baseRemote + projectKey}.git`;
+    describe.only('gitPull', () => {
+        const expectedRemote = `${`${config.baseRemote}/${projectKey.toLowerCase()}`}.git`;
         let server;
         let tmpDir;
 
@@ -95,7 +100,6 @@ describe('Archive command', () => {
         });
 
         it('expect git pull send event data', async () => {
-            const roomName = 'ROOM-123';
             const remote = await gitPullToRepo(config.baseRemote, rawEvents, projectKey, roomName);
 
             expect(remote).to.eq(expectedRemote);
@@ -106,5 +110,73 @@ describe('Archive command', () => {
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, roomName, EVENTS_DIR_NAME));
             expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
         });
+
+        it('expect git pull send event data', async () => {
+            const remote = await gitPullToRepo(config.baseRemote, rawEvents, projectKey, roomName);
+
+            expect(remote).to.eq(expectedRemote);
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(tmpDir.path);
+            await gitLocal.clone(expectedRemote, cloneName);
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, roomName, EVENTS_DIR_NAME));
+            expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
+        });
+
+        it('expect command succeded', async () => {
+            const result = await commandHandler({
+                ...baseOptions,
+                sender: adminSender.name,
+                roomName: existingRoomName,
+            });
+
+            expect(result).to.be.eq(translate('successExport'));
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(tmpDir.path);
+            await gitLocal.clone(expectedRemote, cloneName);
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
+            expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
+        });
+
+        it('expect command succeded and all members are kicked', async () => {
+            const result = await commandHandler({
+                ...baseOptions,
+                sender: adminSender.name,
+                roomName: existingRoomName,
+                bodyText: KICK_ALL_OPTION,
+            });
+
+            expect(result).to.be.eq(translate('exportWithKick'));
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(tmpDir.path);
+            await gitLocal.clone(expectedRemote, cloneName);
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
+            expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
+            // TODO
+            // expect(chatApi.deleteAlias).to.be.calledWithExactly(roomAlias);
+        });
+
+        it.skip('command cannot be succeded if such project is not exists in git repo', async () => {
+            const result = await commandHandler({
+                ...baseOptions,
+                sender: adminSender.name,
+                roomName: roomNameNotGitProject,
+            });
+            const expected = translate('gitCommand', { projectKey: notExistProject });
+
+            expect(result).to.be.eq(expected);
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(tmpDir.path);
+            const notExistRemote = `${config.baseRemote + notExistProject}.git`;
+            await gitLocal.clone(notExistRemote, cloneName);
+            expect(fs.existsSync(path.resolve(tmpDir.path, cloneName, roomNameNotGitProject, EVENTS_DIR_NAME))).to.be
+                .false;
+        });
+
+        // TODO
+        it('Expect not correct git access data in config return message to chat after run command', () => true);
     });
 });

@@ -72,6 +72,8 @@ const dict = Object.freeze({
     alive: 'Bot "%{botId}" is connected!!!',
     getInfo: 'All rooms = %{allRooms}<br>Single rooms = %{single}<br>Multiple joined members = %{many}',
     gitCommand: 'Error git command for project "%{projectKey}"',
+    successExport: 'Export successfully finished!!!',
+    exportWithKick: 'Export successfully finished and all room members are kicked!!!',
 });
 
 module.exports.dict = dict;

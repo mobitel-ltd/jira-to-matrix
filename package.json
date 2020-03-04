@@ -8,7 +8,7 @@
   },
   "scripts": {
     "format": "prettier --write \"{src,test}/**/*.js\"",
-    "dev": "nodemon logs/start.js",
+    "dev": "nodemon --inspect logs/start.js",
     "lint": "eslint \"{src,test}/**/*.js\"",
     "start": "node src/app.js",
     "start-dev": "nodemon src/app.js",

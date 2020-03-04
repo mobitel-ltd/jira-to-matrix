@@ -17,18 +17,25 @@ const getHTMLtext = messages =>
 
 const EVENTS_DIR_NAME = 'res';
 
+const KICK_ALL_OPTION = 'kickall';
+
+const getProjectRemote = (baseRemote, projectKey) => {
+    const projectExt = `${projectKey.toLowerCase()}.git`;
+
+    return [baseRemote, projectExt].join('/');
+};
+
 const gitPullToRepo = async (baseRemote, listEvents, projectKey, roomName) => {
     const { path: tmpPath, cleanup } = await tmp.dir({ unsafeCleanup: true });
     try {
-        const remote = `${baseRemote}${projectKey}.git`;
-        const localGit = git(tmpPath);
-        await localGit.clone(remote, projectKey);
+        const remote = getProjectRemote(baseRemote, projectKey);
+        await git(tmpPath).clone(remote, projectKey);
         const repoPath = path.resolve(tmpPath, projectKey);
         const repoRoomPath = path.resolve(repoPath, roomName);
         const repoRoomResPath = path.resolve(repoRoomPath, EVENTS_DIR_NAME);
         await fs.mkdir(repoRoomResPath, { recursive: true });
-        // const renderedText = getMDtext(listEvents);
-        // await fs.writeFile(path.join(repoRoomPath, `${roomName}.md`), renderedText);
+        const renderedText = getMDtext(listEvents);
+        await fs.writeFile(path.join(repoRoomPath, `${roomName}.md`), renderedText);
 
         await Promise.all(
             listEvents.map(async event => {
@@ -38,11 +45,11 @@ const gitPullToRepo = async (baseRemote, listEvents, projectKey, roomName) => {
 
         const repoGit = git(repoPath);
 
-        repoGit.addConfig('user.name', 'bot');
-        repoGit.addConfig('user.email', 'bot@example.com');
+        await repoGit.addConfig('user.name', 'bot');
+        await repoGit.addConfig('user.email', 'bot@example.com');
 
         await repoGit.add('./*');
-        await repoGit.commit('set event data');
+        await repoGit.commit(`set event data for room ${roomName}`);
         await repoGit.push('origin', 'master');
 
         return remote;
@@ -57,26 +64,24 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     try {
         // 1. Permitions
         const issue = await jiraRequests.getIssue(roomName);
-        const projectKey = utils.getProjectKeyFromIssueKey(roomName);
-        const creatorIssueName = utils.getIssueCreator(issue);
-        const assigneeIssueName = utils.getIssueAssignee(issue);
-
-        const matrixRoomAdmins = await chatApi.getRoomAdmins({ roomId });
-        const admins = [creatorIssueName, assigneeIssueName, ...matrixRoomAdmins.map(({ name }) => name)].filter(
-            Boolean,
+        const issueMembersChatIds = await Promise.all(
+            utils.getIssueMembers(issue).map(displayName => chatApi.getUserIdByDisplayName(displayName)),
         );
+        const matrixRoomAdmins = await chatApi.getRoomAdmins({ roomId });
+        const admins = [...issueMembersChatIds, ...matrixRoomAdmins.map(({ userId }) => userId)].filter(Boolean);
 
-        const { displayName: senderDisplayName = '' } = await chatApi.getUser(chatApi.getChatUserId(sender));
+        const senderUserId = chatApi.getChatUserId(sender);
 
-        if (!admins.includes(senderDisplayName)) {
+        if (!admins.includes(senderUserId)) {
             return translate('notAdmin', { sender });
         }
         // 2. Handle all events and archive
-        // const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-        const allMessages = await chatApi.getAllMessagesFromRoom(roomId);
+        const allEvents = await chatApi.getAllEventsFromRoom(roomId);
+        // const allMessages = await chatApi.getAllMessagesFromRoom(roomId);
 
         // return tmpPath
-        const remote = await gitPullToRepo(config.baseRemote, allMessages, projectKey, roomName);
+        const projectKey = utils.getProjectKeyFromIssueKey(roomName);
+        const remote = await gitPullToRepo(config.baseRemote, allEvents, projectKey, roomName);
 
         if (!remote) {
             return translate('gitCommand', { projectKey });
@@ -85,13 +90,13 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         logger.debug(`Git push successfully complited!!!`);
 
         // 3. Kick if was flag
-        const members = await chatApi.getRoomMembers({ roomId });
-        const membersNotAdmins = Ramda.difference(members, matrixRoomAdmins.map(({ userId }) => userId)).filter(
-            Boolean,
-        );
 
         // TODO add removing alias
-        if (bodyText.includes === 'KICKALL') {
+        if (bodyText && bodyText.includes(KICK_ALL_OPTION)) {
+            const members = await chatApi.getRoomMembers({ roomId });
+            const membersNotAdmins = Ramda.difference(members, matrixRoomAdmins.map(({ userId }) => userId)).filter(
+                Boolean,
+            );
             await Promise.all(
                 membersNotAdmins.map(async userId => {
                     await chatApi.kickUserByRoom({ roomId, userId });
@@ -104,7 +109,11 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
                     logger.info(`Admin ${userId} kicked from ${roomId}`);
                 }),
             );
+
+            return translate('exportWithKick');
         }
+
+        return translate('successExport');
     } catch (err) {
         logger.error(err);
     }
@@ -116,4 +125,5 @@ module.exports = {
     getMDtext,
     gitPullToRepo,
     EVENTS_DIR_NAME,
+    KICK_ALL_OPTION,
 };

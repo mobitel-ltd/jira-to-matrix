@@ -368,7 +368,7 @@ const utils = {
         }
     },
 
-    getProjectKeyFromIssueKey: issueKey => issueKey.split('-').slice(0, 1),
+    getProjectKeyFromIssueKey: issueKey => Ramda.head(issueKey.split('-')),
     getCommandAction: (val, collection) => {
         const numberVal = Number(val);
         if (Number.isInteger(numberVal)) {

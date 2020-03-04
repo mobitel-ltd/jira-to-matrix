@@ -425,7 +425,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * Get matrix room by alias
      * @param  {string?} name matrix room alias
      * @param  {string?} roomId matrix roomId
-     * @returns {Promise<String[]>} matrix room members
+     * @returns {Promise<{name: srting, userId: string}[]>} matrix room members
      */
     async getRoomAdmins({ name, roomId }) {
         try {

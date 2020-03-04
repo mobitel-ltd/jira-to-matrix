@@ -222,11 +222,18 @@ module.exports = class {
     async getUser(userId) {}
 
     /**
-     * Get bot which joined to room in chat
+     * Get all messeges from room
      * @param {string} roomId chat room id
-     * @returns {Promise<void>} void
+     * @returns {Promise<{ author: string, date: string, body: string, eventId: string }[]>} messege data
      */
     async getAllMessagesFromRoom(roomId) {}
+
+    /**
+     * Get all messeges from room
+     * @param {string} roomId chat room id
+     * @returns {Promise<MatrixEvent[]>} events
+     */
+    async getAllEventsFromRoom(roomId) {}
 
     /**
      * Get bot which joined to room in chat
