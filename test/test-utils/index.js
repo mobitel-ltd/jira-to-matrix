@@ -42,7 +42,13 @@ const usersDict = {
     [usersWithSamePartName[1]]: 'ivan_B',
 };
 
+const baseMedia = 'http://base.example';
+
+const getMediaLink = el => `${baseMedia}/${el}`;
+
 module.exports = {
+    baseMedia,
+
     roomAdmins,
 
     usersWithSamePartName,
@@ -100,6 +106,7 @@ module.exports = {
             getRoomAdmins: stub().resolves([]),
             getAllMessagesFromRoom: stub().resolves(allMessagesFromRoom),
             getAllEventsFromRoom: stub().resolves(rawEvents),
+            getDownloadLink: stub().callsFake(el => getMediaLink(el)),
         });
 
         const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId }) => chatApi.getChatUserId(userId));

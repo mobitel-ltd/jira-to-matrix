@@ -704,6 +704,15 @@ module.exports = class Matrix extends MessengerAbstract {
 
     /**
      * Get bot which joined to room in chat
+     * @param {string} mxcUrl mxc link
+     * @returns {string} string
+     */
+    getDownloadLink(mxcUrl) {
+        return this.client.mxcUrlToHttp(mxcUrl);
+    }
+
+    /**
+     * Get bot which joined to room in chat
      * @param {string} roomId chat room id
      * @returns {Promise<void>} void
      */

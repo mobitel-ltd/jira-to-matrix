@@ -43,7 +43,7 @@
             "error",
             {
                 "min": 2,
-                "exceptions": ["i", "j", "_"]
+                "exceptions": ["i", "j", "_", "R"]
             }
         ],
         "max-depth": ["error", 4],

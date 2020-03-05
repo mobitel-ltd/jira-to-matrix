@@ -18,12 +18,16 @@ const {
     getMDtext,
     gitPullToRepo,
     EVENTS_DIR_NAME,
+    MEDIA_DIR_NAME,
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,
     transformEvent,
+    getFileNameByUrl,
+    MEDIA_EXTENSION,
 } = require('../../src/bot/timeline-handler/commands/archive');
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
+const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
 const messagesJSON = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
@@ -53,6 +57,10 @@ describe('Archive command', () => {
         roomNameNotGitProject = `${notExistProject}-123`;
         chatApi = testUtils.getChatApi({ existedUsers: [notAdminSender] });
         baseOptions = { roomId, roomName, commandName, sender, chatApi };
+        nock(testUtils.baseMedia)
+            .get(`/${rawEventsData.mediaId}`)
+            .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
+
         nock(utils.getRestUrl())
             .get(`/issue/${issueJSON.key}`)
             .reply(200, issueJSON)
@@ -78,6 +86,11 @@ describe('Archive command', () => {
         res.forEach(element => {
             expect(element).not.includes('"age"');
         });
+    });
+
+    it('getFileNameByUrl', () => {
+        const fileName = getFileNameByUrl(rawEventsData.imgUrl);
+        expect(fileName).to.be.eq(`${rawEventsData.mediaId}.${MEDIA_EXTENSION}`);
     });
 
     describe('Render list of messages', () => {
@@ -109,7 +122,7 @@ describe('Archive command', () => {
         });
 
         it('expect git pull send event data', async () => {
-            const remote = await gitPullToRepo(config.baseRemote, rawEvents, existingRoomName);
+            const remote = await gitPullToRepo(config.baseRemote, rawEvents, existingRoomName, chatApi);
 
             expect(remote).to.eq(expectedRemote);
 
@@ -121,6 +134,11 @@ describe('Archive command', () => {
 
             const viewFilePath = path.resolve(tmpDir.path, cloneName, existingRoomName, VIEW_FILE_NAME);
             expect(fs.existsSync(viewFilePath)).to.be.true;
+
+            const mediaFiles = await fsProm.readdir(
+                path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
+            );
+            expect(mediaFiles).to.have.deep.members([`${rawEventsData.mediaId}.${MEDIA_EXTENSION}`]);
         });
 
         it('expect command succeded', async () => {

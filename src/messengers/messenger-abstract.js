@@ -241,4 +241,10 @@ module.exports = class {
      * @returns {Promise<void>} void
      */
     async kickUserByRoom({ roomId, userId }) {}
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} chatLink mxc link
+     */
+    getDownloadLink(chatLink) {}
 };

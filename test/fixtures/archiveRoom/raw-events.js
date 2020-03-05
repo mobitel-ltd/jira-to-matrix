@@ -1,3 +1,5 @@
+const info = require('./raw-events-data');
+
 /* eslint-disable id-length */
 module.exports = [
     // Edited message
@@ -142,7 +144,7 @@ module.exports = [
                 thumbnail_url: 'mxc://example.com/DordVdYYQFGQBEjWLLPnfxcb',
             },
             msgtype: 'm.image',
-            url: 'mxc://example.com/rSegxBsElRRmJXmZWmbfDiWp',
+            url: info.imgUrl,
         },
         event_id: '$158314842240236RCJdh:example.com',
         origin_server_ts: 1583148422154,

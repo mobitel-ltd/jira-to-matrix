@@ -3,14 +3,17 @@ const config = require('../../../config');
 const fileSystem = require('fs');
 const path = require('path');
 const git = require('simple-git/promise');
-const Ramda = require('ramda');
+const R = require('ramda');
 const jiraRequests = require('../../../lib/jira-request');
 const utils = require('../../../lib/utils');
 const translate = require('../../../locales');
 const logger = require('../../../modules/log.js')(module);
+const { fileRequest } = require('../../../lib/request');
 
 const fs = fileSystem.promises;
 const EVENTS_DIR_NAME = 'res';
+const MEDIA_DIR_NAME = 'media';
+const MEDIA_EXTENSION = 'jpg';
 
 const getMDtext = events =>
     events
@@ -18,7 +21,7 @@ const getMDtext = events =>
             const author = item.user_id || item.sender;
             const body =
                 item.content.msgtype === 'm.text' &&
-                (Ramda.path(['content', 'm.new_content', 'body'], item) || Ramda.path(['content', 'body'], item));
+                (R.path(['content', 'm.new_content', 'body'], item) || R.path(['content', 'body'], item));
             const date = new Date(item.origin_server_ts).toJSON();
             const dateWithRelativeLink = `[${date}](./${EVENTS_DIR_NAME}/${item.event_id}.json)`;
             const eventId = item.event_id;
@@ -50,19 +53,30 @@ const getProjectRemote = (baseRemote, projectKey) => {
 
 const transformEvent = event => {
     // TODO add recursive
-    const pureEvent = Ramda.pipe(
-        Ramda.dissocPath(['age']),
-        Ramda.dissocPath(['unsigned', 'age']),
-        Ramda.dissocPath(['unsigned', 'redacted_because', 'age']),
-        Ramda.dissocPath(['redacted_because', 'age']),
-        Ramda.dissocPath(['redacted_because', 'unsigned', 'age']),
-        Ramda.dissocPath(['unsigned', 'redacted_because', 'unsigned', 'age']),
+    const pureEvent = R.pipe(
+        R.dissocPath(['age']),
+        R.dissocPath(['unsigned', 'age']),
+        R.dissocPath(['unsigned', 'redacted_because', 'age']),
+        R.dissocPath(['redacted_because', 'age']),
+        R.dissocPath(['redacted_because', 'unsigned', 'age']),
+        R.dissocPath(['unsigned', 'redacted_because', 'unsigned', 'age']),
     )(event);
 
     return JSON.stringify(pureEvent, null, 4).concat('\n');
 };
 
-const writeOneEvent = async (repoRoomResPath, event) => {
+const getMediaName = R.pipe(
+    R.split('/'),
+    R.last,
+);
+
+const getEventsMediaLinks = (events, chatApi) =>
+    events
+        .map(R.path(['content', 'url']))
+        .filter(Boolean)
+        .map(el => chatApi.getDownloadLink(getMediaName(el)));
+
+const saveEvent = async (repoRoomResPath, event) => {
     const dataToSave = transformEvent(event);
     const filePath = path.join(repoRoomResPath, `${event.event_id}.json`);
     await fs.writeFile(filePath, dataToSave);
@@ -70,18 +84,57 @@ const writeOneEvent = async (repoRoomResPath, event) => {
     return filePath;
 };
 
-const writeEventsData = async (events, basePath) => {
+const getFileNameByUrl = (url, ext = MEDIA_EXTENSION) =>
+    R.pipe(
+        R.split('/'),
+        R.last,
+        R.concat,
+    )(url)(`.${ext}`);
+
+const loadAndSaveMedia = async (url, dir) => {
+    try {
+        const mediaFiles = await fs.readdir(dir);
+        const fileName = getFileNameByUrl(url);
+        if (mediaFiles.includes(fileName)) {
+            logger.debug(`Media file with name ${fileName} is already exists`);
+
+            return fileName;
+        }
+
+        const data = await fileRequest(url);
+        const pathToFile = path.resolve(dir, fileName);
+        await fs.writeFile(pathToFile, data);
+        logger.debug(`Media file with name ${fileName} is saved!!!`);
+
+        return fileName;
+    } catch (error) {
+        logger.error(`Error in loading file \n${JSON.stringify(error)}`);
+    }
+};
+
+const writeEventsData = async (events, basePath, chatApi) => {
     const repoRoomResPath = path.resolve(basePath, EVENTS_DIR_NAME);
     if (!fileSystem.existsSync(repoRoomResPath)) {
         await fs.mkdir(repoRoomResPath, { recursive: true });
     }
+
+    // render and save view file
     const renderedText = getMDtext(events);
     await fs.writeFile(path.join(basePath, VIEW_FILE_NAME), renderedText);
 
-    return Promise.all(events.map(event => writeOneEvent(repoRoomResPath, event)));
+    // save media
+    const eventsMediaLinks = getEventsMediaLinks(events, chatApi);
+    console.log('writeEventsData -> eventsMediaLinks', eventsMediaLinks);
+    const mediaDir = path.resolve(basePath, MEDIA_DIR_NAME);
+    if (!fileSystem.existsSync(mediaDir)) {
+        await fs.mkdir(mediaDir, { recursive: true });
+    }
+    await Promise.all(eventsMediaLinks.map(el => loadAndSaveMedia(el, mediaDir)));
+
+    return Promise.all(events.map(event => saveEvent(repoRoomResPath, event)));
 };
 
-const gitPullToRepo = async (baseRemote, listEvents, roomName) => {
+const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi) => {
     const { path: tmpPath, cleanup } = await tmp.dir({ unsafeCleanup: true });
     try {
         const projectKey = utils.getProjectKeyFromIssueKey(roomName);
@@ -91,7 +144,7 @@ const gitPullToRepo = async (baseRemote, listEvents, roomName) => {
         const repoPath = path.resolve(tmpPath, projectKey);
         const repoRoomPath = path.resolve(repoPath, roomName);
 
-        const createdFileNames = await writeEventsData(listEvents, repoRoomPath);
+        const createdFileNames = await writeEventsData(listEvents, repoRoomPath, chatApi);
         logger.debug(`File creation for ${createdFileNames.length} events is succedded for room name ${roomName}!!!`);
 
         const repoGit = git(repoPath);
@@ -131,7 +184,7 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         // const allMessages = await chatApi.getAllMessagesFromRoom(roomId);
 
         // return tmpPath
-        const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName);
+        const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi);
 
         if (!remote) {
             return translate('gitCommand', { roomName });
@@ -144,7 +197,7 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         // TODO add removing alias
         if (bodyText && bodyText.includes(KICK_ALL_OPTION)) {
             const members = await chatApi.getRoomMembers({ roomId });
-            const membersNotAdmins = Ramda.difference(members, matrixRoomAdmins.map(({ userId }) => userId)).filter(
+            const membersNotAdmins = R.difference(members, matrixRoomAdmins.map(({ userId }) => userId)).filter(
                 Boolean,
             );
             await Promise.all(
@@ -170,6 +223,7 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 };
 
 module.exports = {
+    getFileNameByUrl,
     archive,
     getHTMLtext,
     getMDtext,
@@ -177,5 +231,7 @@ module.exports = {
     EVENTS_DIR_NAME,
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,
+    MEDIA_DIR_NAME,
+    MEDIA_EXTENSION,
     transformEvent,
 };
