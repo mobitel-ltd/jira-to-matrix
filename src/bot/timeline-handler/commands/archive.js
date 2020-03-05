@@ -15,18 +15,37 @@ const EVENTS_DIR_NAME = 'res';
 const MEDIA_DIR_NAME = 'media';
 const MEDIA_EXTENSION = 'jpg';
 
+const getFileNameByUrl = (url, ext = MEDIA_EXTENSION) =>
+    R.pipe(
+        R.split('/'),
+        R.last,
+        R.concat,
+    )(url)(`.${ext}`);
+
+const getBody = event => {
+    const imageUrl = R.path(['content', 'url'], event);
+    if (imageUrl) {
+        const imageFileName = getFileNameByUrl(imageUrl);
+
+        return `![image](./${MEDIA_DIR_NAME}/${imageFileName})`;
+    }
+
+    return (
+        event.content.msgtype === 'm.text' &&
+        (R.path(['content', 'm.new_content', 'body'], event) || R.path(['content', 'body'], event))
+    );
+};
+
 const getMDtext = events =>
     events
         .map(item => {
             const author = item.user_id || item.sender;
-            const body =
-                item.content.msgtype === 'm.text' &&
-                (R.path(['content', 'm.new_content', 'body'], item) || R.path(['content', 'body'], item));
-            const date = new Date(item.origin_server_ts).toJSON();
-            const dateWithRelativeLink = `[${date}](./${EVENTS_DIR_NAME}/${item.event_id}.json)`;
-            const eventId = item.event_id;
+            const body = getBody(item);
             if (body) {
-                return { author, date: dateWithRelativeLink, body, eventId };
+                const date = new Date(item.origin_server_ts).toJSON();
+                const dateWithRelativeLink = `[${date}](./${EVENTS_DIR_NAME}/${item.event_id}.json)`;
+
+                return { author, date: dateWithRelativeLink, body };
             }
 
             return false;
@@ -78,13 +97,6 @@ const saveEvent = async (repoRoomResPath, event) => {
 
     return filePath;
 };
-
-const getFileNameByUrl = (url, ext = MEDIA_EXTENSION) =>
-    R.pipe(
-        R.split('/'),
-        R.last,
-        R.concat,
-    )(url)(`.${ext}`);
 
 const loadAndSaveMedia = async (url, dir) => {
     try {
