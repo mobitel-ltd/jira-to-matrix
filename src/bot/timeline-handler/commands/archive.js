@@ -65,16 +65,11 @@ const transformEvent = event => {
     return JSON.stringify(pureEvent, null, 4).concat('\n');
 };
 
-const getMediaName = R.pipe(
-    R.split('/'),
-    R.last,
-);
-
 const getEventsMediaLinks = (events, chatApi) =>
     events
         .map(R.path(['content', 'url']))
         .filter(Boolean)
-        .map(el => chatApi.getDownloadLink(getMediaName(el)));
+        .map(el => chatApi.getDownloadLink(el));
 
 const saveEvent = async (repoRoomResPath, event) => {
     const dataToSave = transformEvent(event);
@@ -124,7 +119,6 @@ const writeEventsData = async (events, basePath, chatApi) => {
 
     // save media
     const eventsMediaLinks = getEventsMediaLinks(events, chatApi);
-    console.log('writeEventsData -> eventsMediaLinks', eventsMediaLinks);
     const mediaDir = path.resolve(basePath, MEDIA_DIR_NAME);
     if (!fileSystem.existsSync(mediaDir)) {
         await fs.mkdir(mediaDir, { recursive: true });

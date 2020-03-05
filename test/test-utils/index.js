@@ -1,4 +1,5 @@
 /* eslint-disable handle-callback-err */
+const R = require('ramda');
 const simpleGit = require('simple-git/promise');
 const fs = require('fs').promises;
 const path = require('path');
@@ -106,7 +107,14 @@ module.exports = {
             getRoomAdmins: stub().resolves([]),
             getAllMessagesFromRoom: stub().resolves(allMessagesFromRoom),
             getAllEventsFromRoom: stub().resolves(rawEvents),
-            getDownloadLink: stub().callsFake(el => getMediaLink(el)),
+            getDownloadLink: stub().callsFake(el =>
+                getMediaLink(
+                    R.pipe(
+                        R.split('/'),
+                        R.last,
+                    )(el),
+                ),
+            ),
         });
 
         const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId }) => chatApi.getChatUserId(userId));
