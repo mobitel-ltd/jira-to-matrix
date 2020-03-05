@@ -22,8 +22,9 @@ const {
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,
     transformEvent,
-    getFileNameByUrl,
-    MEDIA_EXTENSION,
+    getImageData,
+    FILE_DELIMETER,
+    DEFAULT_EXT,
 } = require('../../src/bot/timeline-handler/commands/archive');
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
@@ -89,8 +90,25 @@ describe('Archive command', () => {
     });
 
     it('getFileNameByUrl', () => {
-        const fileName = getFileNameByUrl(rawEventsData.imgUrl);
-        expect(fileName).to.be.eq(`${rawEventsData.mediaId}.${MEDIA_EXTENSION}`);
+        const eventData = rawEvents.map(el => getImageData(el)).filter(Boolean);
+        expect(eventData).to.have.deep.members([
+            {
+                url: rawEventsData.blobUrl,
+                fileName: `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
+                imageName: rawEventsData.blobName,
+                skip: true,
+            },
+            {
+                url: rawEventsData.avatarUrl,
+                imageName: undefined,
+                fileName: `${rawEventsData.avatarId}${DEFAULT_EXT}`,
+            },
+            {
+                url: rawEventsData.imgUrl,
+                imageName: rawEventsData.mediaName,
+                fileName: `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
+            },
+        ]);
     });
 
     describe('Render list of messages', () => {
@@ -138,7 +156,7 @@ describe('Archive command', () => {
             const mediaFiles = await fsProm.readdir(
                 path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
             );
-            expect(mediaFiles).to.have.deep.members([`${rawEventsData.mediaId}.${MEDIA_EXTENSION}`]);
+            expect(mediaFiles).to.have.deep.members([`${rawEventsData.mediaId}__${rawEventsData.mediaName}`]);
         });
 
         it('expect command succeded', async () => {

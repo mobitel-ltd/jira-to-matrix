@@ -13,21 +13,63 @@ const { fileRequest } = require('../../../lib/request');
 const fs = fileSystem.promises;
 const EVENTS_DIR_NAME = 'res';
 const MEDIA_DIR_NAME = 'media';
-const MEDIA_EXTENSION = 'jpg';
+const FILE_DELIMETER = '__';
+const DEFAULT_EXT = '.png';
 
-const getFileNameByUrl = (url, ext = MEDIA_EXTENSION) =>
+const getName = (url, delim) =>
     R.pipe(
-        R.split('/'),
+        R.split(delim),
         R.last,
-        R.concat,
-    )(url)(`.${ext}`);
+    )(url);
+
+const getMediaFileData = (url, { imageName, msgtype }) => {
+    const imageId = getName(url, '/');
+
+    if (msgtype.includes('avatar')) {
+        return {
+            imageName,
+            fileName: imageId.concat(DEFAULT_EXT),
+        };
+    }
+
+    if (!imageName) {
+        return {
+            imageName,
+            fileName: imageId,
+            skip: true,
+        };
+    }
+
+    const fileName = [imageId, imageName].join(FILE_DELIMETER);
+
+    const extName = path.extname(imageName);
+    if (extName && extName.length > 1) {
+        return { fileName, imageName };
+    }
+
+    return { fileName, skip: true, imageName };
+};
+
+const getImageData = (event, api) => {
+    const chatImageUrl = R.path(['content', 'url'], event);
+    if (chatImageUrl) {
+        const imageName = R.path(['content', 'body'], event);
+        const msgtype = event.type;
+        const url = api ? api.getDownloadLink(chatImageUrl) : chatImageUrl;
+        const mediaFileData = getMediaFileData(chatImageUrl, { imageName, msgtype });
+
+        return { url, ...mediaFileData };
+    }
+};
 
 const getBody = event => {
-    const imageUrl = R.path(['content', 'url'], event);
-    if (imageUrl) {
-        const imageFileName = getFileNameByUrl(imageUrl);
+    const imageData = getImageData(event);
+    if (imageData) {
+        const filePath = `./${MEDIA_DIR_NAME}/${imageData.fileName}`;
+        // replace all spaces to be access in markdown to spaced file names
+        const parsedFilePath = filePath.split(' ').join('%20');
 
-        return `![image](./${MEDIA_DIR_NAME}/${imageFileName})`;
+        return imageData.skip ? `[${imageData.imageName}](${parsedFilePath})` : `![image](${parsedFilePath})`;
     }
 
     return (
@@ -62,7 +104,7 @@ const getHTMLtext = events =>
 
 const KICK_ALL_OPTION = 'kickall';
 
-const VIEW_FILE_NAME = 'view.md';
+const VIEW_FILE_NAME = 'README.md';
 
 const getProjectRemote = (baseRemote, projectKey) => {
     const projectExt = `${projectKey.toLowerCase()}.git`;
@@ -84,11 +126,7 @@ const transformEvent = event => {
     return JSON.stringify(pureEvent, null, 4).concat('\n');
 };
 
-const getEventsMediaLinks = (events, chatApi) =>
-    events
-        .map(R.path(['content', 'url']))
-        .filter(Boolean)
-        .map(el => chatApi.getDownloadLink(el));
+const getEventsMediaLinks = (events, chatApi) => events.map(el => getImageData(el, chatApi)).filter(Boolean);
 
 const saveEvent = async (repoRoomResPath, event) => {
     const dataToSave = transformEvent(event);
@@ -98,10 +136,9 @@ const saveEvent = async (repoRoomResPath, event) => {
     return filePath;
 };
 
-const loadAndSaveMedia = async (url, dir) => {
+const loadAndSaveMedia = async ({ url, fileName }, dir) => {
     try {
         const mediaFiles = await fs.readdir(dir);
-        const fileName = getFileNameByUrl(url);
         if (mediaFiles.includes(fileName)) {
             logger.debug(`Media file with name ${fileName} is already exists`);
 
@@ -229,7 +266,8 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 };
 
 module.exports = {
-    getFileNameByUrl,
+    DEFAULT_EXT,
+    getMediaFileData,
     archive,
     getHTMLtext,
     getMDtext,
@@ -238,6 +276,7 @@ module.exports = {
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,
     MEDIA_DIR_NAME,
-    MEDIA_EXTENSION,
     transformEvent,
+    getImageData,
+    FILE_DELIMETER,
 };

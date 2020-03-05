@@ -2,6 +2,45 @@ const info = require('./raw-events-data');
 
 /* eslint-disable id-length */
 module.exports = [
+    {
+        type: 'm.sticker',
+        room_id: '!FvlvzjbOzNhrCRcAjB:matrix.example.com',
+        sender: '@ii_ivanov:matrix.example.com',
+        content: {
+            url: info.blobUrl,
+            info: {
+                h: 200,
+                mimetype: 'image/png',
+                size: 28154,
+                thumbnail_info: {
+                    h: 200,
+                    mimetype: 'image/png',
+                    size: 28154,
+                    w: 106,
+                },
+                thumbnail_url: info.blobUrl,
+                w: 106,
+            },
+            body: info.blobName,
+        },
+        origin_server_ts: 1582797303168,
+        unsigned: {},
+        event_id: '$h0wInOvSgSFfuolAX6TIvsErrtVrjm_roEeYPttuU1o',
+        user_id: '@ii_ivanov:matrix.example.com',
+    },
+    {
+        type: 'm.room.avatar',
+        room_id: '!FvlvzjbOzNhrCRcAjB:matrix.example.com',
+        sender: '@jira_test_bot:matrix.example.com',
+        content: {
+            url: info.avatarUrl,
+        },
+        state_key: '',
+        origin_server_ts: 1582797196562,
+        unsigned: {},
+        event_id: '$O5D1Nqj5D55h0TwPDYz31_Lg_CPDWiUMyBaBRv6csj4',
+        user_id: '@jira_test_bot:matrix.example.com',
+    },
     // Edited message
     {
         type: 'm.room.redaction',
@@ -129,7 +168,7 @@ module.exports = [
         type: 'm.room.message',
         sender: '@ii_ivanov:example.com',
         content: {
-            body: 'шереметьево.jpg',
+            body: info.mediaName,
             info: {
                 size: 164417,
                 mimetype: 'image/jpeg',
