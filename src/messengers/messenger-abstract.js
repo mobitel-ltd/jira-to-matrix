@@ -247,4 +247,10 @@ module.exports = class {
      * @param {string} chatLink mxc link
      */
     getDownloadLink(chatLink) {}
+
+    /**
+     * Delete matrix room alias
+     * @param {string} roomId matrix room id
+     */
+    deleteAlias(roomId) {}
 };

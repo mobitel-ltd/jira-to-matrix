@@ -723,9 +723,10 @@ module.exports = class Matrix extends MessengerAbstract {
             const qweryParams = {};
             const body = { membership: 'leave', reason: 'cick' };
 
-            const result = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+            await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+            this.logger.info(`Member ${userId} kicked from ${roomId}`);
 
-            return result;
+            return userId;
         } catch (error) {
             this.logger.error(`Error in request for kick ${userId} from ${roomId}.`);
             this.logger.error(error);
@@ -787,6 +788,29 @@ module.exports = class Matrix extends MessengerAbstract {
         } catch (err) {
             this.logger.error('Error with joining to room');
             this.logger.error(err);
+        }
+    }
+
+    /**
+     * Delete matrix room alias
+     * @param {string} aliasPart aliasPart
+     * @returns {string|undefined} return allias if command is succedded
+     */
+    async deleteAliasByRoomName(aliasPart) {
+        try {
+            const alias = this._getMatrixRoomAlias(aliasPart);
+            const roomId = await this.getRoomIdByName(alias);
+            if (!roomId) {
+                this.logger.warn(`Alias ${alias} is not found!!!`);
+
+                return;
+            }
+            await this.client.deleteAlias(alias);
+            this.logger.debug(`Alias ${alias} is successfully deleted in room with id ${roomId}`);
+
+            return alias;
+        } catch (err) {
+            this.logger.error(`Error while deleting alias:\n ${JSON.stringify(err)}`);
         }
     }
 };

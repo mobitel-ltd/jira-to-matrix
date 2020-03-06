@@ -60,6 +60,10 @@ describe('Archive command', () => {
         baseOptions = { roomId, roomName, commandName, sender, chatApi };
         nock(testUtils.baseMedia)
             .get(`/${rawEventsData.mediaId}`)
+            .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
+            .get(`/${rawEventsData.blobId}`)
+            .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
+            .get(`/${rawEventsData.avatarId}`)
             .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
 
         nock(utils.getRestUrl())
@@ -156,7 +160,13 @@ describe('Archive command', () => {
             const mediaFiles = await fsProm.readdir(
                 path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
             );
-            expect(mediaFiles).to.have.deep.members([`${rawEventsData.mediaId}__${rawEventsData.mediaName}`]);
+            const expectedMediaFileNames = [
+                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
+                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
+                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
+            ];
+            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
+            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
         });
 
         it('expect command succeded', async () => {
@@ -173,13 +183,25 @@ describe('Archive command', () => {
             await gitLocal.clone(expectedRemote, cloneName);
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
             expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
+
+            const mediaFiles = await fsProm.readdir(
+                path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
+            );
+            const expectedMediaFileNames = [
+                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
+                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
+                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
+            ];
+            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
+            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
         });
 
-        it('expect command succeded and all members are kicked', async () => {
+        it.only('expect command succeded and all members are kicked', async () => {
+            const roomName = existingRoomName;
             const result = await commandHandler({
                 ...baseOptions,
+                roomName,
                 sender: adminSender.name,
-                roomName: existingRoomName,
                 bodyText: KICK_ALL_OPTION,
             });
 
@@ -190,8 +212,21 @@ describe('Archive command', () => {
             await gitLocal.clone(expectedRemote, cloneName);
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
             expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
-            // TODO
-            // expect(chatApi.deleteAlias).to.be.calledWithExactly(roomAlias);
+
+            const mediaFiles = await fsProm.readdir(
+                path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
+            );
+            const expectedMediaFileNames = [
+                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
+                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
+                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
+            ];
+            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
+            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
+            testUtils.allRoomMembers.forEach(({ name }) =>
+                expect(chatApi.kickUserByRoom).to.be.calledWithExactly({ roomId, userId: chatApi.getChatUserId(name) }),
+            );
+            expect(chatApi.deleteAliasByRoomName).to.be.calledWithExactly(roomName);
         });
 
         it.skip('command cannot be succeded if such project is not exists in git repo', async () => {

@@ -469,4 +469,13 @@ module.exports = class SlackApi extends MessengerAbstract {
     kickUserByRoom({ roomId, userId }) {
         return {};
     }
+
+    /**
+     * Delete matrix room alias
+     * @param {string} aliasPart aliasPart
+     * @returns {string|undefined} return allias if command is succedded
+     */
+    deleteAliasByRoomName(aliasPart) {
+        return aliasPart;
+    }
 };

@@ -16,16 +16,13 @@ const rawEvents = require('../fixtures/archiveRoom/raw-events');
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
 
-const roomAdmins = [
-    { name: 'admin1', displayName: 'Room Admin 1', userId: 'admin1' },
-    { name: 'admin2', displayName: 'Room Admin 2', userId: 'admin2' },
-];
+const roomAdmins = [{ name: 'admin1', displayName: 'Room Admin 1' }, { name: 'admin2', displayName: 'Room Admin 2' }];
 
 // const roomAdmins3 = ['Room Admin 1', 'Room Admin 2'];
 
 const defaultExistedUsers = [
-    { userId: 'correctUser', displayName: 'Correct User 1' },
-    { userId: 'correctUser2', displayName: 'Correct User 2' },
+    { userId: 'correctUser', displayName: 'Correct User 1', name: 'correctUser' },
+    { userId: 'correctUser2', displayName: 'Correct User 2', name: 'correctUser2' },
 ];
 
 const usersWithSamePartName = ['Ivan Andreevich A', 'Ivan Sergeevich B'];
@@ -51,6 +48,8 @@ module.exports = {
     baseMedia,
 
     roomAdmins,
+
+    allRoomMembers: [...roomAdmins, ...defaultExistedUsers],
 
     usersWithSamePartName,
 
@@ -115,6 +114,7 @@ module.exports = {
                     )(el),
                 ),
             ),
+            kickUserByRoom: stub().callsFake(userId => userId),
         });
 
         const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId }) => chatApi.getChatUserId(userId));

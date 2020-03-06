@@ -93,7 +93,7 @@ const getMDtext = events =>
             return false;
         })
         .filter(Boolean)
-        .map(({ author, date, body }) => [date, author, body].map(el => `${el}  `).join('\n'))
+        .map(({ author, date, body }) => [date, author, body].map(el => el.concat('  ')).join('\n'))
         .slice()
         .reverse()
         .join(`\n\n---\n\n`)
@@ -107,7 +107,7 @@ const KICK_ALL_OPTION = 'kickall';
 const VIEW_FILE_NAME = 'README.md';
 
 const getProjectRemote = (baseRemote, projectKey) => {
-    const projectExt = `${projectKey.toLowerCase()}.git`;
+    const projectExt = projectKey.toLowerCase().concat('.git');
 
     return [baseRemote, projectExt].join('/');
 };
@@ -207,54 +207,58 @@ const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi) => {
     }
 };
 
+const kickAllInRoom = async (chatApi, roomId, admins) => {
+    const kickOne = async userId => {
+        const res = await chatApi.kickUserByRoom({ roomId, userId });
+
+        return { userId, isKicked: Boolean(res) };
+    };
+    const members = await chatApi.getRoomMembers({ roomId });
+
+    let res;
+    if (admins) {
+        const membersNotAdmins = R.difference(members, admins).filter(Boolean);
+
+        const kickedUsers = await Promise.all(membersNotAdmins.map(kickOne));
+        const kickedAdmins = await Promise.all(admins.map(kickOne));
+
+        res = [...kickedUsers, ...kickedAdmins];
+    } else {
+        res = await Promise.all(members.map(kickOne));
+    }
+
+    const viewRes = res.map(({ userId, isKicked }) => `${userId} ---- ${isKicked}`).join('\n');
+    logger.debug(`Result of kicking users from room with id "${roomId}"\n${viewRes}`);
+
+    return res;
+};
+
 const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     try {
-        // 1. Permitions
         const issue = await jiraRequests.getIssue(roomName);
         const issueMembersChatIds = await Promise.all(
             utils.getIssueMembers(issue).map(displayName => chatApi.getUserIdByDisplayName(displayName)),
         );
-        const matrixRoomAdmins = await chatApi.getRoomAdmins({ roomId });
-        const admins = [...issueMembersChatIds, ...matrixRoomAdmins.map(({ userId }) => userId)].filter(Boolean);
+        const matrixRoomAdminsId = (await chatApi.getRoomAdmins({ roomId })).map(({ userId }) => userId);
+        const admins = [...issueMembersChatIds, ...matrixRoomAdminsId].filter(Boolean);
 
         const senderUserId = chatApi.getChatUserId(sender);
 
         if (!admins.includes(senderUserId)) {
             return translate('notAdmin', { sender });
         }
-        // 2. Handle all events and archive
+
         const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-        // const allMessages = await chatApi.getAllMessagesFromRoom(roomId);
-
-        // return tmpPath
         const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi);
-
         if (!remote) {
             return translate('gitCommand', { roomName });
         }
 
-        logger.debug(`Git push successfully complited!!!`);
+        logger.debug(`Git push successfully complited in room ${roomId}!!!`);
 
-        // 3. Kick if was flag
-
-        // TODO add removing alias
         if (bodyText && bodyText.includes(KICK_ALL_OPTION)) {
-            const members = await chatApi.getRoomMembers({ roomId });
-            const membersNotAdmins = R.difference(members, matrixRoomAdmins.map(({ userId }) => userId)).filter(
-                Boolean,
-            );
-            await Promise.all(
-                membersNotAdmins.map(async userId => {
-                    await chatApi.kickUserByRoom({ roomId, userId });
-                    logger.info(`Member ${userId} kicked from ${roomId}`);
-                }),
-            );
-            await Promise.all(
-                matrixRoomAdmins.map(async ({ userId }) => {
-                    await chatApi.kickUserByRoom({ roomId, userId });
-                    logger.info(`Admin ${userId} kicked from ${roomId}`);
-                }),
-            );
+            await kickAllInRoom(chatApi, roomId, matrixRoomAdminsId);
+            await chatApi.deleteAliasByRoomName(roomName);
 
             return translate('exportWithKick');
         }
@@ -279,4 +283,5 @@ module.exports = {
     transformEvent,
     getImageData,
     FILE_DELIMETER,
+    kickAllInRoom,
 };
