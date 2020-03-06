@@ -218,7 +218,7 @@ describe('Archive command', () => {
                 bodyText: KICK_ALL_OPTION,
             });
 
-            expect(result).to.be.eq(translate('exportWithKick'));
+            expect(result).to.be.undefined;
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);

@@ -11,10 +11,13 @@ const logger = require('../../../modules/log.js')(module);
 const { fileRequest } = require('../../../lib/request');
 
 const fs = fileSystem.promises;
+
 const EVENTS_DIR_NAME = 'res';
 const MEDIA_DIR_NAME = 'media';
 const FILE_DELIMETER = '__';
 const DEFAULT_EXT = '.png';
+const KICK_ALL_OPTION = 'kickall';
+const VIEW_FILE_NAME = 'README.md';
 
 const getName = (url, delim) =>
     R.pipe(
@@ -102,10 +105,6 @@ const getMDtext = events =>
 
 const getHTMLtext = events =>
     events.map(({ author, date, body }) => [date, author, body].join('<br>')).join(`\n<br><hr>`);
-
-const KICK_ALL_OPTION = 'kickall';
-
-const VIEW_FILE_NAME = 'README.md';
 
 const getProjectRemote = (baseRemote, projectKey) => {
     const projectExt = projectKey.toLowerCase().concat('.git');
@@ -248,39 +247,36 @@ const kickAllInRoom = async (chatApi, roomId, admins) => {
 };
 
 const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
-    try {
-        const issue = await jiraRequests.getIssue(roomName);
-        const issueMembersChatIds = await Promise.all(
-            utils.getIssueMembers(issue).map(displayName => chatApi.getUserIdByDisplayName(displayName)),
-        );
-        const matrixRoomAdminsId = (await chatApi.getRoomAdmins({ roomId })).map(({ userId }) => userId);
-        const admins = [...issueMembersChatIds, ...matrixRoomAdminsId].filter(Boolean);
+    const issue = await jiraRequests.getIssue(roomName);
+    const issueMembersChatIds = await Promise.all(
+        utils.getIssueMembers(issue).map(displayName => chatApi.getUserIdByDisplayName(displayName)),
+    );
+    const matrixRoomAdminsId = (await chatApi.getRoomAdmins({ roomId })).map(({ userId }) => userId);
+    const admins = [...issueMembersChatIds, ...matrixRoomAdminsId].filter(Boolean);
 
-        const senderUserId = chatApi.getChatUserId(sender);
+    const senderUserId = chatApi.getChatUserId(sender);
 
-        if (!admins.includes(senderUserId)) {
-            return translate('notAdmin', { sender });
-        }
-
-        const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-        const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi);
-        if (!remote) {
-            return translate('archiveFail', { roomName });
-        }
-
-        logger.debug(`Git push successfully complited in room ${roomId}!!!`);
-
-        if (bodyText && bodyText.includes(KICK_ALL_OPTION)) {
-            await kickAllInRoom(chatApi, roomId, matrixRoomAdminsId);
-            await chatApi.deleteAliasByRoomName(roomName);
-
-            return translate('exportWithKick');
-        }
-
-        return translate('successExport');
-    } catch (err) {
-        logger.error(err);
+    if (!admins.includes(senderUserId)) {
+        return translate('notAdmin', { sender });
     }
+
+    const allEvents = await chatApi.getAllEventsFromRoom(roomId);
+    const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi);
+    if (!remote) {
+        return translate('archiveFail', { roomName });
+    }
+
+    logger.debug(`Git push successfully complited in room ${roomId}!!!`);
+
+    if (bodyText && bodyText.includes(KICK_ALL_OPTION)) {
+        await kickAllInRoom(chatApi, roomId, matrixRoomAdminsId);
+        await chatApi.deleteAliasByRoomName(roomName);
+
+        // cannot send message because no one is in room
+        return;
+    }
+
+    return translate('successExport');
 };
 
 module.exports = {
