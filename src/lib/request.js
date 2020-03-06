@@ -7,6 +7,23 @@ const {
     jira: { url: jiraUrl },
 } = require('../../src/config');
 
+const fileRequest = async (url, newOptions) => {
+    const options = {
+        url,
+        timeout: TIMEOUT,
+        encoding: null,
+        ...newOptions,
+    };
+    try {
+        const response = await requestPromise.get(options);
+        logger.debug(`Get media file by request with url ${url} suceeded`);
+
+        return response;
+    } catch (err) {
+        throw getRequestErrorLog(url, err.statusCode, options);
+    }
+};
+
 const request = async (url, newOptions) => {
     const options = {
         method: 'GET',
@@ -44,6 +61,7 @@ const requestPut = (url, body) => {
 };
 
 module.exports = {
+    fileRequest,
     request,
     requestPost,
     requestPut,

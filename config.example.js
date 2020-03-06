@@ -123,4 +123,9 @@ module.exports = Object.freeze({
         // if you want to SKIP for all - just don't use this field or skip colors
         projects: ['TEST'],
     },
+    gitArchive: {
+        user: 'string',
+        password: 'string',
+        repoPrefix: 'string',
+    },
 });
