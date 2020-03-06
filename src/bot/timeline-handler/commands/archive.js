@@ -1,3 +1,4 @@
+const isImage = require('is-image');
 const tmp = require('tmp-promise');
 const config = require('../../../config');
 const fileSystem = require('fs');
@@ -45,8 +46,7 @@ const getMediaFileData = (url, { imageName, msgtype }) => {
 
     const fileName = [imageId, imageName].join(FILE_DELIMETER);
 
-    const extName = path.extname(imageName);
-    if (extName && extName.length > 1) {
+    if (isImage(imageName)) {
         return { fileName, imageName };
     }
 
