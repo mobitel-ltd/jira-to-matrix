@@ -2,6 +2,7 @@
 const R = require('ramda');
 const simpleGit = require('simple-git/promise');
 const fs = require('fs').promises;
+const fsExtra = require('fs-extra');
 const path = require('path');
 const Server = require('node-git-server');
 const { prefix } = require('../fixtures/config.js').redis;
@@ -192,10 +193,14 @@ module.exports = {
         return repos;
     },
 
-    setRepo: async (basePath, remote) => {
+    setRepo: async (basePath, remote, { pathToExistFixtures, roomName }) => {
         const tmpPath = path.resolve(basePath, 'git-init');
         await fs.mkdir(tmpPath);
         await fs.writeFile(path.join(tmpPath, 'readme.txt'));
+        if (pathToExistFixtures) {
+            const existDataPathName = path.resolve(tmpPath, roomName);
+            await fsExtra.copy(pathToExistFixtures, existDataPathName);
+        }
 
         const git = simpleGit(tmpPath);
         await git.init();

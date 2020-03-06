@@ -38,6 +38,7 @@
     "eslint-plugin-chai-friendly": "0.4.1",
     "eslint-plugin-prettier": "^3.1.1",
     "faker": "latest",
+    "fs-extra": "^8.1.0",
     "lodash": "^4.17.15",
     "mocha": "latest",
     "nock": "^11.4.0",

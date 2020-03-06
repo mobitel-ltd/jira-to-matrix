@@ -33,6 +33,12 @@ const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
 const messagesJSON = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
 const messagesMD = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.md'), 'utf8');
+const messagesWithBefore = fs.readFileSync(
+    path.resolve(__dirname, '../fixtures/archiveRoom/withbefore-readme.md'),
+    'utf8',
+);
+const eventBefore = require('../fixtures/archiveRoom/already-exisits-git/res/$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA.json');
+
 const messagesHTML = fs.readFileSync(
     path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.html'),
     'utf8',
@@ -135,7 +141,8 @@ describe('Archive command', () => {
         beforeEach(async () => {
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             server = testUtils.startGitServer(path.resolve(tmpDir.path, 'git-server'));
-            await testUtils.setRepo(tmpDir.path, expectedRemote);
+            const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
+            await testUtils.setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: existingRoomName });
         });
 
         afterEach(() => {
@@ -152,10 +159,14 @@ describe('Archive command', () => {
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
-            expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
+            const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
+            expect(files).to.have.length(allEvents.length);
+            expect(files).to.have.deep.members(allEvents);
 
             const viewFilePath = path.resolve(tmpDir.path, cloneName, existingRoomName, VIEW_FILE_NAME);
             expect(fs.existsSync(viewFilePath)).to.be.true;
+            const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
+            expect(viewFileData).to.deep.equal(messagesWithBefore.split('\n'));
 
             const mediaFiles = await fsProm.readdir(
                 path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
@@ -182,7 +193,9 @@ describe('Archive command', () => {
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
-            expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
+            const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
+            expect(files).to.have.length(allEvents.length);
+            expect(files).to.have.deep.members(allEvents);
 
             const mediaFiles = await fsProm.readdir(
                 path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
@@ -196,7 +209,7 @@ describe('Archive command', () => {
             expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
         });
 
-        it.only('expect command succeded and all members are kicked', async () => {
+        it('expect command succeded and all members are kicked', async () => {
             const roomName = existingRoomName;
             const result = await commandHandler({
                 ...baseOptions,
@@ -211,7 +224,9 @@ describe('Archive command', () => {
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
-            expect(files).to.have.deep.members(rawEvents.map(event => `${event.event_id}.json`));
+            const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
+            expect(files).to.have.length(allEvents.length);
+            expect(files).to.have.deep.members(allEvents);
 
             const mediaFiles = await fsProm.readdir(
                 path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
@@ -235,7 +250,7 @@ describe('Archive command', () => {
                 sender: adminSender.name,
                 roomName: roomNameNotGitProject,
             });
-            const expected = translate('gitCommand', { roomName: roomNameNotGitProject });
+            const expected = translate('archiveFail', { roomName: roomNameNotGitProject });
 
             expect(result).to.be.eq(expected);
 
@@ -248,6 +263,6 @@ describe('Archive command', () => {
         });
 
         // TODO
-        it('Expect not correct git access data in config return message to chat after run command', () => true);
+        it('Expect not correct git access data inside config return message to chat after run command', () => true);
     });
 });

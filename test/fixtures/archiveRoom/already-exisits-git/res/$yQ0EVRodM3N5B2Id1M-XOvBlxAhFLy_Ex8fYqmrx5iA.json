@@ -1,0 +1,13 @@
+{
+    "type": "m.room.message",
+    "room_id": "!NuselYKNrkhBWSgkfp:matrix.example.com",
+    "sender": "@bb_borisov:matrix.example.com",
+    "content": {
+        "msgtype": "m.text",
+        "body": "!archive"
+    },
+    "origin_server_ts": 1577836800000,
+    "unsigned": {},
+    "event_id": "$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA",
+    "user_id": "@bb_borisov:matrix.example.com"
+}

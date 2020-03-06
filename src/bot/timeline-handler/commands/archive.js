@@ -87,12 +87,13 @@ const getMDtext = events =>
                 const date = new Date(item.origin_server_ts).toJSON();
                 const dateWithRelativeLink = `[${date}](./${EVENTS_DIR_NAME}/${item.event_id}.json)`;
 
-                return { author, date: dateWithRelativeLink, body };
+                return { author, date: dateWithRelativeLink, body, ts: item.origin_server_ts };
             }
 
             return false;
         })
         .filter(Boolean)
+        .sort((ev1, ev2) => ev2.ts - ev1.ts)
         .map(({ author, date, body }) => [date, author, body].map(el => el.concat('  ')).join('\n'))
         .slice()
         .reverse()
@@ -156,14 +157,32 @@ const loadAndSaveMedia = async ({ url, fileName }, dir) => {
     }
 };
 
+const getAllEventsData = async repoRoomResPath => {
+    const filesList = await fs.readdir(repoRoomResPath);
+    const data = await Promise.all(
+        filesList.map(async fileName => {
+            const filePath = path.resolve(repoRoomResPath, fileName);
+            const fileData = await fs.readFile(filePath, 'utf-8');
+
+            return JSON.parse(fileData);
+        }),
+    );
+
+    return data;
+};
+
 const writeEventsData = async (events, basePath, chatApi) => {
     const repoRoomResPath = path.resolve(basePath, EVENTS_DIR_NAME);
     if (!fileSystem.existsSync(repoRoomResPath)) {
         await fs.mkdir(repoRoomResPath, { recursive: true });
     }
 
+    // save events, returns all events, event which were added before
+    const savedEvents = await Promise.all(events.map(event => saveEvent(repoRoomResPath, event)));
+
     // render and save view file
-    const renderedText = getMDtext(events);
+    const allEventsRepoData = await getAllEventsData(repoRoomResPath);
+    const renderedText = getMDtext(allEventsRepoData);
     await fs.writeFile(path.join(basePath, VIEW_FILE_NAME), renderedText);
 
     // save media
@@ -174,7 +193,7 @@ const writeEventsData = async (events, basePath, chatApi) => {
     }
     await Promise.all(eventsMediaLinks.map(el => loadAndSaveMedia(el, mediaDir)));
 
-    return Promise.all(events.map(event => saveEvent(repoRoomResPath, event)));
+    return savedEvents;
 };
 
 const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi) => {
@@ -215,17 +234,12 @@ const kickAllInRoom = async (chatApi, roomId, admins) => {
     };
     const members = await chatApi.getRoomMembers({ roomId });
 
-    let res;
-    if (admins) {
-        const membersNotAdmins = R.difference(members, admins).filter(Boolean);
+    const membersNotAdmins = R.difference(members, admins).filter(Boolean);
 
-        const kickedUsers = await Promise.all(membersNotAdmins.map(kickOne));
-        const kickedAdmins = await Promise.all(admins.map(kickOne));
+    const kickedUsers = await Promise.all(membersNotAdmins.map(kickOne));
+    const kickedAdmins = await Promise.all(admins.map(kickOne));
 
-        res = [...kickedUsers, ...kickedAdmins];
-    } else {
-        res = await Promise.all(members.map(kickOne));
-    }
+    const res = [...kickedUsers, ...kickedAdmins];
 
     const viewRes = res.map(({ userId, isKicked }) => `${userId} ---- ${isKicked}`).join('\n');
     logger.debug(`Result of kicking users from room with id "${roomId}"\n${viewRes}`);
@@ -251,7 +265,7 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         const allEvents = await chatApi.getAllEventsFromRoom(roomId);
         const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi);
         if (!remote) {
-            return translate('gitCommand', { roomName });
+            return translate('archiveFail', { roomName });
         }
 
         logger.debug(`Git push successfully complited in room ${roomId}!!!`);
