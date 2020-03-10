@@ -9,7 +9,7 @@ module.exports = async ({ bodyText = '', roomId, roomName, sender, chatApi }) =>
     try {
         const [issueType, ...wordsNameNewIssue] = bodyText.split(' ');
         const summary = wordsNameNewIssue.join(' ');
-        const [projectKey] = utils.getProjectKeyFromIssueKey(roomName);
+        const projectKey = utils.getProjectKeyFromIssueKey(roomName);
         const { id: projectId, issueTypes, style: styleProject } = await jiraRequests.getProject(projectKey);
         const namesIssueTypeInProject = issueTypes.map(({ name }) => name);
 

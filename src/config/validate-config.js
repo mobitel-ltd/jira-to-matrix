@@ -92,6 +92,12 @@ const schema = obj({
             'blue-gray': string,
         }).unknown(true),
     }),
+    gitArchive: {
+        user: string,
+        password: string,
+        repoPrefix: string,
+        protocol: string.optional(),
+    },
 });
 
 /**

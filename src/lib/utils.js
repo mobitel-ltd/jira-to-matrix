@@ -117,6 +117,8 @@ const utils = {
 
     getIssueCreator: issue => handlers.issue.getCreator({ issue }),
 
+    getIssueAssignee: issue => handlers.issue.getAssignee({ issue }),
+
     getIssueMembers: issue => handlers.issue.getMembers({ issue }),
 
     getHookType: body => {
@@ -366,7 +368,7 @@ const utils = {
         }
     },
 
-    getProjectKeyFromIssueKey: issueKey => issueKey.split('-').slice(0, 1),
+    getProjectKeyFromIssueKey: issueKey => Ramda.head(issueKey.split('-')),
     getCommandAction: (val, collection) => {
         const numberVal = Number(val);
         if (Number.isInteger(numberVal)) {

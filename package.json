@@ -8,7 +8,7 @@
   },
   "scripts": {
     "format": "prettier --write \"{src,test}/**/*.js\"",
-    "dev": "nodemon logs/start.js",
+    "dev": "nodemon --inspect logs/start.js",
     "lint": "eslint \"{src,test}/**/*.js\"",
     "start": "node src/app.js",
     "start-dev": "nodemon src/app.js",
@@ -21,10 +21,6 @@
     "type": "git",
     "url": "git@github.com:grigori-gru/jira-to-matrix.git"
   },
-  "pre-commit": [
-    "lint",
-    "test"
-  ],
   "nyc": {
     "exclude": [
       "src/redis-client.js",
@@ -42,9 +38,11 @@
     "eslint-plugin-chai-friendly": "0.4.1",
     "eslint-plugin-prettier": "^3.1.1",
     "faker": "latest",
+    "fs-extra": "^8.1.0",
     "lodash": "^4.17.15",
     "mocha": "latest",
     "nock": "^11.4.0",
+    "node-git-server": "^0.6.0",
     "nodemon": "^1.19.4",
     "nyc": "^14.1.1",
     "pre-commit": "^1.2.2",
@@ -61,6 +59,7 @@
     "delay": "^4.3.0",
     "express": "^4.17.1",
     "html-to-text": "^5.1.1",
+    "is-image": "^3.0.0",
     "javascript-state-machine": "^3.1.0",
     "joi": "^14.3.1",
     "marked": "^0.7.0",
@@ -71,6 +70,8 @@
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "ru-names": "^1.0.7",
+    "simple-git": "^1.131.0",
+    "tmp-promise": "^2.0.2",
     "winston": "^2.4.4"
   }
 }

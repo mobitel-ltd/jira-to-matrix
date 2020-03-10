@@ -1,4 +1,5 @@
-// @ts-check
+// @ts-nocheck
+
 /* eslint-disable no-undefined */
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 const matrixSdk = require('matrix-js-sdk');
@@ -421,6 +422,26 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * Get matrix room by alias
+     * @param  {string?} name matrix room alias
+     * @param  {string?} roomId matrix roomId
+     * @returns {Promise<{name: srting, userId: string}[]>} matrix room members
+     */
+    async getRoomAdmins({ name, roomId }) {
+        try {
+            const id = roomId || (await this.getRoomId(name));
+            const room = await this.client.getRoom(id);
+            const joinedMembers = room.getJoinedMembers();
+
+            return joinedMembers
+                .filter(({ powerLevel }) => powerLevel === 100)
+                .map(({ name, userId }) => ({ name, userId }));
+        } catch (err) {
+            throw [`Error while getting matrix members from room ${name}`, err].join('\n');
+        }
+    }
+
+    /**
      * Check if user is in matrix room
      * @param {String} roomId matrix room id
      * @param {String} user matrix user id
@@ -632,6 +653,87 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    async getAllMessagesFromRoom(roomId) {
+        try {
+            const method = 'GET';
+            const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
+            const qweryParams = { limit: 10000, dir: 'b' };
+            const body = {};
+
+            const { chunk } = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+
+            const allMessages = chunk
+                .filter(({ type }) => type === 'm.room.message')
+                .map(event => {
+                    const { user_id: author, content, origin_server_ts: timestamp, event_id: eventId } = event;
+                    const body = content.msgtype === 'm.text' && content.body;
+                    const date = new Date(timestamp);
+
+                    return { author, date, body, eventId };
+                });
+            return allMessages;
+        } catch (error) {
+            this.logger.error(`Error in request to all messages for ${roomId}.`);
+            this.logger.error(error);
+        }
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    async getAllEventsFromRoom(roomId) {
+        try {
+            const method = 'GET';
+            const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
+            const qweryParams = { limit: 10000, dir: 'b' };
+            const body = {};
+
+            const { chunk } = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+            return chunk;
+        } catch (error) {
+            this.logger.error(`Error in request to all events for ${roomId}.`);
+            this.logger.error(error);
+        }
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} mxcUrl mxc link
+     * @returns {string} string
+     */
+    getDownloadLink(mxcUrl) {
+        return this.client.mxcUrlToHttp(mxcUrl);
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    async kickUserByRoom({ roomId, userId }) {
+        try {
+            const method = 'PUT';
+            const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.member/${encodeURIComponent(userId)}`;
+            const qweryParams = {};
+            const body = { membership: 'leave', reason: 'cick' };
+
+            await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+            this.logger.info(`Member ${userId} kicked from ${roomId}`);
+
+            return userId;
+        } catch (error) {
+            this.logger.error(`Error in request for kick ${userId} from ${roomId}.`);
+            this.logger.error(error);
+        }
+    }
+
+    /**
      * @param {string} roomId room id
      */
     async setRoomJoinedByUrl(roomId) {
@@ -686,6 +788,29 @@ module.exports = class Matrix extends MessengerAbstract {
         } catch (err) {
             this.logger.error('Error with joining to room');
             this.logger.error(err);
+        }
+    }
+
+    /**
+     * Delete matrix room alias
+     * @param {string} aliasPart aliasPart
+     * @returns {string|undefined} return allias if command is succedded
+     */
+    async deleteAliasByRoomName(aliasPart) {
+        try {
+            const alias = this._getMatrixRoomAlias(aliasPart);
+            const roomId = await this.getRoomIdByName(alias);
+            if (!roomId) {
+                this.logger.warn(`Alias ${alias} is not found!!!`);
+
+                return;
+            }
+            await this.client.deleteAlias(alias);
+            this.logger.debug(`Alias ${alias} is successfully deleted in room with id ${roomId}`);
+
+            return alias;
+        } catch (err) {
+            this.logger.error(`Error while deleting alias:\n ${JSON.stringify(err)}`);
         }
     }
 };
