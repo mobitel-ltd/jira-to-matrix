@@ -74,6 +74,7 @@ const dict = Object.freeze({
     archiveFail: 'Error git command for room with name "%{roomName}"',
     successExport: 'Export successfully finished!!!',
     exportWithKick: 'Export successfully finished and all room members are kicked!!!',
+    roomNotExistOrPermDen: 'Task not exist in jira or permition denied.',
 });
 
 module.exports.dict = dict;

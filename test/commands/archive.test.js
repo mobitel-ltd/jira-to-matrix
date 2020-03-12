@@ -4,6 +4,8 @@ const gitSimple = require('simple-git/promise');
 const config = require('../../src/config');
 const fs = require('fs');
 const path = require('path');
+const { pipe, set, clone } = require('lodash/fp');
+
 const { getUserIdByDisplayName } = require('../test-utils');
 const nock = require('nock');
 const chai = require('chai');
@@ -13,6 +15,8 @@ chai.use(sinonChai);
 const translate = require('../../src/locales');
 const testUtils = require('../test-utils');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
+const allProjects = require('../fixtures/jira-api-requests/allProjects.json');
+
 const {
     getHTMLtext,
     getMDtext,
@@ -25,6 +29,7 @@ const {
     getImageData,
     FILE_DELIMETER,
     DEFAULT_EXT,
+    DEFAULT_REMOTE_NAME,
 } = require('../../src/bot/timeline-handler/commands/archive');
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
@@ -58,6 +63,10 @@ describe('Archive command', () => {
     const [adminSender] = testUtils.roomAdmins;
     const projectKey = faker.name.firstName().toUpperCase();
     const existingRoomName = `${projectKey}-123`;
+    const allWithExist = pipe(
+        clone,
+        set('values[0].key', projectKey),
+    )(allProjects);
 
     beforeEach(() => {
         notExistProject = faker.name.firstName().toUpperCase();
@@ -78,7 +87,9 @@ describe('Archive command', () => {
             .get(`/issue/${existingRoomName}`)
             .reply(200, issueJSON)
             .get(`/issue/${roomNameNotGitProject}`)
-            .reply(200, issueJSON);
+            .reply(200, issueJSON)
+            .get('/project/search')
+            .reply(200, allWithExist);
     });
 
     afterEach(() => {
@@ -89,6 +100,12 @@ describe('Archive command', () => {
     it('Permition denided for not admin', async () => {
         const post = translate('notAdmin', { sender: 'notAdmin' });
         const result = await commandHandler({ ...baseOptions, sender: 'notAdmin' });
+        expect(result).to.be.eq(post);
+    });
+
+    it('Permition denided if sender and bot not in task jira', async () => {
+        const post = translate('roomNotExistOrPermDen');
+        const result = await commandHandler({ ...baseOptions, sender: adminSender.name, roomName: 'INDEV-999' });
         expect(result).to.be.eq(post);
     });
 
@@ -134,7 +151,8 @@ describe('Archive command', () => {
     });
 
     describe('gitPull', () => {
-        const expectedRemote = `${`${config.baseRemote}/${projectKey.toLowerCase()}`}.git`;
+        const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
+        const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
         let server;
         let tmpDir;
 
@@ -143,6 +161,9 @@ describe('Archive command', () => {
             server = testUtils.startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
             await testUtils.setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: existingRoomName });
+            await testUtils.setRepo(tmpDir.path, expectedDefaultRemote, {
+                roomName: existingRoomName,
+            });
         });
 
         afterEach(() => {
@@ -151,7 +172,8 @@ describe('Archive command', () => {
         });
 
         it('expect git pull send event data', async () => {
-            const remote = await gitPullToRepo(config.baseRemote, rawEvents, existingRoomName, chatApi);
+            const isJira = true;
+            const remote = await gitPullToRepo(config.baseRemote, rawEvents, existingRoomName, chatApi, isJira);
 
             expect(remote).to.eq(expectedRemote);
 

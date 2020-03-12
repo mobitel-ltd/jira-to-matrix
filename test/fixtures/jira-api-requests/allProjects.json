@@ -1,0 +1,68 @@
+{
+    "self": "https://matrix.example.com/rest/api/2/project/search?maxResults=50&startAt=0",
+    "nextPage": "https://matrix.example.com/rest/api/2/project/search?maxResults=50&startAt=50",
+    "maxResults": 50,
+    "startAt": 0,
+    "total": 70,
+    "isLast": false,
+    "values": [
+        {
+            "expand": "description,lead,issueTypes,url,projectKeys,permissions,insight",
+            "self": "https://matrix.example.com/rest/api/2/project/10221",
+            "id": "10221",
+            "key": "CLUB",
+            "name": "Clubs",
+            "avatarUrls": {
+                "48x48": "https://matrix.example.com/secure/projectavatar?pid=10221&avatarId=10418",
+                "24x24": "https://matrix.example.com/secure/projectavatar?size=small&s=small&pid=10221&avatarId=10418",
+                "16x16": "https://matrix.example.com/secure/projectavatar?size=xsmall&s=xsmall&pid=10221&avatarId=10418",
+                "32x32": "https://matrix.example.com/secure/projectavatar?size=medium&s=medium&pid=10221&avatarId=10418"
+            },
+            "projectTypeKey": "software",
+            "simplified": true,
+            "style": "next-gen",
+            "isPrivate": false,
+            "properties": {},
+            "entityId": "92b8a327-fed1-448a-a33c-d8fda7fc0344",
+            "uuid": "92b8a327-fed1-448a-a33c-d8fda7fc0344"
+        },
+        {
+            "expand": "description,lead,issueTypes,url,projectKeys,permissions,insight",
+            "self": "https://matrix.example.com/rest/api/2/project/10105",
+            "id": "10105",
+            "key": "INDEV",
+            "name": "Internal Development",
+            "avatarUrls": {
+                "48x48": "https://matrix.example.com/secure/projectavatar?pid=10105&avatarId=10523",
+                "24x24": "https://matrix.example.com/secure/projectavatar?size=small&s=small&pid=10105&avatarId=10523",
+                "16x16": "https://matrix.example.com/secure/projectavatar?size=xsmall&s=xsmall&pid=10105&avatarId=10523",
+                "32x32": "https://matrix.example.com/secure/projectavatar?size=medium&s=medium&pid=10105&avatarId=10523"
+            },
+            "projectTypeKey": "software",
+            "simplified": true,
+            "style": "next-gen",
+            "isPrivate": false,
+            "properties": {},
+            "entityId": "ed4ec313-781a-4da3-b440-7637cf06f456",
+            "uuid": "ed4ec313-781a-4da3-b440-7637cf06f456"
+        },
+        {
+            "expand": "description,lead,issueTypes,url,projectKeys,permissions,insight",
+            "self": "https://matrix.example.com/rest/api/2/project/10072",
+            "id": "10072",
+            "key": "MSS",
+            "name": "Marketing | Sponsorships",
+            "avatarUrls": {
+                "48x48": "https://matrix.example.com/secure/projectavatar?avatarId=10324",
+                "24x24": "https://matrix.example.com/secure/projectavatar?size=small&s=small&avatarId=10324",
+                "16x16": "https://matrix.example.com/secure/projectavatar?size=xsmall&s=xsmall&avatarId=10324",
+                "32x32": "https://matrix.example.com/secure/projectavatar?size=medium&s=medium&avatarId=10324"
+            },
+            "projectTypeKey": "software",
+            "simplified": false,
+            "style": "classic",
+            "isPrivate": false,
+            "properties": {}
+        }
+    ]
+}

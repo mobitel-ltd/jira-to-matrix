@@ -13,6 +13,7 @@ const { fileRequest } = require('../../../lib/request');
 
 const fs = fileSystem.promises;
 
+const DEFAULT_REMOTE_NAME = 'default';
 const EVENTS_DIR_NAME = 'res';
 const MEDIA_DIR_NAME = 'media';
 const FILE_DELIMETER = '__';
@@ -195,10 +196,10 @@ const writeEventsData = async (events, basePath, chatApi) => {
     return savedEvents;
 };
 
-const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi) => {
+const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi, isRoomJiraProject) => {
     const { path: tmpPath, cleanup } = await tmp.dir({ unsafeCleanup: true });
     try {
-        const projectKey = utils.getProjectKeyFromIssueKey(roomName);
+        const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomName) : 'default';
         const remote = getProjectRemote(baseRemote, projectKey);
         await git(tmpPath).clone(remote, projectKey);
         logger.debug(`clone repo by project key ${projectKey} is succedded to tmp dir ${tmpPath}`);
@@ -247,7 +248,14 @@ const kickAllInRoom = async (chatApi, roomId, admins) => {
 };
 
 const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
-    const issue = await jiraRequests.getIssue(roomName);
+    const issue = await jiraRequests.getIssueSafety(roomName);
+    const projectKey = utils.getProjectKeyFromIssueKey(roomName);
+    const allKeysProjects = await jiraRequests.getAllKeysProjects();
+    const isRoomJiraProject = allKeysProjects.includes(projectKey);
+    if (!issue && isRoomJiraProject) {
+        return translate('roomNotExistOrPermDen');
+    }
+
     const issueMembersChatIds = await Promise.all(
         utils.getIssueMembers(issue).map(displayName => chatApi.getUserIdByDisplayName(displayName)),
     );
@@ -261,7 +269,7 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     }
 
     const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-    const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi);
+    const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi, isRoomJiraProject);
     if (!remote) {
         return translate('archiveFail', { roomName });
     }
@@ -280,6 +288,7 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
 };
 
 module.exports = {
+    DEFAULT_REMOTE_NAME,
     DEFAULT_EXT,
     getMediaFileData,
     archive,
