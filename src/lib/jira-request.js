@@ -168,6 +168,11 @@ const jiraRequests = {
         return project;
     },
 
+    /**
+     * Make GET request to jira by projectID
+     * @param {string} projectKey project ID in jira
+     * @return {Promise<{key: string, id: number, name: string, lead: string}>} jira response with issue
+     */
     getProjectWithAdmins: async projectKey => {
         const projectBody = await jiraRequests.getProject(projectKey);
         const { adminsURL } = projectBody;

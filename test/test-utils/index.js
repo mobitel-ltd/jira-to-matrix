@@ -1,4 +1,5 @@
 /* eslint-disable handle-callback-err */
+const faker = require('faker');
 const R = require('ramda');
 const simpleGit = require('simple-git/promise');
 const fs = require('fs').promises;
@@ -194,7 +195,7 @@ module.exports = {
     },
 
     setRepo: async (basePath, remote, { pathToExistFixtures, roomName }) => {
-        const tmpPath = path.resolve(basePath, 'git-init');
+        const tmpPath = path.resolve(basePath, `git-init-${faker.random.alphaNumeric()}`);
         await fs.mkdir(tmpPath);
         await fs.writeFile(path.join(tmpPath, 'readme.txt'));
         if (pathToExistFixtures) {
