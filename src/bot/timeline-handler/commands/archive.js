@@ -199,7 +199,7 @@ const writeEventsData = async (events, basePath, chatApi) => {
 const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi, isRoomJiraProject) => {
     const { path: tmpPath, cleanup } = await tmp.dir({ unsafeCleanup: true });
     try {
-        const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomName) : 'default';
+        const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomName) : DEFAULT_REMOTE_NAME;
         const remote = getProjectRemote(baseRemote, projectKey);
         await git(tmpPath).clone(remote, projectKey);
         logger.debug(`clone repo by project key ${projectKey} is succedded to tmp dir ${tmpPath}`);
@@ -247,11 +247,19 @@ const kickAllInRoom = async (chatApi, roomId, admins) => {
     return res;
 };
 
+const roomNameHasJiraProject = async roomName => {
+    const projectKey = utils.getProjectKeyFromIssueKey(roomName);
+    try {
+        await jiraRequests.getProject(projectKey);
+        return true;
+    } catch (err) {
+        return false;
+    }
+};
+
 const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     const issue = await jiraRequests.getIssueSafety(roomName);
-    const projectKey = utils.getProjectKeyFromIssueKey(roomName);
-    const allKeysProjects = await jiraRequests.getAllKeysProjects();
-    const isRoomJiraProject = allKeysProjects.includes(projectKey);
+    const isRoomJiraProject = await roomNameHasJiraProject(roomName);
     if (!issue && isRoomJiraProject) {
         return translate('roomNotExistOrPermDen');
     }
@@ -295,6 +303,7 @@ module.exports = {
     getHTMLtext,
     getMDtext,
     gitPullToRepo,
+    roomNameHasJiraProject,
     EVENTS_DIR_NAME,
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,

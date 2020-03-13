@@ -4,7 +4,6 @@ const gitSimple = require('simple-git/promise');
 const config = require('../../src/config');
 const fs = require('fs');
 const path = require('path');
-const { pipe, set, clone } = require('lodash/fp');
 
 const { getUserIdByDisplayName } = require('../test-utils');
 const nock = require('nock');
@@ -15,7 +14,7 @@ chai.use(sinonChai);
 const translate = require('../../src/locales');
 const testUtils = require('../test-utils');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
-const allProjects = require('../fixtures/jira-api-requests/allProjects.json');
+const projectJSON = require('../fixtures/jira-api-requests/project.json');
 
 const {
     getHTMLtext,
@@ -26,6 +25,7 @@ const {
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,
     transformEvent,
+    roomNameHasJiraProject,
     getImageData,
     FILE_DELIMETER,
     DEFAULT_EXT,
@@ -63,10 +63,6 @@ describe('Archive command', () => {
     const [adminSender] = testUtils.roomAdmins;
     const projectKey = faker.name.firstName().toUpperCase();
     const existingRoomName = `${projectKey}-123`;
-    const allWithExist = pipe(
-        clone,
-        set('values[0].key', projectKey),
-    )(allProjects);
 
     beforeEach(() => {
         notExistProject = faker.name.firstName().toUpperCase();
@@ -88,8 +84,10 @@ describe('Archive command', () => {
             .reply(200, issueJSON)
             .get(`/issue/${roomNameNotGitProject}`)
             .reply(200, issueJSON)
-            .get('/project/search')
-            .reply(200, allWithExist);
+            .get(`/project/INDEV`)
+            .reply(200, projectJSON)
+            .get(`/project/${projectKey}`)
+            .reply(200, projectJSON);
     });
 
     afterEach(() => {
@@ -114,6 +112,13 @@ describe('Archive command', () => {
         res.forEach(element => {
             expect(element).not.includes('"age"');
         });
+    });
+
+    it('Default or not default', async () => {
+        const checkProjectRoom = await roomNameHasJiraProject('INDEV-123');
+        expect(checkProjectRoom).to.be.true;
+        const checkNotProjectRoom = await roomNameHasJiraProject('hjshhhhd');
+        expect(checkNotProjectRoom).to.be.false;
     });
 
     it('getFileNameByUrl', () => {
@@ -180,6 +185,43 @@ describe('Archive command', () => {
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
+            const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
+            expect(files).to.have.length(allEvents.length);
+            expect(files).to.have.deep.members(allEvents);
+
+            const viewFilePath = path.resolve(tmpDir.path, cloneName, existingRoomName, VIEW_FILE_NAME);
+            expect(fs.existsSync(viewFilePath)).to.be.true;
+            const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
+            expect(viewFileData).to.deep.equal(messagesWithBefore.split('\n'));
+
+            const mediaFiles = await fsProm.readdir(
+                path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
+            );
+            const expectedMediaFileNames = [
+                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
+                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
+                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
+            ];
+            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
+            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
+        });
+
+        it('expect git pull send event data', async () => {
+            const isJira = false;
+            const remote = await gitPullToRepo(
+                config.baseRemote,
+                [...rawEvents, eventBefore],
+                existingRoomName,
+                chatApi,
+                isJira,
+            );
+
+            expect(remote).to.eq(expectedDefaultRemote);
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(tmpDir.path);
+            await gitLocal.clone(expectedDefaultRemote, cloneName);
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
             const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
             expect(files).to.have.length(allEvents.length);
