@@ -64,7 +64,7 @@
     "javascript-state-machine": "^3.1.0",
     "joi": "^14.3.1",
     "marked": "^0.8.0",
-    "matrix-js-sdk": "^5.1.0",
+    "matrix-js-sdk": "mobitel-ltd/matrix-js-sdk",
     "node-polyglot": "^2.4.0",
     "ramda": "^0.26.1",
     "redis": "^2.8.0",
