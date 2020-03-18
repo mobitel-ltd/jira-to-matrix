@@ -90,12 +90,7 @@ const dict = Object.freeze({
 const getGenderVerbEnding = function getGenderVerbEnding(fullName) {
     const getGender = Ramda.pipe(
         Ramda.split(/\s+/),
-        Ramda.map(
-            Ramda.pipe(
-                Ramda.trim,
-                Ramda.toLower,
-            ),
-        ),
+        Ramda.map(Ramda.pipe(Ramda.trim, Ramda.toLower)),
         Ramda.reduce((result, part) => {
             const gender = names[part];
             return gender ? Ramda.reduced(gender) : undefined;

@@ -13,7 +13,7 @@ const getEvent = content => ({
 });
 
 // eslint-disable-next-line prettier/prettier
-const voidFunc = () => { };
+const voidFunc = () => {};
 
 const defaultLogger = {
     info: () => voidFunc,

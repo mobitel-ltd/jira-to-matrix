@@ -21,11 +21,7 @@ const DEFAULT_EXT = '.png';
 const KICK_ALL_OPTION = 'kickall';
 const VIEW_FILE_NAME = 'README.md';
 
-const getName = (url, delim) =>
-    R.pipe(
-        R.split(delim),
-        R.last,
-    )(url);
+const getName = (url, delim) => R.pipe(R.split(delim), R.last)(url);
 
 const getMediaFileData = (url, { imageName, msgtype }) => {
     const imageId = getName(url, '/');

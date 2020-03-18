@@ -327,6 +327,6 @@ describe('Archive command', () => {
         });
 
         // TODO
-        it('Expect not correct git access data inside config return message to chat after run command', () => true);
+        // it('Expect not correct git access data inside config return message to chat after run command', () => true);
     });
 });

@@ -171,10 +171,7 @@ const ignoreData = {
 const { httpStatus } = utils;
 
 const testUserId = faker.random.arrayElement(testMode.users);
-const ignoredBody = pipe(
-    clone,
-    set('fields.creator.displayName', testUserId),
-)(notIgnoreCreatorIssueBody);
+const ignoredBody = pipe(clone, set('fields.creator.displayName', testUserId))(notIgnoreCreatorIssueBody);
 
 describe('Integ tests', () => {
     const slackApi = new SlackApi({ config: messengerConfig, sdk, commandsHandler, logger });
