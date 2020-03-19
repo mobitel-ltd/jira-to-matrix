@@ -12,11 +12,14 @@ const getEvent = content => ({
     getContent: () => content,
 });
 
+// eslint-disable-next-line prettier/prettier
+const voidFunc = () => {};
+
 const defaultLogger = {
-    info: () => {},
-    error: () => {},
-    warn: () => {},
-    debug: () => {},
+    info: () => voidFunc,
+    error: () => voidFunc,
+    warn: () => voidFunc,
+    debug: () => voidFunc,
 };
 
 module.exports = class Matrix extends MessengerAbstract {
@@ -54,6 +57,19 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * Get name from matrix id
+     * @param {string} id matrix alias or name
+     * @returns {(string|undefined)} return id
+     */
+    _getNameFromMatrixId(id) {
+        if (id) {
+            const [name] = id.split(':').slice(0, 1);
+
+            return name.slice(1);
+        }
+    }
+
+    /**
      * Matrix events handler
      * @param {Object} event from matrix
      * @param {Object} room matrix room
@@ -65,7 +81,7 @@ module.exports = class Matrix extends MessengerAbstract {
                 return;
             }
 
-            const sender = utils.getNameFromMatrixId(event.getSender());
+            const sender = this._getNameFromMatrixId(event.getSender());
 
             const { body } = event.getContent();
 
@@ -75,7 +91,7 @@ module.exports = class Matrix extends MessengerAbstract {
                 return;
             }
 
-            const roomName = utils.getNameFromMatrixId(room.getCanonicalAlias());
+            const roomName = this._getNameFromMatrixId(room.getCanonicalAlias());
             const options = {
                 chatApi: this,
                 sender,
@@ -87,7 +103,11 @@ module.exports = class Matrix extends MessengerAbstract {
 
             await this.commandsHandler(options);
         } catch (err) {
-            this.logger.error('Error while handling event from Matrix', err, event, room);
+            const errMsg = utils.errorTracing(
+                `Error while handling event from Matrix room "${room.name}" ${room.roomId}`,
+                err,
+            );
+            this.logger.error(errMsg);
         }
     }
 
@@ -165,7 +185,7 @@ module.exports = class Matrix extends MessengerAbstract {
     async _startClient() {
         try {
             await this._createClient();
-            this.client.startClient({ initialSyncLimit: 1 });
+            this.client.startClient();
 
             return new Promise(this._executor.bind(this));
         } catch (err) {
@@ -229,8 +249,7 @@ module.exports = class Matrix extends MessengerAbstract {
             this._removeListener('event', this._inviteBot.bind(this), this.client);
 
             if (state !== 'SYNCING' || prevState !== 'SYNCING') {
-                this.logger.warn(`state: ${state}`);
-                this.logger.warn(`prevState: ${prevState}`);
+                this.logger.warn(`state is ${state}, prevState is ${prevState} for bot with id ${this.config.user}`);
             }
         });
 

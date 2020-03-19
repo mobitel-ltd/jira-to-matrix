@@ -46,10 +46,7 @@ const testUserId = faker.random.arrayElement(testMode.users);
 
 const ignoreIssueKey = 'LALALLALA-1111';
 
-const ignoredCreatorHook = pipe(
-    clone,
-    set('issue.key', ignoreIssueKey),
-)(notIgnoredIssueHook);
+const ignoredCreatorHook = pipe(clone, set('issue.key', ignoreIssueKey))(notIgnoredIssueHook);
 
 const ignoredBody = pipe(
     clone,
@@ -306,7 +303,10 @@ describe('Helper tests', () => {
         });
 
         it('Expect NOT ignore issuelink deleted/created hook if at least one of links is available', async () => {
-            const [status1, status2] = faker.random.arrayElement([[404, 200], [200, 404]]);
+            const [status1, status2] = faker.random.arrayElement([
+                [404, 200],
+                [200, 404],
+            ]);
             const body = faker.random.arrayElement([linksDeletedBody, newLinksbody]);
             nock.cleanAll();
             nock(jiraUrl)

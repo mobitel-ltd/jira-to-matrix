@@ -84,18 +84,14 @@ const dict = Object.freeze({
     successExport: 'Экспорт данных успешно совершен!!!',
     exportWithKick: 'Экспорт данных успешно совершен и в комнате нет больше участников!!!',
     roomNotExistOrPermDen: 'Задачи в jira не существует, либо недостаточно полномочий на ее просмотр.',
+    noAlias: 'Алиас у комнаты отсутствует. Добавьте его и повторите операцию.',
 });
 /* spell-checker: enable */
 
 const getGenderVerbEnding = function getGenderVerbEnding(fullName) {
     const getGender = Ramda.pipe(
         Ramda.split(/\s+/),
-        Ramda.map(
-            Ramda.pipe(
-                Ramda.trim,
-                Ramda.toLower,
-            ),
-        ),
+        Ramda.map(Ramda.pipe(Ramda.trim, Ramda.toLower)),
         Ramda.reduce((result, part) => {
             const gender = names[part];
             return gender ? Ramda.reduced(gender) : undefined;

@@ -11,3 +11,12 @@ start:
 	npm run start-dev
 
 .PHONY: test
+
+app-build:
+	docker-compose build --no-cache
+
+app-run:
+	docker-compose up
+
+app-kill:
+	docker-compose down -v
