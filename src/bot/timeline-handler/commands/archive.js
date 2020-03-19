@@ -21,11 +21,7 @@ const DEFAULT_EXT = '.png';
 const KICK_ALL_OPTION = 'kickall';
 const VIEW_FILE_NAME = 'README.md';
 
-const getName = (url, delim) =>
-    R.pipe(
-        R.split(delim),
-        R.last,
-    )(url);
+const getName = (url, delim) => R.pipe(R.split(delim), R.last)(url);
 
 const getMediaFileData = (url, { imageName, msgtype }) => {
     const imageId = getName(url, '/');
@@ -258,6 +254,9 @@ const roomNameHasJiraProject = async roomName => {
 };
 
 const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
+    if (!roomName) {
+        return translate('noAlias');
+    }
     const issue = await jiraRequests.getIssueSafety(roomName);
     const isRoomJiraProject = await roomNameHasJiraProject(roomName);
     if (!issue && isRoomJiraProject) {

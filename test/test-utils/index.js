@@ -18,7 +18,10 @@ const rawEvents = require('../fixtures/archiveRoom/raw-events');
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
 
-const roomAdmins = [{ name: 'admin1', displayName: 'Room Admin 1' }, { name: 'admin2', displayName: 'Room Admin 2' }];
+const roomAdmins = [
+    { name: 'admin1', displayName: 'Room Admin 1' },
+    { name: 'admin2', displayName: 'Room Admin 2' },
+];
 
 // const roomAdmins3 = ['Room Admin 1', 'Room Admin 2'];
 
@@ -108,14 +111,7 @@ module.exports = {
             getRoomAdmins: stub().resolves([]),
             getAllMessagesFromRoom: stub().resolves(allMessagesFromRoom),
             getAllEventsFromRoom: stub().resolves(rawEvents),
-            getDownloadLink: stub().callsFake(el =>
-                getMediaLink(
-                    R.pipe(
-                        R.split('/'),
-                        R.last,
-                    )(el),
-                ),
-            ),
+            getDownloadLink: stub().callsFake(el => getMediaLink(R.pipe(R.split('/'), R.last)(el))),
             kickUserByRoom: stub().callsFake(userId => userId),
         });
 

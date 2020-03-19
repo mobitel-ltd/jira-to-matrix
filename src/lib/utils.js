@@ -338,12 +338,6 @@ const utils = {
         }
     },
 
-    getNameFromMatrixId: id => {
-        const [name] = id.split(':').slice(0, 1);
-
-        return name.slice(1);
-    },
-
     getKeyFromError: str => {
         const start = str.indexOf(NO_ROOM_PATTERN) + NO_ROOM_PATTERN.length;
         const end = str.indexOf(END_NO_ROOM_PATTERN);

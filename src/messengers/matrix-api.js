@@ -57,6 +57,19 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * Get name from matrix id
+     * @param {string} id matrix alias or name
+     * @returns {(string|undefined)} return id
+     */
+    _getNameFromMatrixId(id) {
+        if (id) {
+            const [name] = id.split(':').slice(0, 1);
+
+            return name.slice(1);
+        }
+    }
+
+    /**
      * Matrix events handler
      * @param {Object} event from matrix
      * @param {Object} room matrix room
@@ -68,7 +81,7 @@ module.exports = class Matrix extends MessengerAbstract {
                 return;
             }
 
-            const sender = utils.getNameFromMatrixId(event.getSender());
+            const sender = this._getNameFromMatrixId(event.getSender());
 
             const { body } = event.getContent();
 
@@ -78,7 +91,7 @@ module.exports = class Matrix extends MessengerAbstract {
                 return;
             }
 
-            const roomName = utils.getNameFromMatrixId(room.getCanonicalAlias());
+            const roomName = this._getNameFromMatrixId(room.getCanonicalAlias());
             const options = {
                 chatApi: this,
                 sender,
@@ -90,7 +103,11 @@ module.exports = class Matrix extends MessengerAbstract {
 
             await this.commandsHandler(options);
         } catch (err) {
-            this.logger.error('Error while handling event from Matrix', err, event, room);
+            const errMsg = utils.errorTracing(
+                `Error while handling event from Matrix room "${room.name}" ${room.roomId}`,
+                err,
+            );
+            this.logger.error(errMsg);
         }
     }
 

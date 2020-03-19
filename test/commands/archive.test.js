@@ -107,6 +107,12 @@ describe('Archive command', () => {
         expect(result).to.be.eq(post);
     });
 
+    it('Expect send skip archive if room has no alias', async () => {
+        const post = translate('noAlias');
+        const result = await commandHandler({ ...baseOptions, sender: adminSender.name, roomName: null });
+        expect(result).to.be.eq(post);
+    });
+
     it('transform event', () => {
         const res = rawEvents.map(transformEvent);
         res.forEach(element => {
@@ -327,6 +333,6 @@ describe('Archive command', () => {
         });
 
         // TODO
-        it('Expect not correct git access data inside config return message to chat after run command', () => true);
+        // it('Expect not correct git access data inside config return message to chat after run command', () => true);
     });
 });

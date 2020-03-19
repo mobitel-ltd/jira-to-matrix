@@ -75,6 +75,7 @@ const dict = Object.freeze({
     successExport: 'Export successfully finished!!!',
     exportWithKick: 'Export successfully finished and all room members are kicked!!!',
     roomNotExistOrPermDen: 'Task not exist in jira or permition denied.',
+    noAlias: 'No room alias. Add it and try again.',
 });
 
 module.exports.dict = dict;
