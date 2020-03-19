@@ -112,7 +112,8 @@ const getProjectRemote = (baseRemote, projectKey) => {
 const getRepoLink = (baseLink, projectKey, roomName) => {
     const projectExt = projectKey.toLowerCase();
 
-    return [baseLink, projectExt, roomName].join('/');
+    // to get link visible
+    return [baseLink, projectExt, 'tree', 'master', roomName].join('/');
 };
 
 const transformEvent = event => {

@@ -163,9 +163,9 @@ describe('Archive command', () => {
 
     describe('gitPull', () => {
         const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
-        const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/${existingRoomName}`;
+        const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${existingRoomName}`;
         const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
-        const expectedDefaultRepoLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/${existingRoomName}`;
+        const expectedDefaultRepoLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/tree/master/${existingRoomName}`;
         let server;
         let tmpDir;
 
