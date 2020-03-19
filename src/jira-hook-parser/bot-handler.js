@@ -26,7 +26,7 @@ const isPostProjectUpdates = body =>
 const isPostNewLinks = body =>
     (features.newLinks &&
         (utils.isCorrectWebhook(body, 'jira:issue_updated') || utils.isCorrectWebhook(body, 'jira:issue_created')) &&
-            utils.getLinks(body).length > 0) ||
+        utils.getLinks(body).length > 0) ||
     utils.getBodyWebhookEvent(body) === 'issuelink_created';
 
 const isPostLinkedChanges = body =>
