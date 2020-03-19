@@ -254,6 +254,9 @@ const roomNameHasJiraProject = async roomName => {
 };
 
 const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
+    if (!roomName) {
+        return translate('noAlias');
+    }
     const issue = await jiraRequests.getIssueSafety(roomName);
     const isRoomJiraProject = await roomNameHasJiraProject(roomName);
     if (!issue && isRoomJiraProject) {

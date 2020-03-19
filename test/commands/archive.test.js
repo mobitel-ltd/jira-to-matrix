@@ -107,6 +107,12 @@ describe('Archive command', () => {
         expect(result).to.be.eq(post);
     });
 
+    it('Expect send skip archive if room has no alias', async () => {
+        const post = translate('noAlias');
+        const result = await commandHandler({ ...baseOptions, sender: adminSender.name, roomName: null });
+        expect(result).to.be.eq(post);
+    });
+
     it('transform event', () => {
         const res = rawEvents.map(transformEvent);
         res.forEach(element => {
