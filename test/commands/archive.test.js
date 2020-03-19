@@ -163,7 +163,9 @@ describe('Archive command', () => {
 
     describe('gitPull', () => {
         const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
+        const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/${existingRoomName}`;
         const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
+        const expectedDefaultRepoLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/${existingRoomName}`;
         let server;
         let tmpDir;
 
@@ -184,9 +186,9 @@ describe('Archive command', () => {
 
         it('expect git pull send event data', async () => {
             const isJira = true;
-            const remote = await gitPullToRepo(config.baseRemote, rawEvents, existingRoomName, chatApi, isJira);
+            const linkToRepo = await gitPullToRepo(config, rawEvents, existingRoomName, chatApi, isJira);
 
-            expect(remote).to.eq(expectedRemote);
+            expect(linkToRepo).to.eq(expectedRepoLink);
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
@@ -215,15 +217,15 @@ describe('Archive command', () => {
 
         it('expect git pull send event data', async () => {
             const isJira = false;
-            const remote = await gitPullToRepo(
-                config.baseRemote,
+            const linkToRepo = await gitPullToRepo(
+                config,
                 [...rawEvents, eventBefore],
                 existingRoomName,
                 chatApi,
                 isJira,
             );
 
-            expect(remote).to.eq(expectedDefaultRemote);
+            expect(linkToRepo).to.eq(expectedDefaultRepoLink);
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
@@ -257,7 +259,7 @@ describe('Archive command', () => {
                 roomName: existingRoomName,
             });
 
-            expect(result).to.be.eq(translate('successExport'));
+            expect(result).to.be.eq(translate('successExport', { link: expectedRepoLink }));
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);

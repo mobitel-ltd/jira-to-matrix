@@ -72,7 +72,7 @@ const dict = Object.freeze({
     alive: 'Bot "%{botId}" is connected!!!',
     getInfo: 'All rooms = %{allRooms}<br>Single rooms = %{single}<br>Multiple joined members = %{many}',
     archiveFail: 'Error git command for room with name "%{roomName}"',
-    successExport: 'Export successfully finished!!!',
+    successExport: 'Export successfully finished to %{link}!!!',
     exportWithKick: 'Export successfully finished and all room members are kicked!!!',
     roomNotExistOrPermDen: 'Task not exist in jira or permition denied.',
     noAlias: 'No room alias. Add it and try again.',
