@@ -109,6 +109,12 @@ const getProjectRemote = (baseRemote, projectKey) => {
     return [baseRemote, projectExt].join('/');
 };
 
+const getRepoLink = (baseLink, projectKey, roomName) => {
+    const projectExt = projectKey.toLowerCase();
+
+    return [baseLink, projectExt, roomName].join('/');
+};
+
 const transformEvent = event => {
     // TODO add recursive
     const pureEvent = R.pipe(
@@ -192,7 +198,7 @@ const writeEventsData = async (events, basePath, chatApi) => {
     return savedEvents;
 };
 
-const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi, isRoomJiraProject) => {
+const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomName, chatApi, isRoomJiraProject) => {
     const { path: tmpPath, cleanup } = await tmp.dir({ unsafeCleanup: true });
     try {
         const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomName) : DEFAULT_REMOTE_NAME;
@@ -214,7 +220,9 @@ const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi, isRoomJi
         await repoGit.commit(`set event data for room ${roomName}`);
         await repoGit.push('origin', 'master');
 
-        return remote;
+        const link = getRepoLink(baseLink, projectKey, roomName);
+
+        return link;
     } catch (err) {
         logger.error(err);
     } finally {
@@ -276,8 +284,8 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     }
 
     const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-    const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi, isRoomJiraProject);
-    if (!remote) {
+    const repoLink = await gitPullToRepo(config, allEvents, roomName, chatApi, isRoomJiraProject);
+    if (!repoLink) {
         return translate('archiveFail', { roomName });
     }
 
@@ -291,7 +299,7 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         return;
     }
 
-    return translate('successExport');
+    return translate('successExport', { link: repoLink });
 };
 
 module.exports = {
