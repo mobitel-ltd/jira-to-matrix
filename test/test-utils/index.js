@@ -191,7 +191,7 @@ module.exports = {
     },
 
     setRepo: async (basePath, remote, { pathToExistFixtures, roomName }) => {
-        const tmpPath = path.resolve(basePath, `git-init-${faker.random.alphaNumeric()}`);
+        const tmpPath = path.resolve(basePath, `git-init-${faker.random.alphaNumeric(10)}`);
         await fs.mkdir(tmpPath);
         await fs.writeFile(path.join(tmpPath, 'readme.txt'));
         if (pathToExistFixtures) {
