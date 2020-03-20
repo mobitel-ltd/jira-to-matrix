@@ -30,6 +30,7 @@ const {
     FILE_DELIMETER,
     DEFAULT_EXT,
     DEFAULT_REMOTE_NAME,
+    getRoomMainInfoMd,
 } = require('../../src/bot/timeline-handler/commands/archive');
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
@@ -38,6 +39,7 @@ const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
 const messagesJSON = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
 const messagesMD = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.md'), 'utf8');
+const infoMd = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/room-info.md'), 'utf8');
 const messagesWithBefore = fs.readFileSync(
     path.resolve(__dirname, '../fixtures/archiveRoom/withbefore-readme.md'),
     'utf8',
@@ -61,14 +63,43 @@ describe('Archive command', () => {
     let notExistProject;
     const notAdminSender = 'notAdmin';
     const [adminSender] = testUtils.roomAdmins;
-    const projectKey = faker.name.firstName().toUpperCase();
-    const existingRoomName = `${projectKey}-123`;
+    const projectKey = 'MYPROJECTKEY';
+    // This alias exists in md head file and should assert
+    const issueKey = `${projectKey}-123`;
+    const roomData = {
+        alias: issueKey,
+        topic: 'room topic',
+        name: 'room name',
+        // default "roomId"
+        id: roomId,
+        members: [
+            {
+                userId: '@member1:matrix.test.com',
+                powerLevel: 0,
+            },
+            {
+                userId: '@member2:matrix.test.com',
+                powerLevel: 100,
+            },
+            {
+                userId: '@member3:matrix.test.com',
+                powerLevel: 50,
+            },
+        ],
+    };
 
     beforeEach(() => {
         notExistProject = faker.name.firstName().toUpperCase();
         roomNameNotGitProject = `${notExistProject}-123`;
         chatApi = testUtils.getChatApi({ existedUsers: [notAdminSender] });
-        baseOptions = { roomId, roomName, commandName, sender, chatApi };
+        baseOptions = {
+            roomId,
+            roomName,
+            commandName,
+            sender,
+            chatApi,
+            roomData,
+        };
         nock(testUtils.baseMedia)
             .get(`/${rawEventsData.mediaId}`)
             .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
@@ -80,7 +111,7 @@ describe('Archive command', () => {
         nock(utils.getRestUrl())
             .get(`/issue/${issueJSON.key}`)
             .reply(200, issueJSON)
-            .get(`/issue/${existingRoomName}`)
+            .get(`/issue/${issueKey}`)
             .reply(200, issueJSON)
             .get(`/issue/${roomNameNotGitProject}`)
             .reply(200, issueJSON)
@@ -155,6 +186,11 @@ describe('Archive command', () => {
             expect(result).to.deep.equal(messagesMD.split('\n'));
         });
 
+        it('Render info MD', () => {
+            const result = getRoomMainInfoMd(roomData).split('\n');
+            expect(result).to.deep.equal(infoMd.split('\n'));
+        });
+
         it.skip('Render HTML', () => {
             const result = getHTMLtext(messagesJSON);
             expect(result).to.deep.equal(messagesHTML);
@@ -163,9 +199,9 @@ describe('Archive command', () => {
 
     describe('gitPull', () => {
         const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
-        const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${existingRoomName}`;
+        const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
         const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
-        const expectedDefaultRepoLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/tree/master/${existingRoomName}`;
+        const expectedDefaultRepoLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/tree/master/${issueKey}`;
         let server;
         let tmpDir;
 
@@ -173,9 +209,9 @@ describe('Archive command', () => {
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             server = testUtils.startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
-            await testUtils.setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: existingRoomName });
+            await testUtils.setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: issueKey });
             await testUtils.setRepo(tmpDir.path, expectedDefaultRemote, {
-                roomName: existingRoomName,
+                roomName: issueKey,
             });
         });
 
@@ -186,26 +222,24 @@ describe('Archive command', () => {
 
         it('expect git pull send event data', async () => {
             const isJira = true;
-            const linkToRepo = await gitPullToRepo(config, rawEvents, existingRoomName, chatApi, isJira);
+            const linkToRepo = await gitPullToRepo(config, rawEvents, roomData, chatApi, isJira);
 
             expect(linkToRepo).to.eq(expectedRepoLink);
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
             const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
             expect(files).to.have.length(allEvents.length);
             expect(files).to.have.deep.members(allEvents);
 
-            const viewFilePath = path.resolve(tmpDir.path, cloneName, existingRoomName, VIEW_FILE_NAME);
+            const viewFilePath = path.resolve(tmpDir.path, cloneName, issueKey, VIEW_FILE_NAME);
             expect(fs.existsSync(viewFilePath)).to.be.true;
             const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
             expect(viewFileData).to.deep.equal(messagesWithBefore.split('\n'));
 
-            const mediaFiles = await fsProm.readdir(
-                path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
-            );
+            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
             const expectedMediaFileNames = [
                 `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
                 `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
@@ -217,32 +251,24 @@ describe('Archive command', () => {
 
         it('expect git pull send event data', async () => {
             const isJira = false;
-            const linkToRepo = await gitPullToRepo(
-                config,
-                [...rawEvents, eventBefore],
-                existingRoomName,
-                chatApi,
-                isJira,
-            );
+            const linkToRepo = await gitPullToRepo(config, [...rawEvents, eventBefore], roomData, chatApi, isJira);
 
             expect(linkToRepo).to.eq(expectedDefaultRepoLink);
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedDefaultRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
             const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
             expect(files).to.have.length(allEvents.length);
             expect(files).to.have.deep.members(allEvents);
 
-            const viewFilePath = path.resolve(tmpDir.path, cloneName, existingRoomName, VIEW_FILE_NAME);
+            const viewFilePath = path.resolve(tmpDir.path, cloneName, issueKey, VIEW_FILE_NAME);
             expect(fs.existsSync(viewFilePath)).to.be.true;
             const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
             expect(viewFileData).to.deep.equal(messagesWithBefore.split('\n'));
 
-            const mediaFiles = await fsProm.readdir(
-                path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
-            );
+            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
             const expectedMediaFileNames = [
                 `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
                 `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
@@ -256,7 +282,7 @@ describe('Archive command', () => {
             const result = await commandHandler({
                 ...baseOptions,
                 sender: adminSender.name,
-                roomName: existingRoomName,
+                roomName: issueKey,
             });
 
             expect(result).to.be.eq(translate('successExport', { link: expectedRepoLink }));
@@ -264,14 +290,17 @@ describe('Archive command', () => {
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
             const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
             expect(files).to.have.length(allEvents.length);
             expect(files).to.have.deep.members(allEvents);
 
-            const mediaFiles = await fsProm.readdir(
-                path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
-            );
+            const viewFilePath = path.resolve(tmpDir.path, cloneName, issueKey, VIEW_FILE_NAME);
+            expect(fs.existsSync(viewFilePath)).to.be.true;
+            const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
+            expect(viewFileData).to.deep.equal(messagesWithBefore.split('\n'));
+
+            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
             const expectedMediaFileNames = [
                 `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
                 `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
@@ -282,7 +311,7 @@ describe('Archive command', () => {
         });
 
         it('expect command succeded and all members are kicked', async () => {
-            const roomName = existingRoomName;
+            const roomName = issueKey;
             const result = await commandHandler({
                 ...baseOptions,
                 roomName,
@@ -295,14 +324,12 @@ describe('Archive command', () => {
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, existingRoomName, EVENTS_DIR_NAME));
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
             const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
             expect(files).to.have.length(allEvents.length);
             expect(files).to.have.deep.members(allEvents);
 
-            const mediaFiles = await fsProm.readdir(
-                path.resolve(tmpDir.path, cloneName, existingRoomName, MEDIA_DIR_NAME),
-            );
+            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
             const expectedMediaFileNames = [
                 `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
                 `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
