@@ -2,13 +2,13 @@ const logger = require('../../modules/log.js')(module);
 const translate = require('../../locales');
 const commands = require('./commands');
 
-module.exports = async ({ chatApi, sender, roomName, roomId, commandName, bodyText }) => {
+module.exports = async ({ chatApi, sender, roomName, roomId, commandName, bodyText, roomData }) => {
     try {
         const command = commands[commandName];
         if (!command) {
             return;
         }
-        const message = await command({ bodyText, roomId, roomName, sender, chatApi });
+        const message = await command({ bodyText, roomId, roomName, sender, chatApi, roomData });
 
         if (message) {
             await chatApi.sendHtmlMessage(roomId, message, message);

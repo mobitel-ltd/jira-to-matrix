@@ -115,7 +115,9 @@ module.exports = {
             kickUserByRoom: stub().callsFake(userId => userId),
         });
 
-        const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId }) => chatApi.getChatUserId(userId));
+        const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId, name }) =>
+            chatApi.getChatUserId(userId || name),
+        );
         chatApi.getRoomMembers = stub().resolves(allMembers);
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
