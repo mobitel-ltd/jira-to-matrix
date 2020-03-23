@@ -13,7 +13,7 @@ const getEvent = content => ({
 });
 
 // eslint-disable-next-line prettier/prettier
-const voidFunc = () => { };
+const voidFunc = () => {};
 
 const defaultLogger = {
     info: () => voidFunc,
@@ -45,6 +45,20 @@ module.exports = class Matrix extends MessengerAbstract {
         this.USER_ALREADY_IN_ROOM = 'is already in the room';
         this.postfix = `:${config.domain}`.length;
         this.logger = logger;
+    }
+
+    /**
+     * @returns {string} user id
+     */
+    getMyId() {
+        return this.config.user;
+    }
+
+    /**
+     * @returns {string} matrix user id
+     */
+    getBotId() {
+        return this.userId;
     }
 
     /**
@@ -218,6 +232,22 @@ module.exports = class Matrix extends MessengerAbstract {
 
         if (event.getStateKey() === this.userId) {
             await this.client.joinRoom(event.getRoomId());
+        }
+    }
+
+    /**
+     * Leave room by id
+     * @param {string} roomId matrix room id
+     */
+    async leaveRoom(roomId) {
+        try {
+            await this.client.leave(roomId);
+
+            return roomId;
+        } catch (err) {
+            this.logger.error(['Error in Matrix connection', err].join('\n'));
+
+            return false;
         }
     }
 
@@ -615,11 +645,14 @@ module.exports = class Matrix extends MessengerAbstract {
     /**
      * Get room id by name
      * @param {String} text roomname or alias
+     * @param {Boolean} notUpper transform to upper
      * @returns {Promise<String|false>} returns roomId or false if not exisits
      */
-    async getRoomIdByName(text) {
+    async getRoomIdByName(text, notUpper) {
         try {
-            const alias = this._isRoomAlias(text) ? text : this._getMatrixRoomAlias(text.toUpperCase());
+            const alias = this._isRoomAlias(text)
+                ? text
+                : this._getMatrixRoomAlias(notUpper ? text : text.toUpperCase());
             const { room_id: roomId } = await this.client.getRoomIdForAlias(alias);
 
             return roomId;
@@ -766,15 +799,18 @@ module.exports = class Matrix extends MessengerAbstract {
             const method = 'PUT';
             const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.member/${encodeURIComponent(userId)}`;
             const qweryParams = {};
-            const body = { membership: 'leave', reason: 'cick' };
+            const body = { membership: 'leave', reason: 'kick by bot' };
 
             await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
             this.logger.info(`Member ${userId} kicked from ${roomId}`);
 
             return userId;
         } catch (error) {
-            this.logger.error(`Error in request for kick ${userId} from ${roomId}.`);
-            this.logger.error(error);
+            const msg = utils.errorTracing(
+                `Error in request for kick ${userId} from ${roomId}.`,
+                JSON.stringify(error),
+            );
+            this.logger.error(msg);
         }
     }
 
@@ -844,7 +880,7 @@ module.exports = class Matrix extends MessengerAbstract {
     async deleteAliasByRoomName(aliasPart) {
         try {
             const alias = this._getMatrixRoomAlias(aliasPart);
-            const roomId = await this.getRoomIdByName(alias);
+            const roomId = await this.getRoomIdByName(alias, true);
             if (!roomId) {
                 this.logger.warn(`Alias ${alias} is not found!!!`);
 
@@ -855,7 +891,8 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return alias;
         } catch (err) {
-            this.logger.error(`Error while deleting alias:\n ${JSON.stringify(err)}`);
+            const msg = utils.errorTracing(`Error while deleting alias "${aliasPart}"`, JSON.stringify(err));
+            this.logger.error(msg);
         }
     }
 };

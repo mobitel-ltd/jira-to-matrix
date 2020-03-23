@@ -103,6 +103,7 @@ module.exports = {
             composeRoomName: stub().callsFake(realChatApi.composeRoomName.bind(realChatApi)),
             getAdmins: realChatApi.getAdmins(),
             getMyId: realChatApi.getMyId(),
+            getBotId: realChatApi.getBotId(),
             getNotifyData: realChatApi.getNotifyData(),
             isConnected: stub().returns(true),
             isInRoom: stub().resolves(true),

@@ -43,6 +43,22 @@ module.exports = class SlackApi extends MessengerAbstract {
     }
 
     /**
+     * Leave room by id
+     * @param {string} roomId matrix room id
+     */
+    leaveRoom(roomId) {
+        // TODO override
+    }
+
+    /**
+     * Get id
+     * @returns {string} user id
+     */
+    getBotId() {
+        return this.config.user;
+    }
+
+    /**
      * Slack event handler
      * @param {Object} eventBody slack event
      */

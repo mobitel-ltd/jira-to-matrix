@@ -71,10 +71,11 @@ const dict = Object.freeze({
     notCommandRoom: 'This command is not available in current room',
     alive: 'Bot "%{botId}" is connected',
     getInfo: 'All rooms = %{allRooms}<br>Single rooms = %{single}<br>Multiple joined members = %{many}',
-    archiveFail: 'Error git command for room with name "%{roomName}"',
+    archiveFail: 'Error git command for room with name "%{alias}"',
     successExport: 'Export finished %{link}',
     roomNotExistOrPermDen: 'Task not exist in jira or permition denied.',
     noAlias: 'No room alias. Add it and try again.',
+    noBotPower: 'Bot cannot do this operation in room %{alias}, needed power is %{power}',
 });
 
 module.exports.dict = dict;

@@ -13,7 +13,9 @@ module.exports = async ({ chatApi, sender, roomName, roomId, commandName, bodyTe
         if (message) {
             await chatApi.sendHtmlMessage(roomId, message, message);
         }
-        logger.debug(`${commandName} successfully executed by ${sender} in room ${roomName}`);
+        logger.debug(
+            `${commandName} successfully executed by ${sender} in room id "${roomId}" with alias "${roomName}"`,
+        );
 
         return message;
     } catch (err) {
