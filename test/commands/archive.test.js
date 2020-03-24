@@ -85,6 +85,7 @@ describe('Archive command', () => {
             powerLevel: 100,
         },
     ];
+
     const baseMembers = [...simpleMembers, ...admin];
 
     beforeEach(() => {
@@ -338,8 +339,9 @@ describe('Archive command', () => {
                 sender: adminSender.name,
                 roomName: issueKey,
             });
+            const expectedMsg = translate('successExport', { link: expectedRepoLink });
 
-            expect(result).to.be.eq(translate('successExport', { link: expectedRepoLink }));
+            expect(result).to.be.eq(expectedMsg);
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
@@ -362,9 +364,10 @@ describe('Archive command', () => {
             ];
             expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
             expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
+            expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
         });
 
-        it('expect command succeded and all members are kicked', async () => {
+        it('expect command succeded and all simple membera are kicked but admins not if they are exists', async () => {
             const roomName = issueKey;
             const result = await commandHandler({
                 ...baseOptions,
@@ -399,7 +402,58 @@ describe('Archive command', () => {
             simpleMembers.forEach(({ userId }) =>
                 expect(chatApi.kickUserByRoom).to.be.calledWithExactly({ roomId, userId }),
             );
+            expect(chatApi.deleteAliasByRoomName).not.to.be.called;
+            expect(chatApi.leaveRoom).to.be.calledWithExactly(roomData.id);
+            const expectedMsg = [
+                translate('successExport', { link: expectedRepoLink }),
+                translate('adminsAreNotKicked'),
+            ].join('<br>');
+            expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
+        });
+
+        it('expect command succeded but bot cannot and all users are kicked if not other admins', async () => {
+            const roomName = issueKey;
+            const roomDataWihotAdmins = {
+                ...roomData,
+                members: [
+                    ...simpleMembers,
+                    {
+                        userId: `@${chatApi.getMyId()}:matrix.test.com`,
+                        powerLevel: 100,
+                    },
+                ],
+            };
+            const result = await commandHandler({
+                ...baseOptions,
+                roomData: roomDataWihotAdmins,
+                roomName,
+                sender: adminSender.name,
+                bodyText: KICK_ALL_OPTION,
+            });
+            expect(result).to.be.undefined;
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(tmpDir.path);
+            await gitLocal.clone(expectedRemote, cloneName);
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
+            const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
+            expect(files).to.have.length(allEvents.length);
+            expect(files).to.have.deep.members(allEvents);
+
+            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
+            const expectedMediaFileNames = [
+                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
+                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
+                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
+            ];
+            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
+            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
+            simpleMembers.forEach(({ userId }) =>
+                expect(chatApi.kickUserByRoom).to.be.calledWithExactly({ roomId, userId }),
+            );
             expect(chatApi.deleteAliasByRoomName).to.be.calledWithExactly(roomData.alias);
+            expect(chatApi.leaveRoom).to.be.calledWithExactly(roomData.id);
+            expect(chatApi.sendHtmlMessage).not.to.be.called;
         });
 
         it('expect command succeded but bot cannot kick anybody if power is less than 100', async () => {
@@ -423,7 +477,7 @@ describe('Archive command', () => {
             });
             const expectedMsg = [
                 translate('successExport', { link: expectedRepoLink }),
-                translate('noBotPower', { alias: roomData.alias, power: 100 }),
+                translate('noBotPower', { power: 100 }),
             ].join('<br>');
 
             expect(result).to.eq(expectedMsg);
@@ -446,6 +500,7 @@ describe('Archive command', () => {
             expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
             expect(chatApi.kickUserByRoom).not.to.be.called;
             expect(chatApi.deleteAliasByRoomName).not.to.be.called;
+            expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
         });
 
         it('command cannot be succeded if such project is not exists in git repo', async () => {

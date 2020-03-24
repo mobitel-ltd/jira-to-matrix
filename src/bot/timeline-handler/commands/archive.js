@@ -20,9 +20,12 @@ const FILE_DELIMETER = '__';
 const DEFAULT_EXT = '.png';
 const KICK_ALL_OPTION = 'kickall';
 const VIEW_FILE_NAME = 'README.md';
-const ROOM_KILLED = 'Room killed!';
 const NO_OPTION = 'No option';
 const NO_POWER = 'No power';
+const ADMINS_EXISTS = 'admins exists';
+const ALL_DELETED = 'all deleted';
+
+const EXPECTED_POWER = 100;
 
 const getName = (url, delim) => R.pipe(R.split(delim), R.last)(url);
 
@@ -254,7 +257,13 @@ const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, cha
  * @returns {{simpleUsers: string[], admins: string[], bot: string[]}} grouped users
  */
 const getGroupedUsers = (members, botId) => {
-    const getGroup = user => (user.powerLevel < 100 ? 'simpleUsers' : user.userId === botId ? 'bot' : 'admins');
+    const getGroup = user => {
+        if (user.powerLevel < EXPECTED_POWER) {
+            return 'simpleUsers';
+        }
+
+        return user.userId.includes(botId) ? 'bot' : 'admins';
+    };
 
     const res = R.pipe(R.groupBy(getGroup), R.map(R.map(R.path(['userId']))))(members);
 
@@ -272,18 +281,19 @@ const kickAllInRoom = async (chatApi, roomId, members) => {
         return { userId, isKicked: Boolean(res) };
     };
 
-    const groupedData = getGroupedUsers(members, chatApi.userId);
+    const groupedData = getGroupedUsers(members, chatApi.getMyId());
 
     const kickedUsers = await Promise.all(groupedData.simpleUsers.map(kickOne));
-
     const viewRes = kickedUsers.map(({ userId, isKicked }) => `${userId} ---- ${isKicked}`).join('\n');
     logger.debug(`Result of kicking users from room with id "${roomId}"\n${viewRes}`);
-    logger.debug(`Room have admins which bot cannot kick:\n ${groupedData.admins.join('\n')}`);
 
-    return {
-        kickedUsers,
-        admins: groupedData.admins,
-    };
+    if (groupedData.admins.length) {
+        logger.debug(`Room have admins which bot cannot kick:\n ${groupedData.admins.join('\n')}`);
+
+        return ADMINS_EXISTS;
+    }
+
+    return ALL_DELETED;
 };
 
 const roomNameHasJiraProject = async roomName => {
@@ -311,20 +321,19 @@ const kick = async (chatApi, bodyText, roomData) => {
         return NO_OPTION;
     }
 
-    if (!hasPowerToKick(chatApi.getMyId(), roomData.members, 100)) {
+    if (!hasPowerToKick(chatApi.getMyId(), roomData.members, EXPECTED_POWER)) {
         logger.debug(`No power for kick in room with id ${roomData.id}`);
 
         return NO_POWER;
     }
 
-    await kickAllInRoom(chatApi, roomData.id, roomData.members);
-    // Only in rooms where bot is creator
-    await chatApi.deleteAliasByRoomName(roomData.alias);
-    await chatApi.leaveRoom(roomData.id);
+    const deleteStatus = await kickAllInRoom(chatApi, roomData.id, roomData.members);
+    if (deleteStatus === ALL_DELETED) {
+        // Only in rooms where bot is creator
+        await chatApi.deleteAliasByRoomName(roomData.alias);
+    }
 
-    logger.info(`Room alias ${roomData.alias} deleted and all members are kicked in room with id ${roomData.id}`);
-
-    return ROOM_KILLED;
+    return deleteStatus;
 };
 
 const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
@@ -359,19 +368,29 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
 
     logger.debug(`Git push successfully complited in room ${roomId}!!!`);
 
-    const successMsg = translate('successExport', { link: repoLink });
-
     const kickRes = await kick(chatApi, bodyText, roomData);
 
-    switch (kickRes) {
-        case ROOM_KILLED:
-            return;
-        case NO_OPTION:
-            return successMsg;
-        case NO_POWER: {
-            const msg = translate('noBotPower', { alias, power: 100 });
+    const successExoprtMsg = translate('successExport', { link: repoLink });
 
-            return [successMsg, msg].join('<br>');
+    switch (kickRes) {
+        case ALL_DELETED: {
+            // all are deleted and no message is needed
+            await chatApi.leaveRoom(roomData.id);
+            return;
+        }
+        case NO_OPTION: {
+            return successExoprtMsg;
+        }
+        case NO_POWER: {
+            const msg = translate('noBotPower', { power: EXPECTED_POWER });
+
+            return [successExoprtMsg, msg].join('<br>');
+        }
+        case ADMINS_EXISTS: {
+            const msg = translate('adminsAreNotKicked');
+            const sendedMsg = [successExoprtMsg, msg].join('<br>');
+            await chatApi.sendHtmlMessage(roomData.id, sendedMsg, sendedMsg);
+            await chatApi.leaveRoom(roomData.id);
         }
     }
 };

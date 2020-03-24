@@ -75,7 +75,8 @@ const dict = Object.freeze({
     successExport: 'Export finished %{link}',
     roomNotExistOrPermDen: 'Task not exist in jira or permition denied.',
     noAlias: 'No room alias. Add it and try again.',
-    noBotPower: 'Bot cannot do this operation in room %{alias}, needed power is %{power}',
+    noBotPower: 'Bot cannot do this operation, needed power is %{power}',
+    adminsAreNotKicked: 'Бот не смог удалить администраторов данной комнаты',
 });
 
 module.exports.dict = dict;
