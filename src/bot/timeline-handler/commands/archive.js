@@ -20,6 +20,12 @@ const FILE_DELIMETER = '__';
 const DEFAULT_EXT = '.png';
 const KICK_ALL_OPTION = 'kickall';
 const VIEW_FILE_NAME = 'README.md';
+const NO_OPTION = 'No option';
+const NO_POWER = 'No power';
+const ADMINS_EXISTS = 'admins exists';
+const ALL_DELETED = 'all deleted';
+
+const EXPECTED_POWER = 100;
 
 const getName = (url, delim) => R.pipe(R.split(delim), R.last)(url);
 
@@ -100,8 +106,8 @@ const getMDtext = events =>
         .join(`\n\n---\n\n`)
         .concat('\n');
 
-const getHTMLtext = events =>
-    events.map(({ author, date, body }) => [date, author, body].join('<br>')).join(`\n<br><hr>`);
+// const getHTMLtext = events =>
+//     events.map(({ author, date, body }) => [date, author, body].join('<br>')).join(`\n<br><hr>`);
 
 const getProjectRemote = (baseRemote, projectKey) => {
     const projectExt = projectKey.toLowerCase().concat('.git');
@@ -245,26 +251,49 @@ const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, cha
     }
 };
 
-const kickAllInRoom = async (chatApi, roomId, admins) => {
+/**
+ * @param {{userId: string, powerLevel: number}[]} members room members
+ * @param {string} botId bot user Id
+ * @returns {{simpleUsers: string[], admins: string[], bot: string[]}} grouped users
+ */
+const getGroupedUsers = (members, botId) => {
+    const getGroup = user => {
+        if (user.powerLevel < EXPECTED_POWER) {
+            return 'simpleUsers';
+        }
+
+        return user.userId.includes(botId) ? 'bot' : 'admins';
+    };
+
+    const res = R.pipe(R.groupBy(getGroup), R.map(R.map(R.path(['userId']))))(members);
+
+    return {
+        admins: res.admins || [],
+        simpleUsers: res.simpleUsers || [],
+        bot: res.bot || [],
+    };
+};
+
+const kickAllInRoom = async (chatApi, roomId, members) => {
     const kickOne = async userId => {
         const res = await chatApi.kickUserByRoom({ roomId, userId });
 
         return { userId, isKicked: Boolean(res) };
     };
 
-    const members = await chatApi.getRoomMembers({ roomId });
+    const groupedData = getGroupedUsers(members, chatApi.getMyId());
 
-    const membersNotAdmins = R.difference(members, admins).filter(Boolean);
-
-    const kickedUsers = await Promise.all(membersNotAdmins.map(kickOne));
-    const kickedAdmins = await Promise.all(admins.map(kickOne));
-
-    const res = [...kickedUsers, ...kickedAdmins];
-
-    const viewRes = res.map(({ userId, isKicked }) => `${userId} ---- ${isKicked}`).join('\n');
+    const kickedUsers = await Promise.all(groupedData.simpleUsers.map(kickOne));
+    const viewRes = kickedUsers.map(({ userId, isKicked }) => `${userId} ---- ${isKicked}`).join('\n');
     logger.debug(`Result of kicking users from room with id "${roomId}"\n${viewRes}`);
 
-    return res;
+    if (groupedData.admins.length) {
+        logger.debug(`Room have admins which bot cannot kick:\n ${groupedData.admins.join('\n')}`);
+
+        return ADMINS_EXISTS;
+    }
+
+    return ALL_DELETED;
 };
 
 const roomNameHasJiraProject = async roomName => {
@@ -277,12 +306,44 @@ const roomNameHasJiraProject = async roomName => {
     }
 };
 
-const archive = async ({ bodyText, roomId, roomName, sender, chatApi, roomData }) => {
-    if (!roomName) {
+const hasKickOption = bodyText => bodyText && bodyText.includes(KICK_ALL_OPTION);
+
+const hasPowerToKick = (botId, members, expectedPower) => {
+    const botData = members.find(user => user.userId.includes(botId));
+
+    return botData && botData.powerLevel === expectedPower;
+};
+
+const kick = async (chatApi, bodyText, roomData) => {
+    if (!hasKickOption(bodyText)) {
+        logger.debug(`Command was made without kick option in room with id ${roomData.id}`);
+
+        return NO_OPTION;
+    }
+
+    if (!hasPowerToKick(chatApi.getMyId(), roomData.members, EXPECTED_POWER)) {
+        logger.debug(`No power for kick in room with id ${roomData.id}`);
+
+        return NO_POWER;
+    }
+
+    const deleteStatus = await kickAllInRoom(chatApi, roomData.id, roomData.members);
+    if (deleteStatus === ALL_DELETED) {
+        // Only in rooms where bot is creator
+        await chatApi.deleteAliasByRoomName(roomData.alias);
+    }
+
+    return deleteStatus;
+};
+
+const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
+    const { alias } = roomData;
+    if (!alias) {
         return translate('noAlias');
     }
-    const issue = await jiraRequests.getIssueSafety(roomName);
-    const isRoomJiraProject = await roomNameHasJiraProject(roomName);
+
+    const issue = await jiraRequests.getIssueSafety(alias);
+    const isRoomJiraProject = await roomNameHasJiraProject(alias);
     if (!issue && isRoomJiraProject) {
         return translate('roomNotExistOrPermDen');
     }
@@ -302,20 +363,36 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi, roomData }
     const allEvents = await chatApi.getAllEventsFromRoom(roomId);
     const repoLink = await gitPullToRepo(config, allEvents, roomData, chatApi, isRoomJiraProject);
     if (!repoLink) {
-        return translate('archiveFail', { roomName });
+        return translate('archiveFail', { alias });
     }
 
     logger.debug(`Git push successfully complited in room ${roomId}!!!`);
 
-    if (bodyText && bodyText.includes(KICK_ALL_OPTION)) {
-        await kickAllInRoom(chatApi, roomId, matrixRoomAdminsId);
-        await chatApi.deleteAliasByRoomName(roomName);
+    const kickRes = await kick(chatApi, bodyText, roomData);
 
-        // cannot send message because no one is in room
-        return;
+    const successExoprtMsg = translate('successExport', { link: repoLink });
+
+    switch (kickRes) {
+        case ALL_DELETED: {
+            // all are deleted and no message is needed
+            await chatApi.leaveRoom(roomData.id);
+            return;
+        }
+        case NO_OPTION: {
+            return successExoprtMsg;
+        }
+        case NO_POWER: {
+            const msg = translate('noBotPower', { power: EXPECTED_POWER });
+
+            return [successExoprtMsg, msg].join('<br>');
+        }
+        case ADMINS_EXISTS: {
+            const msg = translate('adminsAreNotKicked');
+            const sendedMsg = [successExoprtMsg, msg].join('<br>');
+            await chatApi.sendHtmlMessage(roomData.id, sendedMsg, sendedMsg);
+            await chatApi.leaveRoom(roomData.id);
+        }
     }
-
-    return translate('successExport', { link: repoLink });
 };
 
 module.exports = {
@@ -323,7 +400,7 @@ module.exports = {
     DEFAULT_EXT,
     getMediaFileData,
     archive,
-    getHTMLtext,
+    // getHTMLtext,
     getMDtext,
     gitPullToRepo,
     roomNameHasJiraProject,
@@ -336,4 +413,6 @@ module.exports = {
     FILE_DELIMETER,
     kickAllInRoom,
     getRoomMainInfoMd,
+    getGroupedUsers,
+    kick,
 };

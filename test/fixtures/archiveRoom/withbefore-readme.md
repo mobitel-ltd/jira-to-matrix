@@ -4,8 +4,9 @@
 * roomId: roomId
 * members(power level):
     - @member1:matrix.test.com(0)
-    - @member2:matrix.test.com(100)
-    - @member3:matrix.test.com(50)
+    - @member2:matrix.test.com(50)
+    - @member3:matrix.test.com(100)
+    - @jira_test_bot:matrix.test.com(100)
 
 [2020-01-01T00:00:00.000Z](./res/$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA.json)  
 @bb_borisov:matrix.example.com  

@@ -6,11 +6,11 @@ module.exports = {
         admins: ['jira_test'],
         domain: faker.internet.domainName(),
         eventPort: 3001,
-        user: 'jirabot',
+        user: 'jira_test_bot',
         password: faker.random.uuid(),
         bots: [
             {
-                user: 'jirabot',
+                user: 'jira_test_bot',
                 password: faker.random.uuid(),
             },
         ],
