@@ -18,7 +18,10 @@ const rawEvents = require('../fixtures/archiveRoom/raw-events');
 const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
 
-const roomAdmins = [{ name: 'admin1', displayName: 'Room Admin 1' }, { name: 'admin2', displayName: 'Room Admin 2' }];
+const roomAdmins = [
+    { name: 'admin1', displayName: 'Room Admin 1' },
+    { name: 'admin2', displayName: 'Room Admin 2' },
+];
 
 // const roomAdmins3 = ['Room Admin 1', 'Room Admin 2'];
 
@@ -108,18 +111,13 @@ module.exports = {
             getRoomAdmins: stub().resolves([]),
             getAllMessagesFromRoom: stub().resolves(allMessagesFromRoom),
             getAllEventsFromRoom: stub().resolves(rawEvents),
-            getDownloadLink: stub().callsFake(el =>
-                getMediaLink(
-                    R.pipe(
-                        R.split('/'),
-                        R.last,
-                    )(el),
-                ),
-            ),
+            getDownloadLink: stub().callsFake(el => getMediaLink(R.pipe(R.split('/'), R.last)(el))),
             kickUserByRoom: stub().callsFake(userId => userId),
         });
 
-        const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId }) => chatApi.getChatUserId(userId));
+        const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId, name }) =>
+            chatApi.getChatUserId(userId || name),
+        );
         chatApi.getRoomMembers = stub().resolves(allMembers);
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
@@ -195,7 +193,7 @@ module.exports = {
     },
 
     setRepo: async (basePath, remote, { pathToExistFixtures, roomName }) => {
-        const tmpPath = path.resolve(basePath, `git-init-${faker.random.alphaNumeric()}`);
+        const tmpPath = path.resolve(basePath, `git-init-${faker.random.alphaNumeric(10)}`);
         await fs.mkdir(tmpPath);
         await fs.writeFile(path.join(tmpPath, 'readme.txt'));
         if (pathToExistFixtures) {

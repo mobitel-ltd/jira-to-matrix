@@ -12,11 +12,14 @@ const getEvent = content => ({
     getContent: () => content,
 });
 
+// eslint-disable-next-line prettier/prettier
+const voidFunc = () => { };
+
 const defaultLogger = {
-    info: () => {},
-    error: () => {},
-    warn: () => {},
-    debug: () => {},
+    info: () => voidFunc,
+    error: () => voidFunc,
+    warn: () => voidFunc,
+    debug: () => voidFunc,
 };
 
 module.exports = class Matrix extends MessengerAbstract {
@@ -54,6 +57,19 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * Get name from matrix id
+     * @param {string} id matrix alias or name
+     * @returns {(string|undefined)} return id
+     */
+    _getNameFromMatrixId(id) {
+        if (id) {
+            const [name] = id.split(':').slice(0, 1);
+
+            return name.slice(1);
+        }
+    }
+
+    /**
      * Matrix events handler
      * @param {Object} event from matrix
      * @param {Object} room matrix room
@@ -65,7 +81,7 @@ module.exports = class Matrix extends MessengerAbstract {
                 return;
             }
 
-            const sender = utils.getNameFromMatrixId(event.getSender());
+            const sender = this._getNameFromMatrixId(event.getSender());
 
             const { body } = event.getContent();
 
@@ -75,8 +91,11 @@ module.exports = class Matrix extends MessengerAbstract {
                 return;
             }
 
-            const roomName = utils.getNameFromMatrixId(room.getCanonicalAlias());
+            const roomData = this.getRoomData(room);
+            const roomName = roomData.alias;
+
             const options = {
+                roomData,
                 chatApi: this,
                 sender,
                 roomName,
@@ -87,7 +106,11 @@ module.exports = class Matrix extends MessengerAbstract {
 
             await this.commandsHandler(options);
         } catch (err) {
-            this.logger.error('Error while handling event from Matrix', err, event, room);
+            const errMsg = utils.errorTracing(
+                `Error while handling event from Matrix room "${room.name}" ${room.roomId}`,
+                err,
+            );
+            this.logger.error(errMsg);
         }
     }
 
@@ -165,7 +188,7 @@ module.exports = class Matrix extends MessengerAbstract {
     async _startClient() {
         try {
             await this._createClient();
-            this.client.startClient({ initialSyncLimit: 1 });
+            this.client.startClient();
 
             return new Promise(this._executor.bind(this));
         } catch (err) {
@@ -229,8 +252,7 @@ module.exports = class Matrix extends MessengerAbstract {
             this._removeListener('event', this._inviteBot.bind(this), this.client);
 
             if (state !== 'SYNCING' || prevState !== 'SYNCING') {
-                this.logger.warn(`state: ${state}`);
-                this.logger.warn(`prevState: ${prevState}`);
+                this.logger.warn(`state is ${state}, prevState is ${prevState} for bot with id ${this.config.user}`);
             }
         });
 
@@ -339,6 +361,29 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * Get room data
+     * @param {Room} room matrix room
+     * @returns {{alias: ?string, name: string, members: {userId: string, level: number}[], topic: string}} room data
+     */
+    getRoomData(room) {
+        const alias = this._getNameFromMatrixId(room.getCanonicalAlias()) || null;
+        const joinedMembers = room.getJoinedMembers();
+        const topicEvent = room.currentState.getStateEvents('m.room.topic', '');
+        const topic = topicEvent && Ramda.path(['topic'], topicEvent.getContent());
+
+        return {
+            id: room.roomId,
+            alias,
+            name: room.name,
+            topic,
+            members: joinedMembers.map(({ userId, powerLevel }) => ({
+                userId,
+                powerLevel,
+            })),
+        };
+    }
+
+    /**
      * Get rooms from matrix
      * @returns {array} matrix rooms
      */
@@ -417,7 +462,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return joinedMembers.map(({ userId }) => userId);
         } catch (err) {
-            throw [`Error while getting matrix members from room ${name}`, err].join('\n');
+            throw [`Error while getting matrix members from room ${name || roomId}`, err].join('\n');
         }
     }
 

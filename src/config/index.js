@@ -31,8 +31,9 @@ const composeConfig = config => {
         // http is for test only to send to local git server
         const protocol = config.gitArchive.protocol || 'https';
         const baseRemote = `${protocol}://${config.gitArchive.user}:${config.gitArchive.password}@${config.gitArchive.repoPrefix}`;
+        const baseLink = `${protocol}://${config.gitArchive.repoPrefix}`;
 
-        return { ...config, messenger, baseRemote };
+        return { ...config, messenger, baseRemote, baseLink };
     }
 
     return { ...config, messenger };

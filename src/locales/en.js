@@ -69,12 +69,12 @@ const dict = Object.freeze({
     invalidCommand:
         'Command is invalid, Use all params.<br>!autoinvite <b>add | del</b> <b>TaskType</b> <b>chatUser</b><br>For example:<br>!autoinvite add Task ii_petrov',
     notCommandRoom: 'This command is not available in current room',
-    alive: 'Bot "%{botId}" is connected!!!',
+    alive: 'Bot "%{botId}" is connected',
     getInfo: 'All rooms = %{allRooms}<br>Single rooms = %{single}<br>Multiple joined members = %{many}',
     archiveFail: 'Error git command for room with name "%{roomName}"',
-    successExport: 'Export successfully finished!!!',
-    exportWithKick: 'Export successfully finished and all room members are kicked!!!',
+    successExport: 'Export finished %{link}',
     roomNotExistOrPermDen: 'Task not exist in jira or permition denied.',
+    noAlias: 'No room alias. Add it and try again.',
 });
 
 module.exports.dict = dict;

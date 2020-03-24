@@ -77,25 +77,20 @@ const dict = Object.freeze({
     invalidCommand:
         'Команда введена неверно, укажите все необходимые параметры.<br>!autoinvite <b>add | del</b> <b>TaskType</b> <b>chatUser</b><br>Например:<br>!autoinvite add Task ii_petrov',
     notCommandRoom: 'Команда недоступна в этой комнате',
-    alive: 'Бот "%{botId}" подключен!!!',
+    alive: 'Бот "%{botId}" подключен',
     getInfo: 'Всего комнат = %{allRooms}<br>Только с ботом = %{single}<br>С двумя и более пользователями = %{many}',
     archiveFail:
         'Ошибка при попытке экспортировать данные комнаты "%{roomName}", проверьте его существование в удаленном репозитории',
-    successExport: 'Экспорт данных успешно совершен!!!',
-    exportWithKick: 'Экспорт данных успешно совершен и в комнате нет больше участников!!!',
+    successExport: 'Экспорт совершен %{link}',
     roomNotExistOrPermDen: 'Задачи в jira не существует, либо недостаточно полномочий на ее просмотр.',
+    noAlias: 'Алиас у комнаты отсутствует. Добавьте его и повторите операцию.',
 });
 /* spell-checker: enable */
 
 const getGenderVerbEnding = function getGenderVerbEnding(fullName) {
     const getGender = Ramda.pipe(
         Ramda.split(/\s+/),
-        Ramda.map(
-            Ramda.pipe(
-                Ramda.trim,
-                Ramda.toLower,
-            ),
-        ),
+        Ramda.map(Ramda.pipe(Ramda.trim, Ramda.toLower)),
         Ramda.reduce((result, part) => {
             const gender = names[part];
             return gender ? Ramda.reduced(gender) : undefined;

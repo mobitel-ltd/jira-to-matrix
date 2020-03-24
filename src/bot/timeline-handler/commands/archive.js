@@ -21,11 +21,7 @@ const DEFAULT_EXT = '.png';
 const KICK_ALL_OPTION = 'kickall';
 const VIEW_FILE_NAME = 'README.md';
 
-const getName = (url, delim) =>
-    R.pipe(
-        R.split(delim),
-        R.last,
-    )(url);
+const getName = (url, delim) => R.pipe(R.split(delim), R.last)(url);
 
 const getMediaFileData = (url, { imageName, msgtype }) => {
     const imageId = getName(url, '/');
@@ -113,6 +109,13 @@ const getProjectRemote = (baseRemote, projectKey) => {
     return [baseRemote, projectExt].join('/');
 };
 
+const getRepoLink = (baseLink, projectKey, roomName) => {
+    const projectExt = projectKey.toLowerCase();
+
+    // to get link visible
+    return [baseLink, projectExt, 'tree', 'master', roomName].join('/');
+};
+
 const transformEvent = event => {
     // TODO add recursive
     const pureEvent = R.pipe(
@@ -171,7 +174,19 @@ const getAllEventsData = async repoRoomResPath => {
     return data;
 };
 
-const writeEventsData = async (events, basePath, chatApi) => {
+const getRoomMainInfoMd = ({ id, alias, name, topic, members }) => {
+    const aliasBlock = `# ${alias}`;
+    const nameBlock = ['*', 'room name:', name].join(' ');
+    const topicBlock = ['*', 'topic:', topic].join(' ');
+    const roomidBlock = ['*', 'roomId:', id].join(' ');
+    const membersGroup = members.map(item => `    - ${item.userId}(${item.powerLevel})`).join('\n');
+
+    const membersBlock = ['* members(power level):', membersGroup].join('\n');
+
+    return [aliasBlock, nameBlock, topicBlock, roomidBlock, membersBlock].join('\n');
+};
+
+const writeEventsData = async (events, basePath, chatApi, roomData) => {
     const repoRoomResPath = path.resolve(basePath, EVENTS_DIR_NAME);
     if (!fileSystem.existsSync(repoRoomResPath)) {
         await fs.mkdir(repoRoomResPath, { recursive: true });
@@ -182,8 +197,10 @@ const writeEventsData = async (events, basePath, chatApi) => {
 
     // render and save view file
     const allEventsRepoData = await getAllEventsData(repoRoomResPath);
-    const renderedText = getMDtext(allEventsRepoData);
-    await fs.writeFile(path.join(basePath, VIEW_FILE_NAME), renderedText);
+    const messagesText = getMDtext(allEventsRepoData);
+    const infoDataText = getRoomMainInfoMd(roomData);
+    const fullText = [infoDataText, messagesText].join('\n\n');
+    await fs.writeFile(path.join(basePath, VIEW_FILE_NAME), fullText);
 
     // save media
     const eventsMediaLinks = getEventsMediaLinks(events, chatApi);
@@ -196,18 +213,18 @@ const writeEventsData = async (events, basePath, chatApi) => {
     return savedEvents;
 };
 
-const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi, isRoomJiraProject) => {
+const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, chatApi, isRoomJiraProject) => {
     const { path: tmpPath, cleanup } = await tmp.dir({ unsafeCleanup: true });
     try {
-        const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomName) : DEFAULT_REMOTE_NAME;
+        const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomData.alias) : DEFAULT_REMOTE_NAME;
         const remote = getProjectRemote(baseRemote, projectKey);
         await git(tmpPath).clone(remote, projectKey);
         logger.debug(`clone repo by project key ${projectKey} is succedded to tmp dir ${tmpPath}`);
         const repoPath = path.resolve(tmpPath, projectKey);
-        const repoRoomPath = path.resolve(repoPath, roomName);
+        const repoRoomPath = path.resolve(repoPath, roomData.alias);
 
-        const createdFileNames = await writeEventsData(listEvents, repoRoomPath, chatApi);
-        logger.debug(`File creation for ${createdFileNames.length} events is succedded for room name ${roomName}!!!`);
+        const createdFileNames = await writeEventsData(listEvents, repoRoomPath, chatApi, roomData);
+        logger.debug(`File creation for ${createdFileNames.length} events is succedded for room ${roomData.alias}!!!`);
 
         const repoGit = git(repoPath);
 
@@ -215,10 +232,12 @@ const gitPullToRepo = async (baseRemote, listEvents, roomName, chatApi, isRoomJi
         await repoGit.addConfig('user.email', 'bot@example.com');
 
         await repoGit.add('./*');
-        await repoGit.commit(`set event data for room ${roomName}`);
+        await repoGit.commit(`set event data for room ${roomData.alias}`);
         await repoGit.push('origin', 'master');
 
-        return remote;
+        const link = getRepoLink(baseLink, projectKey, roomData.alias);
+
+        return link;
     } catch (err) {
         logger.error(err);
     } finally {
@@ -232,6 +251,7 @@ const kickAllInRoom = async (chatApi, roomId, admins) => {
 
         return { userId, isKicked: Boolean(res) };
     };
+
     const members = await chatApi.getRoomMembers({ roomId });
 
     const membersNotAdmins = R.difference(members, admins).filter(Boolean);
@@ -257,7 +277,10 @@ const roomNameHasJiraProject = async roomName => {
     }
 };
 
-const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
+const archive = async ({ bodyText, roomId, roomName, sender, chatApi, roomData }) => {
+    if (!roomName) {
+        return translate('noAlias');
+    }
     const issue = await jiraRequests.getIssueSafety(roomName);
     const isRoomJiraProject = await roomNameHasJiraProject(roomName);
     if (!issue && isRoomJiraProject) {
@@ -277,8 +300,8 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
     }
 
     const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-    const remote = await gitPullToRepo(config.baseRemote, allEvents, roomName, chatApi, isRoomJiraProject);
-    if (!remote) {
+    const repoLink = await gitPullToRepo(config, allEvents, roomData, chatApi, isRoomJiraProject);
+    if (!repoLink) {
         return translate('archiveFail', { roomName });
     }
 
@@ -292,7 +315,7 @@ const archive = async ({ bodyText, roomId, roomName, sender, chatApi }) => {
         return;
     }
 
-    return translate('successExport');
+    return translate('successExport', { link: repoLink });
 };
 
 module.exports = {
@@ -312,4 +335,5 @@ module.exports = {
     getImageData,
     FILE_DELIMETER,
     kickAllInRoom,
+    getRoomMainInfoMd,
 };
