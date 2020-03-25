@@ -1,5 +1,7 @@
 /* eslint-disable camelcase */
 const dict = Object.freeze({
+    successProjectAddToArchive: 'Project "%{projectKey}" is added to archive',
+    emptyProject: 'Add project name',
     notAdmin: 'User "%{sender}" don\'t have admin status for this command',
     setBotToAdmin: 'Incorrect bot status in project [%{projectKey}](%viewUrl), ask admin for help',
     noRulesToWatchIssue: "Bot don't have permission to watch or make actions in this Jira issue",

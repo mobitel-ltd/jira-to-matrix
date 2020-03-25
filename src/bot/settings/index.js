@@ -15,6 +15,10 @@ const getAllSettingData = async prefix => {
     return data ? JSON.parse(data) : {};
 };
 
+const setArchiveProject = projectKey => redis.addToList(utils.ARCHIVE_PROJECT, projectKey);
+
+const getArchiveProject = () => redis.getList(utils.ARCHIVE_PROJECT);
+
 const getAliases = () => redis.getList(utils.REDIS_ALIASES);
 
 const setAlias = alias => redis.addToList(utils.REDIS_ALIASES, alias);
@@ -58,6 +62,8 @@ const getAutoinviteUsers = async (projectKey, typeName) => {
 };
 
 module.exports = {
+    setArchiveProject,
+    getArchiveProject,
     setAlias,
     getAliases,
     getAllSettingData,

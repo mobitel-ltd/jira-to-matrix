@@ -12,6 +12,7 @@ const autoinvite = require('./autoinvite.js');
 const alive = require('./alive');
 const getInfo = require('./getInfo');
 const { archive } = require('./archive');
+const projectArchive = require('./archive-project');
 
 module.exports = {
     comment,
@@ -28,4 +29,5 @@ module.exports = {
     alive,
     getInfo,
     archive,
+    'project-archive': projectArchive,
 };

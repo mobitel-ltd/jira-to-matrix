@@ -31,6 +31,8 @@ const dict = Object.freeze({
     successMatrixInvite: 'Пользователь %{sender} приглашен в комнату %{roomName}',
     successMatrixAssign: 'Пользователь "%{displayName}" назначен исполнителем задачи',
     emptyMatrixComment: 'Добавьте текст комментария',
+    emptyProject: 'Добавьте имя проекта',
+    successProjectAddToArchive: 'Проект "%{projectKey}" добавлен для архивирования',
     successMatrixComment: 'Комментарий опубликован',
     listJiraCommand: 'Список доступных команд',
     notFoundMove: 'Новый статус с именем "%{bodyText}" не найден',

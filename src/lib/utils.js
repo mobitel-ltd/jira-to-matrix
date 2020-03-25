@@ -17,6 +17,7 @@ const REDIS_IGNORE_PREFIX = 'ignore:project';
 const REDIS_INVITE_PREFIX = 'invite:project';
 const REDIS_ALIASES = 'aliases';
 const HANDLED_KEY = 'handled';
+const ARCHIVE_PROJECT = 'clearProject';
 
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [
@@ -27,6 +28,7 @@ const KEYS_TO_IGNORE = [
     REDIS_INVITE_PREFIX,
     HANDLED_KEY,
 ];
+
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
@@ -528,6 +530,7 @@ module.exports = {
     REDIS_IGNORE_PREFIX,
     REDIS_INVITE_PREFIX,
     REDIS_ALIASES,
+    ARCHIVE_PROJECT,
     COMMON_NAME,
     NO_ROOM_PATTERN,
     END_NO_ROOM_PATTERN,
