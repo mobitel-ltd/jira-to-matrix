@@ -106,7 +106,9 @@ const helpCommand = {
 };
 
 module.exports = ({ bodyText }) => {
+    console.log('bodyText', bodyText);
     if (!bodyText) {
+        console.log('link');
         return `${pathToDocs}/${lang}/commands.md`;
     }
     const { [bodyText]: helpTextCommand } = helpCommand;
@@ -114,5 +116,7 @@ module.exports = ({ bodyText }) => {
         return `Such command - ${bodyText} not exist`;
     }
 
-    return helpTextCommand;
+    console.log('helpTextCommand', helpTextCommand);
+    return `${pathToDocs}/${lang}/commands.md#${bodyText}`;
+    // return helpTextCommand;
 };

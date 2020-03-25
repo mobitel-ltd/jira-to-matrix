@@ -9,6 +9,7 @@ module.exports = async ({ chatApi, sender, roomName, roomId, commandName, bodyTe
             return;
         }
         const message = await command({ bodyText, roomId, roomName, sender, chatApi, roomData });
+        console.log('message', message);
 
         if (message) {
             await chatApi.sendHtmlMessage(roomId, message, message);
