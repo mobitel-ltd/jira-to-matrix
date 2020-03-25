@@ -168,6 +168,16 @@ const jiraRequests = {
         return project;
     },
 
+    isJiraPartExists: async issueKey => {
+        const projectKey = utils.getProjectKeyFromIssueKey(issueKey);
+        try {
+            await jiraRequests.getProject(projectKey);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    },
+
     /**
      * Make GET request to jira by projectID
      * @param {string} projectKey project ID in jira

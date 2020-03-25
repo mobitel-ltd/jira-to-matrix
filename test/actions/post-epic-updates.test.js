@@ -91,7 +91,7 @@ describe('Post epic updates test', () => {
 
     it('Expect not send message if epic key is in redis and status is not changed', async () => {
         const body = getPostEpicUpdatesData(noStatusChangedJSON);
-        await redis.saveToEpic(utils.getRedisEpicKey(epicIssueBody.id), body.data.id);
+        await redis.addToList(utils.getRedisEpicKey(epicIssueBody.id), body.data.id);
 
         const result = await postEpicUpdates({ chatApi, ...body });
         expect(chatApi.sendHtmlMessage).not.to.be.called;
