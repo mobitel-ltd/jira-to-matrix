@@ -491,7 +491,7 @@ module.exports = class SlackApi extends MessengerAbstract {
      * @param {string} aliasPart aliasPart
      * @returns {string|undefined} return allias if command is succedded
      */
-    deleteAliasByRoomName(aliasPart) {
+    deleteRoomAlias(aliasPart) {
         return aliasPart;
     }
 };

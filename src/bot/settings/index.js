@@ -15,6 +15,10 @@ const getAllSettingData = async prefix => {
     return data ? JSON.parse(data) : {};
 };
 
+const getAliases = () => redis.getList(utils.REDIS_ALIASES);
+
+const setAlias = alias => redis.addToList(utils.REDIS_ALIASES, alias);
+
 const setSettingsData = async (projectKey, data, prefix) => {
     try {
         const redisSettings = await getAllSettingData(prefix);
@@ -54,6 +58,8 @@ const getAutoinviteUsers = async (projectKey, typeName) => {
 };
 
 module.exports = {
+    setAlias,
+    getAliases,
     getAllSettingData,
     getAutoinviteUsers,
     setSettingsData,

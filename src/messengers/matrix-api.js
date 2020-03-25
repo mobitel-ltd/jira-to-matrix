@@ -13,7 +13,7 @@ const getEvent = content => ({
 });
 
 // eslint-disable-next-line prettier/prettier
-const voidFunc = () => { };
+const voidFunc = () => {};
 
 const defaultLogger = {
     info: () => voidFunc,
@@ -877,9 +877,9 @@ module.exports = class Matrix extends MessengerAbstract {
      * @param {string} aliasPart aliasPart
      * @returns {string|undefined} return allias if command is succedded
      */
-    async deleteAliasByRoomName(aliasPart) {
+    async deleteRoomAlias(aliasPart) {
+        const alias = this._getMatrixRoomAlias(aliasPart);
         try {
-            const alias = this._getMatrixRoomAlias(aliasPart);
             const roomId = await this.getRoomIdByName(alias, true);
             if (!roomId) {
                 this.logger.warn(`Alias ${alias} is not found!!!`);
@@ -891,7 +891,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return alias;
         } catch (err) {
-            const msg = utils.errorTracing(`Error while deleting alias "${aliasPart}"`, JSON.stringify(err));
+            const msg = utils.errorTracing(`Error while deleting alias "${alias}"`, JSON.stringify(err));
             this.logger.error(msg);
         }
     }

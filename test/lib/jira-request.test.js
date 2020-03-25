@@ -6,6 +6,7 @@ const utils = require('../../src/lib/utils.js');
 const { expect } = require('chai');
 const {
     getRenderedValues,
+    isJiraPartExists,
     getIssueWatchers,
     checkUser,
     getProject,
@@ -70,6 +71,8 @@ describe('Jira request test', () => {
 
     before(() => {
         nock(utils.getRestUrl())
+            .get(`/project/INDEV`)
+            .reply(200, newgenProject)
             .get(`/issue/${issue.key}`)
             .times(5)
             .reply(200, issueJSON)
@@ -92,6 +95,13 @@ describe('Jira request test', () => {
 
     after(() => {
         nock.cleanAll();
+    });
+
+    it('Default or not default', async () => {
+        const checkProjectRoom = await isJiraPartExists('INDEV-123');
+        expect(checkProjectRoom).to.be.true;
+        const checkNotProjectRoom = await isJiraPartExists('hjshhhhd');
+        expect(checkNotProjectRoom).to.be.false;
     });
 
     it('getRenderedValues test', async () => {

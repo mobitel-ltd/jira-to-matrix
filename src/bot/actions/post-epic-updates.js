@@ -14,7 +14,7 @@ const postNewIssue = async (roomID, { epic, issue }, chatApi) => {
     }
 
     const { body, htmlBody } = getNewIssueMessageBody(issue);
-    await redis.saveToEpic(redisEpicKey, issue.id);
+    await redis.addToList(redisEpicKey, issue.id);
     logger.info(`Info about issue ${issue.key} added to epic ${epic.key}`);
 
     await chatApi.sendHtmlMessage(roomID, body, htmlBody);

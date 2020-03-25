@@ -15,10 +15,18 @@ const REDIS_LINK_PREFIX = 'link';
 const REDIS_EPIC_PREFIX = 'epic';
 const REDIS_IGNORE_PREFIX = 'ignore:project';
 const REDIS_INVITE_PREFIX = 'invite:project';
+const REDIS_ALIASES = 'aliases';
 const HANDLED_KEY = 'handled';
 
 const DELIMITER = '|';
-const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER, REDIS_IGNORE_PREFIX, REDIS_INVITE_PREFIX, HANDLED_KEY];
+const KEYS_TO_IGNORE = [
+    REDIS_ALIASES,
+    ROOMS_OLD_NAME,
+    DELIMITER,
+    REDIS_IGNORE_PREFIX,
+    REDIS_INVITE_PREFIX,
+    HANDLED_KEY,
+];
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
@@ -519,6 +527,7 @@ module.exports = {
     REDIS_ROOM_KEY,
     REDIS_IGNORE_PREFIX,
     REDIS_INVITE_PREFIX,
+    REDIS_ALIASES,
     COMMON_NAME,
     NO_ROOM_PATTERN,
     END_NO_ROOM_PATTERN,
