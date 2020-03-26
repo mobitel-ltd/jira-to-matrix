@@ -1,3 +1,6 @@
+const path = require('path');
+const tmp = require('tmp-promise');
+const { setArchiveProject } = require('../../src/bot/settings');
 const utils = require('../../src/lib/utils');
 const nock = require('nock');
 const {
@@ -5,6 +8,7 @@ const {
     redis,
     usersToIgnore,
     testMode,
+    baseRemote,
 } = require('../../src/config');
 const { getRestUrl, expandParams } = require('../../src/lib/utils.js');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
@@ -19,8 +23,21 @@ const { stub } = require('sinon');
 const sinonChai = require('sinon-chai');
 const { expect } = chai;
 chai.use(sinonChai);
-const { cleanRedis } = require('../test-utils');
+const { cleanRedis, getChatApi, startGitServer, setRepo, baseMedia } = require('../test-utils');
+const handlers = require('../../src/queue/redis-data-handle.js');
+const searchProject = require('../fixtures/jira-api-requests/project-gens/search-project.json');
+const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 
+const {
+    STILL_ACTIVE,
+    NOT_FOUND,
+    ARCHIVED,
+    ALIAS_REMOVED,
+    ERROR_ARCHIVING,
+    OTHER_ALIAS_CREATOR,
+} = require('../../src/bot/actions/archive-project');
+const redisClient = require('../../src/redis-client');
+const ChatFasade = require('../../src/messengers/chat-fasade');
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
 
@@ -304,5 +321,103 @@ describe('handle queue for only new task newrooms', () => {
             createRoomDataIssueProjectOnly,
             createRoomDataBase2changeDescription,
         ]);
+    });
+});
+
+describe('Test handle archive project data', () => {
+    const lastKey = searchProject.issues[0].key;
+    const expectedIssueCount = Number(lastKey.split('-')[1]);
+    let chatApi;
+    let messengerApi;
+    const projectKey = 'INDEV';
+
+    const laterProject = 'OROR';
+    const laterProjectKey = `${laterProject}-${expectedIssueCount - 1}`;
+    const notFoundId = 'lalalal';
+    const aliasRemoved = `${projectKey}-${expectedIssueCount - 1}`;
+    const otherCreator = `${projectKey}-${expectedIssueCount - 2}`;
+
+    beforeEach(() => {
+        messengerApi = getChatApi({ alias: [lastKey, aliasRemoved, otherCreator, laterProjectKey] });
+        chatApi = new ChatFasade([messengerApi]);
+    });
+
+    afterEach(async () => {
+        nock.cleanAll();
+        await cleanRedis();
+    });
+
+    it('Expect nothing handles if redis key is empty', async () => {
+        const keys = await handlers.getCommandKeys();
+        const res = await handlers.handleCommandKeys(chatApi, keys);
+        expect(res).to.be.empty;
+    });
+
+    it('expect setArchiveProject work correct', async () => {
+        await setArchiveProject(projectKey);
+        const [data] = await redisClient.getList(utils.ARCHIVE_PROJECT);
+        expect(data).to.include(projectKey);
+    });
+
+    describe('With exists key', () => {
+        let server;
+        let tmpDir;
+        const expectedRemote = `${baseRemote}/${projectKey.toLowerCase()}.git`;
+
+        beforeEach(async () => {
+            nock(utils.getRestUrl())
+                .get(`/search?jql=project=${projectKey}`)
+                .reply(200, searchProject)
+                .get(`/search?jql=project=${laterProject}`)
+                .reply(200, searchProject);
+
+            nock(baseMedia)
+                .get(`/${rawEventsData.mediaId}`)
+                .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
+                .get(`/${rawEventsData.blobId}`)
+                .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
+                .get(`/${rawEventsData.avatarId}`)
+                .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
+
+            const timestamp = Date.now();
+            // all data is later than now
+            await setArchiveProject(projectKey, timestamp);
+            // all data is earlier than now
+            await setArchiveProject(laterProject, rawEventsData.maxTs - 5);
+            tmpDir = await tmp.dir({ unsafeCleanup: true });
+            server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
+            const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
+            await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: lastKey });
+        });
+
+        afterEach(() => {
+            server.close();
+            tmpDir.cleanup();
+        });
+
+        it('Expect all data is handled', async () => {
+            messengerApi.getRoomIdByName
+                .withArgs(otherCreator)
+                .resolves(notFoundId)
+                .withArgs(aliasRemoved)
+                .resolves(notFoundId);
+            messengerApi.isInRoom.withArgs(notFoundId).resolves(false);
+            messengerApi.deleteRoomAlias.withArgs(aliasRemoved).resolves('ok');
+
+            const keys = await handlers.getCommandKeys();
+            const [res1, res2] = await handlers.handleCommandKeys(chatApi, keys);
+
+            expect(res1[NOT_FOUND]).to.have.length(3);
+            expect(res1[ARCHIVED]).to.have.length(1);
+            expect(res1[ALIAS_REMOVED]).to.have.length(1);
+            expect(res1[ERROR_ARCHIVING]).to.have.length(0);
+            expect(res1[OTHER_ALIAS_CREATOR]).to.have.length(1);
+            expect(res1[STILL_ACTIVE]).to.have.length(0);
+
+            expect(res2[NOT_FOUND]).to.have.length(5);
+            expect(res2[STILL_ACTIVE]).to.have.length(1);
+        });
+
+        it('Expect all users are ');
     });
 });

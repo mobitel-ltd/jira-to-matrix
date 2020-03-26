@@ -37,8 +37,8 @@ const request = async (url, newOptions) => {
         if (['GET', 'POST', 'PUT'].includes(options.method) && url !== jiraUrl && response) {
             return JSON.parse(response);
         }
-    } catch ({ statusCode }) {
-        throw getRequestErrorLog(url, statusCode, options);
+    } catch (err) {
+        throw getRequestErrorLog(url, err.statusCode, options);
     }
 };
 

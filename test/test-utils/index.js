@@ -114,12 +114,19 @@ module.exports = {
             getAllEventsFromRoom: stub().resolves(rawEvents),
             getDownloadLink: stub().callsFake(el => getMediaLink(R.pipe(R.split('/'), R.last)(el))),
             kickUserByRoom: stub().callsFake(userId => userId),
+            getRoomDataById: stub(),
         });
 
         const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId, name }) =>
             chatApi.getChatUserId(userId || name),
         );
         chatApi.getRoomMembers = stub().resolves(allMembers);
+
+        chatApi.getRoomDataById.withArgs(roomId).resolves({
+            alias: Array.isArray(alias) ? alias[0] : alias,
+            id: roomId,
+            members: allMembers.map(userId => ({ userId, powerLevel: 50 })),
+        });
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
         // console.log('TCL: stubInstance', chatApi);

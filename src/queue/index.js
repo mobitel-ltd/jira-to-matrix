@@ -1,5 +1,12 @@
 const logger = require('../modules/log.js')(module);
-const { getDataFromRedis, getRedisRooms, handleRedisData, handleRedisRooms } = require('./redis-data-handle.js');
+const {
+    getDataFromRedis,
+    getRedisRooms,
+    handleRedisData,
+    handleRedisRooms,
+    getCommandKeys,
+    handleCommandKeys,
+} = require('./redis-data-handle.js');
 
 module.exports = async chatApi => {
     try {
@@ -8,6 +15,9 @@ module.exports = async chatApi => {
 
         const dataFromRedis = await getDataFromRedis();
         await handleRedisData(chatApi, dataFromRedis);
+
+        const commandKeys = await getCommandKeys();
+        await handleCommandKeys(chatApi, commandKeys);
     } catch (err) {
         logger.error('Error in queue handling', err);
     }

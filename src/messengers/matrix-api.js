@@ -13,7 +13,7 @@ const getEvent = content => ({
 });
 
 // eslint-disable-next-line prettier/prettier
-const voidFunc = () => {};
+const voidFunc = () => { };
 
 const defaultLogger = {
     info: () => voidFunc,
@@ -242,10 +242,11 @@ module.exports = class Matrix extends MessengerAbstract {
     async leaveRoom(roomId) {
         try {
             await this.client.leave(roomId);
+            this.logger.info(`Left room with id ${roomId}`);
 
             return roomId;
         } catch (err) {
-            this.logger.error(['Error in Matrix connection', err].join('\n'));
+            this.logger.error([`leave room ${roomId}`, err].join('\n'));
 
             return false;
         }
@@ -411,6 +412,17 @@ module.exports = class Matrix extends MessengerAbstract {
                 powerLevel,
             })),
         };
+    }
+
+    /**
+     * Get room data by room id
+     * @param {string} roomId matrix room id
+     */
+    async getRoomDataById(roomId) {
+        const room = await this.client.getRoom(roomId);
+        if (room) {
+            return this.getRoomData(room);
+        }
     }
 
     /**
@@ -761,18 +773,20 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
-     * Get bot which joined to room in chat
+     * Get all room events
      * @param {string} roomId chat room id
+     * @param {number} limit=10000 event limit
      * @returns {Promise<void>} void
      */
-    async getAllEventsFromRoom(roomId) {
+    async getAllEventsFromRoom(roomId, limit = 10000) {
         try {
             const method = 'GET';
             const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
-            const qweryParams = { limit: 10000, dir: 'b' };
+            const qweryParams = { limit, dir: 'b' };
             const body = {};
 
             const { chunk } = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+
             return chunk;
         } catch (error) {
             this.logger.error(`Error in request to all events for ${roomId}.`);
@@ -891,7 +905,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return alias;
         } catch (err) {
-            const msg = utils.errorTracing(`Error while deleting alias "${alias}"`, JSON.stringify(err));
+            const msg = utils.errorTracing(`deleteRoomAlias "${alias}"`, JSON.stringify(err));
             this.logger.error(msg);
         }
     }

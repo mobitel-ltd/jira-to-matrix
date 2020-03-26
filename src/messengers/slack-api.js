@@ -1,4 +1,6 @@
+/* eslint-disable valid-jsdoc */
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
+/* eslint-disable no-undefined */
 const http = require('http');
 const Ramda = require('ramda');
 const { WebClient } = require('@slack/web-api');
@@ -493,5 +495,13 @@ module.exports = class SlackApi extends MessengerAbstract {
      */
     deleteRoomAlias(aliasPart) {
         return aliasPart;
+    }
+
+    /**
+     * Get room data by room id
+     * @param {string} roomId matrix room id
+     */
+    getRoomDataById(roomId) {
+        return roomId;
     }
 };

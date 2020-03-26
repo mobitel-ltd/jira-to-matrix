@@ -128,4 +128,6 @@ module.exports = Object.freeze({
         password: 'string',
         repoPrefix: 'string',
     },
+    // delay interval for archiving rooms and other high loadly chat server operations
+    delayInterval: 5,
 });

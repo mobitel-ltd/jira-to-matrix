@@ -1,5 +1,7 @@
 /* eslint-disable camelcase */
 const dict = Object.freeze({
+    successProjectAddToArchive: 'Project "%{projectKey}" is added to archive',
+    emptyProject: 'Add project name',
     notAdmin: 'User "%{sender}" don\'t have admin status for this command',
     setBotToAdmin: 'Incorrect bot status in project [%{projectKey}](%viewUrl), ask admin for help',
     noRulesToWatchIssue: "Bot don't have permission to watch or make actions in this Jira issue",
@@ -77,6 +79,7 @@ const dict = Object.freeze({
     noAlias: 'No room alias. Add it and try again.',
     noBotPower: 'Bot cannot do this operation, needed power is %{power}',
     adminsAreNotKicked: 'Бот не смог удалить администраторов данной комнаты',
+    notValid: 'Incorrect data input %{body}',
 });
 
 module.exports.dict = dict;

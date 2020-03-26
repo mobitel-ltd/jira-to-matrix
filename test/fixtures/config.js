@@ -67,4 +67,5 @@ module.exports = {
         repoPrefix: `localhost:${settings.gitServerPort}/test`,
         protocol: 'http',
     },
+    delayInterval: 5,
 };
