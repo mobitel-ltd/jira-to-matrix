@@ -22,7 +22,11 @@ const getCommandKeys = async () => {
             return [];
         }
 
-        return data.map(value => ({ operationName: ARCHIVE_PROJECT, value }));
+        return data.map(value => {
+            const [projectKey, keepTimestamp] = value.split('::');
+
+            return { operationName: ARCHIVE_PROJECT, projectKey, keepTimestamp, value };
+        });
     } catch (error) {
         logger.error(utils.errorTracing('Error in getting command keys values', error));
         return false;
@@ -250,16 +254,19 @@ const saveIncoming = async ({ redisKey, ...restData }) => {
 
 const handleCommandKeys = async (chatApi, keys) => {
     try {
+        const result = [];
         for await (const key of keys) {
-            const { operationName, value } = key;
-            const res = await bot[operationName]({ chatApi, projectKey: value });
+            const { operationName, projectKey, keepTimestamp, value } = key;
+            const res = await bot[operationName]({ chatApi, projectKey, keepTimestamp });
             if (res) {
                 await redis.srem(operationName, value);
 
                 logger.info(`Result of handling project ${value}`, JSON.stringify(res));
-                return res;
+                result.push(res);
             }
         }
+
+        return result;
     } catch (error) {
         logger.error(error);
     }

@@ -79,6 +79,7 @@ const dict = Object.freeze({
     noAlias: 'No room alias. Add it and try again.',
     noBotPower: 'Bot cannot do this operation, needed power is %{power}',
     adminsAreNotKicked: 'Бот не смог удалить администраторов данной комнаты',
+    notValid: 'Incorrect data input %{body}',
 });
 
 module.exports.dict = dict;

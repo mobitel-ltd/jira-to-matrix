@@ -15,7 +15,11 @@ const getAllSettingData = async prefix => {
     return data ? JSON.parse(data) : {};
 };
 
-const setArchiveProject = projectKey => redis.addToList(utils.ARCHIVE_PROJECT, projectKey);
+const setArchiveProject = (projectKey, timeStamp) => {
+    const value = [projectKey, timeStamp].join('::');
+
+    return redis.addToList(utils.ARCHIVE_PROJECT, value);
+};
 
 const getArchiveProject = () => redis.getList(utils.ARCHIVE_PROJECT);
 

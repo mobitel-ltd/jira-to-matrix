@@ -37,7 +37,8 @@ describe('command project archive test', () => {
         const result = await commandHandler(baseOptions);
         const expected = translate('successProjectAddToArchive', { projectKey: bodyText });
         expect(result).to.be.eq(expected);
-        expect(await getArchiveProject()).to.includes(bodyText);
+        const [data] = await getArchiveProject();
+        expect(data).to.includes(bodyText);
     });
 
     it('Expect archive not save project key to queue if body text is empty', async () => {
@@ -46,5 +47,14 @@ describe('command project archive test', () => {
 
         expect(result).to.be.eq(expected);
         expect(await getArchiveProject()).not.to.includes(bodyText);
+    });
+
+    it('Expect archive return warning message if body month is not valid', async () => {
+        const body = 'lalalla';
+        const result = await commandHandler({ ...baseOptions, bodyText: `${bodyText}_${body}` });
+        const expected = translate('notValid', { body });
+
+        expect(result).to.be.eq(expected);
+        expect(await getArchiveProject()).to.be.empty;
     });
 });

@@ -29,7 +29,7 @@ const searchProject = require('../fixtures/jira-api-requests/project-gens/search
 const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 
 const {
-    accumBase,
+    STILL_ACTIVE,
     NOT_FOUND,
     ARCHIVED,
     ALIAS_REMOVED,
@@ -326,11 +326,19 @@ describe('handle queue for only new task newrooms', () => {
 
 describe('Test handle archive project data', () => {
     const lastKey = searchProject.issues[0].key;
+    const expectedIssueCount = Number(lastKey.split('-')[1]);
     let chatApi;
+    let messengerApi;
     const projectKey = 'INDEV';
 
+    const laterProject = 'OROR';
+    const laterProjectKey = `${laterProject}-${expectedIssueCount - 1}`;
+    const notFoundId = 'lalalal';
+    const aliasRemoved = `${projectKey}-${expectedIssueCount - 1}`;
+    const otherCreator = `${projectKey}-${expectedIssueCount - 2}`;
+
     beforeEach(() => {
-        const messengerApi = getChatApi({ alias: [lastKey] });
+        messengerApi = getChatApi({ alias: [lastKey, aliasRemoved, otherCreator, laterProjectKey] });
         chatApi = new ChatFasade([messengerApi]);
     });
 
@@ -342,17 +350,16 @@ describe('Test handle archive project data', () => {
     it('Expect nothing handles if redis key is empty', async () => {
         const keys = await handlers.getCommandKeys();
         const res = await handlers.handleCommandKeys(chatApi, keys);
-        expect(res).to.be.undefined;
+        expect(res).to.be.empty;
     });
 
     it('expect setArchiveProject work correct', async () => {
         await setArchiveProject(projectKey);
-        const data = await redisClient.getList(utils.ARCHIVE_PROJECT);
+        const [data] = await redisClient.getList(utils.ARCHIVE_PROJECT);
         expect(data).to.include(projectKey);
     });
 
     describe('With exists key', () => {
-        const expectedIssueCount = Number(lastKey.split('-')[1]);
         let server;
         let tmpDir;
         const expectedRemote = `${baseRemote}/${projectKey.toLowerCase()}.git`;
@@ -360,6 +367,8 @@ describe('Test handle archive project data', () => {
         beforeEach(async () => {
             nock(utils.getRestUrl())
                 .get(`/search?jql=project=${projectKey}`)
+                .reply(200, searchProject)
+                .get(`/search?jql=project=${laterProject}`)
                 .reply(200, searchProject);
 
             nock(baseMedia)
@@ -370,7 +379,11 @@ describe('Test handle archive project data', () => {
                 .get(`/${rawEventsData.avatarId}`)
                 .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
 
-            await setArchiveProject(projectKey);
+            const timestamp = Date.now();
+            // all data is later than now
+            await setArchiveProject(projectKey, timestamp);
+            // all data is earlier than now
+            await setArchiveProject(laterProject, rawEventsData.maxTs - 5);
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
@@ -383,15 +396,28 @@ describe('Test handle archive project data', () => {
         });
 
         it('Expect all data is handled', async () => {
-            const keys = await handlers.getCommandKeys();
-            const res = await handlers.handleCommandKeys(chatApi, keys);
+            messengerApi.getRoomIdByName
+                .withArgs(otherCreator)
+                .resolves(notFoundId)
+                .withArgs(aliasRemoved)
+                .resolves(notFoundId);
+            messengerApi.isInRoom.withArgs(notFoundId).resolves(false);
+            messengerApi.deleteRoomAlias.withArgs(aliasRemoved).resolves('ok');
 
-            expect(res).to.deep.equal(accumBase);
-            expect(res[NOT_FOUND]).to.have.length(expectedIssueCount - 1);
-            expect(res[ARCHIVED]).to.have.length(1);
-            expect(res[ALIAS_REMOVED]).to.have.length(0);
-            expect(res[ERROR_ARCHIVING]).to.have.length(0);
-            expect(res[OTHER_ALIAS_CREATOR]).to.have.length(0);
+            const keys = await handlers.getCommandKeys();
+            const [res1, res2] = await handlers.handleCommandKeys(chatApi, keys);
+
+            expect(res1[NOT_FOUND]).to.have.length(3);
+            expect(res1[ARCHIVED]).to.have.length(1);
+            expect(res1[ALIAS_REMOVED]).to.have.length(1);
+            expect(res1[ERROR_ARCHIVING]).to.have.length(0);
+            expect(res1[OTHER_ALIAS_CREATOR]).to.have.length(1);
+            expect(res1[STILL_ACTIVE]).to.have.length(0);
+
+            expect(res2[NOT_FOUND]).to.have.length(5);
+            expect(res2[STILL_ACTIVE]).to.have.length(1);
         });
+
+        it('Expect all users are ');
     });
 });

@@ -15,7 +15,7 @@
     "start-dev": "nodemon src/app.js",
     "debug": "nodemon --inspect src/app.js",
     "test-single": "NODE_ENV=test nyc mocha",
-    "test": "NODE_ENV=test nyc mocha test/* --exit",
+    "test": "NODE_ENV=test nyc mocha --timeout 10000  test/* --exit",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "repository": {
@@ -67,6 +67,7 @@
     "is-image": "^3.0.0",
     "javascript-state-machine": "^3.1.0",
     "joi": "^14.3.1",
+    "luxon": "^1.22.2",
     "marked": "^0.8.0",
     "matrix-js-sdk": "mobitel-ltd/matrix-js-sdk",
     "node-polyglot": "^2.4.0",

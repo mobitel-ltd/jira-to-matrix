@@ -11,4 +11,5 @@ module.exports = {
     blobUrl: `mxc://example.com/${blobId}`,
     blobId,
     blobName: 'Some data without ext.',
+    maxTs: 1583155366238,
 };
