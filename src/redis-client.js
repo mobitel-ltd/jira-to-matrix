@@ -35,4 +35,5 @@ module.exports = {
     addToList: (list, id) => saddAsync(list, id),
     getList: promisify(client.smembers).bind(client),
     isNewLink: id => setnxAsync(getRedisLinkKey(id), '1'),
+    srem: promisify(client.srem).bind(client),
 };

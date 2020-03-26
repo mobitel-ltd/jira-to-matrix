@@ -1,3 +1,6 @@
+const path = require('path');
+const tmp = require('tmp-promise');
+const { setArchiveProject } = require('../../src/bot/settings');
 const utils = require('../../src/lib/utils');
 const nock = require('nock');
 const {
@@ -5,6 +8,7 @@ const {
     redis,
     usersToIgnore,
     testMode,
+    baseRemote,
 } = require('../../src/config');
 const { getRestUrl, expandParams } = require('../../src/lib/utils.js');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
@@ -19,8 +23,21 @@ const { stub } = require('sinon');
 const sinonChai = require('sinon-chai');
 const { expect } = chai;
 chai.use(sinonChai);
-const { cleanRedis } = require('../test-utils');
+const { cleanRedis, getChatApi, startGitServer, setRepo, baseMedia } = require('../test-utils');
+const handlers = require('../../src/queue/redis-data-handle.js');
+const searchProject = require('../fixtures/jira-api-requests/project-gens/search-project.json');
+const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 
+const {
+    accumBase,
+    NOT_FOUND,
+    ARCHIVED,
+    ALIAS_REMOVED,
+    ERROR_ARCHIVING,
+    OTHER_ALIAS_CREATOR,
+} = require('../../src/bot/actions/archive-project');
+const redisClient = require('../../src/redis-client');
+const ChatFasade = require('../../src/messengers/chat-fasade');
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
 
@@ -304,5 +321,77 @@ describe('handle queue for only new task newrooms', () => {
             createRoomDataIssueProjectOnly,
             createRoomDataBase2changeDescription,
         ]);
+    });
+});
+
+describe('Test handle archive project data', () => {
+    const lastKey = searchProject.issues[0].key;
+    let chatApi;
+    const projectKey = 'INDEV';
+
+    beforeEach(() => {
+        const messengerApi = getChatApi({ alias: [lastKey] });
+        chatApi = new ChatFasade([messengerApi]);
+    });
+
+    afterEach(async () => {
+        nock.cleanAll();
+        await cleanRedis();
+    });
+
+    it('Expect nothing handles if redis key is empty', async () => {
+        const keys = await handlers.getCommandKeys();
+        const res = await handlers.handleCommandKeys(chatApi, keys);
+        expect(res).to.be.undefined;
+    });
+
+    it('expect setArchiveProject work correct', async () => {
+        await setArchiveProject(projectKey);
+        const data = await redisClient.getList(utils.ARCHIVE_PROJECT);
+        expect(data).to.include(projectKey);
+    });
+
+    describe('With exists key', () => {
+        const expectedIssueCount = Number(lastKey.split('-')[1]);
+        let server;
+        let tmpDir;
+        const expectedRemote = `${baseRemote}/${projectKey.toLowerCase()}.git`;
+
+        beforeEach(async () => {
+            nock(utils.getRestUrl())
+                .get(`/search?jql=project=${projectKey}`)
+                .reply(200, searchProject);
+
+            nock(baseMedia)
+                .get(`/${rawEventsData.mediaId}`)
+                .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
+                .get(`/${rawEventsData.blobId}`)
+                .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
+                .get(`/${rawEventsData.avatarId}`)
+                .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
+
+            await setArchiveProject(projectKey);
+            tmpDir = await tmp.dir({ unsafeCleanup: true });
+            server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
+            const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
+            await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: lastKey });
+        });
+
+        afterEach(() => {
+            server.close();
+            tmpDir.cleanup();
+        });
+
+        it('Expect all data is handled', async () => {
+            const keys = await handlers.getCommandKeys();
+            const res = await handlers.handleCommandKeys(chatApi, keys);
+
+            expect(res).to.deep.equal(accumBase);
+            expect(res[NOT_FOUND]).to.have.length(expectedIssueCount - 1);
+            expect(res[ARCHIVED]).to.have.length(1);
+            expect(res[ALIAS_REMOVED]).to.have.length(0);
+            expect(res[ERROR_ARCHIVING]).to.have.length(0);
+            expect(res[OTHER_ALIAS_CREATOR]).to.have.length(0);
+        });
     });
 });

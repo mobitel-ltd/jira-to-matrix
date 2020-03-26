@@ -414,6 +414,17 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
+     * Get room data by room id
+     * @param {string} roomId matrix room id
+     */
+    async getRoomDataById(roomId) {
+        const room = await this.client.getRoom(roomId);
+        if (room) {
+            return this.getRoomData(room);
+        }
+    }
+
+    /**
      * Get rooms from matrix
      * @returns {array} matrix rooms
      */
@@ -761,15 +772,16 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
-     * Get bot which joined to room in chat
+     * Get all room events
      * @param {string} roomId chat room id
+     * @param {number} limit=10000 event limit
      * @returns {Promise<void>} void
      */
-    async getAllEventsFromRoom(roomId) {
+    async getAllEventsFromRoom(roomId, limit = 10000) {
         try {
             const method = 'GET';
             const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
-            const qweryParams = { limit: 10000, dir: 'b' };
+            const qweryParams = { limit, dir: 'b' };
             const body = {};
 
             const { chunk } = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);

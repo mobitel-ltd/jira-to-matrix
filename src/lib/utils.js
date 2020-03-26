@@ -17,7 +17,7 @@ const REDIS_IGNORE_PREFIX = 'ignore:project';
 const REDIS_INVITE_PREFIX = 'invite:project';
 const REDIS_ALIASES = 'aliases';
 const HANDLED_KEY = 'handled';
-const ARCHIVE_PROJECT = 'clearProject';
+const ARCHIVE_PROJECT = 'archiveProject';
 
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [

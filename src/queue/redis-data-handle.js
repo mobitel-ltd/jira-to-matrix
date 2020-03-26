@@ -18,8 +18,8 @@ const getRedisKeys = async () => {
 const getCommandKeys = async () => {
     try {
         const data = await redis.getList(ARCHIVE_PROJECT);
-        if (!data || data.length) {
-            return;
+        if (!data || !data.length) {
+            return [];
         }
 
         return data.map(value => ({ operationName: ARCHIVE_PROJECT, value }));
@@ -252,13 +252,15 @@ const handleCommandKeys = async (chatApi, keys) => {
     try {
         for await (const key of keys) {
             const { operationName, value } = key;
-            const res = await bot[operationName]({ chatApi, value });
+            const res = await bot[operationName]({ chatApi, projectKey: value });
             if (res) {
                 await redis.srem(operationName, value);
+
+                return res;
             }
         }
     } catch (error) {
-        logger.er;
+        logger.error(error);
     }
 };
 
