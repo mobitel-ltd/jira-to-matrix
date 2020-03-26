@@ -141,6 +141,14 @@ module.exports = class ChatFasade extends MessengerAbstract {
     }
 
     /**
+     * Get get command room name
+     * @returns {string|undefined} info data if exists
+     */
+    getCommandRoomName() {
+        return this.worker.getCommandRoomName();
+    }
+
+    /**
      * @param {string} roomName room name
      * @returns {Promise<string>} return room id of created room
      */

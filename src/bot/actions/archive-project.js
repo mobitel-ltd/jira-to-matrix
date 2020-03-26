@@ -89,6 +89,17 @@ const archiveProject = async ({ chatApi, projectKey }) => {
 
             const res = await runArchive(chatApi, projectKey, issueNumber);
 
+            const commandRoom = chatApi.getCommandRoomName();
+            if (commandRoom) {
+                const commandRoomId = await chatApi.getRoomIdByName(commandRoom);
+                const preparedMsg =
+                    res &&
+                    Object.entries(res)
+                        .map(([k, v]) => `${k} >>> ${v.length ? v : 'none'}`)
+                        .join('<br>');
+                await chatApi.sendHtmlMessage(commandRoomId, preparedMsg);
+            }
+
             return res;
         }
     } catch (err) {

@@ -27,6 +27,7 @@ const KEYS_TO_IGNORE = [
     REDIS_IGNORE_PREFIX,
     REDIS_INVITE_PREFIX,
     HANDLED_KEY,
+    ARCHIVE_PROJECT,
 ];
 
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);

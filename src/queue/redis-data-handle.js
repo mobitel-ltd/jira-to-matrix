@@ -256,6 +256,7 @@ const handleCommandKeys = async (chatApi, keys) => {
             if (res) {
                 await redis.srem(operationName, value);
 
+                logger.info(`Result of handling project ${value}`, JSON.stringify(res));
                 return res;
             }
         }

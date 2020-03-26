@@ -18,7 +18,7 @@ describe('command project archive test', () => {
     const sender = 'user';
     const roomId = 'roomId';
     const roomName = 'BBCOM-123';
-    const commandName = 'project-archive';
+    const commandName = 'projectarchive';
 
     beforeEach(() => {
         chatApi = testUtils.getChatApi();
