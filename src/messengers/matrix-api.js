@@ -13,7 +13,7 @@ const getEvent = content => ({
 });
 
 // eslint-disable-next-line prettier/prettier
-const voidFunc = () => {};
+const voidFunc = () => { };
 
 const defaultLogger = {
     info: () => voidFunc,
@@ -242,10 +242,11 @@ module.exports = class Matrix extends MessengerAbstract {
     async leaveRoom(roomId) {
         try {
             await this.client.leave(roomId);
+            this.logger.info(`Left room with id ${roomId}`);
 
             return roomId;
         } catch (err) {
-            this.logger.error(['Error in Matrix connection', err].join('\n'));
+            this.logger.error([`leave room ${roomId}`, err].join('\n'));
 
             return false;
         }
@@ -785,6 +786,7 @@ module.exports = class Matrix extends MessengerAbstract {
             const body = {};
 
             const { chunk } = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+
             return chunk;
         } catch (error) {
             this.logger.error(`Error in request to all events for ${roomId}.`);
@@ -903,7 +905,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return alias;
         } catch (err) {
-            const msg = utils.errorTracing(`Error while deleting alias "${alias}"`, JSON.stringify(err));
+            const msg = utils.errorTracing(`deleteRoomAlias "${alias}"`, JSON.stringify(err));
             this.logger.error(msg);
         }
     }

@@ -14,6 +14,7 @@ const NOT_FOUND = 'not found';
 const ALIAS_REMOVED = 'alias removed';
 const OTHER_ALIAS_CREATOR = 'other alias creator';
 const ERROR_ARCHIVING = 'error archiving';
+const FORBIDDEN_EVENTS = 'cannot get events';
 
 const isMessage = item => item.type === 'm.room.message';
 const getLastMessageTimestamp = events =>
@@ -25,11 +26,16 @@ const getLastMessageTimestamp = events =>
 const archiveAndForget = async ({ client, roomData, keepTimestamp }) => {
     try {
         const allEvents = await client.getAllEventsFromRoom(roomData.id);
+        if (!allEvents) {
+            return FORBIDDEN_EVENTS;
+        }
         const lastMessageTimestamp = getLastMessageTimestamp(allEvents);
         logger.debug(
             `Last message was made -- ${new Date(lastMessageTimestamp)}, keeping date --${new Date(keepTimestamp)}`,
         );
         if (lastMessageTimestamp > keepTimestamp) {
+            logger.debug(`${roomData.alias} is still active, skip archive`);
+
             return STILL_ACTIVE;
         }
         const repoLink = await gitPullToRepo(config, allEvents, roomData, client, true);
@@ -41,7 +47,7 @@ const archiveAndForget = async ({ client, roomData, keepTimestamp }) => {
 
         return ARCHIVED;
     } catch (error) {
-        logger.error(errorTracing(`Error in archiving room ${roomData.alias}`, error));
+        logger.error(errorTracing(`archiving room ${roomData.alias}`, error));
 
         return ERROR_ARCHIVING;
     }
@@ -62,6 +68,8 @@ const deleteByEachBot = async (fasadeApi, alias) => {
 
 const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
     const accumBase = {
+        // some problem during getting events, archive stop
+        [FORBIDDEN_EVENTS]: [],
         // rooms which have messages which sent after keeping date
         [STILL_ACTIVE]: [],
         // room is archived, all users kicked and alias deleted

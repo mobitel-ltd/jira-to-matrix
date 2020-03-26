@@ -23,9 +23,9 @@ const getCommandKeys = async () => {
         }
 
         return data.map(value => {
-            const [projectKey, keepTimestamp] = value.split('::');
+            const [projectKey, keepTimestampStr] = value.split('::');
 
-            return { operationName: ARCHIVE_PROJECT, projectKey, keepTimestamp, value };
+            return { operationName: ARCHIVE_PROJECT, projectKey, keepTimestamp: Number(keepTimestampStr), value };
         });
     } catch (error) {
         logger.error(utils.errorTracing('Error in getting command keys values', error));
