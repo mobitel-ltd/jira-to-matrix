@@ -5,7 +5,7 @@
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
 const MessengerAbstract = require('./messenger-abstract');
-const Ramda = require('ramda');
+const R = require('ramda');
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -378,7 +378,7 @@ module.exports = class Matrix extends MessengerAbstract {
             };
 
             const result = await this.client._http.authedRequest(undefined, method, path, {}, body);
-            const userId = Ramda.path(['results', 0, 'user_id'], result);
+            const userId = R.path(['results', 0, 'user_id'], result);
 
             if (!userId) {
                 this.logger.warn(`Not found user by search params ${searchParam}`);
@@ -397,10 +397,11 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {{alias: ?string, name: string, members: {userId: string, level: number}[], topic: string}} room data
      */
     getRoomData(room) {
-        const alias = this._getNameFromMatrixId(room.getCanonicalAlias()) || null;
+        const lastCreatedAlias = R.head(room.getAliases());
+        const alias = this._getNameFromMatrixId(lastCreatedAlias) || null;
         const joinedMembers = room.getJoinedMembers();
         const topicEvent = room.currentState.getStateEvents('m.room.topic', '');
-        const topic = topicEvent && Ramda.path(['topic'], topicEvent.getContent());
+        const topic = topicEvent && R.path(['topic'], topicEvent.getContent());
 
         return {
             id: room.roomId,

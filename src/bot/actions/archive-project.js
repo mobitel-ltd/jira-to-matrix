@@ -15,6 +15,7 @@ const ALIAS_REMOVED = 'alias removed';
 const OTHER_ALIAS_CREATOR = 'other alias creator';
 const ERROR_ARCHIVING = 'error archiving';
 const FORBIDDEN_EVENTS = 'cannot get events';
+const MOVED = 'issue moved to another project';
 
 const isMessage = item => item.type === 'm.room.message';
 const getLastMessageTimestamp = events =>
@@ -46,7 +47,6 @@ const archiveAndForget = async ({ client, roomData, keepTimestamp }) => {
         logger.info(`Room "${roomData.alias}" with id ${roomData.id} is archived to ${repoLink}`);
 
         await kickAllInRoom(client, roomData.id, roomData.members);
-        await client.deleteRoomAlias(roomData.alias);
         await client.leaveRoom(roomData.id);
 
         return ARCHIVED;
@@ -70,8 +70,31 @@ const deleteByEachBot = async (fasadeApi, alias) => {
     return OTHER_ALIAS_CREATOR;
 };
 
+const handleKnownRoom = async (chatApi, keepTimestamp, roomId, alias) => {
+    const data = await chatApi.getRoomAndClient(roomId);
+    if (data) {
+        if (data.roomData.alias !== alias) {
+            logger.warn(`Room with id ${roomId} has moved alias from  ${alias} to ${data.roomData.alias}`);
+            await deleteByEachBot(chatApi, alias);
+
+            return MOVED;
+        }
+
+        const status = await archiveAndForget({ ...data, keepTimestamp });
+        if (status === ARCHIVED) {
+            await deleteByEachBot(chatApi, alias);
+        }
+
+        return status;
+    }
+
+    return deleteByEachBot(chatApi, alias);
+};
+
 const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
     const accumBase = {
+        // room alias is changed, it means that issue has been moved to another project
+        [MOVED]: [],
         // some problem during getting events, archive stop
         [FORBIDDEN_EVENTS]: [],
         // rooms which have messages which sent after keeping date
@@ -88,12 +111,6 @@ const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
         [ERROR_ARCHIVING]: [],
     };
 
-    const handleKnownRoom = async (roomId, alias) => {
-        const data = await chatApi.getRoomAndClient(roomId);
-
-        return data ? archiveAndForget({ ...data, keepTimestamp }) : deleteByEachBot(chatApi, alias);
-    };
-
     const iter = async (num, accum) => {
         if (num === 0) {
             logger.info(`All project "${projectKey}" rooms are handled`);
@@ -106,7 +123,7 @@ const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
 
         const alias = [projectKey, num].join('-');
         const roomId = await chatApi.getRoomIdByName(alias);
-        const status = roomId ? await handleKnownRoom(roomId, alias) : NOT_FOUND;
+        const status = roomId ? await handleKnownRoom(chatApi, keepTimestamp, roomId, alias) : NOT_FOUND;
         accum[status].push(alias);
 
         return iter(num - 1, accum);
@@ -143,6 +160,9 @@ const archiveProject = async ({ chatApi, projectKey, keepTimestamp }) => {
 };
 
 module.exports = {
+    FORBIDDEN_EVENTS,
+    handleKnownRoom,
+    MOVED,
     archiveAndForget,
     archiveProject,
     deleteByEachBot,

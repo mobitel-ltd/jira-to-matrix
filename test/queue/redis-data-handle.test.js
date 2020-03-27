@@ -29,6 +29,7 @@ const searchProject = require('../fixtures/jira-api-requests/project-gens/search
 const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 
 const {
+    MOVED,
     STILL_ACTIVE,
     NOT_FOUND,
     ARCHIVED,
@@ -416,9 +417,8 @@ describe('Test handle archive project data', () => {
             expect(res1[STILL_ACTIVE]).to.have.length(0);
 
             expect(res2[NOT_FOUND]).to.have.length(5);
-            expect(res2[STILL_ACTIVE]).to.have.length(1);
+            // expect(res2[STILL_ACTIVE]).to.have.length(1);
+            expect(res2[MOVED]).to.have.length(1);
         });
-
-        it('Expect all users are ');
     });
 });

@@ -257,7 +257,8 @@ const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, cha
 
         return link;
     } catch (err) {
-        logger.error(err);
+        const msg = utils.errorTracing(`gitPullToRepo ${roomData.alias}`, err);
+        logger.error(msg);
     } finally {
         await cleanup();
     }
