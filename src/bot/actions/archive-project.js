@@ -10,7 +10,7 @@ const { kickAllInRoom, gitPullToRepo } = require('../timeline-handler/commands/a
 
 const STILL_ACTIVE = 'still active';
 const ARCHIVED = 'successfully archived and kicked';
-const NOT_FOUND = 'not found';
+const NOT_FOUND = 'alias is not found';
 const ALIAS_REMOVED = 'alias removed';
 const OTHER_ALIAS_CREATOR = 'other alias creator';
 const ERROR_ARCHIVING = 'error archiving';
@@ -39,6 +39,10 @@ const archiveAndForget = async ({ client, roomData, keepTimestamp }) => {
             return STILL_ACTIVE;
         }
         const repoLink = await gitPullToRepo(config, allEvents, roomData, client, true);
+        if (!repoLink) {
+            return ERROR_ARCHIVING;
+        }
+
         logger.info(`Room "${roomData.alias}" with id ${roomData.id} is archived to ${repoLink}`);
 
         await kickAllInRoom(client, roomData.id, roomData.members);
@@ -84,6 +88,12 @@ const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
         [ERROR_ARCHIVING]: [],
     };
 
+    const handleKnownRoom = async (roomId, alias) => {
+        const data = await chatApi.getRoomAndClient(roomId);
+
+        return data ? archiveAndForget({ ...data, keepTimestamp }) : deleteByEachBot(chatApi, alias);
+    };
+
     const iter = async (num, accum) => {
         if (num === 0) {
             logger.info(`All project "${projectKey}" rooms are handled`);
@@ -91,19 +101,13 @@ const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
             return accum;
         }
 
-        const alias = [projectKey, num].join('-');
+        // make delay to avoid overload matrix server
         await delay(config.delayInterval);
-        const roomId = await chatApi.getRoomIdByName(alias);
-        if (roomId) {
-            const data = await chatApi.getRoomAndClient(roomId);
-            const res = data
-                ? await archiveAndForget({ ...data, keepTimestamp })
-                : await deleteByEachBot(chatApi, alias);
 
-            accum[res].push(alias);
-        } else {
-            accum[NOT_FOUND].push(alias);
-        }
+        const alias = [projectKey, num].join('-');
+        const roomId = await chatApi.getRoomIdByName(alias);
+        const status = roomId ? await handleKnownRoom(roomId, alias) : NOT_FOUND;
+        accum[status].push(alias);
 
         return iter(num - 1, accum);
     };

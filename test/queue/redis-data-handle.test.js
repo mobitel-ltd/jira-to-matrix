@@ -405,7 +405,8 @@ describe('Test handle archive project data', () => {
             messengerApi.deleteRoomAlias.withArgs(aliasRemoved).resolves('ok');
 
             const keys = await handlers.getCommandKeys();
-            const [res1, res2] = await handlers.handleCommandKeys(chatApi, keys);
+            // set order
+            const { [projectKey]: res1, [laterProject]: res2 } = await handlers.handleCommandKeys(chatApi, keys);
 
             expect(res1[NOT_FOUND]).to.have.length(3);
             expect(res1[ARCHIVED]).to.have.length(1);
