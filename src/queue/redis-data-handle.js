@@ -1,3 +1,5 @@
+// @ts-check
+
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
@@ -97,7 +99,7 @@ const getHandledKeys = async () => {
 };
 
 const isHandled = async key => {
-    const handledKeys = (await getHandledKeys(HANDLED_KEY)) || [];
+    const handledKeys = (await getHandledKeys()) || [];
 
     return handledKeys.includes(key);
 };
@@ -254,7 +256,7 @@ const saveIncoming = async ({ redisKey, ...restData }) => {
 
 const handleCommandKeys = async (chatApi, keys) => {
     try {
-        const result = [];
+        const result = {};
         for await (const key of keys) {
             const { operationName, projectKey, keepTimestamp, value } = key;
             const res = await bot[operationName]({ chatApi, projectKey, keepTimestamp });
@@ -262,7 +264,8 @@ const handleCommandKeys = async (chatApi, keys) => {
                 await redis.srem(operationName, value);
 
                 logger.info(`Result of handling project ${value}`, JSON.stringify(res));
-                result.push(res);
+
+                result[projectKey] = res;
             }
         }
 
