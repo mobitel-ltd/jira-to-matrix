@@ -429,4 +429,38 @@ module.exports = [
         user_id: '@health_check_bot:example.com',
         age: 1721985502,
     },
+    {
+        type: 'm.room.message',
+        sender: '@test_user:matrix.example.com',
+        content: {
+            msgtype: 'm.text',
+            format: 'org.matrix.custom.html',
+            body: '```not closed',
+            formatted_body: '<p>lalalal00000<br /></p>\n',
+        },
+        event_id: '$1020305135640617JeoRb:matrix.example.com',
+        origin_server_ts: info.maxTs - 100,
+        unsigned: {
+            age: 1301,
+            transaction_id: 'm1583151356574.67',
+        },
+        room_id: '!XIFEkULwPGYFFmcRZo:matrix.example.com',
+    },
+    {
+        type: 'm.room.message',
+        sender: '@test_user:matrix.example.com',
+        content: {
+            msgtype: 'm.text',
+            format: 'org.matrix.custom.html',
+            body: '```closed```\n```\nnew line\n```',
+            formatted_body: '<p>lalalal00000<br /></p>\n',
+        },
+        event_id: '$2030405135640617JeoRb:matrix.example.com',
+        origin_server_ts: info.maxTs - 200,
+        unsigned: {
+            age: 1301,
+            transaction_id: 'm1583151356574.67',
+        },
+        room_id: '!XIFEkULwPGYFFmcRZo:matrix.example.com',
+    },
 ];

@@ -69,6 +69,14 @@ const getImageData = (event, api) => {
     }
 };
 
+const hasNotCloseQuote = (str = '') => {
+    const quoteCount = str.split('```').length - 1;
+
+    return utils.isOdd(quoteCount);
+};
+
+const closeQuote = (str = '') => str.concat('\n```');
+
 const getBody = event => {
     const imageData = getImageData(event);
     if (imageData) {
@@ -79,10 +87,11 @@ const getBody = event => {
         return imageData.skip ? `[${imageData.imageName}](${parsedFilePath})` : `![image](${parsedFilePath})`;
     }
 
-    return (
-        event.content.msgtype === 'm.text' &&
-        (R.path(['content', 'm.new_content', 'body'], event) || R.path(['content', 'body'], event))
-    );
+    if (event.content.msgtype === 'm.text') {
+        const textBody = R.path(['content', 'm.new_content', 'body'], event) || R.path(['content', 'body'], event);
+
+        return hasNotCloseQuote(textBody) ? closeQuote(textBody) : textBody;
+    }
 };
 
 const getMDtext = events =>
@@ -123,6 +132,8 @@ const getRepoLink = (baseLink, projectKey, roomName) => {
     return [baseLink, projectExt, 'tree', 'master', roomName].join('/');
 };
 
+// It helps remove all property which dynamically created by the moment of archive
+// Instead of it we will get new event each time arhive run
 const transformEvent = event => {
     // TODO add recursive
     const pureEvent = R.pipe(
