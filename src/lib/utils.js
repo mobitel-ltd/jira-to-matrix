@@ -361,6 +361,8 @@ const utils = {
 
     // * --------------------------------- Other utils ------------------------------- *
 
+    isOdd: num => Boolean(num % 2),
+
     connect: async (func, interval, count) => {
         if (count === 0) {
             throw 'No connection.';

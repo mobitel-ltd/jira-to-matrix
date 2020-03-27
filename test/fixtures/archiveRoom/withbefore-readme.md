@@ -26,6 +26,22 @@
 
 ---
 
+[2020-03-02T13:22:46.038Z](./res/$2030405135640617JeoRb:matrix.example.com.json)  
+@test_user:matrix.example.com  
+```closed```
+```
+new line
+```  
+
+---
+
+[2020-03-02T13:22:46.138Z](./res/$1020305135640617JeoRb:matrix.example.com.json)  
+@test_user:matrix.example.com  
+```not closed
+```  
+
+---
+
 [2020-03-02T13:22:46.198Z](./res/$158314842240236RCJdh:example.com.json)  
 @ii_ivanov:example.com  
 ![image](./media/imageid__my-media-file.jpg)  
