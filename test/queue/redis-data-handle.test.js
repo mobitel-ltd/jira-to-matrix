@@ -28,14 +28,7 @@ const handlers = require('../../src/queue/redis-data-handle.js');
 const searchProject = require('../fixtures/jira-api-requests/project-gens/search-project.json');
 const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 
-const {
-    STILL_ACTIVE,
-    NOT_FOUND,
-    ARCHIVED,
-    ALIAS_REMOVED,
-    ERROR_ARCHIVING,
-    OTHER_ALIAS_CREATOR,
-} = require('../../src/bot/actions/archive-project');
+const { stateEnum } = require('../../src/bot/actions/archive-project');
 const redisClient = require('../../src/redis-client');
 const ChatFasade = require('../../src/messengers/chat-fasade');
 const createRoomStub = stub();
@@ -408,17 +401,16 @@ describe('Test handle archive project data', () => {
             // set order
             const { [projectKey]: res1, [laterProject]: res2 } = await handlers.handleCommandKeys(chatApi, keys);
 
-            expect(res1[NOT_FOUND]).to.have.length(3);
-            expect(res1[ARCHIVED]).to.have.length(1);
-            expect(res1[ALIAS_REMOVED]).to.have.length(1);
-            expect(res1[ERROR_ARCHIVING]).to.have.length(0);
-            expect(res1[OTHER_ALIAS_CREATOR]).to.have.length(1);
-            expect(res1[STILL_ACTIVE]).to.have.length(0);
+            expect(res1[stateEnum.NOT_FOUND]).to.have.length(3);
+            expect(res1[stateEnum.ARCHIVED]).to.have.length(1);
+            expect(res1[stateEnum.ALIAS_REMOVED]).to.have.length(1);
+            expect(res1[stateEnum.ERROR_ARCHIVING]).to.have.length(0);
+            expect(res1[stateEnum.OTHER_ALIAS_CREATOR]).to.have.length(1);
+            expect(res1[stateEnum.STILL_ACTIVE]).to.have.length(0);
 
-            expect(res2[NOT_FOUND]).to.have.length(5);
-            expect(res2[STILL_ACTIVE]).to.have.length(1);
+            expect(res2[stateEnum.NOT_FOUND]).to.have.length(5);
+            // expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
+            expect(res2[stateEnum.MOVED]).to.have.length(1);
         });
-
-        it('Expect all users are ');
     });
 });
