@@ -77,10 +77,10 @@ module.exports = {
 
     /**
      * @param {object} options params
-     * @param {object} options.type config params
-     * @param {string} options.alias alias to return correct roomId
-     * @param {string} options.roomId roomId to return
-     * @param {({userId: string, displayName:string}|string)[]} options.existedUsers users which id will be returned
+     * @param {object} [options.type] config params
+     * @param {string} [options.alias] alias to return correct roomId
+     * @param {string} [options.roomId] roomId to return
+     * @param {({userId: string, displayName:string}|string)[]} [options.existedUsers] users which id will be returned
      * @returns {object} instance of messenger class
      */
     getChatApi: (options = {}) => {

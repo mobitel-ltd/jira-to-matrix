@@ -2,7 +2,11 @@
     "parserOptions": {
         "ecmaVersion": 2018
     },
-    "extends": ["eslint:recommended", "google", "prettier"],
+    "extends": [
+        "eslint:recommended",
+        "google",
+        "prettier"
+    ],
     "env": {
         "es6": true,
         "browser": true,
@@ -11,13 +15,26 @@
         "shared-node-browser": true,
         "mocha": true
     },
-    "plugins": ["chai-friendly", "prettier"],
+    "plugins": [
+        "chai-friendly",
+        "prettier"
+    ],
     "rules": {
-        "prettier/prettier": ["error"],
+        "prettier/prettier": [
+            "error"
+        ],
         "no-console": "error",
-        "array-callback-return": ["error"],
-        "arrow-body-style": ["error", "as-needed"],
-        "arrow-parens": ["error", "as-needed"],
+        "array-callback-return": [
+            "error"
+        ],
+        "arrow-body-style": [
+            "error",
+            "as-needed"
+        ],
+        "arrow-parens": [
+            "error",
+            "as-needed"
+        ],
         "arrow-spacing": [
             "error",
             {
@@ -31,22 +48,51 @@
                 "properties": "never"
             }
         ],
-        "curly": ["error", "all"],
-        "dot-location": ["error", "property"],
-        "dot-notation": ["error"],
-        "eqeqeq": ["error", "always"],
-        "func-names": ["error", "as-needed"],
-        "func-style": ["error", "expression"],
-        "global-require": ["error"],
-        "handle-callback-err": ["error"],
+        "curly": [
+            "error",
+            "all"
+        ],
+        "dot-location": [
+            "error",
+            "property"
+        ],
+        "dot-notation": [
+            "error"
+        ],
+        "eqeqeq": [
+            "error",
+            "always"
+        ],
+        "func-names": [
+            "error",
+            "as-needed"
+        ],
+        "func-style": [
+            "error",
+            "expression"
+        ],
+        "global-require": [
+            "error"
+        ],
+        "handle-callback-err": [
+            "error"
+        ],
         "id-length": [
             "error",
             {
                 "min": 2,
-                "exceptions": ["i", "j", "_", "R"]
+                "exceptions": [
+                    "i",
+                    "j",
+                    "_",
+                    "R"
+                ]
             }
         ],
-        "max-depth": ["error", 4],
+        "max-depth": [
+            "error",
+            4
+        ],
         "max-len": [
             "error",
             120,
@@ -60,31 +106,60 @@
                 "ignorePattern": "true"
             }
         ],
-        "max-nested-callbacks": ["error", 3],
-        "max-params": ["error", 5],
-        "multiline-ternary": ["error", "always-multiline"],
-        "new-parens": ["error"],
+        "max-nested-callbacks": [
+            "error",
+            3
+        ],
+        "max-params": [
+            "error",
+            5
+        ],
+        "multiline-ternary": [
+            "error",
+            "always-multiline"
+        ],
+        "new-parens": [
+            "error"
+        ],
         "newline-per-chained-call": [
             "error",
             {
                 "ignoreChainWithDepth": 3
             }
         ],
-        "no-alert": ["error"],
-        "no-cond-assign": ["error"],
+        "no-alert": [
+            "error"
+        ],
+        "no-cond-assign": [
+            "error"
+        ],
         "no-confusing-arrow": [
             "error",
             {
                 "allowParens": true
             }
         ],
-        "no-duplicate-imports": ["error"],
-        "no-else-return": ["error"],
-        "no-empty-function": ["error"],
-        "no-eq-null": ["error"],
-        "no-eval": ["error"],
-        "no-extra-label": ["error"],
-        "no-floating-decimal": ["error"],
+        "no-duplicate-imports": [
+            "error"
+        ],
+        "no-else-return": [
+            "error"
+        ],
+        "no-empty-function": [
+            "error"
+        ],
+        "no-eq-null": [
+            "error"
+        ],
+        "no-eval": [
+            "error"
+        ],
+        "no-extra-label": [
+            "error"
+        ],
+        "no-floating-decimal": [
+            "error"
+        ],
         "no-implicit-coercion": [
             "error",
             {
@@ -93,49 +168,124 @@
                 "string": false
             }
         ],
-        "no-inline-comments": ["error"],
-        "no-iterator": ["error"],
-        "no-label-var": ["error"],
-        "no-lone-blocks": ["error"],
-        "no-lonely-if": ["error"],
-        "no-loop-func": ["error"],
-        "no-multi-assign": ["error"],
-        "no-negated-condition": ["error"],
-        "no-new": ["error"],
-        "no-new-func": ["error"],
-        "no-new-require": ["error"],
+        "no-inline-comments": [
+            "error"
+        ],
+        "no-iterator": [
+            "error"
+        ],
+        "no-label-var": [
+            "error"
+        ],
+        "no-lone-blocks": [
+            "error"
+        ],
+        "no-lonely-if": [
+            "error"
+        ],
+        "no-loop-func": [
+            "error"
+        ],
+        "no-multi-assign": [
+            "error"
+        ],
+        "no-negated-condition": [
+            "error"
+        ],
+        "no-new": [
+            "error"
+        ],
+        "no-new-func": [
+            "error"
+        ],
+        "no-new-require": [
+            "error"
+        ],
         "no-param-reassign": [
             "error",
             {
                 "props": false
             }
         ],
-        "no-prototype-builtins": ["error"],
-        "no-restricted-syntax": ["error"],
-        "no-proto": ["error"],
-        "no-return-assign": ["error"],
-        "no-return-await": ["error"],
-        "no-script-url": ["error"],
-        "no-self-compare": ["error"],
-        "no-sequences": ["error"],
-        "no-shadow-restricted-names": ["error"],
-        "no-template-curly-in-string": ["error"],
-        "no-throw-literal": ["off"],
-        "no-undef-init": ["error"],
-        "no-undefined": ["error"],
-        "no-unmodified-loop-condition": ["error"],
-        "no-unneeded-ternary": ["error"],
-        "no-use-before-define": ["error"],
-        "no-useless-call": ["error"],
-        "no-useless-computed-key": ["error"],
-        "no-useless-concat": ["error"],
-        "no-useless-constructor": ["error"],
-        "no-useless-escape": ["off"],
-        "no-useless-rename": ["error"],
-        "no-useless-return": ["error"],
-        "no-void": ["error"],
-        "no-whitespace-before-property": ["error"],
-        "object-shorthand": ["error", "always"],
+        "no-prototype-builtins": [
+            "error"
+        ],
+        "no-restricted-syntax": [
+            "error"
+        ],
+        "no-proto": [
+            "error"
+        ],
+        "no-return-assign": [
+            "error"
+        ],
+        "no-return-await": [
+            "error"
+        ],
+        "no-script-url": [
+            "error"
+        ],
+        "no-self-compare": [
+            "error"
+        ],
+        "no-sequences": [
+            "error"
+        ],
+        "no-shadow-restricted-names": [
+            "error"
+        ],
+        "no-template-curly-in-string": [
+            "error"
+        ],
+        "no-throw-literal": [
+            "off"
+        ],
+        "no-undef-init": [
+            "error"
+        ],
+        "no-undefined": [
+            "error"
+        ],
+        "no-unmodified-loop-condition": [
+            "error"
+        ],
+        "no-unneeded-ternary": [
+            "error"
+        ],
+        "no-use-before-define": [
+            "error"
+        ],
+        "no-useless-call": [
+            "error"
+        ],
+        "no-useless-computed-key": [
+            "error"
+        ],
+        "no-useless-concat": [
+            "error"
+        ],
+        "no-useless-constructor": [
+            "error"
+        ],
+        "no-useless-escape": [
+            "off"
+        ],
+        "no-useless-rename": [
+            "error"
+        ],
+        "no-useless-return": [
+            "error"
+        ],
+        "no-void": [
+            "error"
+        ],
+        "no-whitespace-before-property": [
+            "error"
+        ],
+        "object-shorthand": [
+            "error",
+            "always"
+        ],
         "prefer-arrow-callback": [
             "error",
             {
@@ -165,9 +315,15 @@
                 "enforceForRenamedProperties": false
             }
         ],
-        "prefer-template": ["error"],
-        "radix": ["error"],
-        "require-await": ["error"],
+        "prefer-template": [
+            "error"
+        ],
+        "radix": [
+            "error"
+        ],
+        "require-await": [
+            "error"
+        ],
         "require-jsdoc": [
             "error",
             {
@@ -179,18 +335,35 @@
                 }
             }
         ],
-        "semi-style": ["error", "last"],
+        "semi-style": [
+            "error",
+            "last"
+        ],
         "spaced-comment": [
             "error",
             "always",
             {
-                "exceptions": ["-", "+", "=", "*"]
+                "exceptions": [
+                    "-",
+                    "+",
+                    "=",
+                    "*"
+                ]
             }
         ],
-        "space-in-parens": ["error", "never"],
-        "space-infix-ops": ["error"],
-        "symbol-description": ["warn"],
-        "template-tag-spacing": ["error"],
+        "space-in-parens": [
+            "error",
+            "never"
+        ],
+        "space-infix-ops": [
+            "error"
+        ],
+        "symbol-description": [
+            "warn"
+        ],
+        "template-tag-spacing": [
+            "error"
+        ],
         "valid-jsdoc": [
             "error",
             {
@@ -207,7 +380,9 @@
     },
     "overrides": [
         {
-            "files": ["*.test.js"],
+            "files": [
+                "*.test.js"
+            ],
             "rules": {
                 "max-len": "off",
                 "no-unused-expressions": 0,

@@ -397,7 +397,7 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {{alias: ?string, name: string, members: {userId: string, level: number}[], topic: string}} room data
      */
     getRoomData(room) {
-        const lastCreatedAlias = R.head(room.getAliases());
+        const lastCreatedAlias = R.head(room.getAliases()) || room.getCanonicalAlias();
         const alias = this._getNameFromMatrixId(lastCreatedAlias) || null;
         const joinedMembers = room.getJoinedMembers();
         const topicEvent = room.currentState.getStateEvents('m.room.topic', '');
