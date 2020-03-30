@@ -41,8 +41,6 @@ const LINE_BREAKE_TAG = '<br>';
 const NO_ROOM_PATTERN = 'No roomId for ';
 const END_NO_ROOM_PATTERN = ' from Matrix';
 
-const NEW_YEAR_2018 = new Date(Date.UTC(2018, 0, 1, 3));
-
 const httpStatus = {
     OK: 200,
     BAD_REQUEST: 404,
@@ -376,16 +374,6 @@ const utils = {
     },
 
     getProjectKeyFromIssueKey: issueKey => Ramda.head(issueKey.split('-')),
-    getCommandAction: (val, collection) => {
-        const numberVal = Number(val);
-        if (Number.isInteger(numberVal)) {
-            return collection[numberVal - 1];
-        }
-
-        return collection.find(({ name }) => name.toLowerCase() === val.toLowerCase());
-    },
-
-    getLimit: () => NEW_YEAR_2018.getTime(),
 
     getListToHTML: list =>
         list.reduce((acc, { displayName }) => `${acc}<strong>${displayName}<br>`, `${translate('listUsers')}:<br>`),
