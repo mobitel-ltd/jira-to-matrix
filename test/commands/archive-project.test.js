@@ -25,7 +25,7 @@ describe('command project archive test', () => {
     const roomId = 'roomId';
     const roomName = 'BBCOM-123';
     const commandName = 'projectarchive';
-    const lastStatusName = transitionsJSON.transitions[1].name;
+    const lastStatusName = transitionsJSON.transitions[1].to.name;
 
     beforeEach(() => {
         chatApi = testUtils.getChatApi();

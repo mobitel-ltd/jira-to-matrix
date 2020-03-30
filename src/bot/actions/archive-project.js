@@ -89,39 +89,14 @@ const deleteByEachBot = async (fasadeApi, alias) => {
     return stateEnum.OTHER_ALIAS_CREATOR;
 };
 
-const handleKnownRoom = async (chatApi, keepTimestamp, roomId, alias) => {
+const handleKnownRoom = async (chatApi, { keepTimestamp, roomId, alias, status }) => {
     const data = await chatApi.getRoomAndClient(roomId);
     if (!data) {
         logger.debug(`No bot can get room meta by alias ${alias} they are not joined. Try remove it.`);
 
         return deleteByEachBot(chatApi, alias);
     }
-    if (data) {
-        const currentMainAlias = data.roomData.alias;
-        if (!currentMainAlias) {
-            logger.warn(`Room with id ${roomId} cannot return current alias. It has been found by alias ${alias}.`);
 
-            return stateEnum.ROOM_NOT_RETURN_ALIAS;
-        }
-
-        // the last room alias is new
-        if (data.roomData.alias !== alias) {
-            logger.warn(`Room with id ${roomId} has moved alias from  ${alias} to ${data.roomData.alias}`);
-            await deleteByEachBot(chatApi, alias);
-
-            return stateEnum.MOVED;
-        }
-
-        const status = await archiveAndForget({ ...data, keepTimestamp });
-        if (status === stateEnum.ARCHIVED) {
-            await deleteByEachBot(chatApi, alias);
-        }
-
-        return status;
-    }
-};
-
-const getRoomArchiveState = async (chatApi, { projectKey, alias, keepTimestamp, status }) => {
     if (status) {
         const issueCurrentStatus = await jiraRequests.getCurrentStatus(alias);
         if (issueCurrentStatus && issueCurrentStatus !== status) {
@@ -132,9 +107,34 @@ const getRoomArchiveState = async (chatApi, { projectKey, alias, keepTimestamp, 
             return stateEnum.ANOTHER_STATUS;
         }
     }
+
+    const currentMainAlias = data.roomData.alias;
+    if (!currentMainAlias) {
+        logger.warn(`Room with id ${roomId} cannot return current alias. It has been found by alias ${alias}.`);
+
+        return stateEnum.ROOM_NOT_RETURN_ALIAS;
+    }
+
+    // the last room alias is new
+    if (data.roomData.alias !== alias) {
+        logger.warn(`Room with id ${roomId} has moved alias from  ${alias} to ${data.roomData.alias}`);
+        await deleteByEachBot(chatApi, alias);
+
+        return stateEnum.MOVED;
+    }
+
+    const state = await archiveAndForget({ ...data, keepTimestamp });
+    if (state === stateEnum.ARCHIVED) {
+        await deleteByEachBot(chatApi, alias);
+    }
+
+    return state;
+};
+
+const getRoomArchiveState = async (chatApi, { projectKey, alias, keepTimestamp, status }) => {
     const roomId = await chatApi.getRoomIdByName(alias);
 
-    return roomId ? handleKnownRoom(chatApi, keepTimestamp, roomId, alias) : stateEnum.NOT_FOUND;
+    return roomId ? handleKnownRoom(chatApi, { keepTimestamp, roomId, alias, status }) : stateEnum.NOT_FOUND;
 };
 
 const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp, status }) => {
