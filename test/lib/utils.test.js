@@ -124,13 +124,6 @@ describe('Utils testing', () => {
         expect(body).to.be.undefined;
     });
 
-    it('Expect getLimit to be timestamp of 01.01.2018', () => {
-        const limit = utils.getLimit();
-        const expected = 1514775600000;
-
-        expect(limit).to.be.equal(expected);
-    });
-
     it("Expect runMethod don't throw with unknown type", () => {
         const res = utils.runMethod({}, 'getCreator');
 
