@@ -2,6 +2,7 @@ const { DateTime } = require('luxon');
 const { setArchiveProject } = require('../../settings');
 const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
+const logger = require('../../../modules/log')(module);
 
 const DEFAULT_MONTH = 3;
 
@@ -49,10 +50,14 @@ const projectarchive = async ({ bodyText, sender, chatApi }) => {
 
     const month = getValidateMonth(customMonths);
     if (!month) {
+        logger.warn(`Command archiveproject was made with incorrect option arg ${customMonths}`);
+
         return translate('notValid', { body: customMonths });
     }
 
     if (!(await jiraRequests.isJiraPartExists(projectKey))) {
+        logger.warn(`Command archiveproject was made with incorrect project ${projectKey}`);
+
         return translate('roomNotExistOrPermDen');
     }
 
@@ -63,6 +68,8 @@ const projectarchive = async ({ bodyText, sender, chatApi }) => {
     if (data.options[STATUS_OPTION]) {
         const status = data.options[STATUS_OPTION];
         if (!(await jiraRequests.hasStatusInProject(projectKey, status))) {
+            logger.warn(`Command archiveproject was made with incorrect option arg ${status}`);
+
             return translate('notValid', { body: status });
         }
 
