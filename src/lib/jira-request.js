@@ -311,6 +311,12 @@ const jiraRequests = {
 
         return transitions.some(el => el.name === status);
     },
+
+    getCurrentStatus: async issueKey => {
+        const issue = await jiraRequests.getIssueSafety(issueKey);
+
+        return R.path(['fields', 'status', 'name'], issue);
+    },
 };
 
 module.exports = jiraRequests;

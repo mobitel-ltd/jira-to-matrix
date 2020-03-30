@@ -7,6 +7,7 @@ const logger = require('../../modules/log.js')(module);
 const { errorTracing } = require('../../lib/utils.js');
 const { getLastIssueKey } = require('../../lib/jira-request.js');
 const { kickAllInRoom, gitPullToRepo } = require('../timeline-handler/commands/archive');
+const jiraRequests = require('../../lib/jira-request');
 
 const stateEnum = {
     // rooms which have messages which sent after keeping date
@@ -27,6 +28,8 @@ const stateEnum = {
     MOVED: 'issue moved to another project',
     // room alias is not received by room meta data and we can't do any action with it
     ROOM_NOT_RETURN_ALIAS: 'no alias from room meta',
+    // issue status is not equals to status which was in args
+    ANOTHER_STATUS: 'issue is in another status',
 };
 
 const getAccum = () => Object.values(stateEnum).reduce((acc, val) => ({ ...acc, [val]: [] }), {});
@@ -118,7 +121,23 @@ const handleKnownRoom = async (chatApi, keepTimestamp, roomId, alias) => {
     }
 };
 
-const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
+const getRoomArchiveState = async (chatApi, { projectKey, alias, keepTimestamp, status }) => {
+    if (status) {
+        const issueCurrentStatus = await jiraRequests.getCurrentStatus(alias);
+        if (issueCurrentStatus && issueCurrentStatus !== status) {
+            logger.warn(
+                `Issue with key ${alias} has status "${issueCurrentStatus}". Expected is "${status}". Skip archiving`,
+            );
+
+            return stateEnum.ANOTHER_STATUS;
+        }
+    }
+    const roomId = await chatApi.getRoomIdByName(alias);
+
+    return roomId ? handleKnownRoom(chatApi, keepTimestamp, roomId, alias) : stateEnum.NOT_FOUND;
+};
+
+const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp, status }) => {
     const iter = async (num, accum) => {
         if (num === 0) {
             logger.info(`All project "${projectKey}" rooms are handled`);
@@ -128,11 +147,10 @@ const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
 
         // make delay to avoid overload matrix server
         await delay(config.delayInterval);
-
         const alias = [projectKey, num].join('-');
-        const roomId = await chatApi.getRoomIdByName(alias);
-        const status = roomId ? await handleKnownRoom(chatApi, keepTimestamp, roomId, alias) : stateEnum.NOT_FOUND;
-        accum[status].push(alias);
+
+        const state = await getRoomArchiveState(chatApi, { projectKey, status, keepTimestamp, alias });
+        accum[state].push(alias);
 
         return iter(num - 1, accum);
     };
@@ -147,7 +165,12 @@ const archiveProject = async ({ chatApi, projectKey, keepTimestamp, status }) =>
         if (lastIssueKey) {
             const lastNumber = R.pipe(R.split('-'), R.last, parseInt)(lastIssueKey);
 
-            const res = await runArchive(chatApi, { projectKey, lastNumber, keepTimestamp: Number(keepTimestamp) });
+            const res = await runArchive(chatApi, {
+                projectKey,
+                lastNumber,
+                keepTimestamp: Number(keepTimestamp),
+                status,
+            });
 
             const commandRoom = chatApi.getCommandRoomName();
             if (commandRoom) {
@@ -174,4 +197,5 @@ module.exports = {
     deleteByEachBot,
     stateEnum,
     getLastMessageTimestamp,
+    getRoomArchiveState,
 };
