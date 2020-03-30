@@ -25,9 +25,16 @@ const getCommandKeys = async () => {
         }
 
         return data.map(value => {
-            const [projectKey, keepTimestampStr] = value.split('::');
+            const [projectKey, ...options] = value.split('::');
+            const parsedOptions = options
+                .map(el => {
+                    const [name, param] = el.split('=');
 
-            return { operationName: ARCHIVE_PROJECT, projectKey, keepTimestamp: Number(keepTimestampStr), value };
+                    return { [name]: param };
+                })
+                .reduce((acc, val) => ({ ...acc, ...val }), {});
+
+            return { operationName: ARCHIVE_PROJECT, projectKey, ...parsedOptions, value };
         });
     } catch (error) {
         logger.error(utils.errorTracing('Error in getting command keys values', error));
@@ -258,8 +265,8 @@ const handleCommandKeys = async (chatApi, keys) => {
     try {
         const result = {};
         for await (const key of keys) {
-            const { operationName, projectKey, keepTimestamp, value } = key;
-            const res = await bot[operationName]({ chatApi, projectKey, keepTimestamp });
+            const { operationName, projectKey, value, ...options } = key;
+            const res = await bot[operationName]({ chatApi, projectKey, ...options });
             if (res) {
                 await redis.srem(operationName, value);
 

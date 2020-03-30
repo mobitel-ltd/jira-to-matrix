@@ -17,14 +17,15 @@ const getAllSettingData = async prefix => {
 
 const getArchiveProject = () => redis.getList(utils.ARCHIVE_PROJECT);
 
-const setArchiveProject = async (projectKey, timeStamp) => {
+const setArchiveProject = async (projectKey, options = {}) => {
     const existsProjects = await getArchiveProject();
     if (existsProjects.some(key => key.includes(projectKey))) {
         logger.warn(`${projectKey} is already saved to archive`);
 
         return;
     }
-    const value = [projectKey, timeStamp].join('::');
+    const parsedOptions = Object.entries(options).map(([key, val]) => `${key}=${val}`);
+    const value = [projectKey, ...parsedOptions].join('::');
 
     return redis.addToList(utils.ARCHIVE_PROJECT, value);
 };

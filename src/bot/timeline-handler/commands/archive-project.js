@@ -5,6 +5,9 @@ const translate = require('../../../locales');
 
 const DEFAULT_MONTH = 3;
 
+const LAST_ACTIVE_OPTION = 'lastactive';
+const STATUS_OPTION = 'status';
+
 const getValidateMonth = data => {
     if (!data) {
         return DEFAULT_MONTH;
@@ -14,12 +17,36 @@ const getValidateMonth = data => {
     return Number.isInteger(numeric) && numeric;
 };
 
-const archiveProject = async ({ bodyText, sender, chatApi }) => {
+const parseBodyText = bodyText => {
+    const [param, ...optionWithParams] = bodyText
+        .split('--')
+        .filter(Boolean)
+        .map(el => el.trim());
+    const options = optionWithParams
+        .map(el => {
+            const [optionName, ...optionParams] = el.split(' ').filter(Boolean);
+
+            return {
+                [optionName]: optionParams.join(' '),
+            };
+        })
+        .reduce((acc, val) => ({ ...acc, ...val }), {});
+
+    return {
+        param,
+        options,
+    };
+};
+
+const projectarchive = async ({ bodyText, sender, chatApi }) => {
     if (!bodyText) {
         return translate('emptyProject');
     }
 
-    const [projectKey, customMonths] = bodyText.split('_');
+    const data = parseBodyText(bodyText);
+    const projectKey = data.param;
+    const customMonths = data.options[LAST_ACTIVE_OPTION];
+
     const month = getValidateMonth(customMonths);
     if (!month) {
         return translate('notValid', { body: customMonths });
@@ -29,13 +56,24 @@ const archiveProject = async ({ bodyText, sender, chatApi }) => {
         return translate('roomNotExistOrPermDen');
     }
 
-    const timeStamp = DateTime.local()
+    const keepTimestamp = DateTime.local()
         .minus({ month })
         .toMillis();
 
-    await setArchiveProject(projectKey, timeStamp);
+    if (data.options[STATUS_OPTION]) {
+        const status = data.options[STATUS_OPTION];
+        if (!(await jiraRequests.hasStatusInProject(projectKey, status))) {
+            return translate('notValid', { body: status });
+        }
 
-    return translate('successProjectAddToArchive', { projectKey });
+        await setArchiveProject(projectKey, { keepTimestamp, status });
+
+        return translate('successProjectAddToArchiveWithStatus', { projectKey, activeTime: month, status });
+    }
+
+    await setArchiveProject(projectKey, { keepTimestamp });
+
+    return translate('successProjectAddToArchive', { projectKey, activeTime: month });
 };
 
-module.exports = archiveProject;
+module.exports = { projectarchive, parseBodyText, LAST_ACTIVE_OPTION, DEFAULT_MONTH, STATUS_OPTION };

@@ -305,6 +305,18 @@ const jiraRequests = {
             logger.error(msg);
         }
     },
+
+    hasStatusInProject: async (projectKey, status) => {
+        const transitions = await jiraRequests.getPossibleIssueStatuses(`${projectKey}-1`);
+
+        return transitions.some(el => el.name === status);
+    },
+
+    getCurrentStatus: async issueKey => {
+        const issue = await jiraRequests.getIssueSafety(issueKey);
+
+        return R.path(['fields', 'status', 'name'], issue);
+    },
 };
 
 module.exports = jiraRequests;

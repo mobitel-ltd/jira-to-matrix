@@ -16,13 +16,15 @@ const rawEvents = require('../fixtures/archiveRoom/raw-events');
 const proxyquire = require('proxyquire');
 const gitPullToRepoStub = stub();
 const { getLastMessageTimestamp, stateEnum } = require('../../src/bot/actions/archive-project');
-const { handleKnownRoom } = proxyquire('../../src/bot/actions/archive-project', {
+const { handleKnownRoom, getRoomArchiveState } = proxyquire('../../src/bot/actions/archive-project', {
     '../timeline-handler/commands/archive': {
         gitPullToRepo: gitPullToRepoStub,
     },
 });
 const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 const { gitPullToRepo } = require('../../src/bot/timeline-handler/commands/archive');
+const utils = require('../../src/lib/utils.js');
+const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 
 describe('Test handle archive project data', () => {
     let server;
@@ -144,6 +146,43 @@ describe('Test handle archive project data', () => {
             expect(messengerApi.kickUserByRoom).not.to.called;
             expect(messengerApi.deleteRoomAlias).to.be.called;
             expect(messengerApi.leaveRoom).not.to.called;
+        });
+    });
+
+    describe('Full test', () => {
+        const issueKey = `${projectKey}-1`;
+        beforeEach(() => {
+            nock(utils.getRestUrl())
+                .get(`/issue/${projectKey}-1`)
+                .reply(200, issueJSON);
+        });
+
+        it('Expect issue is in another statuse and archive not run', async () => {
+            const state = await getRoomArchiveState(chatApi, {
+                projectKey,
+                keepTimestamp: Date.now(),
+                status: 'some other status',
+                alias: issueKey,
+            });
+
+            expect(state).to.eq(stateEnum.ANOTHER_STATUS);
+            expect(messengerApi.kickUserByRoom).not.to.be.called;
+            expect(messengerApi.deleteRoomAlias).not.to.be.called;
+            expect(messengerApi.leaveRoom).not.to.be.called;
+        });
+
+        it('Expect issue is not found and archive wiil be running', async () => {
+            const state = await getRoomArchiveState(chatApi, {
+                projectKey,
+                keepTimestamp: Date.now(),
+                status: 'some other status',
+                alias,
+            });
+
+            expect(state).to.eq(stateEnum.ARCHIVED);
+            expect(messengerApi.kickUserByRoom).to.be.called;
+            expect(messengerApi.deleteRoomAlias).to.be.called;
+            expect(messengerApi.leaveRoom).to.be.called;
         });
     });
 });
