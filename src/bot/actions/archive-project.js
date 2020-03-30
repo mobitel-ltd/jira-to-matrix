@@ -140,14 +140,14 @@ const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp }) => {
     return iter(lastNumber, getAccum());
 };
 
-const archiveProject = async ({ chatApi, projectKey, keepTimestamp }) => {
+const archiveProject = async ({ chatApi, projectKey, keepTimestamp, status }) => {
     try {
         logger.info('Start archiving project');
         const lastIssueKey = await getLastIssueKey(projectKey);
         if (lastIssueKey) {
             const lastNumber = R.pipe(R.split('-'), R.last, parseInt)(lastIssueKey);
 
-            const res = await runArchive(chatApi, { projectKey, lastNumber, keepTimestamp });
+            const res = await runArchive(chatApi, { projectKey, lastNumber, keepTimestamp: Number(keepTimestamp) });
 
             const commandRoom = chatApi.getCommandRoomName();
             if (commandRoom) {

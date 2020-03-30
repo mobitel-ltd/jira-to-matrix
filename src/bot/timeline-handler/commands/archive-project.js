@@ -6,6 +6,7 @@ const translate = require('../../../locales');
 const DEFAULT_MONTH = 3;
 
 const LAST_ACTIVE_OPTION = 'lastactive';
+const STATUS_OPTION = 'status';
 
 const getValidateMonth = data => {
     if (!data) {
@@ -55,13 +56,24 @@ const projectarchive = async ({ bodyText, sender, chatApi }) => {
         return translate('roomNotExistOrPermDen');
     }
 
-    const timeStamp = DateTime.local()
+    const keepTimestamp = DateTime.local()
         .minus({ month })
         .toMillis();
 
-    await setArchiveProject(projectKey, timeStamp);
+    if (data.options[STATUS_OPTION]) {
+        const status = data.options[STATUS_OPTION];
+        if (!(await jiraRequests.hasStatusInProject(projectKey, status))) {
+            return translate('notValid', { body: status });
+        }
+
+        await setArchiveProject(projectKey, { keepTimestamp, status });
+
+        return translate('successProjectAddToArchiveWithStatus', { projectKey, activeTime: month, status });
+    }
+
+    await setArchiveProject(projectKey, { keepTimestamp });
 
     return translate('successProjectAddToArchive', { projectKey, activeTime: month });
 };
 
-module.exports = { projectarchive, parseBodyText, LAST_ACTIVE_OPTION, DEFAULT_MONTH };
+module.exports = { projectarchive, parseBodyText, LAST_ACTIVE_OPTION, DEFAULT_MONTH, STATUS_OPTION };

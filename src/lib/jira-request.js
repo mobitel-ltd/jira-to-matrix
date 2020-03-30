@@ -305,6 +305,12 @@ const jiraRequests = {
             logger.error(msg);
         }
     },
+
+    hasStatusInProject: async (projectKey, status) => {
+        const transitions = await jiraRequests.getPossibleIssueStatuses(`${projectKey}-1`);
+
+        return transitions.some(el => el.name === status);
+    },
 };
 
 module.exports = jiraRequests;

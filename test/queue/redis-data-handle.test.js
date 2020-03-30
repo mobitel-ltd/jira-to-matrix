@@ -372,11 +372,11 @@ describe('Test handle archive project data', () => {
                 .get(`/${rawEventsData.avatarId}`)
                 .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
 
-            const timestamp = Date.now();
+            const keepTimestamp = Date.now();
             // all data is later than now
-            await setArchiveProject(projectKey, timestamp);
+            await setArchiveProject(projectKey, { keepTimestamp, status: 'SOme status' });
             // all data is earlier than now
-            await setArchiveProject(laterProject, rawEventsData.maxTs - 5);
+            await setArchiveProject(laterProject, { keepTimestamp: rawEventsData.maxTs - 5 });
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
