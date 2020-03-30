@@ -32,7 +32,8 @@ const dict = Object.freeze({
     successMatrixAssign: 'Пользователь "%{displayName}" назначен исполнителем задачи',
     emptyMatrixComment: 'Добавьте текст комментария',
     emptyProject: 'Добавьте имя проекта',
-    successProjectAddToArchive: 'Проект "%{projectKey}" добавлен для архивирования',
+    successProjectAddToArchive:
+        'Проект "%{projectKey}" добавлен для архивирования с ограничением по активности "%{activeTime}" месяца',
     successMatrixComment: 'Комментарий опубликован',
     listJiraCommand: 'Список доступных команд',
     notFoundMove: 'Новый статус с именем "%{bodyText}" не найден',

@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 const dict = Object.freeze({
-    successProjectAddToArchive: 'Project "%{projectKey}" is added to archive',
+    successProjectAddToArchive:
+        'Project "%{projectKey}" is added to archive with activity limit "%{activeTime}" months',
     emptyProject: 'Add project name',
     notAdmin: 'User "%{sender}" don\'t have admin status for this command',
     setBotToAdmin: 'Incorrect bot status in project [%{projectKey}](%viewUrl), ask admin for help',

@@ -5,6 +5,8 @@ const translate = require('../../../locales');
 
 const DEFAULT_MONTH = 3;
 
+const LAST_ACTIVE_OPTION = 'lastactive';
+
 const getValidateMonth = data => {
     if (!data) {
         return DEFAULT_MONTH;
@@ -14,12 +16,36 @@ const getValidateMonth = data => {
     return Number.isInteger(numeric) && numeric;
 };
 
-const archiveProject = async ({ bodyText, sender, chatApi }) => {
+const parseBodyText = bodyText => {
+    const [param, ...optionWithParams] = bodyText
+        .split('--')
+        .filter(Boolean)
+        .map(el => el.trim());
+    const options = optionWithParams
+        .map(el => {
+            const [optionName, ...optionParams] = el.split(' ').filter(Boolean);
+
+            return {
+                [optionName]: optionParams.join(' '),
+            };
+        })
+        .reduce((acc, val) => ({ ...acc, ...val }), {});
+
+    return {
+        param,
+        options,
+    };
+};
+
+const projectarchive = async ({ bodyText, sender, chatApi }) => {
     if (!bodyText) {
         return translate('emptyProject');
     }
 
-    const [projectKey, customMonths] = bodyText.split('_');
+    const data = parseBodyText(bodyText);
+    const projectKey = data.param;
+    const customMonths = data.options[LAST_ACTIVE_OPTION];
+
     const month = getValidateMonth(customMonths);
     if (!month) {
         return translate('notValid', { body: customMonths });
@@ -35,7 +61,7 @@ const archiveProject = async ({ bodyText, sender, chatApi }) => {
 
     await setArchiveProject(projectKey, timeStamp);
 
-    return translate('successProjectAddToArchive', { projectKey });
+    return translate('successProjectAddToArchive', { projectKey, activeTime: month });
 };
 
-module.exports = archiveProject;
+module.exports = { projectarchive, parseBodyText, LAST_ACTIVE_OPTION, DEFAULT_MONTH };

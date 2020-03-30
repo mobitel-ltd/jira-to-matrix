@@ -169,6 +169,15 @@ describe('Utils testing', () => {
             expect(bodyText).to.be.equal('gogogogo');
         });
 
+        it('correct command long body args', () => {
+            const command = 'op';
+            const commandOptions = '--option optionParam';
+            const body = `!${command}   ${commandOptions}`;
+            const { commandName, bodyText } = utils.parseEventBody(body);
+            expect(commandName).to.be.equal(command);
+            expect(bodyText).to.be.equal(commandOptions);
+        });
+
         it('false command name', () => {
             const body = 'help';
             const { commandName } = utils.parseEventBody(body);
