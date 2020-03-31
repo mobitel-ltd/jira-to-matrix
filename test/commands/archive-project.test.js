@@ -13,6 +13,7 @@ const {
     STATUS_OPTION,
 } = require('../../src/bot/timeline-handler/commands/archive-project');
 const transitionsJSON = require('../fixtures/jira-api-requests/transitions.json');
+const searchProject = require('../fixtures/jira-api-requests/project-gens/search-project.json');
 
 const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
@@ -30,8 +31,11 @@ describe('command project archive test', () => {
     beforeEach(() => {
         chatApi = testUtils.getChatApi();
         baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
+        const lastIssueKey = searchProject.issues[0].key;
         nock(utils.getRestUrl())
-            .get(`/issue/${bodyText}-1/transitions`)
+            .get(`/search?jql=project=${bodyText}`)
+            .reply(200, searchProject)
+            .get(`/issue/${lastIssueKey}/transitions`)
             .reply(200, transitionsJSON)
             .get(`/project/${bodyText}`)
             .reply(200, newgenProject);
