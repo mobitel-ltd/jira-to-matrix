@@ -1,5 +1,5 @@
 const querystring = require('querystring');
-const Ramda = require('ramda');
+const R = require('ramda');
 const logger = require('../modules/log.js')(module);
 const { jira, inviteIgnoreUsers = [] } = require('../config');
 const { request, requestPost, requestPut } = require('./request.js');
@@ -39,7 +39,7 @@ const jiraRequests = {
         const url = utils.getRestUrl('issue', roomName, 'editmeta');
         const res = await request(url);
 
-        return Ramda.path(['fields', 'priority', 'allowedValues'], res);
+        return R.path(['fields', 'priority', 'allowedValues'], res);
     },
 
     updateIssuePriority: (roomName, id) => {
@@ -168,6 +168,16 @@ const jiraRequests = {
         return project;
     },
 
+    isJiraPartExists: async issueKey => {
+        const projectKey = utils.getProjectKeyFromIssueKey(issueKey);
+        try {
+            await jiraRequests.getProject(projectKey);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    },
+
     /**
      * Make GET request to jira by projectID
      * @param {string} projectKey project ID in jira
@@ -214,9 +224,9 @@ const jiraRequests = {
         try {
             const issue = await jiraRequests.getIssueFormatted(key);
 
-            const renderedValues = Ramda.pipe(
-                Ramda.pick(fields),
-                Ramda.filter(value => !!value),
+            const renderedValues = R.pipe(
+                R.pick(fields),
+                R.filter(value => !!value),
             )(issue.renderedFields);
 
             return renderedValues;
@@ -260,7 +270,7 @@ const jiraRequests = {
 
             return issue;
         } catch (err) {
-            logger.warn('No issue by ', id);
+            logger.warn(`No issue by ${id}`);
             return false;
         }
     },
@@ -271,12 +281,46 @@ const jiraRequests = {
 
             const data = await request(statusUrl);
 
-            return { colorName: Ramda.path(['statusCategory', 'colorName'], data) };
+            return { colorName: R.path(['statusCategory', 'colorName'], data) };
         } catch (error) {
             logger.error(error);
 
             return {};
         }
+    },
+
+    getLastIssueKey: async projectKey => {
+        try {
+            const searchUrl = utils.getRestUrl('search');
+
+            const data = await request(searchUrl, {
+                qs: {
+                    jql: `project=${projectKey}`,
+                },
+            });
+
+            return R.path(['issues', '0', 'key'], data);
+        } catch (error) {
+            const msg = utils.errorTracing(`Not found or not available project ${projectKey}`, error);
+            logger.error(msg);
+        }
+    },
+
+    hasStatusInProject: async (projectKey, status) => {
+        const issuKey = await jiraRequests.getLastIssueKey(projectKey);
+        if (issuKey) {
+            const transitions = await jiraRequests.getPossibleIssueStatuses(issuKey);
+
+            return transitions.some(el => el.to.name === status);
+        }
+
+        return false;
+    },
+
+    getCurrentStatus: async issueKey => {
+        const issue = await jiraRequests.getIssueSafety(issueKey);
+
+        return R.path(['fields', 'status', 'name'], issue);
     },
 };
 

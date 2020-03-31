@@ -15,10 +15,21 @@ const REDIS_LINK_PREFIX = 'link';
 const REDIS_EPIC_PREFIX = 'epic';
 const REDIS_IGNORE_PREFIX = 'ignore:project';
 const REDIS_INVITE_PREFIX = 'invite:project';
+const REDIS_ALIASES = 'aliases';
 const HANDLED_KEY = 'handled';
+const ARCHIVE_PROJECT = 'archiveProject';
 
 const DELIMITER = '|';
-const KEYS_TO_IGNORE = [ROOMS_OLD_NAME, DELIMITER, REDIS_IGNORE_PREFIX, REDIS_INVITE_PREFIX, HANDLED_KEY];
+const KEYS_TO_IGNORE = [
+    REDIS_ALIASES,
+    ROOMS_OLD_NAME,
+    DELIMITER,
+    REDIS_IGNORE_PREFIX,
+    REDIS_INVITE_PREFIX,
+    HANDLED_KEY,
+    ARCHIVE_PROJECT,
+];
+
 const [COMMON_NAME] = messenger.domain.split('.').slice(1, 2);
 const JIRA_REST = 'rest/api/2';
 
@@ -29,8 +40,6 @@ const INDENT = '&nbsp;&nbsp;&nbsp;&nbsp;';
 const LINE_BREAKE_TAG = '<br>';
 const NO_ROOM_PATTERN = 'No roomId for ';
 const END_NO_ROOM_PATTERN = ' from Matrix';
-
-const NEW_YEAR_2018 = new Date(Date.UTC(2018, 0, 1, 3));
 
 const httpStatus = {
     OK: 200,
@@ -350,6 +359,8 @@ const utils = {
 
     // * --------------------------------- Other utils ------------------------------- *
 
+    isOdd: num => Boolean(num % 2),
+
     connect: async (func, interval, count) => {
         if (count === 0) {
             throw 'No connection.';
@@ -363,16 +374,6 @@ const utils = {
     },
 
     getProjectKeyFromIssueKey: issueKey => Ramda.head(issueKey.split('-')),
-    getCommandAction: (val, collection) => {
-        const numberVal = Number(val);
-        if (Number.isInteger(numberVal)) {
-            return collection[numberVal - 1];
-        }
-
-        return collection.find(({ name }) => name.toLowerCase() === val.toLowerCase());
-    },
-
-    getLimit: () => NEW_YEAR_2018.getTime(),
 
     getListToHTML: list =>
         list.reduce((acc, { displayName }) => `${acc}<strong>${displayName}<br>`, `${translate('listUsers')}:<br>`),
@@ -519,6 +520,8 @@ module.exports = {
     REDIS_ROOM_KEY,
     REDIS_IGNORE_PREFIX,
     REDIS_INVITE_PREFIX,
+    REDIS_ALIASES,
+    ARCHIVE_PROJECT,
     COMMON_NAME,
     NO_ROOM_PATTERN,
     END_NO_ROOM_PATTERN,

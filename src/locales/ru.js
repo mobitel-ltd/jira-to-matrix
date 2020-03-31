@@ -31,6 +31,11 @@ const dict = Object.freeze({
     successMatrixInvite: 'Пользователь %{sender} приглашен в комнату %{roomName}',
     successMatrixAssign: 'Пользователь "%{displayName}" назначен исполнителем задачи',
     emptyMatrixComment: 'Добавьте текст комментария',
+    emptyProject: 'Добавьте имя проекта',
+    successProjectAddToArchive:
+        'Проект "%{projectKey}" добавлен для архивирования с ограничением по активности "%{activeTime}" месяца',
+    successProjectAddToArchiveWithStatus:
+        'Проект "%{projectKey}" добавлен для архивирования с ограничением по активности "%{activeTime}" месяца и по текущему статусу %{status}',
     successMatrixComment: 'Комментарий опубликован',
     listJiraCommand: 'Список доступных команд',
     notFoundMove: 'Новый статус с именем "%{bodyText}" не найден',
@@ -86,6 +91,7 @@ const dict = Object.freeze({
     noAlias: 'Алиас у комнаты отсутствует. Добавьте его и повторите операцию.',
     noBotPower: 'Бот не имеет привелегий для осуществлений действия, требуемый уровень - %{power}',
     adminsAreNotKicked: 'Бот не смог удалить администраторов данной комнаты',
+    notValid: 'Введено неверное значение параметра %{body}',
 });
 /* spell-checker: enable */
 

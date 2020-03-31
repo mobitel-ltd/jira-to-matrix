@@ -62,7 +62,7 @@ module.exports = [
         sender: '@user_test:matrix.example.com',
         content: {},
         event_id: '$158315537141217hidwE:matrix.example.com',
-        origin_server_ts: 1583155371535,
+        origin_server_ts: info.maxTs,
         unsigned: {
             redacted_by: '$158315538141223Yellz:matrix.example.com',
             redacted_because: {
@@ -115,7 +115,7 @@ module.exports = [
             body: ' * llalala12345',
         },
         event_id: '$158315536641215XCYxT:matrix.example.com',
-        origin_server_ts: 1583155366238,
+        origin_server_ts: info.maxTs - 10,
         unsigned: {
             age: 45718,
         },
@@ -132,7 +132,7 @@ module.exports = [
             body: 'llalala12345',
         },
         event_id: '$158315535341208MdBlF:matrix.example.com',
-        origin_server_ts: 1583155353562,
+        origin_server_ts: info.maxTs - 20,
         unsigned: {
             age: 58394,
             'm.relations': {
@@ -156,7 +156,7 @@ module.exports = [
             formatted_body: '<p>lalalal00000<br /></p>\n',
         },
         event_id: '$158315135640617JeoRb:matrix.example.com',
-        origin_server_ts: 1583151356651,
+        origin_server_ts: info.maxTs - 30,
         unsigned: {
             age: 1301,
             transaction_id: 'm1583151356574.67',
@@ -186,7 +186,7 @@ module.exports = [
             url: info.imgUrl,
         },
         event_id: '$158314842240236RCJdh:example.com',
-        origin_server_ts: 1583148422154,
+        origin_server_ts: info.maxTs - 40,
         unsigned: {
             age: 1274,
         },
@@ -199,7 +199,7 @@ module.exports = [
             membership: 'join',
         },
         event_id: '$1581432389810513yJOiY:example.com',
-        origin_server_ts: 1581432389345,
+        origin_server_ts: info.maxTs - 50,
         room_id: '!XIFEkULwPGYFFmcRZo:example.com',
         sender: '@test_user:example.com',
         state_key: '@test_user:example.com',
@@ -428,5 +428,39 @@ module.exports = [
         },
         user_id: '@health_check_bot:example.com',
         age: 1721985502,
+    },
+    {
+        type: 'm.room.message',
+        sender: '@test_user:matrix.example.com',
+        content: {
+            msgtype: 'm.text',
+            format: 'org.matrix.custom.html',
+            body: '```not closed',
+            formatted_body: '<p>lalalal00000<br /></p>\n',
+        },
+        event_id: '$1020305135640617JeoRb:matrix.example.com',
+        origin_server_ts: info.maxTs - 100,
+        unsigned: {
+            age: 1301,
+            transaction_id: 'm1583151356574.67',
+        },
+        room_id: '!XIFEkULwPGYFFmcRZo:matrix.example.com',
+    },
+    {
+        type: 'm.room.message',
+        sender: '@test_user:matrix.example.com',
+        content: {
+            msgtype: 'm.text',
+            format: 'org.matrix.custom.html',
+            body: '```closed```\n```\nnew line\n```',
+            formatted_body: '<p>lalalal00000<br /></p>\n',
+        },
+        event_id: '$2030405135640617JeoRb:matrix.example.com',
+        origin_server_ts: info.maxTs - 200,
+        unsigned: {
+            age: 1301,
+            transaction_id: 'm1583151356574.67',
+        },
+        room_id: '!XIFEkULwPGYFFmcRZo:matrix.example.com',
     },
 ];

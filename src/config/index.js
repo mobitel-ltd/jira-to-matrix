@@ -27,6 +27,10 @@ const composeConfig = config => {
         config.features.epicUpdates.newIssuesInEpic === 'on' ||
         config.features.epicUpdates.issuesStatusChanged === 'on';
 
+    if (!config.delayInterval) {
+        config.delayInterval = 500;
+    }
+
     if (config.gitArchive) {
         // http is for test only to send to local git server
         const protocol = config.gitArchive.protocol || 'https';

@@ -5,7 +5,7 @@
 const matrixSdk = require('matrix-js-sdk');
 const utils = require('../lib/utils');
 const MessengerAbstract = require('./messenger-abstract');
-const Ramda = require('ramda');
+const R = require('ramda');
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -242,10 +242,11 @@ module.exports = class Matrix extends MessengerAbstract {
     async leaveRoom(roomId) {
         try {
             await this.client.leave(roomId);
+            this.logger.info(`Left room with id ${roomId}`);
 
             return roomId;
         } catch (err) {
-            this.logger.error(['Error in Matrix connection', err].join('\n'));
+            this.logger.error([`leave room ${roomId}`, err].join('\n'));
 
             return false;
         }
@@ -377,7 +378,7 @@ module.exports = class Matrix extends MessengerAbstract {
             };
 
             const result = await this.client._http.authedRequest(undefined, method, path, {}, body);
-            const userId = Ramda.path(['results', 0, 'user_id'], result);
+            const userId = R.path(['results', 0, 'user_id'], result);
 
             if (!userId) {
                 this.logger.warn(`Not found user by search params ${searchParam}`);
@@ -396,10 +397,11 @@ module.exports = class Matrix extends MessengerAbstract {
      * @returns {{alias: ?string, name: string, members: {userId: string, level: number}[], topic: string}} room data
      */
     getRoomData(room) {
-        const alias = this._getNameFromMatrixId(room.getCanonicalAlias()) || null;
+        const lastCreatedAlias = R.head(room.getAliases()) || room.getCanonicalAlias();
+        const alias = this._getNameFromMatrixId(lastCreatedAlias) || null;
         const joinedMembers = room.getJoinedMembers();
         const topicEvent = room.currentState.getStateEvents('m.room.topic', '');
-        const topic = topicEvent && Ramda.path(['topic'], topicEvent.getContent());
+        const topic = topicEvent && R.path(['topic'], topicEvent.getContent());
 
         return {
             id: room.roomId,
@@ -411,6 +413,17 @@ module.exports = class Matrix extends MessengerAbstract {
                 powerLevel,
             })),
         };
+    }
+
+    /**
+     * Get room data by room id
+     * @param {string} roomId matrix room id
+     */
+    async getRoomDataById(roomId) {
+        const room = await this.client.getRoom(roomId);
+        if (room) {
+            return this.getRoomData(room);
+        }
     }
 
     /**
@@ -761,18 +774,20 @@ module.exports = class Matrix extends MessengerAbstract {
     }
 
     /**
-     * Get bot which joined to room in chat
+     * Get all room events
      * @param {string} roomId chat room id
+     * @param {number} limit=10000 event limit
      * @returns {Promise<void>} void
      */
-    async getAllEventsFromRoom(roomId) {
+    async getAllEventsFromRoom(roomId, limit = 10000) {
         try {
             const method = 'GET';
             const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
-            const qweryParams = { limit: 10000, dir: 'b' };
+            const qweryParams = { limit, dir: 'b' };
             const body = {};
 
             const { chunk } = await this.client._http.authedRequest(undefined, method, path, qweryParams, body);
+
             return chunk;
         } catch (error) {
             this.logger.error(`Error in request to all events for ${roomId}.`);
@@ -877,9 +892,9 @@ module.exports = class Matrix extends MessengerAbstract {
      * @param {string} aliasPart aliasPart
      * @returns {string|undefined} return allias if command is succedded
      */
-    async deleteAliasByRoomName(aliasPart) {
+    async deleteRoomAlias(aliasPart) {
+        const alias = this._getMatrixRoomAlias(aliasPart);
         try {
-            const alias = this._getMatrixRoomAlias(aliasPart);
             const roomId = await this.getRoomIdByName(alias, true);
             if (!roomId) {
                 this.logger.warn(`Alias ${alias} is not found!!!`);
@@ -891,7 +906,7 @@ module.exports = class Matrix extends MessengerAbstract {
 
             return alias;
         } catch (err) {
-            const msg = utils.errorTracing(`Error while deleting alias "${aliasPart}"`, JSON.stringify(err));
+            const msg = utils.errorTracing(`deleteRoomAlias "${alias}"`, JSON.stringify(err));
             this.logger.error(msg);
         }
     }

@@ -15,6 +15,25 @@ const getAllSettingData = async prefix => {
     return data ? JSON.parse(data) : {};
 };
 
+const getArchiveProject = () => redis.getList(utils.ARCHIVE_PROJECT);
+
+const setArchiveProject = async (projectKey, options = {}) => {
+    const existsProjects = await getArchiveProject();
+    if (existsProjects.some(key => key.includes(projectKey))) {
+        logger.warn(`${projectKey} is already saved to archive`);
+
+        return;
+    }
+    const parsedOptions = Object.entries(options).map(([key, val]) => `${key}=${val}`);
+    const value = [projectKey, ...parsedOptions].join('::');
+
+    return redis.addToList(utils.ARCHIVE_PROJECT, value);
+};
+
+const getAliases = () => redis.getList(utils.REDIS_ALIASES);
+
+const setAlias = alias => redis.addToList(utils.REDIS_ALIASES, alias);
+
 const setSettingsData = async (projectKey, data, prefix) => {
     try {
         const redisSettings = await getAllSettingData(prefix);
@@ -54,6 +73,10 @@ const getAutoinviteUsers = async (projectKey, typeName) => {
 };
 
 module.exports = {
+    setArchiveProject,
+    getArchiveProject,
+    setAlias,
+    getAliases,
     getAllSettingData,
     getAutoinviteUsers,
     setSettingsData,

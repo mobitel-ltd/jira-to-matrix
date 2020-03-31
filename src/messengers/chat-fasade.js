@@ -57,6 +57,23 @@ module.exports = class ChatFasade extends MessengerAbstract {
     }
 
     /**
+     * Get room data and client instance in this room by roomId
+     * @param {string} roomId matrix room id
+     */
+    async getRoomAndClient(roomId) {
+        try {
+            const client = await this._getTargetClient(roomId);
+            const roomData = await client.getRoomDataById(roomId);
+            return {
+                client,
+                roomData,
+            };
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
      * Get room id, throws if no bot is in room
      * @param {string} key - name of room
      * @returns {Promise<string>} - returns roomId of this room
@@ -121,6 +138,14 @@ module.exports = class ChatFasade extends MessengerAbstract {
         const client = await this._getTargetClient(roomId);
 
         return client.sendHtmlMessage(roomId, body, htmlBody);
+    }
+
+    /**
+     * Get get command room name
+     * @returns {string|undefined} info data if exists
+     */
+    getCommandRoomName() {
+        return this.worker.getCommandRoomName();
     }
 
     /**
@@ -220,6 +245,16 @@ module.exports = class ChatFasade extends MessengerAbstract {
         const worker = this.chatPool.find(item => item.getMyId() === id);
 
         return worker;
+    }
+
+    /**
+     * Get room id by name
+     * @param {String} name roomname or alias
+     * @param {Boolean} notUpper transform to upper
+     * @returns {Promise<String|false>} returns roomId or false if not exisits
+     */
+    getRoomIdByName(name) {
+        return this.worker.getRoomIdByName(name);
     }
 
     /**

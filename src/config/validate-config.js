@@ -98,6 +98,7 @@ const schema = obj({
         repoPrefix: string,
         protocol: string.optional(),
     },
+    delayInterval: int.optional(),
 });
 
 /**

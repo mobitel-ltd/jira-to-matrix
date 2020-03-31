@@ -1,3 +1,4 @@
+const R = require('ramda');
 const nock = require('nock');
 const schemas = require('../../src/lib/schemas');
 const transitionsJSON = require('../fixtures/jira-api-requests/transitions.json');
@@ -16,8 +17,8 @@ describe('move test', () => {
     const roomName = 'BBCOM-123';
     const roomId = 12345;
     const { transitions } = transitionsJSON;
-    const [newStatus] = transitions;
-    const [lastStatus] = transitions.slice().reverse();
+    const newStatus = R.head(transitions);
+    const lastStatus = R.last(transitions);
 
     const chatApi = { sendHtmlMessage: stub() };
 
@@ -58,6 +59,14 @@ describe('move test', () => {
     it('Expect correct !move command with upper case body', async () => {
         const body = translate('successMoveJira', { name: newStatus.name, sender });
         const result = await commandHandler({ ...baseOptions, bodyText: newStatus.name.toUpperCase() });
+
+        expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, body, body);
+        expect(result).to.be.equal(body);
+    });
+
+    it('Expect correct !move command with status "to.name" in upper case body ', async () => {
+        const body = translate('successMoveJira', { name: newStatus.name, sender });
+        const result = await commandHandler({ ...baseOptions, bodyText: newStatus.to.name.toUpperCase() });
 
         expect(chatApi.sendHtmlMessage).to.have.been.calledWithExactly(roomId, body, body);
         expect(result).to.be.equal(body);
