@@ -250,7 +250,7 @@ module.exports = class {
 
     /**
      * Delete matrix room alias
-     * @param {string} roomId matrix room id
+     * @param {string} aliasPart matrix room id
      */
-    deleteAlias(roomId) {}
+    deleteRoomAlias(aliasPart) {}
 };

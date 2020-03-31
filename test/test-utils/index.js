@@ -77,10 +77,10 @@ module.exports = {
 
     /**
      * @param {object} options params
-     * @param {object} options.type config params
-     * @param {string} options.alias alias to return correct roomId
-     * @param {string} options.roomId roomId to return
-     * @param {({userId: string, displayName:string}|string)[]} options.existedUsers users which id will be returned
+     * @param {object} [options.type] config params
+     * @param {string} [options.alias] alias to return correct roomId
+     * @param {string} [options.roomId] roomId to return
+     * @param {({userId: string, displayName:string}|string)[]} [options.existedUsers] users which id will be returned
      * @returns {object} instance of messenger class
      */
     getChatApi: (options = {}) => {
@@ -114,12 +114,19 @@ module.exports = {
             getAllEventsFromRoom: stub().resolves(rawEvents),
             getDownloadLink: stub().callsFake(el => getMediaLink(R.pipe(R.split('/'), R.last)(el))),
             kickUserByRoom: stub().callsFake(userId => userId),
+            getRoomDataById: stub(),
         });
 
         const allMembers = [...roomAdmins, ...defaultExistedUsers].map(({ userId, name }) =>
             chatApi.getChatUserId(userId || name),
         );
         chatApi.getRoomMembers = stub().resolves(allMembers);
+
+        chatApi.getRoomDataById.withArgs(roomId).resolves({
+            alias: Array.isArray(alias) ? alias[0] : alias,
+            id: roomId,
+            members: allMembers.map(userId => ({ userId, powerLevel: 50 })),
+        });
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
         // console.log('TCL: stubInstance', chatApi);

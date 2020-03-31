@@ -1,15 +1,16 @@
 const isImage = require('is-image');
 const tmp = require('tmp-promise');
-const config = require('../../../config');
 const fileSystem = require('fs');
 const path = require('path');
-const git = require('simple-git/promise');
 const R = require('ramda');
+const config = require('../../../config');
+const git = require('simple-git/promise');
 const jiraRequests = require('../../../lib/jira-request');
 const utils = require('../../../lib/utils');
 const translate = require('../../../locales');
 const logger = require('../../../modules/log.js')(module);
 const { fileRequest } = require('../../../lib/request');
+const { setAlias } = require('../../settings');
 
 const fs = fileSystem.promises;
 
@@ -68,6 +69,14 @@ const getImageData = (event, api) => {
     }
 };
 
+const hasNotCloseQuote = (str = '') => {
+    const quoteCount = str.split('```').length - 1;
+
+    return utils.isOdd(quoteCount);
+};
+
+const closeQuote = (str = '') => str.concat('\n```');
+
 const getBody = event => {
     const imageData = getImageData(event);
     if (imageData) {
@@ -78,10 +87,11 @@ const getBody = event => {
         return imageData.skip ? `[${imageData.imageName}](${parsedFilePath})` : `![image](${parsedFilePath})`;
     }
 
-    return (
-        event.content.msgtype === 'm.text' &&
-        (R.path(['content', 'm.new_content', 'body'], event) || R.path(['content', 'body'], event))
-    );
+    if (event.content.msgtype === 'm.text') {
+        const textBody = R.path(['content', 'm.new_content', 'body'], event) || R.path(['content', 'body'], event);
+
+        return hasNotCloseQuote(textBody) ? closeQuote(textBody) : textBody;
+    }
 };
 
 const getMDtext = events =>
@@ -122,6 +132,8 @@ const getRepoLink = (baseLink, projectKey, roomName) => {
     return [baseLink, projectExt, 'tree', 'master', roomName].join('/');
 };
 
+// It helps remove all property which dynamically created by the moment of archive
+// Instead of it we will get new event each time arhive run
 const transformEvent = event => {
     // TODO add recursive
     const pureEvent = R.pipe(
@@ -224,7 +236,7 @@ const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, cha
     try {
         const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomData.alias) : DEFAULT_REMOTE_NAME;
         const remote = getProjectRemote(baseRemote, projectKey);
-        await git(tmpPath).clone(remote, projectKey);
+        await git(tmpPath).clone(remote, projectKey, ['--depth=3']);
         logger.debug(`clone repo by project key ${projectKey} is succedded to tmp dir ${tmpPath}`);
         const repoPath = path.resolve(tmpPath, projectKey);
         const repoRoomPath = path.resolve(repoPath, roomData.alias);
@@ -245,7 +257,8 @@ const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, cha
 
         return link;
     } catch (err) {
-        logger.error(err);
+        const msg = utils.errorTracing(`gitPullToRepo ${roomData.alias}`, err);
+        logger.error(msg);
     } finally {
         await cleanup();
     }
@@ -296,16 +309,6 @@ const kickAllInRoom = async (chatApi, roomId, members) => {
     return ALL_DELETED;
 };
 
-const roomNameHasJiraProject = async roomName => {
-    const projectKey = utils.getProjectKeyFromIssueKey(roomName);
-    try {
-        await jiraRequests.getProject(projectKey);
-        return true;
-    } catch (err) {
-        return false;
-    }
-};
-
 const hasKickOption = bodyText => bodyText && bodyText.includes(KICK_ALL_OPTION);
 
 const hasPowerToKick = (botId, members, expectedPower) => {
@@ -328,12 +331,17 @@ const kick = async (chatApi, bodyText, roomData) => {
     }
 
     const deleteStatus = await kickAllInRoom(chatApi, roomData.id, roomData.members);
-    if (deleteStatus === ALL_DELETED) {
-        // Only in rooms where bot is creator
-        await chatApi.deleteAliasByRoomName(roomData.alias);
-    }
 
     return deleteStatus;
+};
+
+const deleteAlias = async (api, alias) => {
+    const res = await api.deleteRoomAlias(alias);
+    if (!res) {
+        logger.warn(`Alias ${alias} is not deleted by bot ${api.getMyId()} and should be saved`);
+
+        await setAlias(alias);
+    }
 };
 
 const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
@@ -343,8 +351,8 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
     }
 
     const issue = await jiraRequests.getIssueSafety(alias);
-    const isRoomJiraProject = await roomNameHasJiraProject(alias);
-    if (!issue && isRoomJiraProject) {
+    const isJiraRoom = await jiraRequests.isJiraPartExists(alias);
+    if (!issue && isJiraRoom) {
         return translate('roomNotExistOrPermDen');
     }
 
@@ -361,7 +369,7 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
     }
 
     const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-    const repoLink = await gitPullToRepo(config, allEvents, roomData, chatApi, isRoomJiraProject);
+    const repoLink = await gitPullToRepo(config, allEvents, roomData, chatApi, isJiraRoom);
     if (!repoLink) {
         return translate('archiveFail', { alias });
     }
@@ -373,11 +381,6 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
     const successExoprtMsg = translate('successExport', { link: repoLink });
 
     switch (kickRes) {
-        case ALL_DELETED: {
-            // all are deleted and no message is needed
-            await chatApi.leaveRoom(roomData.id);
-            return;
-        }
         case NO_OPTION: {
             return successExoprtMsg;
         }
@@ -385,6 +388,12 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
             const msg = translate('noBotPower', { power: EXPECTED_POWER });
 
             return [successExoprtMsg, msg].join('<br>');
+        }
+        case ALL_DELETED: {
+            // all are deleted and no message is needed
+            await deleteAlias(chatApi, roomData.alias);
+            await chatApi.leaveRoom(roomData.id);
+            return;
         }
         case ADMINS_EXISTS: {
             const msg = translate('adminsAreNotKicked');
@@ -396,6 +405,7 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
 };
 
 module.exports = {
+    deleteAlias,
     DEFAULT_REMOTE_NAME,
     DEFAULT_EXT,
     getMediaFileData,
@@ -403,7 +413,6 @@ module.exports = {
     // getHTMLtext,
     getMDtext,
     gitPullToRepo,
-    roomNameHasJiraProject,
     EVENTS_DIR_NAME,
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,

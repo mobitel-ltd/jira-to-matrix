@@ -124,13 +124,6 @@ describe('Utils testing', () => {
         expect(body).to.be.undefined;
     });
 
-    it('Expect getLimit to be timestamp of 01.01.2018', () => {
-        const limit = utils.getLimit();
-        const expected = 1514775600000;
-
-        expect(limit).to.be.equal(expected);
-    });
-
     it("Expect runMethod don't throw with unknown type", () => {
         const res = utils.runMethod({}, 'getCreator');
 
@@ -174,6 +167,15 @@ describe('Utils testing', () => {
             const { commandName, bodyText } = utils.parseEventBody(body);
             expect(commandName).to.be.equal('op');
             expect(bodyText).to.be.equal('gogogogo');
+        });
+
+        it('correct command long body args', () => {
+            const command = 'op';
+            const commandOptions = '--option optionParam';
+            const body = `!${command}   ${commandOptions}`;
+            const { commandName, bodyText } = utils.parseEventBody(body);
+            expect(commandName).to.be.equal(command);
+            expect(bodyText).to.be.equal(commandOptions);
         });
 
         it('false command name', () => {

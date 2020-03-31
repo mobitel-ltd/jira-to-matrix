@@ -2,6 +2,15 @@ const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
 const utils = require('../../../lib/utils');
 
+const getCommandAction = (val, collection) => {
+    const numberVal = Number(val);
+    if (Number.isInteger(numberVal)) {
+        return collection[numberVal - 1];
+    }
+
+    return collection.find(el => el.name.toLowerCase() === val.toLowerCase());
+};
+
 module.exports = async ({ bodyText, roomId, roomName, chatApi }) => {
     const allPriorities = await jiraRequests.getIssuePriorities(roomName);
     if (!allPriorities) {
@@ -12,7 +21,7 @@ module.exports = async ({ bodyText, roomId, roomName, chatApi }) => {
         return utils.getCommandList(allPriorities);
     }
 
-    const priority = utils.getCommandAction(bodyText, allPriorities);
+    const priority = getCommandAction(bodyText, allPriorities);
 
     if (!priority) {
         return translate('notFoundPrio', { bodyText });

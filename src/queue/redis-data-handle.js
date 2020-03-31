@@ -1,9 +1,11 @@
+// @ts-check
+
 const Ramda = require('ramda');
 const logger = require('../modules/log.js')(module);
 const redis = require('../redis-client.js');
 const bot = require('../bot/actions');
 const { prefix } = require('../config').redis;
-const { REDIS_ROOM_KEY, isIgnoreKey, HANDLED_KEY } = require('../lib/utils.js');
+const { REDIS_ROOM_KEY, isIgnoreKey, HANDLED_KEY, ARCHIVE_PROJECT } = require('../lib/utils.js');
 const utils = require('../lib/utils');
 
 const getRedisKeys = async () => {
@@ -12,6 +14,31 @@ const getRedisKeys = async () => {
         return allKeys.filter(isIgnoreKey);
     } catch (err) {
         throw ['getRedisKeys error', err].join('\n');
+    }
+};
+
+const getCommandKeys = async () => {
+    try {
+        const data = await redis.getList(ARCHIVE_PROJECT);
+        if (!data || !data.length) {
+            return [];
+        }
+
+        return data.map(value => {
+            const [projectKey, ...options] = value.split('::');
+            const parsedOptions = options
+                .map(el => {
+                    const [name, param] = el.split('=');
+
+                    return { [name]: param };
+                })
+                .reduce((acc, val) => ({ ...acc, ...val }), {});
+
+            return { operationName: ARCHIVE_PROJECT, projectKey, ...parsedOptions, value };
+        });
+    } catch (error) {
+        logger.error(utils.errorTracing('Error in getting command keys values', error));
+        return false;
     }
 };
 
@@ -26,7 +53,7 @@ const getRedisValue = async key => {
 
         return result;
     } catch (err) {
-        logger.error(`Error in getting value of key: ${key}\n`, err);
+        logger.error(utils.errorTracing(`Error in getting value of key: ${key}`, err));
 
         return false;
     }
@@ -79,7 +106,7 @@ const getHandledKeys = async () => {
 };
 
 const isHandled = async key => {
-    const handledKeys = (await getHandledKeys(HANDLED_KEY)) || [];
+    const handledKeys = (await getHandledKeys()) || [];
 
     return handledKeys.includes(key);
 };
@@ -234,7 +261,30 @@ const saveIncoming = async ({ redisKey, ...restData }) => {
     }
 };
 
+const handleCommandKeys = async (chatApi, keys) => {
+    try {
+        const result = {};
+        for await (const key of keys) {
+            const { operationName, projectKey, value, ...options } = key;
+            const res = await bot[operationName]({ chatApi, projectKey, ...options });
+            if (res) {
+                await redis.srem(operationName, value);
+
+                logger.info(`Result of handling project ${value}`, JSON.stringify(res));
+
+                result[projectKey] = res;
+            }
+        }
+
+        return result;
+    } catch (error) {
+        logger.error(error);
+    }
+};
+
 module.exports = {
+    handleCommandKeys,
+    getCommandKeys,
     rewriteRooms,
     saveIncoming,
     getRedisKeys,

@@ -4,6 +4,7 @@ const gitSimple = require('simple-git/promise');
 const config = require('../../src/config');
 const fs = require('fs');
 const path = require('path');
+const { getAliases } = require('../../src/bot/settings');
 
 const { getUserIdByDisplayName } = require('../test-utils');
 const nock = require('nock');
@@ -18,6 +19,7 @@ const projectJSON = require('../fixtures/jira-api-requests/project.json');
 
 const {
     getGroupedUsers,
+    deleteAlias,
     // getHTMLtext,
     getMDtext,
     gitPullToRepo,
@@ -26,7 +28,6 @@ const {
     KICK_ALL_OPTION,
     VIEW_FILE_NAME,
     transformEvent,
-    roomNameHasJiraProject,
     getImageData,
     FILE_DELIMETER,
     DEFAULT_EXT,
@@ -129,14 +130,23 @@ describe('Archive command', () => {
             .reply(200, issueJSON)
             .get(`/issue/${roomNameNotGitProject}`)
             .reply(200, issueJSON)
-            .get(`/project/INDEV`)
-            .reply(200, projectJSON)
             .get(`/project/${projectKey}`)
             .reply(200, projectJSON);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         nock.cleanAll();
+        await testUtils.cleanRedis();
+    });
+
+    it('expect not deleted alias is saved into redis', async () => {
+        const alias = faker.random.word();
+        const res = await deleteAlias(chatApi, alias);
+
+        expect(res).to.be.undefined;
+
+        const allAliases = await getAliases();
+        expect(allAliases).to.include(alias);
     });
 
     // TODO set readable test case names
@@ -148,7 +158,8 @@ describe('Archive command', () => {
 
     it('Permition denided if sender and bot not in task jira', async () => {
         const post = translate('roomNotExistOrPermDen');
-        const roomDataWithNotExistAlias = { ...roomData, alias: 'INDEV-999' };
+        const notAvailableIssueKey = `${projectKey}-1010`;
+        const roomDataWithNotExistAlias = { ...roomData, alias: notAvailableIssueKey };
         const result = await commandHandler({
             ...baseOptions,
             sender: adminSender.name,
@@ -204,13 +215,6 @@ describe('Archive command', () => {
         };
 
         expect(getGroupedUsers(data, bot[0].userId)).deep.eq(expectedData);
-    });
-
-    it('Default or not default', async () => {
-        const checkProjectRoom = await roomNameHasJiraProject('INDEV-123');
-        expect(checkProjectRoom).to.be.true;
-        const checkNotProjectRoom = await roomNameHasJiraProject('hjshhhhd');
-        expect(checkNotProjectRoom).to.be.false;
     });
 
     it('getFileNameByUrl', () => {
@@ -402,7 +406,7 @@ describe('Archive command', () => {
             simpleMembers.forEach(({ userId }) =>
                 expect(chatApi.kickUserByRoom).to.be.calledWithExactly({ roomId, userId }),
             );
-            expect(chatApi.deleteAliasByRoomName).not.to.be.called;
+            expect(chatApi.deleteRoomAlias).not.to.be.called;
             expect(chatApi.leaveRoom).to.be.calledWithExactly(roomData.id);
             const expectedMsg = [
                 translate('successExport', { link: expectedRepoLink }),
@@ -411,7 +415,7 @@ describe('Archive command', () => {
             expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
         });
 
-        it('expect command succeded but bot cannot and all users are kicked if not other admins', async () => {
+        it('expect command succeded and all users are kicked if not other admins but alias is not deleted but saved', async () => {
             const roomName = issueKey;
             const roomDataWihotAdmins = {
                 ...roomData,
@@ -451,7 +455,8 @@ describe('Archive command', () => {
             simpleMembers.forEach(({ userId }) =>
                 expect(chatApi.kickUserByRoom).to.be.calledWithExactly({ roomId, userId }),
             );
-            expect(chatApi.deleteAliasByRoomName).to.be.calledWithExactly(roomData.alias);
+            expect(chatApi.deleteRoomAlias).to.be.calledWithExactly(roomData.alias);
+            expect(await getAliases()).to.include(roomData.alias);
             expect(chatApi.leaveRoom).to.be.calledWithExactly(roomData.id);
             expect(chatApi.sendHtmlMessage).not.to.be.called;
         });
@@ -499,7 +504,7 @@ describe('Archive command', () => {
             expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
             expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
             expect(chatApi.kickUserByRoom).not.to.be.called;
-            expect(chatApi.deleteAliasByRoomName).not.to.be.called;
+            expect(chatApi.deleteRoomAlias).not.to.be.called;
             expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
         });
 
