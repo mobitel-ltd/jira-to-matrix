@@ -1,14 +1,18 @@
+const marked = require('marked');
 const { pathToDocs, lang } = require('../../../config');
-const helpCommand = require('./index');
+const translate = require('../../../locales');
+const helpCommand = require(`../../../../docs/${lang}/commands`);
 
 module.exports = ({ bodyText }) => {
+    const linkFullHelp = `${pathToDocs}/${lang}/commands/help.md`;
+
     if (!bodyText) {
-        return `${pathToDocs}/${lang}/commands/help.md`;
+        return translate('helpDocs', { link: linkFullHelp, text: '' });
     }
     const { [bodyText]: helpTextCommand } = helpCommand;
     if (!helpTextCommand) {
-        return `Such command - ${bodyText} not exist`;
+        return translate('helpDocsCommandNotExist', { link: linkFullHelp, command: bodyText });
     }
-
-    return `${pathToDocs}/${lang}/commands/help.md#${bodyText}`;
+    const linkDocsCommand = `${pathToDocs}/${lang}/commands/${bodyText}.md`;
+    return translate('helpDocs', { link: linkDocsCommand, text: marked(helpTextCommand) });
 };
