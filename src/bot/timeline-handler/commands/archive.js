@@ -236,7 +236,7 @@ const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, cha
     try {
         const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomData.alias) : DEFAULT_REMOTE_NAME;
         const remote = getProjectRemote(baseRemote, projectKey);
-        await git(tmpPath).clone(remote, projectKey);
+        await git(tmpPath).clone(remote, projectKey, ['--depth=3']);
         logger.debug(`clone repo by project key ${projectKey} is succedded to tmp dir ${tmpPath}`);
         const repoPath = path.resolve(tmpPath, projectKey);
         const repoRoomPath = path.resolve(repoPath, roomData.alias);
