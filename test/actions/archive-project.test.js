@@ -1,5 +1,3 @@
-// @ts-check
-
 const ChatFasade = require('../../src/messengers/chat-fasade');
 const path = require('path');
 const tmp = require('tmp-promise');

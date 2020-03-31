@@ -307,9 +307,14 @@ const jiraRequests = {
     },
 
     hasStatusInProject: async (projectKey, status) => {
-        const transitions = await jiraRequests.getPossibleIssueStatuses(`${projectKey}-1`);
+        const issuKey = await jiraRequests.getLastIssueKey(projectKey);
+        if (issuKey) {
+            const transitions = await jiraRequests.getPossibleIssueStatuses(issuKey);
 
-        return transitions.some(el => el.to.name === status);
+            return transitions.some(el => el.to.name === status);
+        }
+
+        return false;
     },
 
     getCurrentStatus: async issueKey => {
