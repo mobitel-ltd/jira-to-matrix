@@ -82,6 +82,8 @@ const dict = Object.freeze({
     noAlias: 'No room alias. Add it and try again.',
     noBotPower: 'Bot cannot do this operation, needed power is %{power}',
     adminsAreNotKicked: 'Бот не смог удалить администраторов данной комнаты',
+    helpDocs: 'Documentation: <br>%{link}<br>%{text}',
+    helpDocsCommandNotExist: 'Full documentation: <br>%{link}<br>Command %{command} not exist',
     notValid: 'Incorrect data input %{body}',
 });
 
