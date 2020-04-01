@@ -10,7 +10,7 @@ If enter project name as argument, the command will display information about al
 Example
 
 ```
-Всего комнат = 100
-Только с ботом = 30
-С двумя и более пользователями = 70
+All rooms = 100
+Single rooms = 30
+Multiple joined members = 70
 ```

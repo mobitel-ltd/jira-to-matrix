@@ -14,7 +14,7 @@ const array = itemsType => Joi.array().items(itemsType);
 const schema = obj({
     port: int,
     lang: ['en', 'ru'],
-    pathToDocs: Joi.string().optional(),
+    pathToDocs: string,
     jira: obj({
         url: address,
         user: string,

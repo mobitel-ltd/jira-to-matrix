@@ -6,7 +6,7 @@ Adds a comment in the issue to Jira, then a message comes from Jira:
 
 ```
 !comment 123
-<bot id> добавил(а) комментарий:
+<bot id> commented:
 <user displayname>: 123
 ```
 

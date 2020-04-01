@@ -1,32 +1,19 @@
 const fs = require('fs');
 const path = require('path');
+const { lang } = require('../../../config');
 
-const comment = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'comment.md'), 'utf8');
-const assign = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'assign.md'), 'utf8');
-const move = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'move.md'), 'utf8');
-const spec = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'spec.md'), 'utf8');
-const prio = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'prio.md'), 'utf8');
-const op = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'op.md'), 'utf8');
-const invite = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'invite.md'), 'utf8');
-const ignore = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'ignore.md'), 'utf8');
-const create = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'create.md'), 'utf8');
-const autoinvite = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'autoinvite.md'), 'utf8');
-const alive = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'alive.md'), 'utf8');
-const getInfo = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'getInfo.md'), 'utf8');
-const archive = fs.readFileSync(path.resolve('.', 'docs', 'en', 'commands', 'archive.md'), 'utf8');
+const pathBase = path.resolve('.', 'docs', lang, 'commands');
+const content = fs
+    .readdirSync(pathBase)
+    .filter(fileName => !['help.md', 'index.js'].includes(fileName))
+    .map(path.parse)
+    .map(({ base, name }) => {
+        const textHelp = fs.readFileSync(path.resolve(pathBase, base), 'utf8');
+        return { textHelp, name };
+    });
+const result = content.reduce((acc, command) => {
+    const { name, textHelp } = command;
+    return { ...acc, [name]: textHelp };
+}, {});
 
-module.exports = {
-    comment,
-    assign,
-    move,
-    spec,
-    prio,
-    op,
-    invite,
-    ignore,
-    create,
-    autoinvite,
-    alive,
-    getInfo,
-    archive,
-};
+module.exports = result;

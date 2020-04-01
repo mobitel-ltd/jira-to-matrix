@@ -1,6 +1,6 @@
 ## assign
 
-`!assign <часть user displayname/ user id>`
+`!assign <part user displayname/ user id>`
 
 Makes the user an executor in the current task in Jira and invites the user to the matrix room:
 

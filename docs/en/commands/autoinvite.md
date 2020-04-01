@@ -19,13 +19,13 @@ Or you will see list current settings:
 
 ```
 !autoinvite
-Текущие настройки автоприглашений для проекта "INDEV":
+Current ignore-settings for project "INDEV":
 test:
 @ii_ivanov:matrix.bingo-boom.ru
 @pp_petrov:matrix.bingo-boom.ru
 Task:
 @ss_sidorov:matrix.bingo-boom.ru
-Вы можете использовать команды добавления или удаления типов, например
+You can use comands add or del types, for example
 !autoinvite add Error ii_ivanov
 !autoinvite del Error ii_ivanov
 ```
@@ -34,57 +34,57 @@ If not settins:
 
 ```
 !autoinvite
-Для проекта INDEV настройки пока не сделаны.
-Вы можете воспользоваться командой !help
+For project INDEV settings list is empty
+You can use !help
 ```
 
-Порядок вызова команды добавления (add) с параметрами:
+Example use command add with params:
 
 ```
 !autoinvite add Task ii_ivanov
 ```
 
-Добавит в настройки для типа задачи Task пользователя ii_ivanov, после этого пользователь будет добавляться во все комнаты с таким типом задачи:
+Will be added to settings for task type Task user ii_ivanov, after this user will be added to all rooms whith such task type.
 
 ```
-Пользователь "@ii_ivanov:matrix.bingo-boom.ru" был добавлен для проекта "INDEV" для типов задач "Task".
+User "@ii_ivanov:matrix.bingo-boom.ru" was added for project "INDEV" for taskType "Task".
 ```
 
-Если такой тип уже был ранее добавлен в проект:
+If such type already exist in settings:
 
 ```
-Ключ "@ii_ivanov:matrix.bingo-boom.ru" уже добавлен добавлен для проекта "INDEV".
+Key "@ii_ivanov:matrix.bingo-boom.ru" already exist in project  "INDEV".
 ```
 
 ```
 !autoinvite add abracadabra
 ```
 
-Выведет подсказку по команде:
+Show tips for command:
 
 ```
-Команда введена неверно, укажите все необходимые параметры.
+Command is invalid, Use all params.
 !autoinvite add | del TaskType chatUser
-Например:
+For example:
 !autoinvite add Task ii_petrov
 ```
 
-Команда проверяет есть ли такой пользователь в матриксе
+Command checked user exist in matrix:
 
 ```
 !autoinvite add Task vv_putin
-Пользователя "vv_putin" нет в Matrix
+User "vv_putin" not in matrix
 ```
 
-Порядок вызова команды удаления (del) с параметрами:
+Example use command del with params:
 
 ```
 !autoinvite del Task ii_ivanov
 ```
 
-Тип будет удален из списка, если он там был
-Если такого типа в списке не было:
+Type will be deleted from list, if exist.
+If not exist:
 
 ```
-Ключ не найден в настройках проекта "INDEV".
+This key not found in settings list for project.
 ```
