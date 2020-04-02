@@ -182,7 +182,7 @@ describe('Slack api testing', () => {
         });
     });
 
-    it('Expect slack api handle correct and call if body is "!help"', async () => {
+    it.skip('Expect slack api handle correct and call if body is "!help"', async () => {
         await request
             .post('/commands')
             .send(messages.help)

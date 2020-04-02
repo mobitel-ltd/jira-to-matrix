@@ -91,6 +91,8 @@ const dict = Object.freeze({
     noAlias: 'Алиас у комнаты отсутствует. Добавьте его и повторите операцию.',
     noBotPower: 'Бот не имеет привелегий для осуществлений действия, требуемый уровень - %{power}',
     adminsAreNotKicked: 'Бот не смог удалить администраторов данной комнаты',
+    helpDocs: 'Документация: <br>%{link}<br>%{text}',
+    helpDocsCommandNotExist: 'Документация по всем командам: <br>%{link}<br>Команда %{command} не определена',
     notValid: 'Введено неверное значение параметра %{body}',
 });
 /* spell-checker: enable */

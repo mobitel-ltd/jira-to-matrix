@@ -3,6 +3,7 @@ module.exports = Object.freeze({
     port: 4100,
     // a language bot talks to users in
     lang: 'en',
+    pathToDocs: 'https://github.com/mobitel/jira-to-matrix/blob/master/docs',
     // jira params
     jira: {
         // url of your jira
