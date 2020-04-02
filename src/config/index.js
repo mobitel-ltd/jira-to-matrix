@@ -1,5 +1,10 @@
 const { resolve } = require('path');
 const validate = require('./validate-config.js');
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
+
+const defaultRepoName = 'git-repo';
 
 const configPath = process.env.NODE_ENV === 'test' ? './test/fixtures/' : './';
 
@@ -36,8 +41,14 @@ const composeConfig = config => {
         const protocol = config.gitArchive.protocol || 'https';
         const baseRemote = `${protocol}://${config.gitArchive.user}:${config.gitArchive.password}@${config.gitArchive.repoPrefix}`;
         const baseLink = `${protocol}://${config.gitArchive.repoPrefix}`;
+        const baseTmpPath = config.gitArchive.baseDir || os.tmpdir();
+        const repoDirName = config.gitArchive.gitReposName || defaultRepoName;
+        const gitReposPath = path.resolve(baseTmpPath, repoDirName);
+        if (!fs.existsSync(gitReposPath)) {
+            fs.mkdirSync(gitReposPath);
+        }
 
-        return { ...config, messenger, baseRemote, baseLink };
+        return { ...config, messenger, baseRemote, baseLink, gitReposPath };
     }
 
     return { ...config, messenger };

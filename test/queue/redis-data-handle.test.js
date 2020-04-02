@@ -3,18 +3,11 @@ const tmp = require('tmp-promise');
 const { setArchiveProject } = require('../../src/bot/settings');
 const utils = require('../../src/lib/utils');
 const nock = require('nock');
-const {
-    jira: { url: jiraUrl },
-    redis,
-    usersToIgnore,
-    testMode,
-    baseRemote,
-} = require('../../src/config');
+const config = require('../../src/config');
 const { getRestUrl, expandParams } = require('../../src/lib/utils.js');
 const { getCreateRoomData } = require('../../src/jira-hook-parser/parse-body.js');
 const JSONbody = require('../fixtures/webhooks/issue/created.json');
-// const projectBody = require('../fixtures/jira-api-requests/project.json');
-const projectBody = require('../fixtures/jira-api-requests/issue.json');
+const issueJson = require('../fixtures/jira-api-requests/issue.json');
 const issueBody = require('../fixtures/jira-api-requests/issue-rendered.json');
 const getParsedAndSaveToRedis = require('../../src/jira-hook-parser');
 const proxyquire = require('proxyquire');
@@ -33,6 +26,13 @@ const redisClient = require('../../src/redis-client');
 const ChatFasade = require('../../src/messengers/chat-fasade');
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
+const {
+    jira: { url: jiraUrl },
+    redis,
+    usersToIgnore,
+    testMode,
+    baseRemote,
+} = config;
 
 const {
     getHandledKeys,
@@ -150,7 +150,7 @@ describe('redis-data-handle test', () => {
         nock(getRestUrl())
             .get(`/issue/${JSONbody.issue.key}`)
             .times(2)
-            .reply(200, projectBody)
+            .reply(200, issueJson)
             .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, { ...responce, id: 28516 })
             .get(`/issue/30369`)
@@ -197,7 +197,7 @@ describe('redis-data-handle test', () => {
             nock(getRestUrl())
                 .get(`/issue/${JSONbody.issue.key}`)
                 .times(2)
-                .reply(200, projectBody)
+                .reply(200, issueJson)
                 .get(`/issue/BBCOM-1398/watchers`)
                 .reply(200, { ...responce, id: 28516 })
                 .get(`/issue/30369`)
@@ -327,11 +327,15 @@ describe('Test handle archive project data', () => {
     const laterProject = 'OROR';
     const laterProjectKey = `${laterProject}-${expectedIssueCount - 1}`;
     const notFoundId = 'lalalal';
-    const aliasRemoved = `${projectKey}-${expectedIssueCount - 1}`;
-    const otherCreator = `${projectKey}-${expectedIssueCount - 2}`;
+    const aliasExists = `${projectKey}-${expectedIssueCount - 1}`;
+    const aliasRemoved = `${projectKey}-${expectedIssueCount - 2}`;
+    const otherCreator = `${projectKey}-${expectedIssueCount - 3}`;
 
     beforeEach(() => {
-        messengerApi = getChatApi({ alias: [lastKey, aliasRemoved, otherCreator, laterProjectKey] });
+        messengerApi = getChatApi({
+            alias: [lastKey, aliasExists, laterProjectKey, aliasRemoved, otherCreator, laterProjectKey],
+            roomId: [lastKey, aliasExists, laterProjectKey],
+        });
         chatApi = new ChatFasade([messengerApi]);
     });
 
@@ -355,10 +359,13 @@ describe('Test handle archive project data', () => {
     describe('With exists key', () => {
         let server;
         let tmpDir;
+        let configWithTmpPath;
         const expectedRemote = `${baseRemote}/${projectKey.toLowerCase()}.git`;
 
         beforeEach(async () => {
             nock(utils.getRestUrl())
+                .get(`/issue/${lastKey}`)
+                .reply(200, issueBody)
                 .get(`/search?jql=project=${projectKey}`)
                 .reply(200, searchProject)
                 .get(`/search?jql=project=${laterProject}`)
@@ -366,18 +373,22 @@ describe('Test handle archive project data', () => {
 
             nock(baseMedia)
                 .get(`/${rawEventsData.mediaId}`)
+                .times(2)
                 .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
                 .get(`/${rawEventsData.blobId}`)
+                .times(2)
                 .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
                 .get(`/${rawEventsData.avatarId}`)
+                .times(2)
                 .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
 
             const keepTimestamp = Date.now();
             // all data is later than now
-            await setArchiveProject(projectKey, { keepTimestamp, status: 'SOme status' });
+            await setArchiveProject(projectKey, { keepTimestamp, status: issueJson.fields.status.name });
             // all data is earlier than now
             await setArchiveProject(laterProject, { keepTimestamp: rawEventsData.maxTs - 5 });
             tmpDir = await tmp.dir({ unsafeCleanup: true });
+            configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
             server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
             await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: lastKey });
@@ -399,10 +410,14 @@ describe('Test handle archive project data', () => {
 
             const keys = await handlers.getCommandKeys();
             // set order
-            const { [projectKey]: res1, [laterProject]: res2 } = await handlers.handleCommandKeys(chatApi, keys);
+            const { [projectKey]: res1, [laterProject]: res2 } = await handlers.handleCommandKeys(
+                chatApi,
+                keys,
+                configWithTmpPath,
+            );
 
-            expect(res1[stateEnum.NOT_FOUND]).to.have.length(3);
-            expect(res1[stateEnum.ARCHIVED]).to.have.length(1);
+            expect(res1[stateEnum.NOT_FOUND]).to.have.length(2);
+            expect(res1[stateEnum.ARCHIVED]).to.have.length(2);
             expect(res1[stateEnum.ALIAS_REMOVED]).to.have.length(1);
             expect(res1[stateEnum.ERROR_ARCHIVING]).to.have.length(0);
             expect(res1[stateEnum.OTHER_ALIAS_CREATOR]).to.have.length(1);
@@ -410,7 +425,7 @@ describe('Test handle archive project data', () => {
 
             expect(res2[stateEnum.NOT_FOUND]).to.have.length(5);
             // expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
-            expect(res2[stateEnum.MOVED]).to.have.length(1);
+            expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
         });
     });
 });

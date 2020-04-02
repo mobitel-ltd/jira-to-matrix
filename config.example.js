@@ -127,7 +127,11 @@ module.exports = Object.freeze({
         user: 'string',
         password: 'string',
         repoPrefix: 'string',
+        // Optional protocol, https by default
+        protocol: 'http',
     },
+    // Optional base directory for saving cloned repos, must exists! By default /tmp
+    baseDir: '/tmp',
     // delay interval for archiving rooms and other high loadly chat server operations
     delayInterval: 5,
 });

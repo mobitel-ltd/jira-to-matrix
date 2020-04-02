@@ -1,3 +1,5 @@
+const fs = require('fs');
+const R = require('ramda');
 const Joi = require('joi');
 const logger = require('../modules/log.js')(module);
 
@@ -97,6 +99,8 @@ const schema = obj({
         password: string,
         repoPrefix: string,
         protocol: string.optional(),
+        gitReposName: string.optional(),
+        baseDir: string.optional(),
     },
     delayInterval: int.optional(),
 });
@@ -118,6 +122,17 @@ const validate = function validate(config) {
         });
         return false;
     }
+
+    const baseTmpPath = R.path(['gitArchive', 'basePath'], config);
+
+    if (baseTmpPath) {
+        if (!fs.existsSync(baseTmpPath)) {
+            // eslint-disable-next-line no-console
+            console.error(`${baseTmpPath} is not exists! Use existing path in your system.`);
+            return false;
+        }
+    }
+
     return true;
 };
 

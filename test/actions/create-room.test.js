@@ -102,7 +102,10 @@ describe('Create room test', () => {
     };
 
     beforeEach(() => {
-        chatApi = testUtils.getChatApi({ alias: [createRoomData.issue.key, createRoomData.projectKey] });
+        chatApi = testUtils.getChatApi({
+            alias: [createRoomData.issue.key, createRoomData.projectKey],
+            roomId: [createRoomData.issue.key, createRoomData.projectKey],
+        });
         nock(utils.getRestUrl())
             // comment created hook
             .get(`/issue/${utils.getIssueId(commentCreatedJSON)}`)

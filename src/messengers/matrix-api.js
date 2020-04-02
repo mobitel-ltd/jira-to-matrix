@@ -116,6 +116,7 @@ module.exports = class Matrix extends MessengerAbstract {
                 roomId: room.roomId,
                 commandName,
                 bodyText,
+                config: this.config.baseConfig,
             };
 
             await this.commandsHandler(options);

@@ -261,12 +261,12 @@ const saveIncoming = async ({ redisKey, ...restData }) => {
     }
 };
 
-const handleCommandKeys = async (chatApi, keys) => {
+const handleCommandKeys = async (chatApi, keys, config) => {
     try {
         const result = {};
         for await (const key of keys) {
             const { operationName, projectKey, value, ...options } = key;
-            const res = await bot[operationName]({ chatApi, projectKey, ...options });
+            const res = await bot[operationName]({ chatApi, projectKey, config, ...options });
             if (res) {
                 await redis.srem(operationName, value);
 
