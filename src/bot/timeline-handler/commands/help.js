@@ -1,7 +1,7 @@
 const marked = require('marked');
 const translate = require('../../../locales');
 const ruHelp = require('../../../../docs/ru/commands');
-const enHelp = require('../../../../docs/ru/commands');
+const enHelp = require('../../../../docs/en/commands');
 
 const getLocally = lang => {
     const map = {
