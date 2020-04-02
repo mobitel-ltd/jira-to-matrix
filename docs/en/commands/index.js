@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { lang } = require('../../../config');
+const { lang } = require('../../../src/config');
 
 const pathBase = path.resolve('.', 'docs', lang, 'commands');
 const content = fs
