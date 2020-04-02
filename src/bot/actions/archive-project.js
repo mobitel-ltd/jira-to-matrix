@@ -190,7 +190,12 @@ const archiveProject = async ({ chatApi, projectKey, keepTimestamp, status, conf
 
             return res;
         }
+
+        logger.warn(`No issue key is found in project ${projectKey}. Skip archiving`);
+
+        return false;
     } catch (err) {
+        logger.error(err);
         throw errorTracing('archiveProject', err);
     }
 };
