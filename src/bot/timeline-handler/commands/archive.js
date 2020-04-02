@@ -1,9 +1,9 @@
+// @ts-check
+
 const isImage = require('is-image');
-const tmp = require('tmp-promise');
 const fileSystem = require('fs');
 const path = require('path');
 const R = require('ramda');
-const config = require('../../../config');
 const git = require('simple-git/promise');
 const jiraRequests = require('../../../lib/jira-request');
 const utils = require('../../../lib/utils');
@@ -231,14 +231,35 @@ const writeEventsData = async (events, basePath, chatApi, roomData) => {
     return savedEvents;
 };
 
-const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, chatApi, isRoomJiraProject) => {
-    const { path: tmpPath, cleanup } = await tmp.dir({ unsafeCleanup: true });
+const getRepoPath = async (repoName, { baseRemote, gitReposPath }) => {
+    const repoPath = path.resolve(gitReposPath, repoName);
+
+    if (fileSystem.existsSync(repoPath)) {
+        logger.debug(`Remote repo by project key ${repoName} is already exists by path ${repoPath}`);
+        const repoGit = git(repoPath);
+        await repoGit.pull('origin', 'master');
+        logger.debug(`Remote repo by project key ${repoName} successfully pulled to ${repoPath}`);
+
+        return repoPath;
+    }
+
+    const remote = getProjectRemote(baseRemote, repoName);
+    await git(gitReposPath).clone(remote, repoName, ['--depth=3']);
+    logger.debug(`clone repo by project key ${repoName} is succedded to tmp dir ${gitReposPath}`);
+
+    return repoPath;
+};
+
+const gitPullToRepo = async (
+    { baseRemote, baseLink, gitReposPath },
+    listEvents,
+    roomData,
+    chatApi,
+    isRoomJiraProject,
+) => {
     try {
         const projectKey = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomData.alias) : DEFAULT_REMOTE_NAME;
-        const remote = getProjectRemote(baseRemote, projectKey);
-        await git(tmpPath).clone(remote, projectKey, ['--depth=3']);
-        logger.debug(`clone repo by project key ${projectKey} is succedded to tmp dir ${tmpPath}`);
-        const repoPath = path.resolve(tmpPath, projectKey);
+        const repoPath = await getRepoPath(projectKey, { baseRemote, gitReposPath });
         const repoRoomPath = path.resolve(repoPath, roomData.alias);
 
         const createdFileNames = await writeEventsData(listEvents, repoRoomPath, chatApi, roomData);
@@ -259,8 +280,6 @@ const gitPullToRepo = async ({ baseRemote, baseLink }, listEvents, roomData, cha
     } catch (err) {
         const msg = utils.errorTracing(`gitPullToRepo ${roomData.alias}`, err);
         logger.error(msg);
-    } finally {
-        await cleanup();
     }
 };
 
@@ -344,7 +363,7 @@ const deleteAlias = async (api, alias) => {
     }
 };
 
-const archive = async ({ bodyText, roomId, sender, chatApi, roomData }) => {
+const archive = async ({ bodyText, roomId, sender, chatApi, roomData, config }) => {
     const { alias } = roomData;
     if (!alias) {
         return translate('noAlias');

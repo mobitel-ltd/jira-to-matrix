@@ -1,18 +1,28 @@
 const marked = require('marked');
-const { pathToDocs, lang } = require('../../../config');
 const translate = require('../../../locales');
-const helpCommand = require(`../../../../docs/${lang}/commands`);
+const ruHelp = require('../../../../docs/ru/commands');
+const enHelp = require('../../../../docs/ru/commands');
 
-module.exports = ({ bodyText }) => {
-    const linkFullHelp = `${pathToDocs}/${lang}/commands/help.md`;
+const getLocally = lang => {
+    const map = {
+        ru: ruHelp,
+        en: enHelp,
+    };
+
+    return map[lang];
+};
+
+module.exports = ({ bodyText, config }) => {
+    const linkFullHelp = `${config.pathToDocs}/${config.lang}/commands/help.md`;
 
     if (!bodyText) {
         return translate('helpDocs', { link: linkFullHelp, text: '' });
     }
-    const { [bodyText]: helpTextCommand } = helpCommand;
+    const { [bodyText]: helpTextCommand } = getLocally(config.lang);
     if (!helpTextCommand) {
         return translate('helpDocsCommandNotExist', { link: linkFullHelp, command: bodyText });
     }
-    const linkDocsCommand = `${pathToDocs}/${lang}/commands/${bodyText}.md`;
+    const linkDocsCommand = `${config.pathToDocs}/${config.lang}/commands/${bodyText}.md`;
+
     return translate('helpDocs', { link: linkDocsCommand, text: marked(helpTextCommand) });
 };

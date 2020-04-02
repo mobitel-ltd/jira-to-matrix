@@ -108,6 +108,7 @@ describe('Archive command', () => {
             ],
         };
         baseOptions = {
+            config,
             roomId,
             roomName,
             commandName,
@@ -263,9 +264,12 @@ describe('Archive command', () => {
         const expectedDefaultRepoLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/tree/master/${issueKey}`;
         let server;
         let tmpDir;
+        let configWithTmpPath;
 
         beforeEach(async () => {
             tmpDir = await tmp.dir({ unsafeCleanup: true });
+            configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
+
             server = testUtils.startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
             await testUtils.setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: issueKey });
@@ -281,7 +285,7 @@ describe('Archive command', () => {
 
         it('expect git pull send event data', async () => {
             const isJira = true;
-            const linkToRepo = await gitPullToRepo(config, rawEvents, roomData, chatApi, isJira);
+            const linkToRepo = await gitPullToRepo(configWithTmpPath, rawEvents, roomData, chatApi, isJira);
 
             expect(linkToRepo).to.eq(expectedRepoLink);
 
@@ -310,7 +314,13 @@ describe('Archive command', () => {
 
         it('expect git pull send event data', async () => {
             const isJira = false;
-            const linkToRepo = await gitPullToRepo(config, [...rawEvents, eventBefore], roomData, chatApi, isJira);
+            const linkToRepo = await gitPullToRepo(
+                configWithTmpPath,
+                [...rawEvents, eventBefore],
+                roomData,
+                chatApi,
+                isJira,
+            );
 
             expect(linkToRepo).to.eq(expectedDefaultRepoLink);
 
@@ -342,6 +352,7 @@ describe('Archive command', () => {
                 ...baseOptions,
                 sender: adminSender.name,
                 roomName: issueKey,
+                config: configWithTmpPath,
             });
             const expectedMsg = translate('successExport', { link: expectedRepoLink });
 
@@ -378,6 +389,7 @@ describe('Archive command', () => {
                 roomName,
                 sender: adminSender.name,
                 bodyText: KICK_ALL_OPTION,
+                config: configWithTmpPath,
             });
 
             expect(result).to.be.undefined;
@@ -433,6 +445,7 @@ describe('Archive command', () => {
                 roomName,
                 sender: adminSender.name,
                 bodyText: KICK_ALL_OPTION,
+                config: configWithTmpPath,
             });
             expect(result).to.be.undefined;
 
@@ -478,6 +491,7 @@ describe('Archive command', () => {
                 roomData: roomDataWihLessPower,
                 roomName,
                 sender: adminSender.name,
+                config: configWithTmpPath,
                 bodyText: KICK_ALL_OPTION,
             });
             const expectedMsg = [
@@ -512,6 +526,7 @@ describe('Archive command', () => {
             chatApi.getDownloadLink.throws();
             const result = await commandHandler({
                 ...baseOptions,
+                config: configWithTmpPath,
                 sender: adminSender.name,
             });
             const expected = translate('archiveFail', { alias: roomData.alias });
@@ -520,7 +535,7 @@ describe('Archive command', () => {
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
-            const notExistRemote = `${config.baseRemote + notExistProject}.git`;
+            const notExistRemote = `${configWithTmpPath.baseRemote + notExistProject}.git`;
             await gitLocal.clone(notExistRemote, cloneName);
             expect(fs.existsSync(path.resolve(tmpDir.path, cloneName, roomNameNotGitProject, EVENTS_DIR_NAME))).to.be
                 .false;

@@ -7,6 +7,7 @@ const {
     getCommandKeys,
     handleCommandKeys,
 } = require('./redis-data-handle.js');
+const config = require('../config');
 
 module.exports = async chatApi => {
     try {
@@ -17,7 +18,7 @@ module.exports = async chatApi => {
         await handleRedisData(chatApi, dataFromRedis);
 
         const commandKeys = await getCommandKeys();
-        await handleCommandKeys(chatApi, commandKeys);
+        await handleCommandKeys(chatApi, commandKeys, config);
     } catch (err) {
         logger.error('Error in queue handling', err);
     }

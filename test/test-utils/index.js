@@ -78,7 +78,7 @@ module.exports = {
     /**
      * @param {object} options params
      * @param {object} [options.type] config params
-     * @param {string} [options.alias] alias to return correct roomId
+     * @param {string|string[]} [options.alias] alias to return correct roomId
      * @param {string} [options.roomId] roomId to return
      * @param {({userId: string, displayName:string}|string)[]} [options.existedUsers] users which id will be returned
      * @returns {object} instance of messenger class
@@ -91,12 +91,16 @@ module.exports = {
             existedUsers: defaultExistedUsers,
             ...options,
         };
+        const defRoomId = Array.isArray(roomId) ? roomId[0] : roomId;
+        const allRoomIds = Array.isArray(roomId) ? roomId : [roomId];
+        const allAliases = Array.isArray(alias) ? alias : [alias];
+        const rooms = R.zipObj(allAliases, allRoomIds);
 
         const ChatApi = getChatApi(config.messenger.name);
         const realChatApi = new ChatApi({ config: config.messenger });
         const chatApi = createStubInstance(ChatApi, {
             getRoomId: stub().throws(),
-            createRoom: stub().resolves(roomId),
+            createRoom: stub().resolves(defRoomId),
             getUser: stub().resolves(null),
             getChatUserId: stub().callsFake(realChatApi.getChatUserId.bind(realChatApi)),
             getRoomIdByName: stub().resolves(false),
@@ -122,23 +126,27 @@ module.exports = {
         );
         chatApi.getRoomMembers = stub().resolves(allMembers);
 
-        chatApi.getRoomDataById.withArgs(roomId).resolves({
-            alias: Array.isArray(alias) ? alias[0] : alias,
-            id: roomId,
-            members: allMembers.map(userId => ({ userId, powerLevel: 50 })),
-        });
+        allRoomIds.forEach(id =>
+            chatApi.getRoomDataById.withArgs(id).resolves({
+                alias: allAliases.find(key => rooms[key] === id),
+                id,
+                members: allMembers.map(userId => ({ userId, powerLevel: 50 })),
+            }),
+        );
 
         chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
         // console.log('TCL: stubInstance', chatApi);
         existedUsers.map(({ displayName, userId }) =>
             chatApi.getUser.withArgs(chatApi.getChatUserId(userId)).resolves(true),
         );
-        chatApi.getRoomAdmins.withArgs({ roomId }).resolves(
-            roomAdmins.map(({ name }) => ({
-                userId: realChatApi.getChatUserId(name),
-                name,
-            })),
-        );
+        allRoomIds.forEach(id => {
+            chatApi.getRoomAdmins.withArgs({ roomId: id }).resolves(
+                roomAdmins.map(({ name }) => ({
+                    userId: realChatApi.getChatUserId(name),
+                    name,
+                })),
+            );
+        });
         existedUsers.forEach(item => {
             const user = typeof item === 'string' ? { userId: item, displayName: 'Some Display Name' } : item;
             chatApi.getUser.withArgs(chatApi.getChatUserId(user.userId)).resolves({ displayName: user.displayName });
@@ -148,15 +156,10 @@ module.exports = {
             chatApi.getUser.withArgs(chatApi.getChatUserId(user.userId)).resolves({ displayName: user.displayName });
         });
 
-        if (Array.isArray(alias)) {
-            alias.forEach(item => {
-                chatApi.getRoomId.withArgs(item).resolves(roomId);
-                chatApi.getRoomIdByName.withArgs(item).resolves(roomId);
-            });
-        } else {
-            chatApi.getRoomId.withArgs(alias).resolves(roomId);
-            chatApi.getRoomIdByName.withArgs(alias).resolves(roomId);
-        }
+        allAliases.forEach(item => {
+            chatApi.getRoomId.withArgs(item).resolves(rooms[item]);
+            chatApi.getRoomIdByName.withArgs(item).resolves(rooms[item]);
+        });
 
         [defaultRoomId, ...joinedRooms].forEach(id => {
             chatApi.getRoomIdForJoinedRoom.withArgs(id).resolves(roomId);

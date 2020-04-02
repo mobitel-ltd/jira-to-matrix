@@ -4,6 +4,7 @@ const StateMachine = require('javascript-state-machine');
 const StateMachineHistory = require('javascript-state-machine/lib/history');
 const { states } = require('./states');
 const ChatFasade = require('../messengers/chat-fasade');
+const { timing } = require('../lib/utils');
 
 const getJiraFsm = (app, port) =>
     new StateMachine({
@@ -37,13 +38,6 @@ const getJiraFsm = (app, port) =>
             // },
         },
     });
-
-const timing = (startTime, now = Date.now()) => {
-    const timeSync = Math.floor((now - startTime) / 1000);
-    const min = Math.floor(timeSync / 60);
-    const sec = timeSync % 60;
-    return { min, sec };
-};
 
 /**
  *

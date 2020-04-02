@@ -23,6 +23,7 @@ const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 const { gitPullToRepo } = require('../../src/bot/timeline-handler/commands/archive');
 const utils = require('../../src/lib/utils.js');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
+const config = require('../../src/config');
 
 describe('Test handle archive project data', () => {
     let server;
@@ -31,14 +32,16 @@ describe('Test handle archive project data', () => {
     let messengerApi;
     const projectKey = 'INDEV';
     const alias = `${projectKey}-${123}`;
+    let configWithTmpPath;
 
     // const notFoundId = 'lalalal';
     const expectedRemote = `${baseRemote}/${projectKey.toLowerCase()}.git`;
-    const options = { projectKey, alias, keepTimestamp: Date.now() };
+    let options;
 
     beforeEach(async () => {
         messengerApi = getChatApi({ alias });
         chatApi = new ChatFasade([messengerApi]);
+
         nock(baseMedia)
             .get(`/${rawEventsData.mediaId}`)
             .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
@@ -49,10 +52,12 @@ describe('Test handle archive project data', () => {
 
         // all data is later than now
         tmpDir = await tmp.dir({ unsafeCleanup: true });
+        configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
         server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
         const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
         await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: alias });
         gitPullToRepoStub.callsFake(gitPullToRepo);
+        options = { projectKey, alias, keepTimestamp: Date.now(), config: configWithTmpPath };
     });
 
     afterEach(async () => {
