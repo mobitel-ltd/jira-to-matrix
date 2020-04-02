@@ -36,6 +36,10 @@ const composeConfig = config => {
         config.delayInterval = 500;
     }
 
+    if (!config.pathToDocs) {
+        config.pathToDocs = 'https://github.com/mobitel/jira-to-matrix/blob/master/docs';
+    }
+
     if (config.gitArchive) {
         // http is for test only to send to local git server
         const protocol = config.gitArchive.protocol || 'https';
