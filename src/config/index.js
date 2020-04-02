@@ -12,10 +12,18 @@ const configFilepath = resolve(configPath, 'config.js');
 
 const configData = require(configFilepath);
 
-const composeConfig = config => {
-    if (!validate(config)) {
+const defaultConfigData = {
+    delayInterval: 500,
+    pathToDocs: 'https://github.com/mobitel/jira-to-matrix/blob/master/docs',
+};
+
+const composeConfig = baseConfig => {
+    if (!validate(baseConfig)) {
         process.exit(1);
     }
+
+    const config = { ...defaultConfigData, ...baseConfig };
+
     const workerBot = { user: config.messenger.user, password: config.messenger.password };
     const historicBots = config.messenger.bots || [];
     // this helps not to use bot in list when we try to check if he is in the room
@@ -31,14 +39,6 @@ const composeConfig = config => {
     config.features.epicUpdates.on = () =>
         config.features.epicUpdates.newIssuesInEpic === 'on' ||
         config.features.epicUpdates.issuesStatusChanged === 'on';
-
-    if (!config.delayInterval) {
-        config.delayInterval = 500;
-    }
-
-    if (!config.pathToDocs) {
-        config.pathToDocs = 'https://github.com/mobitel/jira-to-matrix/blob/master/docs';
-    }
 
     if (config.gitArchive) {
         // http is for test only to send to local git server
