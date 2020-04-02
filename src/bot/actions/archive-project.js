@@ -2,12 +2,12 @@
 
 const delay = require('delay');
 const R = require('ramda');
-const config = require('../../config');
 const logger = require('../../modules/log.js')(module);
 const { errorTracing } = require('../../lib/utils.js');
 const { getLastIssueKey } = require('../../lib/jira-request.js');
 const { kickAllInRoom, gitPullToRepo } = require('../timeline-handler/commands/archive');
 const jiraRequests = require('../../lib/jira-request');
+const utils = require('../../lib/utils');
 
 const stateEnum = {
     // rooms which have messages which sent after keeping date
@@ -41,7 +41,7 @@ const getLastMessageTimestamp = events =>
         .map(item => item.origin_server_ts)
         .reduce((acc, val) => (acc > val ? acc : val), 0);
 
-const archiveAndForget = async ({ client, roomData, keepTimestamp }) => {
+const archiveAndForget = async ({ client, roomData, keepTimestamp, config }) => {
     try {
         const allEvents = await client.getAllEventsFromRoom(roomData.id);
         if (!allEvents) {
@@ -89,7 +89,7 @@ const deleteByEachBot = async (fasadeApi, alias) => {
     return stateEnum.OTHER_ALIAS_CREATOR;
 };
 
-const handleKnownRoom = async (chatApi, { keepTimestamp, roomId, alias, status }) => {
+const handleKnownRoom = async (chatApi, { keepTimestamp, roomId, alias, status, config }) => {
     const data = await chatApi.getRoomAndClient(roomId);
     if (!data) {
         logger.debug(`No bot can get room meta by alias ${alias} they are not joined. Try remove it.`);
@@ -123,7 +123,7 @@ const handleKnownRoom = async (chatApi, { keepTimestamp, roomId, alias, status }
         return stateEnum.MOVED;
     }
 
-    const state = await archiveAndForget({ ...data, keepTimestamp });
+    const state = await archiveAndForget({ ...data, keepTimestamp, config });
     if (state === stateEnum.ARCHIVED) {
         await deleteByEachBot(chatApi, alias);
     }
@@ -131,13 +131,13 @@ const handleKnownRoom = async (chatApi, { keepTimestamp, roomId, alias, status }
     return state;
 };
 
-const getRoomArchiveState = async (chatApi, { projectKey, alias, keepTimestamp, status }) => {
+const getRoomArchiveState = async (chatApi, { projectKey, alias, keepTimestamp, status, config }) => {
     const roomId = await chatApi.getRoomIdByName(alias);
 
-    return roomId ? handleKnownRoom(chatApi, { keepTimestamp, roomId, alias, status }) : stateEnum.NOT_FOUND;
+    return roomId ? handleKnownRoom(chatApi, { keepTimestamp, roomId, alias, status, config }) : stateEnum.NOT_FOUND;
 };
 
-const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp, status }) => {
+const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp, status, config }) => {
     const iter = async (num, accum) => {
         if (num === 0) {
             logger.info(`All project "${projectKey}" rooms are handled`);
@@ -148,8 +148,12 @@ const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp, status }) 
         // make delay to avoid overload matrix server
         await delay(config.delayInterval);
         const alias = [projectKey, num].join('-');
+        const startTime = Date.now();
 
-        const state = await getRoomArchiveState(chatApi, { projectKey, status, keepTimestamp, alias });
+        const state = await getRoomArchiveState(chatApi, { projectKey, status, keepTimestamp, alias, config });
+        const { min, sec } = utils.timing(startTime);
+        logger.info(`Room with alias ${alias} archiving try time: ${min} min ${sec} sec`);
+
         accum[state].push(alias);
 
         return iter(num - 1, accum);
@@ -158,7 +162,7 @@ const runArchive = (chatApi, { projectKey, lastNumber, keepTimestamp, status }) 
     return iter(lastNumber, getAccum());
 };
 
-const archiveProject = async ({ chatApi, projectKey, keepTimestamp, status }) => {
+const archiveProject = async ({ chatApi, projectKey, keepTimestamp, status, config }) => {
     try {
         logger.info('Start archiving project');
         const lastIssueKey = await getLastIssueKey(projectKey);
@@ -170,6 +174,7 @@ const archiveProject = async ({ chatApi, projectKey, keepTimestamp, status }) =>
                 lastNumber,
                 keepTimestamp: Number(keepTimestamp),
                 status,
+                config,
             });
 
             const commandRoom = chatApi.getCommandRoomName();

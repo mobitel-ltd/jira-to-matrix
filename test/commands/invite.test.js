@@ -19,7 +19,7 @@ describe('invite test', () => {
     const commandName = 'invite';
 
     beforeEach(() => {
-        chatApi = testUtils.getChatApi({ alias: [bodyText, alias] });
+        chatApi = testUtils.getChatApi({ alias: [bodyText, alias], roomId: [bodyText, alias] });
         baseOptions = { roomId, bodyText, commandName, sender, chatApi };
     });
 

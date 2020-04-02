@@ -9,11 +9,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const MessengerAbstract = require('./messenger-abstract');
 
+// eslint-disable-next-line prettier/prettier
+const voidFunc = () => { };
+
 const defaultLogger = {
-    info: () => {},
-    error: () => {},
-    warn: () => {},
-    debug: () => {},
+    info: () => voidFunc,
+    error: () => voidFunc,
+    warn: () => voidFunc,
+    debug: () => voidFunc,
 };
 
 module.exports = class SlackApi extends MessengerAbstract {
@@ -75,6 +78,7 @@ module.exports = class SlackApi extends MessengerAbstract {
                 roomId: eventBody.channel_id,
                 commandName: eventBody.command.slice(2),
                 bodyText: eventBody.text,
+                config: this.config.baseConfig,
             };
             await this.commandsHandler(options);
         } catch (error) {

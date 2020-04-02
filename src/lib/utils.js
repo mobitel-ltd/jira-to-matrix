@@ -426,6 +426,13 @@ const utils = {
 
     getOpenedDescriptionBlock: data => [LINE_BREAKE_TAG, INDENT, data].join(''),
 
+    timing: (startTime, now = Date.now()) => {
+        const timeSync = Math.floor((now - startTime) / 1000);
+        const min = Math.floor(timeSync / 60);
+        const sec = timeSync % 60;
+        return { min, sec };
+    },
+
     helpPost: `
     <h5>Use "!comment" command to comment in jira issue<br>
     example:</h5>
