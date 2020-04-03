@@ -14,7 +14,7 @@ const configData = require(configFilepath);
 
 const defaultConfigData = {
     delayInterval: 500,
-    pathToDocs: 'https://github.com/mobitel/jira-to-matrix/blob/master/docs',
+    pathToDocs: 'https://github.com/mobitel-ltd/jira-to-matrix/blob/master/docs',
 };
 
 const composeConfig = baseConfig => {

@@ -1,16 +1,7 @@
+const fs = require('fs');
+const path = require('path');
 const marked = require('marked');
 const translate = require('../../../locales');
-const ruHelp = require('../../../../docs/ru/commands');
-const enHelp = require('../../../../docs/en/commands');
-
-const getLocally = lang => {
-    const map = {
-        ru: ruHelp,
-        en: enHelp,
-    };
-
-    return map[lang];
-};
 
 module.exports = ({ bodyText, config }) => {
     const linkFullHelp = `${config.pathToDocs}/${config.lang}/commands/help.md`;
@@ -18,7 +9,24 @@ module.exports = ({ bodyText, config }) => {
     if (!bodyText) {
         return translate('helpDocs', { link: linkFullHelp, text: '' });
     }
-    const { [bodyText]: helpTextCommand } = getLocally(config.lang);
+
+    // load all MD files, depends from locals
+    const pathBase = path.resolve('.', 'docs', config.lang, 'commands');
+    const content = fs
+        .readdirSync(pathBase)
+        .filter(fileName => 'help.md' !== fileName)
+        .map(path.parse)
+        .map(({ base, name }) => {
+            const textHelp = fs.readFileSync(path.resolve(pathBase, base), 'utf8');
+            return { textHelp, name };
+        });
+    const allHelpCommands = content.reduce((acc, command) => {
+        const { name, textHelp } = command;
+        return { ...acc, [name]: textHelp };
+    }, {});
+    //
+
+    const { [bodyText]: helpTextCommand } = allHelpCommands;
     if (!helpTextCommand) {
         return translate('helpDocsCommandNotExist', { link: linkFullHelp, command: bodyText });
     }
