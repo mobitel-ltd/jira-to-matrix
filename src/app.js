@@ -22,10 +22,11 @@ if (conf.messenger.name === 'matrix') {
 
     sdk = matrixSdk;
 }
+
 const apiCollection = conf.messenger.bots.map(
     item =>
         new ChatApi({
-            config: { ...conf.messenger, ...item },
+            config: { ...conf.messenger, ...item, baseConfig: conf },
             commandsHandler,
             logger: getLogger('messenger-api'),
             sdk,

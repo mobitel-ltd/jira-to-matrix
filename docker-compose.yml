@@ -1,34 +1,35 @@
-version: '3.7'
+version: '3.3'
 
 services:
-    redis:
-        container_name: 'jira_bot_redis'
-        image: 'redis'
-        ports:
-            - 6378:6379
-        volumes:
-            - 'jira_bot_redisdata:/data'
-        networks:
-            - mynetwork
-    app:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        command: sh -c "npm run start"
-        container_name: 'jira_bot_app'
-        depends_on:
-            - redis
+    jira_bot_app:
+        image: node:13.5.0
+        working_dir: /usr/src/app
+        container_name: jira_bot_app
+        command: sh -c "npm run start-dev"
         volumes:
             - '~/.bash_history:/.bash_history'
+            - './:/usr/src/app:delegated'
             - '/tmp:/tmp:delegated'
+        depends_on:
+            - redis_db_jira
         ports:
-            - 4100:4100
+            - 54100:54100
+        networks:
+            - mynetwork
+    redis_db_jira:
+        image: redis:4.0.11-alpine
+        container_name: redis_db_jira
+        ports:
+            - '6379:6379'
+        volumes:
+            - redis_bot:/data
+        user: redis
         networks:
             - mynetwork
 
 volumes:
-    jira_bot_redisdata:
+    redis_bot:
 
 networks:
     mynetwork:
-        external: true
+        external: false
