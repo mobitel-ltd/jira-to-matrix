@@ -10,7 +10,7 @@ const bodyParser = require('body-parser');
 const MessengerAbstract = require('./messenger-abstract');
 
 // eslint-disable-next-line prettier/prettier
-const voidFunc = () => { };
+const voidFunc = () => {};
 
 const defaultLogger = {
     info: () => voidFunc,

@@ -39,7 +39,17 @@ const parseBodyText = bodyText => {
     };
 };
 
-const projectarchive = async ({ bodyText, sender, chatApi }) => {
+const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
+    if (!chatApi.isMaster()) {
+        logger.warn('Skip operation for not master bot');
+
+        return;
+    }
+
+    if (chatApi.getCommandRoomName() !== roomData.alias) {
+        return translate('notCommandRoom');
+    }
+
     if (!bodyText) {
         return translate('emptyProject');
     }

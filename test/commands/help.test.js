@@ -13,10 +13,12 @@ const commandHandler = require('../../src/bot/timeline-handler');
 describe('comment help', () => {
     let chatApi;
     let baseOptions;
-    const roomName = 'BBCOM-123';
+    const roomData = {
+        alias: 'BBCOM-123',
+        id: 12345,
+    };
     const bodyText = 'text in body';
     const sender = 'user';
-    const roomId = 12345;
     const commandName = 'help';
     const config = { pathToDocs: 'http://example.com', lang: 'en' };
 
@@ -36,7 +38,7 @@ describe('comment help', () => {
 
     beforeEach(() => {
         chatApi = testUtils.getChatApi();
-        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText, config };
+        baseOptions = { roomData, commandName, sender, chatApi, bodyText, config };
     });
 
     it('Expect comment only command help', async () => {
@@ -44,6 +46,7 @@ describe('comment help', () => {
         const result = await commandHandler({ ...baseOptions, bodyText: '' });
         expect(result).to.be.eq(post);
     });
+
     it('Expect comment command op', async () => {
         const post = translate('helpDocs', {
             link: 'http://example.com/en/commands/op.md',
@@ -52,6 +55,7 @@ describe('comment help', () => {
         const result = await commandHandler({ ...baseOptions, bodyText: 'op' });
         expect(result).to.be.eq(post);
     });
+
     it('Expect comment command lalala', async () => {
         const post = translate('helpDocsCommandNotExist', {
             link: 'http://example.com/en/commands/help.md',
@@ -59,5 +63,22 @@ describe('comment help', () => {
         });
         const result = await commandHandler({ ...baseOptions, bodyText: 'lalala' });
         expect(result).to.be.eq(post);
+    });
+
+    describe('Command room', () => {
+        beforeEach(() => {
+            chatApi.getCommandRoomName = () => roomData.alias;
+        });
+
+        it('Expect help NOT works if bot is not master', async () => {
+            expect(await commandHandler(baseOptions)).to.be.undefined;
+        });
+
+        it('Expect help works if bot is master', async () => {
+            chatApi.isMaster = () => true;
+            const post = translate('helpDocs', { link: 'http://example.com/en/commands/help.md', text: '' });
+            const result = await commandHandler({ ...baseOptions, bodyText: '' });
+            expect(result).to.be.eq(post);
+        });
     });
 });

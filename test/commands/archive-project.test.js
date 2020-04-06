@@ -1,3 +1,5 @@
+const { matrix } = require('../fixtures/messenger-settings');
+const defaultConfig = require('../../src/config');
 const nock = require('nock');
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
@@ -29,8 +31,12 @@ describe('command project archive test', () => {
     const lastStatusName = transitionsJSON.transitions[1].to.name;
 
     beforeEach(() => {
-        chatApi = testUtils.getChatApi();
-        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
+        const matrixMessengerDataWithRoom = { ...matrix, infoRoom: { name: roomName }, isMaster: true };
+        const roomData = { alias: roomName };
+        const configWithInfo = { ...defaultConfig, messenger: matrixMessengerDataWithRoom };
+
+        chatApi = testUtils.getChatApi({ config: configWithInfo });
+        baseOptions = { roomId, roomData, commandName, sender, chatApi, bodyText };
         const lastIssueKey = searchProject.issues[0].key;
         nock(utils.getRestUrl())
             .get(`/search?jql=project=${bodyText}`)
@@ -113,5 +119,18 @@ describe('command project archive test', () => {
 
         expect(result).to.be.eq(expected);
         expect(await getArchiveProject()).to.be.empty;
+    });
+
+    it('Expect return error message if room is not command', async () => {
+        const result = await commandHandler({ ...baseOptions, roomData: { alias: 'some other room' } });
+
+        expect(result).to.be.eq(translate('notCommandRoom'));
+    });
+
+    it('Expect return nothing if bot is not master', async () => {
+        chatApi.isMaster = () => false;
+        const result = await commandHandler(baseOptions);
+
+        expect(result).to.be.undefined;
     });
 });
