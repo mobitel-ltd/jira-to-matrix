@@ -22,12 +22,14 @@ const setArchiveProject = async (projectKey, options = {}) => {
     if (existsProjects.some(key => key.includes(projectKey))) {
         logger.warn(`${projectKey} is already saved to archive`);
 
-        return;
+        return false;
     }
     const parsedOptions = Object.entries(options).map(([key, val]) => `${key}=${val}`);
     const value = [projectKey, ...parsedOptions].join('::');
 
-    return redis.addToList(utils.ARCHIVE_PROJECT, value);
+    await redis.addToList(utils.ARCHIVE_PROJECT, value);
+
+    return value;
 };
 
 const getAliases = () => redis.getList(utils.REDIS_ALIASES);

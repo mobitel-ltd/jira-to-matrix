@@ -2,8 +2,17 @@ const fs = require('fs');
 const path = require('path');
 const marked = require('marked');
 const translate = require('../../../locales');
+const logger = require('../../../modules/log')(module);
 
-module.exports = ({ bodyText, config }) => {
+module.exports = ({ bodyText, config, chatApi, roomData }) => {
+    if (chatApi.getCommandRoomName() === roomData.alias) {
+        if (!chatApi.isMaster()) {
+            logger.warn('Skip operation for not master bot');
+
+            return;
+        }
+    }
+
     const linkFullHelp = `${config.pathToDocs}/${config.lang}/commands/help.md`;
 
     if (!bodyText) {

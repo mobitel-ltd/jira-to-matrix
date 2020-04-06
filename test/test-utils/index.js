@@ -105,6 +105,7 @@ module.exports = {
             getChatUserId: stub().callsFake(realChatApi.getChatUserId.bind(realChatApi)),
             getRoomIdByName: stub().resolves(false),
             composeRoomName: stub().callsFake(realChatApi.composeRoomName.bind(realChatApi)),
+            isMaster: realChatApi.isMaster(),
             getAdmins: realChatApi.getAdmins(),
             getMyId: realChatApi.getMyId(),
             getBotId: realChatApi.getBotId(),

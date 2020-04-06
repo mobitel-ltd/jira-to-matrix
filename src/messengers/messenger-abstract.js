@@ -184,6 +184,13 @@ module.exports = class {
     }
 
     /**
+     * @returns {boolean} master status
+     */
+    isMaster() {
+        return Boolean(this.config.isMaster);
+    }
+
+    /**
      * Get notify data to send messages about connections and other info data
      * @returns {{name: string, users: string[]}|undefined} info data if exists
      */
