@@ -29,6 +29,13 @@ module.exports = handleFunc => {
         .get('/', (req, res) => {
             res.end(`Version ${process.env.npm_package_version}`);
         })
+        .post('/run', async (req, res, next) => {
+            logger.info('Run handling queue');
+
+            await handleFunc();
+
+            next();
+        })
         .get('/ignore', async (req, res) => {
             try {
                 const result = (await getAllSettingData('ignore')) || 'Ignore list is empty.';

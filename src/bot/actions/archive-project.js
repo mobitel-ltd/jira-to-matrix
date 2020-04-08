@@ -5,7 +5,8 @@ const R = require('ramda');
 const logger = require('../../modules/log.js')(module);
 const { errorTracing } = require('../../lib/utils.js');
 const { getLastIssueKey } = require('../../lib/jira-request.js');
-const { kickAllInRoom, gitPullToRepo } = require('../timeline-handler/commands/archive');
+const { kick } = require('../timeline-handler/commands/archive');
+const { exportEvents } = require('../../lib/git-lib');
 const jiraRequests = require('../../lib/jira-request');
 const utils = require('../../lib/utils');
 
@@ -56,7 +57,7 @@ const archiveAndForget = async ({ client, roomData, keepTimestamp, config }) => 
 
             return stateEnum.STILL_ACTIVE;
         }
-        const repoLink = await gitPullToRepo(config, allEvents, roomData, client, true);
+        const repoLink = await exportEvents(config, allEvents, roomData, client, true);
         if (!repoLink) {
             logger.error(`Some fail has happen after attempt to archive room with alias ${roomData.alias}`);
 
@@ -65,7 +66,7 @@ const archiveAndForget = async ({ client, roomData, keepTimestamp, config }) => 
 
         logger.info(`Room "${roomData.alias}" with id ${roomData.id} is archived to ${repoLink}`);
 
-        await kickAllInRoom(client, roomData.id, roomData.members);
+        await kick(client, roomData);
         await client.leaveRoom(roomData.id);
 
         return stateEnum.ARCHIVED;
