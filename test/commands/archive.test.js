@@ -17,41 +17,26 @@ const testUtils = require('../test-utils');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 const projectJSON = require('../fixtures/jira-api-requests/project.json');
 
+const { getGroupedUsers, deleteAlias, KICK_ALL_OPTION } = require('../../src/bot/timeline-handler/commands/archive');
 const {
-    getGroupedUsers,
-    deleteAlias,
-    // getHTMLtext,
-    getMDtext,
-    gitPullToRepo,
-    EVENTS_DIR_NAME,
-    MEDIA_DIR_NAME,
-    KICK_ALL_OPTION,
-    VIEW_FILE_NAME,
-    transformEvent,
-    getImageData,
-    FILE_DELIMETER,
-    DEFAULT_EXT,
     DEFAULT_REMOTE_NAME,
-    getRoomMainInfoMd,
-} = require('../../src/bot/timeline-handler/commands/archive');
+    DEFAULT_EXT,
+    EVENTS_DIR_NAME,
+    VIEW_FILE_NAME,
+    MEDIA_DIR_NAME,
+    FILE_DELIMETER,
+} = require('../../src/lib/git-lib');
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
 const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
 const commandHandler = require('../../src/bot/timeline-handler');
 const utils = require('../../src/lib/utils');
-// const messagesJSON = require('../fixtures/archiveRoom/allMessagesFromRoom.json');
-const messagesMD = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.md'), 'utf8');
-const infoMd = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/room-info.md'), 'utf8');
 const messagesWithBefore = fs.readFileSync(
     path.resolve(__dirname, '../fixtures/archiveRoom/withbefore-readme.md'),
     'utf8',
 );
 const eventBefore = require('../fixtures/archiveRoom/already-exisits-git/res/$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA.json');
 
-// const messagesHTML = fs.readFileSync(
-//     path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.html'),
-//     'utf8',
-// );
 const fsProm = fs.promises;
 
 describe('Archive command', () => {
@@ -180,13 +165,6 @@ describe('Archive command', () => {
         expect(result).to.be.eq(post);
     });
 
-    it('transform event', () => {
-        const res = rawEvents.map(transformEvent);
-        res.forEach(element => {
-            expect(element).not.includes('"age"');
-        });
-    });
-
     it('groupUsers test', () => {
         const admins = Array.from({ length: 5 }, () => ({ userId: faker.random.alphaNumeric(10), powerLevel: 100 }));
         const simpleUsers = Array.from({ length: 5 }, () => ({
@@ -218,50 +196,10 @@ describe('Archive command', () => {
         expect(getGroupedUsers(data, bot[0].userId)).deep.eq(expectedData);
     });
 
-    it('getFileNameByUrl', () => {
-        const eventData = rawEvents.map(el => getImageData(el)).filter(Boolean);
-        expect(eventData).to.have.deep.members([
-            {
-                url: rawEventsData.blobUrl,
-                fileName: `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
-                imageName: rawEventsData.blobName,
-                skip: true,
-            },
-            {
-                url: rawEventsData.avatarUrl,
-                imageName: undefined,
-                fileName: `${rawEventsData.avatarId}${DEFAULT_EXT}`,
-            },
-            {
-                url: rawEventsData.imgUrl,
-                imageName: rawEventsData.mediaName,
-                fileName: `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
-            },
-        ]);
-    });
-
-    describe('Render list of messages', () => {
-        it('Render MD', () => {
-            const result = getMDtext(rawEvents).split('\n');
-            expect(result).to.deep.equal(messagesMD.split('\n'));
-        });
-
-        it('Render info MD', () => {
-            const result = getRoomMainInfoMd(roomData).split('\n');
-            expect(result).to.deep.equal(infoMd.split('\n'));
-        });
-
-        // it.skip('Render HTML', () => {
-        //     const result = getHTMLtext(messagesJSON);
-        //     expect(result).to.deep.equal(messagesHTML);
-        // });
-    });
-
     describe('gitPull', () => {
         const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
         const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
         const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
-        const expectedDefaultRepoLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/tree/master/${issueKey}`;
         let server;
         let tmpDir;
         let configWithTmpPath;
@@ -281,70 +219,6 @@ describe('Archive command', () => {
         afterEach(() => {
             server.close();
             tmpDir.cleanup();
-        });
-
-        it('expect git pull send event data', async () => {
-            const isJira = true;
-            const linkToRepo = await gitPullToRepo(configWithTmpPath, rawEvents, roomData, chatApi, isJira);
-
-            expect(linkToRepo).to.eq(expectedRepoLink);
-
-            const cloneName = 'clone-repo';
-            const gitLocal = gitSimple(tmpDir.path);
-            await gitLocal.clone(expectedRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
-            const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
-            expect(files).to.have.length(allEvents.length);
-            expect(files).to.have.deep.members(allEvents);
-
-            const viewFilePath = path.resolve(tmpDir.path, cloneName, issueKey, VIEW_FILE_NAME);
-            expect(fs.existsSync(viewFilePath)).to.be.true;
-            const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
-            expect(viewFileData).to.deep.equal(messagesWithBefore.split('\n'));
-
-            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
-            const expectedMediaFileNames = [
-                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
-                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
-                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
-            ];
-            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
-            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
-        });
-
-        it('expect git pull send event data', async () => {
-            const isJira = false;
-            const linkToRepo = await gitPullToRepo(
-                configWithTmpPath,
-                [...rawEvents, eventBefore],
-                roomData,
-                chatApi,
-                isJira,
-            );
-
-            expect(linkToRepo).to.eq(expectedDefaultRepoLink);
-
-            const cloneName = 'clone-repo';
-            const gitLocal = gitSimple(tmpDir.path);
-            await gitLocal.clone(expectedDefaultRemote, cloneName);
-            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
-            const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
-            expect(files).to.have.length(allEvents.length);
-            expect(files).to.have.deep.members(allEvents);
-
-            const viewFilePath = path.resolve(tmpDir.path, cloneName, issueKey, VIEW_FILE_NAME);
-            expect(fs.existsSync(viewFilePath)).to.be.true;
-            const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
-            expect(viewFileData).to.deep.equal(messagesWithBefore.split('\n'));
-
-            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
-            const expectedMediaFileNames = [
-                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
-                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
-                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
-            ];
-            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
-            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
         });
 
         it('expect command succeded', async () => {

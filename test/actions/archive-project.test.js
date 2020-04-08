@@ -15,12 +15,12 @@ const proxyquire = require('proxyquire');
 const gitPullToRepoStub = stub();
 const { getLastMessageTimestamp, stateEnum } = require('../../src/bot/actions/archive-project');
 const { getRoomArchiveState } = proxyquire('../../src/bot/actions/archive-project', {
-    '../timeline-handler/commands/archive': {
-        gitPullToRepo: gitPullToRepoStub,
+    '../../lib/git-lib': {
+        exportEvents: gitPullToRepoStub,
     },
 });
 const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
-const { gitPullToRepo } = require('../../src/bot/timeline-handler/commands/archive');
+const { exportEvents } = require('../../src/lib/git-lib');
 const utils = require('../../src/lib/utils.js');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 const config = require('../../src/config');
@@ -56,7 +56,7 @@ describe('Test handle archive project data', () => {
         server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
         const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
         await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: alias });
-        gitPullToRepoStub.callsFake(gitPullToRepo);
+        gitPullToRepoStub.callsFake(exportEvents);
         options = { projectKey, alias, keepTimestamp: Date.now(), config: configWithTmpPath };
     });
 

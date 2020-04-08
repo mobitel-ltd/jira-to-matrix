@@ -127,11 +127,16 @@ module.exports = {
         );
         chatApi.getRoomMembers = stub().resolves(allMembers);
 
+        const allMembersWithPower = [
+            ...allMembers.map(userId => ({ userId, powerLevel: 50 })),
+            { userId: chatApi.getMyId(), powerLevel: 100 },
+        ];
+
         allRoomIds.forEach(id =>
             chatApi.getRoomDataById.withArgs(id).resolves({
                 alias: allAliases.find(key => rooms[key] === id),
                 id,
-                members: allMembers.map(userId => ({ userId, powerLevel: 50 })),
+                members: allMembersWithPower,
             }),
         );
 
