@@ -85,6 +85,7 @@ const dict = Object.freeze({
     helpDocs: 'Documentation: <br>%{link}<br>%{text}',
     helpDocsCommandNotExist: 'Full documentation: <br>%{link}<br>Command %{command} not exist',
     notValid: 'Incorrect data input %{body}',
+    noOptionArg: 'No arg for option %{option}',
 });
 
 module.exports.dict = dict;

@@ -7,8 +7,10 @@ const translate = require('../../../locales');
 const logger = require('../../../modules/log.js')(module);
 const { setAlias } = require('../../settings');
 const { exportEvents } = require('../../../lib/git-lib');
+const { parseBodyText } = require('../../actions/helper');
 
 const KICK_ALL_OPTION = 'kickall';
+const CUSTOM_REPO = 'name';
 const NO_POWER = 'No power';
 const ADMINS_EXISTS = 'admins exists';
 const ALL_DELETED = 'all deleted';
@@ -37,8 +39,6 @@ const getGroupedUsers = (members, botId) => {
         bot: res.bot || [],
     };
 };
-
-const hasKickOption = bodyText => bodyText && bodyText.includes(KICK_ALL_OPTION);
 
 const hasPowerToKick = (botId, members, expectedPower) => {
     const botData = members.find(user => user.userId.includes(botId));
@@ -83,8 +83,8 @@ const deleteAlias = async (api, alias) => {
     }
 };
 
-const archive = async ({ bodyText, roomId, sender, chatApi, roomData, config }) => {
-    const { alias } = roomData;
+const archive = async ({ bodyText, sender, chatApi, roomData, config }) => {
+    const { alias, id } = roomData;
     if (!alias) {
         return translate('noAlias');
     }
@@ -95,10 +95,15 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData, config }) 
         return translate('roomNotExistOrPermDen');
     }
 
+    const textOptions = parseBodyText(bodyText);
+    if (textOptions.has(CUSTOM_REPO) && !textOptions.get(CUSTOM_REPO)) {
+        return translate('noOptionArg', { option: CUSTOM_REPO });
+    }
+
     const issueMembersChatIds = await Promise.all(
         utils.getIssueMembers(issue).map(displayName => chatApi.getUserIdByDisplayName(displayName)),
     );
-    const matrixRoomAdminsId = (await chatApi.getRoomAdmins({ roomId })).map(({ userId }) => userId);
+    const matrixRoomAdminsId = (await chatApi.getRoomAdmins({ roomId: id })).map(({ userId }) => userId);
     const admins = [...issueMembersChatIds, ...matrixRoomAdminsId].filter(Boolean);
 
     const senderUserId = chatApi.getChatUserId(sender);
@@ -107,19 +112,32 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData, config }) 
         return translate('notAdmin', { sender });
     }
 
-    const allEvents = await chatApi.getAllEventsFromRoom(roomId);
-    const repoLink = await exportEvents(config, allEvents, roomData, chatApi, isJiraRoom);
+    const listEvents = await chatApi.getAllEventsFromRoom(id);
+    const repoName = R.cond([
+        [textOptions.has, textOptions.get],
+        [() => isJiraRoom, (_, key) => utils.getProjectKeyFromIssueKey(key)],
+    ])(CUSTOM_REPO, alias);
+
+    const repoLink = await exportEvents({
+        listEvents,
+        roomData,
+        chatApi,
+        repoName,
+        baseLink: config.baseLink,
+        baseRemote: config.baseRemote,
+        gitReposPath: config.gitReposPath,
+    });
     if (!repoLink) {
         return translate('archiveFail', { alias });
     }
 
-    logger.debug(`Git push successfully complited in room ${roomId}!!!`);
+    logger.debug(`Git push successfully complited in room ${id}!!!`);
 
-    const successExoprtMsg = translate('successExport', { link: repoLink });
-    if (!hasKickOption(bodyText)) {
+    const successExportMsg = translate('successExport', { link: repoLink });
+    if (!textOptions.has(KICK_ALL_OPTION)) {
         logger.debug(`Command was made without kick option in room with id ${roomData.id}`);
 
-        return successExoprtMsg;
+        return successExportMsg;
     }
 
     const kickRes = await kick(chatApi, roomData);
@@ -128,7 +146,7 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData, config }) 
         case NO_POWER: {
             const msg = translate('noBotPower', { power: EXPECTED_POWER });
 
-            return [successExoprtMsg, msg].join('<br>');
+            return [successExportMsg, msg].join('<br>');
         }
         case ALL_DELETED: {
             // all are deleted and no message is needed
@@ -138,7 +156,7 @@ const archive = async ({ bodyText, roomId, sender, chatApi, roomData, config }) 
         }
         case ADMINS_EXISTS: {
             const msg = translate('adminsAreNotKicked');
-            const sendedMsg = [successExoprtMsg, msg].join('<br>');
+            const sendedMsg = [successExportMsg, msg].join('<br>');
             await chatApi.sendHtmlMessage(roomData.id, sendedMsg, sendedMsg);
             await chatApi.leaveRoom(roomData.id);
         }
@@ -152,4 +170,5 @@ module.exports = {
     KICK_ALL_OPTION,
     getGroupedUsers,
     kick,
+    CUSTOM_REPO,
 };

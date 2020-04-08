@@ -57,7 +57,15 @@ const archiveAndForget = async ({ client, roomData, keepTimestamp, config }) => 
 
             return stateEnum.STILL_ACTIVE;
         }
-        const repoLink = await exportEvents(config, allEvents, roomData, client, true);
+        const repoLink = await exportEvents({
+            listEvents: allEvents,
+            baseLink: config.baseLink,
+            baseRemote: config.baseRemote,
+            chatApi: client,
+            roomData,
+            gitReposPath: config.gitReposPath,
+            repoName: utils.getProjectKeyFromIssueKey(roomData.alias),
+        });
         if (!repoLink) {
             logger.error(`Some fail has happen after attempt to archive room with alias ${roomData.alias}`);
 

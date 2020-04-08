@@ -37,6 +37,32 @@ const getPost = body => {
 };
 
 const helper = {
+    parseBodyText: (bodyText = '', usingParam) => {
+        const [paramData, ...rest] = bodyText.split('--');
+        const param = paramData && paramData.trim();
+        const optionWithParams = rest.filter(Boolean).map(el => el.trim());
+
+        const options = optionWithParams
+            .map(el => {
+                const [optionName, ...optionParams] = el.split(' ').filter(Boolean);
+
+                return {
+                    [optionName]: optionParams.join(' '),
+                };
+            })
+            .reduce((acc, val) => ({ ...acc, ...val }), {});
+
+        const has = optionName => Object.keys(options).includes(optionName);
+        const get = optionName => options[optionName];
+
+        return {
+            param,
+            options,
+            has,
+            get,
+        };
+    },
+
     getDescription: async issue => {
         try {
             const { description } = await jiraRequests.getRenderedValues(issue.key, ['description']);
