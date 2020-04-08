@@ -3,6 +3,7 @@ const { setArchiveProject } = require('../../settings');
 const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
 const logger = require('../../../modules/log')(module);
+const { parseBodyText } = require('../../actions/helper');
 
 const DEFAULT_MONTH = 3;
 
@@ -16,27 +17,6 @@ const getValidateMonth = data => {
     const numeric = Number(data);
 
     return Number.isInteger(numeric) && numeric;
-};
-
-const parseBodyText = bodyText => {
-    const [param, ...optionWithParams] = bodyText
-        .split('--')
-        .filter(Boolean)
-        .map(el => el.trim());
-    const options = optionWithParams
-        .map(el => {
-            const [optionName, ...optionParams] = el.split(' ').filter(Boolean);
-
-            return {
-                [optionName]: optionParams.join(' '),
-            };
-        })
-        .reduce((acc, val) => ({ ...acc, ...val }), {});
-
-    return {
-        param,
-        options,
-    };
 };
 
 const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
@@ -93,4 +73,4 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
     return translate('successProjectAddToArchive', { projectKey, activeTime: month });
 };
 
-module.exports = { projectarchive, parseBodyText, LAST_ACTIVE_OPTION, DEFAULT_MONTH, STATUS_OPTION };
+module.exports = { projectarchive, LAST_ACTIVE_OPTION, DEFAULT_MONTH, STATUS_OPTION };

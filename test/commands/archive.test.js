@@ -17,7 +17,12 @@ const testUtils = require('../test-utils');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 const projectJSON = require('../fixtures/jira-api-requests/project.json');
 
-const { getGroupedUsers, deleteAlias, KICK_ALL_OPTION } = require('../../src/bot/timeline-handler/commands/archive');
+const {
+    getGroupedUsers,
+    deleteAlias,
+    KICK_ALL_OPTION,
+    CUSTOM_REPO,
+} = require('../../src/bot/timeline-handler/commands/archive');
 const {
     DEFAULT_REMOTE_NAME,
     DEFAULT_EXT,
@@ -35,6 +40,7 @@ const messagesWithBefore = fs.readFileSync(
     path.resolve(__dirname, '../fixtures/archiveRoom/withbefore-readme.md'),
     'utf8',
 );
+const readmeWithoutBefore = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/readme.md'), 'utf8');
 const eventBefore = require('../fixtures/archiveRoom/already-exisits-git/res/$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA.json');
 
 const fsProm = fs.promises;
@@ -154,6 +160,16 @@ describe('Archive command', () => {
         expect(result).to.be.eq(post);
     });
 
+    it('Permition if option for --name is not exists', async () => {
+        const expected = translate('noOptionArg', { option: CUSTOM_REPO });
+        const result = await commandHandler({
+            ...baseOptions,
+            sender: adminSender.name,
+            bodyText: `--${CUSTOM_REPO}`,
+        });
+        expect(result).to.be.eq(expected);
+    });
+
     it('Expect send skip archive if room has no alias', async () => {
         const post = translate('noAlias');
         const roomDataWithoutAlias = { ...roomData, alias: null };
@@ -197,9 +213,13 @@ describe('Archive command', () => {
     });
 
     describe('gitPull', () => {
+        const repoName = faker.random.words(1);
+
         const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
         const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
         const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
+        const expectedRemoteWithCustomName = `${config.baseRemote}/${repoName.toLowerCase()}.git`;
+        const expectedRepoLinkWithCustomName = `${config.baseLink}/${repoName.toLowerCase()}/tree/master/${issueKey}`;
         let server;
         let tmpDir;
         let configWithTmpPath;
@@ -256,13 +276,49 @@ describe('Archive command', () => {
             expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
         });
 
+        it('expect command succeded with custom repo name as option', async () => {
+            const result = await commandHandler({
+                ...baseOptions,
+                sender: adminSender.name,
+                roomName: issueKey,
+                config: configWithTmpPath,
+                bodyText: `--${CUSTOM_REPO} ${repoName}`,
+            });
+            const expectedMsg = translate('successExport', { link: expectedRepoLinkWithCustomName });
+
+            expect(result).to.be.eq(expectedMsg);
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(tmpDir.path);
+            await gitLocal.clone(expectedRemoteWithCustomName, cloneName);
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
+            const allEvents = rawEvents.map(event => `${event.event_id}.json`);
+            expect(files).to.have.length(allEvents.length);
+            expect(files).to.have.deep.members(allEvents);
+
+            const viewFilePath = path.resolve(tmpDir.path, cloneName, issueKey, VIEW_FILE_NAME);
+            expect(fs.existsSync(viewFilePath)).to.be.true;
+            const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
+            expect(viewFileData).to.deep.equal(readmeWithoutBefore.split('\n'));
+
+            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
+            const expectedMediaFileNames = [
+                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
+                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
+                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
+            ];
+            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
+            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
+            expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
+        });
+
         it('expect command succeded and all simple membera are kicked but admins not if they are exists', async () => {
             const roomName = issueKey;
             const result = await commandHandler({
                 ...baseOptions,
                 roomName,
                 sender: adminSender.name,
-                bodyText: KICK_ALL_OPTION,
+                bodyText: `--${KICK_ALL_OPTION}`,
                 config: configWithTmpPath,
             });
 
@@ -318,7 +374,7 @@ describe('Archive command', () => {
                 roomData: roomDataWihotAdmins,
                 roomName,
                 sender: adminSender.name,
-                bodyText: KICK_ALL_OPTION,
+                bodyText: `--${KICK_ALL_OPTION}`,
                 config: configWithTmpPath,
             });
             expect(result).to.be.undefined;
@@ -366,7 +422,7 @@ describe('Archive command', () => {
                 roomName,
                 sender: adminSender.name,
                 config: configWithTmpPath,
-                bodyText: KICK_ALL_OPTION,
+                bodyText: `--${KICK_ALL_OPTION}`,
             });
             const expectedMsg = [
                 translate('successExport', { link: expectedRepoLink }),

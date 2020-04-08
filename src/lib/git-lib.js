@@ -238,15 +238,16 @@ const getRepoPath = async (repoName, { baseRemote, gitReposPath }) => {
     return repoPath;
 };
 
-const exportEvents = async (
-    { baseRemote, baseLink, gitReposPath },
+const exportEvents = async ({
     listEvents,
+    baseRemote,
+    baseLink,
+    gitReposPath,
     roomData,
     chatApi,
-    isRoomJiraProject,
-) => {
+    repoName = DEFAULT_REMOTE_NAME,
+}) => {
     try {
-        const repoName = isRoomJiraProject ? utils.getProjectKeyFromIssueKey(roomData.alias) : DEFAULT_REMOTE_NAME;
         const repoPath = await getRepoPath(repoName, { baseRemote, gitReposPath });
         const repoRoomPath = path.resolve(repoPath, roomData.alias);
 

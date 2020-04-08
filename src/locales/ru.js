@@ -94,6 +94,7 @@ const dict = Object.freeze({
     helpDocs: 'Документация: <br>%{link}<br>%{text}',
     helpDocsCommandNotExist: 'Документация по всем командам: <br>%{link}<br>Команда %{command} не определена',
     notValid: 'Введено неверное значение параметра %{body}',
+    noOptionArg: 'Отсутствует параметр для опции %{option}',
 });
 /* spell-checker: enable */
 

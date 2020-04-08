@@ -185,8 +185,13 @@ describe('Archive command', () => {
         });
 
         it('expect git pull send event data', async () => {
-            const isJira = true;
-            const linkToRepo = await exportEvents(configWithTmpPath, rawEvents, roomData, chatApi, isJira);
+            const linkToRepo = await exportEvents({
+                ...configWithTmpPath,
+                listEvents: rawEvents,
+                roomData,
+                chatApi,
+                repoName: projectKey,
+            });
 
             expect(linkToRepo).to.eq(expectedRepoLink);
 
@@ -214,14 +219,12 @@ describe('Archive command', () => {
         });
 
         it('expect git pull send event data', async () => {
-            const isJira = false;
-            const linkToRepo = await exportEvents(
-                configWithTmpPath,
-                [...rawEvents, eventBefore],
+            const linkToRepo = await exportEvents({
+                ...configWithTmpPath,
+                listEvents: [...rawEvents, eventBefore],
                 roomData,
                 chatApi,
-                isJira,
-            );
+            });
 
             expect(linkToRepo).to.eq(expectedDefaultRepoLink);
 
