@@ -86,6 +86,7 @@ const dict = Object.freeze({
     helpDocsCommandNotExist: 'Full documentation: <br>%{link}<br>Command %{command} not exist',
     notValid: 'Incorrect data input %{body}',
     noOptionArg: 'No arg for option %{option}',
+    ignoreCommand: 'Skip command %{commandName}. It exists in ignore list in config',
 });
 
 module.exports.dict = dict;

@@ -36,7 +36,7 @@ describe('command project archive test', () => {
         const configWithInfo = { ...defaultConfig, messenger: matrixMessengerDataWithRoom };
 
         chatApi = testUtils.getChatApi({ config: configWithInfo });
-        baseOptions = { roomId, roomData, commandName, sender, chatApi, bodyText };
+        baseOptions = { roomId, roomData, commandName, sender, chatApi, bodyText, config: configWithInfo };
         const lastIssueKey = searchProject.issues[0].key;
         nock(utils.getRestUrl())
             .get(`/search?jql=project=${bodyText}`)
@@ -50,6 +50,17 @@ describe('command project archive test', () => {
     afterEach(async () => {
         nock.cleanAll();
         await testUtils.cleanRedis();
+    });
+
+    it('Expect archiveproject return ignoreCommand message if command is ignore list', async () => {
+        const result = await commandHandler({
+            ...baseOptions,
+            bodyText: 'olololo',
+            config: { ignoreCommands: [commandName] },
+        });
+
+        expect(result).to.be.eq(translate('ignoreCommand', { commandName }));
+        expect(await getArchiveProject()).to.be.empty;
     });
 
     it('Expect archive return roomNotExistOrPermDen message if no jira project exists', async () => {

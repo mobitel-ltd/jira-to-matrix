@@ -15,11 +15,12 @@ describe('alive test', () => {
 
     const commandName = 'alive';
     const roomName = 'someRoomName';
+    const config = {};
 
     describe('No command room in config', () => {
         beforeEach(() => {
             chatApi = getChatApi();
-            baseOptions = { roomName, commandName, chatApi };
+            baseOptions = { roomName, commandName, chatApi, config };
         });
 
         it('Expect return error message if room is not command', async () => {
@@ -37,7 +38,7 @@ describe('alive test', () => {
             chatApi = getChatApi({
                 config: configWithInfo,
             });
-            baseOptions = { roomName, commandName, chatApi };
+            baseOptions = { roomName, commandName, chatApi, config };
         });
 
         it('Expect return error message if room is not command', async () => {
