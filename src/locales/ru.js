@@ -95,6 +95,7 @@ const dict = Object.freeze({
     helpDocsCommandNotExist: 'Документация по всем командам: <br>%{link}<br>Команда %{command} не определена',
     notValid: 'Введено неверное значение параметра %{body}',
     noOptionArg: 'Отсутствует параметр для опции %{option}',
+    ignoreCommand: 'Команда %{commandName} находится в игнор списке в конфиге',
 });
 /* spell-checker: enable */
 

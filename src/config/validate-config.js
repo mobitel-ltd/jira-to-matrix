@@ -41,6 +41,7 @@ const schema = obj({
             ignoreDestStatusCat: array(Joi.number().integer()),
         }),
     }),
+    ignoreCommands: array(string).optional(),
     usersToIgnore: array(Joi.string()),
     inviteIgnoreUsers: array(Joi.string()),
     testMode: obj({
