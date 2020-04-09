@@ -18,10 +18,9 @@ const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 const projectJSON = require('../fixtures/jira-api-requests/project.json');
 
 const {
-    getGroupedUsers,
     deleteAlias,
     KICK_ALL_OPTION,
-    CUSTOM_REPO,
+    PERSONAL_REPO_OPTION,
 } = require('../../src/bot/timeline-handler/commands/archive');
 const {
     DEFAULT_REMOTE_NAME,
@@ -149,7 +148,7 @@ describe('Archive command', () => {
     });
 
     it('Permition denided if sender and bot not in task jira', async () => {
-        const post = translate('roomNotExistOrPermDen');
+        const post = translate('issueNotExistOrPermDen');
         const notAvailableIssueKey = `${projectKey}-1010`;
         const roomDataWithNotExistAlias = { ...roomData, alias: notAvailableIssueKey };
         const result = await commandHandler({
@@ -169,37 +168,6 @@ describe('Archive command', () => {
             roomData: roomDataWithoutAlias,
         });
         expect(result).to.be.eq(post);
-    });
-
-    it('groupUsers test', () => {
-        const admins = Array.from({ length: 5 }, () => ({ userId: faker.random.alphaNumeric(10), powerLevel: 100 }));
-        const simpleUsers = Array.from({ length: 5 }, () => ({
-            userId: faker.random.alphaNumeric(10),
-            powerLevel: faker.random.number(99),
-        }));
-        const bot = Array.from({ length: 1 }, () => ({ userId: faker.random.alphaNumeric(10), powerLevel: 100 }));
-        const data = [...bot, ...admins, ...simpleUsers];
-
-        const expectedData = {
-            simpleUsers: simpleUsers.map(user => user.userId),
-            bot: bot.map(user => user.userId),
-            admins: admins.map(user => user.userId),
-        };
-
-        expect(getGroupedUsers(data, bot[0].userId)).deep.eq(expectedData);
-    });
-
-    it('groupUsers test return empty array for each group if no such user exists', () => {
-        const bot = Array.from({ length: 1 }, () => ({ userId: faker.random.alphaNumeric(10), powerLevel: 100 }));
-        const data = bot;
-
-        const expectedData = {
-            simpleUsers: [],
-            bot: bot.map(user => user.userId),
-            admins: [],
-        };
-
-        expect(getGroupedUsers(data, bot[0].userId)).deep.eq(expectedData);
     });
 
     describe('archive with export', () => {
@@ -278,7 +246,7 @@ describe('Archive command', () => {
                 sender: adminSender.name,
                 roomName: issueKey,
                 config: configWithTmpPath,
-                bodyText: `--${CUSTOM_REPO}`,
+                bodyText: `--${PERSONAL_REPO_OPTION}`,
             });
             const expectedMsg = translate('successExport', { link: expectedRepoLinkWithCustomName });
 

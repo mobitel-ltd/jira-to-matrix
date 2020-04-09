@@ -3,7 +3,7 @@ const { setArchiveProject } = require('../../settings');
 const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
 const logger = require('../../../modules/log')(module);
-const { parseBodyText } = require('../../actions/helper');
+const { parseBodyText } = require('./common-actions');
 
 const DEFAULT_MONTH = 3;
 
@@ -48,7 +48,7 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
     if (!(await jiraRequests.isJiraPartExists(projectKey))) {
         logger.warn(`Command archiveproject was made with incorrect project ${projectKey}`);
 
-        return translate('roomNotExistOrPermDen');
+        return translate('issueNotExistOrPermDen');
     }
 
     const keepTimestamp = DateTime.local()

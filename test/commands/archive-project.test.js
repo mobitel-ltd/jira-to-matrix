@@ -63,10 +63,10 @@ describe('command project archive test', () => {
         expect(await getArchiveProject()).to.be.empty;
     });
 
-    it('Expect archive return roomNotExistOrPermDen message if no jira project exists', async () => {
+    it('Expect archive return issueNotExistOrPermDen message if no jira project exists', async () => {
         const result = await commandHandler({ ...baseOptions, bodyText: 'olololo' });
 
-        expect(result).to.be.eq(translate('roomNotExistOrPermDen'));
+        expect(result).to.be.eq(translate('issueNotExistOrPermDen'));
         expect(await getArchiveProject()).to.be.empty;
     });
 
