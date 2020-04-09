@@ -10,7 +10,7 @@ const { exportEvents } = require('../../../lib/git-lib');
 const { parseBodyText } = require('../../actions/helper');
 
 const KICK_ALL_OPTION = 'kickall';
-const CUSTOM_REPO = 'name';
+const CUSTOM_REPO = 'personal';
 const NO_POWER = 'No power';
 const ADMINS_EXISTS = 'admins exists';
 const ALL_DELETED = 'all deleted';
@@ -96,10 +96,6 @@ const archive = async ({ bodyText, sender, chatApi, roomData, config }) => {
     }
 
     const textOptions = parseBodyText(bodyText);
-    if (textOptions.has(CUSTOM_REPO) && !textOptions.get(CUSTOM_REPO)) {
-        return translate('noOptionArg', { option: CUSTOM_REPO });
-    }
-
     const issueMembersChatIds = await Promise.all(
         utils.getIssueMembers(issue).map(displayName => chatApi.getUserIdByDisplayName(displayName)),
     );
@@ -113,10 +109,19 @@ const archive = async ({ bodyText, sender, chatApi, roomData, config }) => {
     }
 
     const listEvents = await chatApi.getAllEventsFromRoom(id);
+
     const repoName = R.cond([
-        [textOptions.has, textOptions.get],
-        [() => isJiraRoom, (_, key) => utils.getProjectKeyFromIssueKey(key)],
-    ])(CUSTOM_REPO, alias);
+        [
+            R.always(textOptions.has(CUSTOM_REPO)),
+            // eslint-disable-next-line prettier/prettier
+            R.pipe(
+                chatApi.getChatUserId,
+                R.when(R.pathEq([0], '@'), R.drop(1)),
+                R.replace(/[^a-z0-9_.-]+/g, '__')
+            ),
+        ],
+        [R.always(isJiraRoom), R.always(utils.getProjectKeyFromIssueKey(alias))],
+    ])(sender);
 
     const repoLink = await exportEvents({
         listEvents,

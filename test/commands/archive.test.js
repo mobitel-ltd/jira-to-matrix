@@ -160,16 +160,6 @@ describe('Archive command', () => {
         expect(result).to.be.eq(post);
     });
 
-    it('Permition if option for --name is not exists', async () => {
-        const expected = translate('noOptionArg', { option: CUSTOM_REPO });
-        const result = await commandHandler({
-            ...baseOptions,
-            sender: adminSender.name,
-            bodyText: `--${CUSTOM_REPO}`,
-        });
-        expect(result).to.be.eq(expected);
-    });
-
     it('Expect send skip archive if room has no alias', async () => {
         const post = translate('noAlias');
         const roomDataWithoutAlias = { ...roomData, alias: null };
@@ -212,19 +202,25 @@ describe('Archive command', () => {
         expect(getGroupedUsers(data, bot[0].userId)).deep.eq(expectedData);
     });
 
-    describe('gitPull', () => {
-        const repoName = faker.random.words(1);
-
-        const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
-        const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
-        const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
-        const expectedRemoteWithCustomName = `${config.baseRemote}/${repoName.toLowerCase()}.git`;
-        const expectedRepoLinkWithCustomName = `${config.baseLink}/${repoName.toLowerCase()}/tree/master/${issueKey}`;
+    describe('archive with export', () => {
+        let expectedRemote;
+        let expectedRepoLink;
+        let expectedDefaultRemote;
+        let expectedRemoteWithCustomName;
+        let expectedRepoLinkWithCustomName;
         let server;
         let tmpDir;
         let configWithTmpPath;
 
         beforeEach(async () => {
+            const _repoName = chatApi.getChatUserId(adminSender.name).replace(/[^a-z0-9_.-]+/g, '__');
+            const repoName = _repoName[0] === '_' ? _repoName.slice(2) : _repoName;
+
+            expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
+            expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
+            expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
+            expectedRemoteWithCustomName = `${config.baseRemote}/${repoName.toLowerCase()}.git`;
+            expectedRepoLinkWithCustomName = `${config.baseLink}/${repoName.toLowerCase()}/tree/master/${issueKey}`;
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
 
@@ -282,7 +278,7 @@ describe('Archive command', () => {
                 sender: adminSender.name,
                 roomName: issueKey,
                 config: configWithTmpPath,
-                bodyText: `--${CUSTOM_REPO} ${repoName}`,
+                bodyText: `--${CUSTOM_REPO}`,
             });
             const expectedMsg = translate('successExport', { link: expectedRepoLinkWithCustomName });
 
