@@ -17,10 +17,10 @@ Example:
 !archive --kickall
 ```
 
-### `--name  <repo name>`
-to export archive to custom repo, it option is more powerfull than Jira project for jira rooms
+### `--personal`  
+archive to repo which named as user id with replacing all symbols by template: `/[^a-z0-9_.-]+/g` to `__`
 
 Example:
 ```
-!archive --name my-own-repo
+!archive --personal
 ```
