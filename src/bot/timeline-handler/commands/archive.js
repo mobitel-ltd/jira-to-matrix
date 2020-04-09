@@ -115,9 +115,9 @@ const archive = async ({ bodyText, sender, chatApi, roomData, config }) => {
             R.always(textOptions.has(CUSTOM_REPO)),
             // eslint-disable-next-line prettier/prettier
             R.pipe(
-                chatApi.getChatUserId,
+                chatApi.getChatUserId.bind(chatApi),
                 R.when(R.pathEq([0], '@'), R.drop(1)),
-                R.replace(/[^a-z0-9_.-]+/g, '__')
+                R.replace(/[^a-z0-9_.-]+/g, '__'),
             ),
         ],
         [R.always(isJiraRoom), R.always(utils.getProjectKeyFromIssueKey(alias))],
