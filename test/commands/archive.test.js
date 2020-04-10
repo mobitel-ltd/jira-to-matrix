@@ -45,6 +45,7 @@ const eventBefore = require('../fixtures/archiveRoom/already-exisits-git/res/$yQ
 const fsProm = fs.promises;
 
 describe('Archive command', () => {
+    const kickAllWithPref = `--${KICK_ALL_OPTION}`;
     let chatApi;
     const roomName = issueJSON.key;
     const sender = getUserIdByDisplayName(issueJSON.fields.creator);
@@ -170,6 +171,57 @@ describe('Archive command', () => {
         expect(result).to.be.eq(post);
     });
 
+    it('expect return repoNotExists if repo is not exists', async () => {
+        const repoLink = `${config.baseLink}/${projectKey.toLowerCase()}`;
+        const post = translate('repoNotExists', { repoLink });
+        const result = await commandHandler({
+            ...baseOptions,
+            config: { ...config, baseRemote: 'lalalla' },
+            sender: adminSender.name,
+        });
+        expect(result).to.be.eq(post);
+    });
+
+    it('expect return unknownArgs message body text have unexpected words', async () => {
+        const text = 'lallaal';
+        const result = await commandHandler({
+            ...baseOptions,
+            sender: adminSender.name,
+            bodyText: text,
+        });
+        expect(result).to.be.eq(translate('unknownArgs', { unknownArgs: text }));
+    });
+
+    it('expect return unknownArgs message if body text have multiple unexpected words', async () => {
+        const text = 'lallaal oooo -kickall';
+        const result = await commandHandler({
+            ...baseOptions,
+            sender: adminSender.name,
+            bodyText: [kickAllWithPref, text].join(' '),
+        });
+        expect(result).to.be.eq(translate('unknownArgs', { unknownArgs: text.split(' ') }));
+    });
+
+    it('expect return unknownArgs message if body text have multiple unexpected words around', async () => {
+        const text1 = 'lallaal oooo -kickall';
+        const text2 = '-h';
+        const result = await commandHandler({
+            ...baseOptions,
+            sender: adminSender.name,
+            bodyText: [text1, kickAllWithPref, text2].join(' '),
+        });
+        expect(result).to.be.eq(translate('unknownArgs', { unknownArgs: `${text1} ${text2}`.split(' ') }));
+    });
+
+    it('expect return unknownArgs message if body have option with one -', async () => {
+        const result = await commandHandler({
+            ...baseOptions,
+            sender: adminSender.name,
+            bodyText: `-${KICK_ALL_OPTION}`,
+        });
+        expect(result).to.be.eq(translate('unknownArgs', { unknownArgs: `-${KICK_ALL_OPTION}` }));
+    });
+
     describe('archive with export', () => {
         let expectedRemote;
         let expectedRepoLink;
@@ -240,13 +292,62 @@ describe('Archive command', () => {
             expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
         });
 
-        it('expect command succeded with custom repo name as option', async () => {
+        it('expect command succeded with custom repo name as option and kick all option', async () => {
+            const bodyText = `${faker.random.arrayElement([
+                `--${PERSONAL_REPO_OPTION}`,
+                '-p',
+            ])} ${faker.random.arrayElement([kickAllWithPref, '-k'])}`;
             const result = await commandHandler({
                 ...baseOptions,
                 sender: adminSender.name,
                 roomName: issueKey,
                 config: configWithTmpPath,
-                bodyText: `--${PERSONAL_REPO_OPTION}`,
+                bodyText,
+            });
+
+            expect(result).to.be.undefined;
+
+            const cloneName = 'clone-repo';
+            const gitLocal = gitSimple(tmpDir.path);
+            await gitLocal.clone(expectedRemoteWithCustomName, cloneName);
+            const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
+            const allEvents = rawEvents.map(event => `${event.event_id}.json`);
+            expect(files).to.have.length(allEvents.length);
+            expect(files).to.have.deep.members(allEvents);
+
+            const viewFilePath = path.resolve(tmpDir.path, cloneName, issueKey, VIEW_FILE_NAME);
+            expect(fs.existsSync(viewFilePath)).to.be.true;
+            const viewFileData = (await fsProm.readFile(viewFilePath, 'utf8')).split('\n');
+            expect(viewFileData).to.deep.equal(readmeWithoutBefore.split('\n'));
+
+            const mediaFiles = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, MEDIA_DIR_NAME));
+            const expectedMediaFileNames = [
+                `${rawEventsData.mediaId}${FILE_DELIMETER}${rawEventsData.mediaName}`,
+                `${rawEventsData.blobId}${FILE_DELIMETER}${rawEventsData.blobName}`,
+                `${rawEventsData.avatarId}${DEFAULT_EXT}`,
+            ];
+            expect(mediaFiles).to.have.length(expectedMediaFileNames.length);
+            expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
+            simpleMembers.forEach(({ userId }) =>
+                expect(chatApi.kickUserByRoom).to.be.calledWithExactly({ roomId, userId }),
+            );
+            expect(chatApi.deleteRoomAlias).not.to.be.called;
+            expect(chatApi.leaveRoom).to.be.calledWithExactly(roomData.id);
+            const expectedMsg = [
+                translate('successExport', { link: expectedRepoLinkWithCustomName }),
+                translate('adminsAreNotKicked'),
+            ].join('<br>');
+            expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
+        });
+
+        it('expect command succeded with custom repo name as option', async () => {
+            const bodyText = faker.random.arrayElement([`--${PERSONAL_REPO_OPTION}`, '-p']);
+            const result = await commandHandler({
+                ...baseOptions,
+                sender: adminSender.name,
+                roomName: issueKey,
+                config: configWithTmpPath,
+                bodyText,
             });
             const expectedMsg = translate('successExport', { link: expectedRepoLinkWithCustomName });
 
@@ -276,13 +377,14 @@ describe('Archive command', () => {
             expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
         });
 
-        it('expect command succeded and all simple membera are kicked but admins not if they are exists', async () => {
+        it('expect command succeded and all simple members are kicked but admins not if they are exists', async () => {
             const roomName = issueKey;
+            const bodyText = faker.random.arrayElement([kickAllWithPref, '-k']);
             const result = await commandHandler({
                 ...baseOptions,
                 roomName,
                 sender: adminSender.name,
-                bodyText: `--${KICK_ALL_OPTION}`,
+                bodyText,
                 config: configWithTmpPath,
             });
 
@@ -323,6 +425,7 @@ describe('Archive command', () => {
 
         it('expect command succeded and all users are kicked if not other admins but alias is not deleted but saved', async () => {
             const roomName = issueKey;
+            const bodyText = faker.random.arrayElement([kickAllWithPref, '-k']);
             const roomDataWihotAdmins = {
                 ...roomData,
                 members: [
@@ -338,7 +441,7 @@ describe('Archive command', () => {
                 roomData: roomDataWihotAdmins,
                 roomName,
                 sender: adminSender.name,
-                bodyText: `--${KICK_ALL_OPTION}`,
+                bodyText,
                 config: configWithTmpPath,
             });
             expect(result).to.be.undefined;
@@ -369,6 +472,7 @@ describe('Archive command', () => {
         });
 
         it('expect command succeded but bot cannot kick anybody if power is less than 100', async () => {
+            const bodyText = faker.random.arrayElement([kickAllWithPref, '-k']);
             const roomName = issueKey;
             const roomDataWihLessPower = {
                 ...roomData,
@@ -386,7 +490,7 @@ describe('Archive command', () => {
                 roomName,
                 sender: adminSender.name,
                 config: configWithTmpPath,
-                bodyText: `--${KICK_ALL_OPTION}`,
+                bodyText,
             });
             const expectedMsg = [
                 translate('successExport', { link: expectedRepoLink }),

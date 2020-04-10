@@ -96,6 +96,8 @@ const dict = Object.freeze({
     notValid: 'Введено неверное значение параметра %{body}',
     noOptionArg: 'Отсутствует параметр для опции %{option}',
     ignoreCommand: 'Команда %{commandName} находится в игнор списке в конфиге',
+    repoNotExists: 'Репозиторий по ссылке %{repoLink} не существует или недоступен',
+    unknownArgs: 'Использованы неизвестные опции команды: %{unknownArgs}',
 });
 /* spell-checker: enable */
 

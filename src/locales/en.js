@@ -87,6 +87,8 @@ const dict = Object.freeze({
     notValid: 'Incorrect data input %{body}',
     noOptionArg: 'No arg for option %{option}',
     ignoreCommand: 'Skip command %{commandName}. It exists in ignore list in config',
+    repoNotExists: 'Repository is not exists by url %{repoLink}',
+    unknownArgs: 'Used unknownArgs arguments %{unknownArgs}',
 });
 
 module.exports.dict = dict;

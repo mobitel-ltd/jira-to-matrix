@@ -1,3 +1,4 @@
+/* eslint-disable id-length */
 const { DateTime } = require('luxon');
 const { setArchiveProject } = require('../../settings');
 const jiraRequests = require('../../../lib/jira-request');
@@ -34,9 +35,16 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
         return translate('emptyProject');
     }
 
-    const data = parseBodyText(bodyText);
-    const projectKey = data.param;
-    const customMonths = data.options[LAST_ACTIVE_OPTION];
+    const bodyData = parseBodyText(bodyText, {
+        alias: {
+            l: LAST_ACTIVE_OPTION,
+            s: STATUS_OPTION,
+        },
+        string: [LAST_ACTIVE_OPTION, STATUS_OPTION],
+        first: true,
+    });
+    const projectKey = bodyData.param;
+    const customMonths = bodyData.get(LAST_ACTIVE_OPTION);
 
     const month = getValidateMonth(customMonths);
     if (!month) {
@@ -55,8 +63,8 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
         .minus({ month })
         .toMillis();
 
-    if (data.options[STATUS_OPTION]) {
-        const status = data.options[STATUS_OPTION];
+    if (bodyData.has(STATUS_OPTION)) {
+        const status = bodyData.get(STATUS_OPTION);
         if (!(await jiraRequests.hasStatusInProject(projectKey, status))) {
             logger.warn(`Command archiveproject was made with incorrect option arg ${status}`);
 

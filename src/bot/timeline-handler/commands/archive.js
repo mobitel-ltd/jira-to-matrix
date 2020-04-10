@@ -1,3 +1,4 @@
+/* eslint-disable id-length */
 // @ts-check
 
 const R = require('ramda');
@@ -6,7 +7,7 @@ const utils = require('../../../lib/utils');
 const translate = require('../../../locales');
 const logger = require('../../../modules/log.js')(module);
 const { setAlias } = require('../../settings');
-const { exportEvents } = require('../../../lib/git-lib');
+const { exportEvents, isRepoExists, getRepoLink } = require('../../../lib/git-lib');
 const { EXPECTED_POWER, kickStates, kick, parseBodyText } = require('./common-actions');
 
 const KICK_ALL_OPTION = 'kickall';
@@ -21,7 +22,7 @@ const deleteAlias = async (api, alias) => {
     }
 };
 
-const archive = async ({ bodyText, sender, chatApi, roomData, config }) => {
+const archive = async ({ bodyText = '', sender, chatApi, roomData, config }) => {
     const { alias, id } = roomData;
     if (!alias) {
         return translate('noAlias');
@@ -47,7 +48,17 @@ const archive = async ({ bodyText, sender, chatApi, roomData, config }) => {
 
     const listEvents = await chatApi.getAllEventsFromRoom(id);
 
-    const textOptions = parseBodyText(bodyText);
+    const textOptions = parseBodyText(bodyText, {
+        alias: {
+            k: KICK_ALL_OPTION,
+            p: PERSONAL_REPO_OPTION,
+        },
+        boolean: [KICK_ALL_OPTION, PERSONAL_REPO_OPTION],
+    });
+
+    if (textOptions.hasUnknown()) {
+        return translate('unknownArgs', { unknownArgs: textOptions.unknown });
+    }
     const repoName = R.cond([
         [
             R.always(textOptions.has(PERSONAL_REPO_OPTION)),
@@ -61,7 +72,13 @@ const archive = async ({ bodyText, sender, chatApi, roomData, config }) => {
         [R.always(isJiraRoom), R.always(utils.getProjectKeyFromIssueKey(alias))],
     ])(sender);
 
-    const repoLink = await exportEvents({
+    if (!(await isRepoExists(config.baseRemote, repoName))) {
+        const repoLink = getRepoLink(config.baseLink, repoName);
+
+        return translate('repoNotExists', { repoLink });
+    }
+
+    const archivedRoomLink = await exportEvents({
         listEvents,
         roomData,
         chatApi,
@@ -70,13 +87,13 @@ const archive = async ({ bodyText, sender, chatApi, roomData, config }) => {
         baseRemote: config.baseRemote,
         gitReposPath: config.gitReposPath,
     });
-    if (!repoLink) {
+    if (!archivedRoomLink) {
         return translate('archiveFail', { alias });
     }
 
     logger.debug(`Git push successfully complited in room ${id}!!!`);
 
-    const successExportMsg = translate('successExport', { link: repoLink });
+    const successExportMsg = translate('successExport', { link: archivedRoomLink });
     if (!textOptions.has(KICK_ALL_OPTION)) {
         logger.debug(`Command was made without kick option in room with id ${roomData.id}`);
 

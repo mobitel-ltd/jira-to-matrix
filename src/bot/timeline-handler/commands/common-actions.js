@@ -1,3 +1,4 @@
+const minimist = require('minimist');
 const R = require('ramda');
 const logger = require('../../../modules/log.js')(module);
 
@@ -69,29 +70,36 @@ const kick = async (chatApi, { id, members }, expectedPower = 100) => {
     return ALL_DELETED;
 };
 
-const parseBodyText = (bodyText = '', usingParam) => {
-    const [paramData, ...rest] = bodyText.split('--');
-    const param = paramData && paramData.trim();
-    const optionWithParams = rest.filter(Boolean).map(el => el.trim());
+const parseBodyText = (bodyText = '', { first, ...usingParam }) => {
+    const unknown = [];
+    const arrFromBody = bodyText
+        .split(' ')
+        .filter(Boolean)
+        .map(el => el.trim());
 
-    const options = optionWithParams
-        .map(el => {
-            const [optionName, ...optionParams] = el.split(' ').filter(Boolean);
+    const [param, ...rest] = first ? arrFromBody : [null, ...arrFromBody];
 
-            return {
-                [optionName]: optionParams.join(' '),
-            };
-        })
-        .reduce((acc, val) => ({ ...acc, ...val }), {});
+    const res = minimist(rest, {
+        ...usingParam,
+        unknown: el => {
+            unknown.push(el);
 
-    const has = optionName => Object.keys(options).includes(optionName);
-    const get = optionName => options[optionName];
+            return true;
+        },
+    });
+    // console.log('parseBodyText -> res', res);
+    // console.log('parseBodyText -> unknown', unknown);
+
+    const get = val => res[val];
+    const has = val => Boolean(get(val));
+    const hasUnknown = () => Boolean(unknown.length);
 
     return {
         param,
-        options,
         has,
         get,
+        unknown: R.uniq(unknown),
+        hasUnknown,
     };
 };
 
