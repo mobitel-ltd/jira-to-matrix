@@ -97,8 +97,14 @@ This settings can use maintainers and admins projects in jira.
 
 ## archive
 
-`!archive -kickall`
+`!archive`
 
-If there are no arguments, the command will arhived this room to git-server.
-If enter option kickall, the command will arvived, kick all users and delete room-alias.
+Arhive this room to git-server.
+
+### options
+
+
+-k, --kickall *Kick all room members after archiving*   
+-p, --personal *Archive to user repo by his userId*
+
 [more info](./archive.md)
