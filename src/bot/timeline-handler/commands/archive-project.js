@@ -35,7 +35,7 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
         return translate('emptyProject');
     }
 
-    const bodyData = parseBodyText(bodyText, {
+    const textOptions = parseBodyText(bodyText, {
         alias: {
             l: LAST_ACTIVE_OPTION,
             s: STATUS_OPTION,
@@ -43,8 +43,13 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
         string: [LAST_ACTIVE_OPTION, STATUS_OPTION],
         first: true,
     });
-    const projectKey = bodyData.param;
-    const customMonths = bodyData.get(LAST_ACTIVE_OPTION);
+
+    if (textOptions.hasUnknown()) {
+        return translate('unknownArgs', { unknownArgs: textOptions.unknown });
+    }
+
+    const projectKey = textOptions.param;
+    const customMonths = textOptions.get(LAST_ACTIVE_OPTION);
 
     const month = getValidateMonth(customMonths);
     if (!month) {
@@ -63,8 +68,8 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
         .minus({ month })
         .toMillis();
 
-    if (bodyData.has(STATUS_OPTION)) {
-        const status = bodyData.get(STATUS_OPTION);
+    if (textOptions.has(STATUS_OPTION)) {
+        const status = textOptions.get(STATUS_OPTION);
         if (!(await jiraRequests.hasStatusInProject(projectKey, status))) {
             logger.warn(`Command archiveproject was made with incorrect option arg ${status}`);
 

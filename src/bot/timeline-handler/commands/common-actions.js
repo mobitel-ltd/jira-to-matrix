@@ -73,6 +73,8 @@ const kick = async (chatApi, { id, members }, expectedPower = 100) => {
 const parseBodyText = (bodyText = '', { first, ...usingParam }) => {
     const unknown = [];
     const arrFromBody = bodyText
+        .split('\n')
+        .join(' ')
         .split(' ')
         .filter(Boolean)
         .map(el => el.trim());
@@ -87,8 +89,6 @@ const parseBodyText = (bodyText = '', { first, ...usingParam }) => {
             return true;
         },
     });
-    // console.log('parseBodyText -> res', res);
-    // console.log('parseBodyText -> unknown', unknown);
 
     const get = val => res[val];
     const has = val => Boolean(get(val));

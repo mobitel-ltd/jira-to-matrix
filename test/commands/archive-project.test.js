@@ -86,6 +86,15 @@ describe('command project archive test', () => {
         expect(await getArchiveProject()).not.to.includes(bodyText);
     });
 
+    it('expect return unknownArgs message if body text have multiple unexpected words', async () => {
+        const text = 'lallaal oooo -labc';
+        const result = await commandHandler({
+            ...baseOptions,
+            bodyText: [`--${LAST_ACTIVE_OPTION}`, text].join(' '),
+        });
+        expect(result).to.be.eq(translate('unknownArgs', { unknownArgs: text.split(' ') }));
+    });
+
     it('Expect archive return warning message if body month is not valid', async () => {
         const failedMonth = 'lallalalla';
         const body = `--${LAST_ACTIVE_OPTION}    ${failedMonth}`;
