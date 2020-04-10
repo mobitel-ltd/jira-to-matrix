@@ -1,9 +1,8 @@
 const htmlToText = require('html-to-text').fromString;
-const Ramda = require('ramda');
+const R = require('ramda');
 const logger = require('../../modules/log.js')(module);
 const translate = require('../../locales');
 const marked = require('marked');
-// const { usersToIgnore, testMode } = require('../../config');
 const utils = require('../../lib/utils.js');
 const jiraRequests = require('../../lib/jira-request.js');
 const redis = require('../../redis-client');
@@ -37,32 +36,6 @@ const getPost = body => {
 };
 
 const helper = {
-    parseBodyText: (bodyText = '', usingParam) => {
-        const [paramData, ...rest] = bodyText.split('--');
-        const param = paramData && paramData.trim();
-        const optionWithParams = rest.filter(Boolean).map(el => el.trim());
-
-        const options = optionWithParams
-            .map(el => {
-                const [optionName, ...optionParams] = el.split(' ').filter(Boolean);
-
-                return {
-                    [optionName]: optionParams.join(' '),
-                };
-            })
-            .reduce((acc, val) => ({ ...acc, ...val }), {});
-
-        const has = optionName => Object.keys(options).includes(optionName);
-        const get = optionName => options[optionName];
-
-        return {
-            param,
-            options,
-            has,
-            get,
-        };
-    },
-
     getDescription: async issue => {
         try {
             const { description } = await jiraRequests.getRenderedValues(issue.key, ['description']);
@@ -274,9 +247,9 @@ const helper = {
     getCommentHTMLBody: (headerText, commentBody) => `${headerText}: <br>${commentBody}`,
 
     getCommentBody: (issue, comment) => {
-        const comments = Ramda.path(['renderedFields', 'comment', 'comments'], issue);
+        const comments = R.path(['renderedFields', 'comment', 'comments'], issue);
 
-        const result = Ramda.propOr(comment.body, 'body', Ramda.find(Ramda.propEq('id', comment.id), comments));
+        const result = R.propOr(comment.body, 'body', R.find(R.propEq('id', comment.id), comments));
 
         return result;
     },

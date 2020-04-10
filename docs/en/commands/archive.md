@@ -9,7 +9,7 @@ Command is available to room admin only or to assign or creator of Jira issue (i
 
 ## Options
 
-### `--kickall`
+### `--kickall, -k`
 Kick all, delete alias after succeded archiving
 
 Example:
@@ -17,7 +17,7 @@ Example:
 !archive --kickall
 ```
 
-### `--personal`  
+### `--personal, -p`  
 archive to repo which named as user id with replacing all symbols by template: `/[^a-z0-9_.-]+/g` to `__`
 
 Example:

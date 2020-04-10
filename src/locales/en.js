@@ -78,7 +78,7 @@ const dict = Object.freeze({
     getInfo: 'All rooms = %{allRooms}<br>Single rooms = %{single}<br>Multiple joined members = %{many}',
     archiveFail: 'Error git command for room with alias "%{alias}"',
     successExport: 'Export finished %{link}',
-    roomNotExistOrPermDen: 'Task not exist in jira or permition denied.',
+    issueNotExistOrPermDen: 'Task not exist in jira or permition denied.',
     noAlias: 'No room alias. Add it and try again.',
     noBotPower: 'Bot cannot do this operation, needed power is %{power}',
     adminsAreNotKicked: 'Бот не смог удалить администраторов данной комнаты',
@@ -87,6 +87,8 @@ const dict = Object.freeze({
     notValid: 'Incorrect data input %{body}',
     noOptionArg: 'No arg for option %{option}',
     ignoreCommand: 'Skip command %{commandName}. It exists in ignore list in config',
+    repoNotExists: 'Repository is not exists by url %{repoLink}',
+    unknownArgs: 'Used unknownArgs arguments %{unknownArgs}',
 });
 
 module.exports.dict = dict;

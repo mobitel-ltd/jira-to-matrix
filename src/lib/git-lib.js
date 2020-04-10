@@ -113,11 +113,11 @@ const getProjectRemote = (baseRemote, projectKey) => {
     return [baseRemote, projectExt].join('/');
 };
 
-const getRepoLink = (baseLink, projectKey, roomName) => {
+const getRepoLink = (baseLink, projectKey = DEFAULT_REMOTE_NAME, roomName) => {
     const projectExt = projectKey.toLowerCase();
+    const args = roomName ? [baseLink, projectExt, 'tree', 'master', roomName] : [baseLink, projectExt];
 
-    // to get link visible
-    return [baseLink, projectExt, 'tree', 'master', roomName].join('/');
+    return args.join('/');
 };
 
 // It helps remove all property which dynamically created by the moment of archive
@@ -272,6 +272,20 @@ const exportEvents = async ({
     }
 };
 
+const isRepoExists = async (baseRemote, repoName = DEFAULT_REMOTE_NAME) => {
+    try {
+        const remote = getProjectRemote(baseRemote, repoName);
+
+        await git().listRemote([remote]);
+
+        return true;
+    } catch (error) {
+        logger.error(error);
+
+        return false;
+    }
+};
+
 module.exports = {
     getMediaFileData,
     getMDtext,
@@ -285,4 +299,6 @@ module.exports = {
     VIEW_FILE_NAME,
     MEDIA_DIR_NAME,
     FILE_DELIMETER,
+    isRepoExists,
+    getRepoLink,
 };

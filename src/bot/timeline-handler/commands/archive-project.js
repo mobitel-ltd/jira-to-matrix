@@ -1,9 +1,10 @@
+/* eslint-disable id-length */
 const { DateTime } = require('luxon');
 const { setArchiveProject } = require('../../settings');
 const jiraRequests = require('../../../lib/jira-request');
 const translate = require('../../../locales');
 const logger = require('../../../modules/log')(module);
-const { parseBodyText } = require('../../actions/helper');
+const { parseBodyText } = require('./common-actions');
 
 const DEFAULT_MONTH = 3;
 
@@ -34,9 +35,21 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
         return translate('emptyProject');
     }
 
-    const data = parseBodyText(bodyText);
-    const projectKey = data.param;
-    const customMonths = data.options[LAST_ACTIVE_OPTION];
+    const textOptions = parseBodyText(bodyText, {
+        alias: {
+            l: LAST_ACTIVE_OPTION,
+            s: STATUS_OPTION,
+        },
+        string: [LAST_ACTIVE_OPTION, STATUS_OPTION],
+        first: true,
+    });
+
+    if (textOptions.hasUnknown()) {
+        return translate('unknownArgs', { unknownArgs: textOptions.unknown });
+    }
+
+    const projectKey = textOptions.param;
+    const customMonths = textOptions.get(LAST_ACTIVE_OPTION);
 
     const month = getValidateMonth(customMonths);
     if (!month) {
@@ -48,15 +61,15 @@ const projectarchive = async ({ bodyText, sender, chatApi, roomData }) => {
     if (!(await jiraRequests.isJiraPartExists(projectKey))) {
         logger.warn(`Command archiveproject was made with incorrect project ${projectKey}`);
 
-        return translate('roomNotExistOrPermDen');
+        return translate('issueNotExistOrPermDen');
     }
 
     const keepTimestamp = DateTime.local()
         .minus({ month })
         .toMillis();
 
-    if (data.options[STATUS_OPTION]) {
-        const status = data.options[STATUS_OPTION];
+    if (textOptions.has(STATUS_OPTION)) {
+        const status = textOptions.get(STATUS_OPTION);
         if (!(await jiraRequests.hasStatusInProject(projectKey, status))) {
             logger.warn(`Command archiveproject was made with incorrect option arg ${status}`);
 
