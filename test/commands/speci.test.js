@@ -2,7 +2,7 @@ const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
 const schemas = require('../../src/lib/schemas');
 const translate = require('../../src/locales');
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 const testUtils = require('../test-utils');
 
 const chai = require('chai');

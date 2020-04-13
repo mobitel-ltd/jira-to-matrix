@@ -1,7 +1,7 @@
 const faker = require('faker');
 const translate = require('../../src/locales');
 const { admins } = require('../../src/config').messenger;
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 
 const chai = require('chai');
 const { stub } = require('sinon');

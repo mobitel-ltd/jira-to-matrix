@@ -1,6 +1,6 @@
 const defaultConfig = require('../../src/config');
 const { matrix } = require('../fixtures/messenger-settings');
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 const { getChatApi } = require('../test-utils');
 const translate = require('../../src/locales');
 const { stub } = require('sinon');

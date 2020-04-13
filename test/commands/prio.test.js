@@ -3,7 +3,7 @@ const utils = require('../../src/lib/utils.js');
 const schemas = require('../../src/lib/schemas.js');
 const translate = require('../../src/locales');
 const edimetaJSON = require('../fixtures/jira-api-requests/editmeta.json');
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 
 const chai = require('chai');
 const { stub } = require('sinon');

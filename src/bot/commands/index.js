@@ -1,7 +1,7 @@
 const R = require('ramda');
 const logger = require('../../modules/log.js')(module);
 const translate = require('../../locales');
-const commands = require('./commands');
+const commands = require('./command-list');
 
 module.exports = async ({ chatApi, sender, roomName, roomId, commandName, bodyText, roomData, config }) => {
     try {

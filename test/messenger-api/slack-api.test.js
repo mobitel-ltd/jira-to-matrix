@@ -15,7 +15,7 @@ const userJSON = require('../fixtures/slack-requests/user.json');
 const testJSON = require('../fixtures/slack-requests/auth-test.json');
 const conversationJSON = require('../fixtures/slack-requests/conversation.json');
 const SlackApi = require('../../src/messengers/slack-api');
-const commandsHandler = require('../../src/bot/timeline-handler');
+const commandsHandler = require('../../src/bot/commands');
 const utils = require('../../src/lib/utils');
 
 const supertest = require('supertest');

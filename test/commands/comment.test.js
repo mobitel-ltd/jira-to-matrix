@@ -6,7 +6,7 @@ chai.use(sinonChai);
 const translate = require('../../src/locales');
 const testUtils = require('../test-utils');
 
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 const utils = require('../../src/lib/utils');
 const schemas = require('../../src/lib/schemas.js');
 

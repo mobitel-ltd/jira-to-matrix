@@ -27,7 +27,6 @@
       "src/redis-client.js",
       "src/modules/log.js",
       "src/config",
-      "src/timeline-handler/commands/help.js",
       "test"
     ]
   },
