@@ -1,4 +1,4 @@
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 const testUtils = require('../test-utils');
 const translate = require('../../src/locales');
 

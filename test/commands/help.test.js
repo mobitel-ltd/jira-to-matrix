@@ -8,7 +8,7 @@ chai.use(sinonChai);
 const translate = require('../../src/locales');
 const testUtils = require('../test-utils');
 
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 
 describe('comment help', () => {
     let chatApi;

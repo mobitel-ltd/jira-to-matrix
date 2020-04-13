@@ -12,7 +12,7 @@ const jiraProject = require('../fixtures/jira-api-requests/project-gens/classic/
 const jiraProjectNewGen = require('../fixtures/jira-api-requests/project-gens/new-gen/correct.json');
 const adminsProject = require('../fixtures/jira-api-requests/project-gens/admins-project.json');
 
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 const utils = require('../../src/lib/utils');
 
 describe('Invite setting for projects', () => {

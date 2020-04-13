@@ -3,7 +3,7 @@ const utils = require('../../src/lib/utils.js');
 const schemas = require('../../src/lib/schemas.js');
 const translate = require('../../src/locales');
 const testUtils = require('../test-utils');
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 
 const chai = require('chai');
 const sinonChai = require('sinon-chai');

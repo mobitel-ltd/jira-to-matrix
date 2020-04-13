@@ -13,11 +13,11 @@ const {
     LAST_ACTIVE_OPTION,
     DEFAULT_MONTH,
     STATUS_OPTION,
-} = require('../../src/bot/timeline-handler/commands/archive-project');
+} = require('../../src/bot/commands/command-list/archive-project');
 const transitionsJSON = require('../fixtures/jira-api-requests/transitions.json');
 const searchProject = require('../fixtures/jira-api-requests/project-gens/search-project.json');
 
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 const utils = require('../../src/lib/utils');
 
 describe('command project archive test', () => {

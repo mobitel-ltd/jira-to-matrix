@@ -18,7 +18,7 @@ const { getPostNewLinksData } = require('../../src/jira-hook-parser/parse-body.j
 const { getPostLinkMessageBody } = require('../../src/bot/actions/helper');
 const schemas = require('../../src/lib/schemas.js');
 
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 const utils = require('../../src/lib/utils');
 
 describe('create test', () => {

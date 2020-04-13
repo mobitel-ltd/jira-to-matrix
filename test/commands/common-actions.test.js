@@ -5,7 +5,7 @@ const sinonChai = require('sinon-chai');
 const { expect } = chai;
 chai.use(sinonChai);
 
-const { getGroupedUsers, parseBodyText } = require('../../src/bot/timeline-handler/commands/common-actions');
+const { getGroupedUsers, parseBodyText } = require('../../src/bot/commands/command-list/common-actions');
 
 describe('Common test', () => {
     describe('groupedusers', () => {

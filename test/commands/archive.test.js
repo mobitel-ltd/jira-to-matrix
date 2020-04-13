@@ -17,11 +17,7 @@ const testUtils = require('../test-utils');
 const issueJSON = require('../fixtures/jira-api-requests/issue.json');
 const projectJSON = require('../fixtures/jira-api-requests/project.json');
 
-const {
-    deleteAlias,
-    KICK_ALL_OPTION,
-    PERSONAL_REPO_OPTION,
-} = require('../../src/bot/timeline-handler/commands/archive');
+const { deleteAlias, KICK_ALL_OPTION, PERSONAL_REPO_OPTION } = require('../../src/bot/commands/command-list/archive');
 const {
     DEFAULT_REMOTE_NAME,
     DEFAULT_EXT,
@@ -33,7 +29,7 @@ const {
 
 const rawEvents = require('../fixtures/archiveRoom/raw-events');
 const rawEventsData = require('../fixtures/archiveRoom/raw-events-data');
-const commandHandler = require('../../src/bot/timeline-handler');
+const commandHandler = require('../../src/bot/commands');
 const utils = require('../../src/lib/utils');
 const messagesWithBefore = fs.readFileSync(
     path.resolve(__dirname, '../fixtures/archiveRoom/withbefore-readme.md'),
