@@ -89,6 +89,13 @@ const dict = Object.freeze({
     ignoreCommand: 'Skip command %{commandName}. It exists in ignore list in config',
     repoNotExists: 'Repository is not exists by url %{repoLink}',
     unknownArgs: 'Used unknownArgs arguments %{unknownArgs}',
+    noSelfKick: 'Bot cannot kick himself',
+    noOptions: 'No options in command',
+    userKicked: 'User "%{userId}" is kicked successfully',
+    allKicked: 'Users kicked',
+    kickFail: 'User "%{userId}" is not kicked, something wrong',
+    oneOptionOnly: 'Command cannot be used with more than one option',
+    forbiddenAdminKick: 'User "%{userId}" is room admin and cannot be kicked',
 });
 
 module.exports.dict = dict;
