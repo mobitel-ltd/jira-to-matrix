@@ -11,6 +11,7 @@ const create = require('./create');
 const autoinvite = require('./autoinvite');
 const alive = require('./alive');
 const getInfo = require('./getInfo');
+const { kick } = require('./kick');
 const { archive } = require('./archive');
 const { projectarchive } = require('./archive-project');
 
@@ -30,4 +31,5 @@ module.exports = {
     getInfo,
     archive,
     projectarchive,
+    kick,
 };

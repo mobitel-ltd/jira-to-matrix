@@ -108,7 +108,7 @@ const archive = async ({ bodyText = '', sender, chatApi, roomData, config }) => 
 
             return [successExportMsg, msg].join('<br>');
         }
-        case kickStates.ALL_DELETED: {
+        case kickStates.ALL_KICKED: {
             // all are deleted and no message is needed
             await deleteAlias(chatApi, roomData.alias);
             await chatApi.leaveRoom(roomData.id);

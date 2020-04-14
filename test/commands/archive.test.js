@@ -44,7 +44,7 @@ describe('Archive command', () => {
     const kickAllWithPref = `--${KICK_ALL_OPTION}`;
     let chatApi;
     const roomName = issueJSON.key;
-    const sender = getUserIdByDisplayName(issueJSON.fields.creator);
+    const sender = getUserIdByDisplayName(issueJSON.fields.creator.displayname);
     const roomId = testUtils.getRoomId();
     const commandName = 'archive';
     let baseOptions;
