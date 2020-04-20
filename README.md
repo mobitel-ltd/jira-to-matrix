@@ -136,7 +136,7 @@ If handling is succedded data will be removed, if staus is `false` it will be in
 
 ### Matrix commands
 
-[Command list](./docs/en/commands/help)
+[Command list](./docs/en/commands/help.md)
 
 Work with `Riot` is based on input command in room with Bot.
 
