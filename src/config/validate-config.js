@@ -103,6 +103,9 @@ const schema = obj({
         protocol: string.optional(),
         gitReposName: string.optional(),
         baseDir: string.optional(),
+        options: objOptional({
+            lastIssue: array(string).optional(),
+        }),
     },
     delayInterval: int.optional(),
 });

@@ -11,10 +11,14 @@ const descriptionUpdateJSON = require('../fixtures/webhooks/issue/updated/descri
 const { getPostIssueUpdatesData } = require('../../src/jira-hook-parser/parse-body.js');
 const { isPostIssueUpdates } = require('../../src/jira-hook-parser/bot-handler.js');
 const { postIssueUpdates } = require('../../src/bot/actions');
+const { isArchiveStatus } = require('../../src/bot/actions/post-issue-updates');
 const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.json');
+const { stub } = require('sinon');
 const sinonChai = require('sinon-chai');
 const { expect } = chai;
 const testUtils = require('../test-utils');
+const { pipe, set, clone } = require('lodash/fp');
+
 chai.use(sinonChai);
 
 describe('Post issue updates test', () => {
@@ -31,25 +35,28 @@ describe('Post issue updates test', () => {
         `${translate('issue_updated', { name: userName })}${changes}`,
     ];
 
-    before(() => {
+    const yellowStatusId = '102031';
+    const yellowStatus = pipe(clone, set('statusCategory.colorName', 'yellow'))(statusJSON);
+    const greenStatusId = '102030';
+    const greenStatus = pipe(clone, set('statusCategory.colorName', utils.LAST_STATUS_COLOR))(statusJSON);
+    beforeEach(() => {
         nock(utils.getRestUrl())
             .get(`/issue/${utils.getKey(descriptionUpdateJSON)}`)
-            .times(4)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
             .get(`/issue/${utils.getOldKey(issueMovedJSON)}`)
-            .times(4)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
             .get(`/issue/${utils.getKey(issueStatusChangedJSON)}`)
-            .times(4)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
             .get(`/status/${issueStatusChangedJSON.changelog.items[0].to}`)
-            .reply(200, statusJSON);
-    });
+            .reply(200, greenStatus)
+            .get(`/status/${yellowStatusId}`)
+            .reply(200, yellowStatus)
+            .get(`/status/${greenStatusId}`)
+            .reply(200, greenStatus);
 
-    beforeEach(() => {
         chatApi = testUtils.getChatApi();
         chatApi.getRoomId
             .resolves(roomId)
@@ -61,8 +68,30 @@ describe('Post issue updates test', () => {
         nock.cleanAll();
     });
 
+    const project = 'LALALA';
+    const exportOptions = {
+        options: {
+            lastIssue: [project],
+        },
+    };
+
+    it('should return true if all data is expected', async () => {
+        const res = await isArchiveStatus(exportOptions, project, greenStatusId);
+        expect(res).to.be.true;
+    });
+
+    it('should return false if color is yellow in staus', async () => {
+        const res = await isArchiveStatus(exportOptions, project, yellowStatusId);
+        expect(res).to.be.false;
+    });
+
+    it('should return false if empty data passed', async () => {
+        const res = await isArchiveStatus(undefined, project, greenStatusId);
+        expect(res).to.be.false;
+    });
+
     it('Is correct postIssueUpdatesData', async () => {
-        const result = await postIssueUpdates({ chatApi, ...postIssueUpdatesData });
+        const result = await postIssueUpdates({ chatApi, config, ...postIssueUpdatesData });
         expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
@@ -76,7 +105,7 @@ describe('Post issue updates test', () => {
         const newBody = { ...postIssueUpdatesData, oldKey: null };
         let result;
         try {
-            result = await postIssueUpdates({ chatApi, ...newBody });
+            result = await postIssueUpdates({ chatApi, config, ...newBody });
         } catch (error) {
             result = error;
         }
@@ -86,7 +115,7 @@ describe('Post issue updates test', () => {
     it('Get true with empty newKey', async () => {
         const newBody = { ...postIssueUpdatesData, newKey: null };
 
-        const result = await postIssueUpdates({ chatApi, ...newBody });
+        const result = await postIssueUpdates({ chatApi, config, ...newBody });
         expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
         expect(result).to.be.true;
     });
@@ -113,7 +142,7 @@ describe('Post issue updates test', () => {
         let res;
 
         try {
-            res = await postIssueUpdates({ chatApi, ...postIssueUpdatesData });
+            res = await postIssueUpdates({ chatApi, config, ...postIssueUpdatesData });
         } catch (err) {
             res = err;
         }
@@ -122,7 +151,7 @@ describe('Post issue updates test', () => {
 
     it('Expect no error with description changed and no new name includes', async () => {
         const data = getPostIssueUpdatesData(descriptionUpdateJSON);
-        const res = await postIssueUpdates({ chatApi, ...data });
+        const res = await postIssueUpdates({ chatApi, config, ...data });
 
         expect(res).to.be.true;
     });
@@ -145,7 +174,7 @@ describe('Post issue updates test', () => {
 
         const onlySummaryUpdateJSON = { ...descriptionUpdateJSON, changelog };
         const data = getPostIssueUpdatesData(onlySummaryUpdateJSON);
-        const res = await postIssueUpdates({ chatApi, ...data });
+        const res = await postIssueUpdates({ chatApi, config, ...data });
 
         expect(chatApi.updateRoomName).to.be.calledWithExactly(roomId, {
             key: data.oldKey,
@@ -156,13 +185,11 @@ describe('Post issue updates test', () => {
 
     it('Expect status changes with room avatar color change', async () => {
         const issueKey = issueStatusChangedJSON.issue.key;
-        const postIssueUpdates = proxyquire('../../src/bot/actions/post-issue-updates.js', {
-            '../../config': { ...config, colors: { ...config.colors, projects: issueKey.split('-')[0] } },
-        });
-        const expectedColorLink = config.colors.links[statusJSON.statusCategory.colorName];
+        const colorConfig = { ...config, colors: { ...config.colors, projects: issueKey.split('-')[0] } };
+        const expectedColorLink = config.colors.links[greenStatus.statusCategory.colorName];
 
         const data = getPostIssueUpdatesData(issueStatusChangedJSON);
-        const res = await postIssueUpdates({ chatApi, ...data });
+        const res = await postIssueUpdates({ chatApi, config: colorConfig, ...data });
 
         expect(res).to.be.true;
         expect(chatApi.setRoomAvatar).have.to.be.calledWithExactly(roomId, expectedColorLink);
@@ -170,20 +197,63 @@ describe('Post issue updates test', () => {
 
     it('Expect status changes but room avatar not changed because project of room is not exists in config.color.projects', async () => {
         const data = getPostIssueUpdatesData(issueStatusChangedJSON);
-        const res = await postIssueUpdates({ chatApi, ...data });
+        const res = await postIssueUpdates({ chatApi, config, ...data });
 
         expect(res).to.be.true;
         expect(chatApi.setRoomAvatar).not.to.be.called;
     });
 
     it('Expect status changes but room avatar not changed because config.color.projects is empty', async () => {
-        const postIssueUpdates = proxyquire('../../src/bot/actions/post-issue-updates.js', {
-            '../../config': { ...config, colors: { links: config.colors.links } },
-        });
+        const colorConfig = { ...config, colors: { links: config.colors.links } };
         const data = getPostIssueUpdatesData(issueStatusChangedJSON);
-        const res = await postIssueUpdates({ chatApi, ...data });
+        const res = await postIssueUpdates({ chatApi, config: colorConfig, ...data });
 
         expect(res).to.be.true;
         expect(chatApi.setRoomAvatar).not.to.be.called;
+    });
+
+    it('should work with kick', async () => {
+        const kickStub = stub();
+        const { postIssueUpdates: postIssueUpdates_ } = proxyquire('../../src/bot/actions/post-issue-updates', {
+            '../../lib/git-lib': { exportEvents: stub().resolves(true), isRepoExists: stub().resolves(true) },
+            '../commands/command-list/common-actions': { kick: kickStub },
+        });
+
+        const data = getPostIssueUpdatesData(issueStatusChangedJSON);
+        const archiveConfig = pipe(clone, set('gitArchive.options.lastIssue', ['INDEV']))(config);
+
+        const res = await postIssueUpdates_({ chatApi, config: archiveConfig, ...data });
+        expect(res).to.be.true;
+        expect(kickStub).to.be.called;
+    });
+
+    it('should work with kick if repo not exists', async () => {
+        const kickStub = stub();
+        const { postIssueUpdates: postIssueUpdates_ } = proxyquire('../../src/bot/actions/post-issue-updates', {
+            '../../lib/git-lib': { exportEvents: stub().resolves(true), isRepoExists: stub().resolves(false) },
+            '../commands/command-list/common-actions': { kick: kickStub },
+        });
+
+        const data = getPostIssueUpdatesData(issueStatusChangedJSON);
+        const archiveConfig = pipe(clone, set('gitArchive.options.lastIssue', ['INDEV']))(config);
+
+        const res = await postIssueUpdates_({ chatApi, config: archiveConfig, ...data });
+        expect(res).to.be.true;
+        expect(kickStub).not.to.be.called;
+    });
+
+    it('should work with kick if some error in export happen', async () => {
+        const kickStub = stub();
+        const { postIssueUpdates: postIssueUpdates_ } = proxyquire('../../src/bot/actions/post-issue-updates', {
+            '../../lib/git-lib': { exportEvents: stub().resolves(false), isRepoExists: stub().resolves(true) },
+            '../commands/command-list/common-actions': { kick: kickStub },
+        });
+
+        const data = getPostIssueUpdatesData(issueStatusChangedJSON);
+        const archiveConfig = pipe(clone, set('gitArchive.options.lastIssue', ['INDEV']))(config);
+
+        const res = await postIssueUpdates_({ chatApi, config: archiveConfig, ...data });
+        expect(res).to.be.true;
+        expect(kickStub).not.to.be.called;
     });
 });
