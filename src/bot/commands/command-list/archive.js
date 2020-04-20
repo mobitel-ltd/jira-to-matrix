@@ -46,8 +46,6 @@ const archive = async ({ bodyText = '', sender, chatApi, roomData, config }) => 
         return translate('notAdmin', { sender });
     }
 
-    const listEvents = await chatApi.getAllEventsFromRoom(id);
-
     const textOptions = parseBodyText(bodyText, {
         alias: {
             k: KICK_ALL_OPTION,
@@ -78,6 +76,7 @@ const archive = async ({ bodyText = '', sender, chatApi, roomData, config }) => 
         return translate('repoNotExists', { repoLink });
     }
 
+    const listEvents = await chatApi.getAllEventsFromRoom(id);
     const archivedRoomLink = await exportEvents({
         listEvents,
         roomData,

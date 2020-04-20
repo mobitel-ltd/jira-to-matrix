@@ -59,6 +59,7 @@ module.exports = class ChatFasade extends MessengerAbstract {
     /**
      * Get room data and client instance in this room by roomId
      * @param {string} roomId matrix room id
+     * @returns {{ client: object, roomData: RoomData}} client in room and roomdata
      */
     async getRoomAndClient(roomId) {
         try {
@@ -71,6 +72,34 @@ module.exports = class ChatFasade extends MessengerAbstract {
         } catch (error) {
             return false;
         }
+    }
+
+    /**
+     * Get room id, throws if no bot is in room
+     * @param {string} roomId - room id
+     * @returns {Promise<{alias: ?string, name: string, members: {userId: string, level: number}[], topic: string}>} room data
+     */
+    getRoomDataById(roomId) {
+        return this.worker.getRoomDataById(roomId);
+    }
+
+    /**
+     * Get bot which joined to room in chat
+     * @param {string} roomId chat room id
+     * @returns {Promise<void>} void
+     */
+    kickUserByRoom({ roomId, userId }) {
+        return this.worker.kickUserByRoom({ roomId, userId });
+    }
+
+    /**
+     * Get all room events
+     * @param {string} roomId chat room id
+     * @param {number} limit=10000 event limit
+     * @returns {Promise<any>} void
+     */
+    getAllEventsFromRoom(roomId, limit) {
+        return this.worker.getAllEventsFromRoom(roomId, limit);
     }
 
     /**

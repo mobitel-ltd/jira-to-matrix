@@ -15,7 +15,7 @@ module.exports = async chatApi => {
         await handleRedisRooms(chatApi.getCurrentClient(), redisRooms);
 
         const dataFromRedis = await getDataFromRedis();
-        await handleRedisData(chatApi, dataFromRedis);
+        await handleRedisData(chatApi, dataFromRedis, config);
 
         const commandKeys = await getCommandKeys();
         await handleCommandKeys(chatApi, commandKeys, config);

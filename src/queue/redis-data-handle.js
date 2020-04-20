@@ -140,7 +140,7 @@ const rewriteRooms = async createRoomData => {
     logger.info('Rooms data rewrited by redis.');
 };
 
-const handleRedisData = async (client, dataFromRedis) => {
+const handleRedisData = async (client, dataFromRedis, config) => {
     try {
         if (!dataFromRedis) {
             logger.warn('No data from redis');
@@ -152,7 +152,7 @@ const handleRedisData = async (client, dataFromRedis) => {
                 try {
                     const chatApi = await client;
 
-                    await bot[funcName]({ ...data, chatApi });
+                    await bot[funcName]({ ...data, chatApi, config });
                     await redis.delAsync(redisKey);
 
                     const log = `${redisKey} --- true`;

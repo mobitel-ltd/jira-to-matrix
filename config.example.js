@@ -130,6 +130,11 @@ module.exports = Object.freeze({
         repoPrefix: 'string',
         // Optional protocol, https by default
         protocol: 'http',
+        // Optional
+        options: {
+            // Run archive and kick all users except bot on jira status with green color
+            lastIssue: ['TEST'],
+        },
     },
     // Optional base directory for saving cloned repos, must exists! By default /tmp
     baseDir: '/tmp',

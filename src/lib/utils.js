@@ -18,6 +18,7 @@ const REDIS_INVITE_PREFIX = 'invite:project';
 const REDIS_ALIASES = 'aliases';
 const HANDLED_KEY = 'handled';
 const ARCHIVE_PROJECT = 'archiveProject';
+const LAST_STATUS_COLOR = 'green';
 
 const DELIMITER = '|';
 const KEYS_TO_IGNORE = [
@@ -529,6 +530,7 @@ module.exports = {
     REDIS_INVITE_PREFIX,
     REDIS_ALIASES,
     ARCHIVE_PROJECT,
+    LAST_STATUS_COLOR,
     COMMON_NAME,
     NO_ROOM_PATTERN,
     END_NO_ROOM_PATTERN,

@@ -16,8 +16,12 @@ A bot (web-service) which:
 -   Creates a room for every new issue;
 -   Invites new participants to the room;
 -   Posts any issue updates to the room;
+-   Add watchers;
+-   Assign issue;
 -   Appropriately renames the room if the issue was moved to another project;
 -   Post new links to related rooms. Notifies when a related issue's status changes;
+-   Create related issues;
+-   Archive room data;
 -   Talks in English or Russian only (easily extendible, see `src/locales`).
 
 ## Requirements
@@ -132,25 +136,9 @@ If handling is succedded data will be removed, if staus is `false` it will be in
 
 ### Matrix commands
 
-Work with `Riot` is based on input command in room with Bot.
-List of available commands:
+[Command list](./docs/en/commands/help)
 
-| Command                                           | Description                                                         |
-| ------------------------------------------------- | ------------------------------------------------------------------- |
-| !help                                             | show all commands with description                                  |
-| !comment                                          | create comment in issue                                             |
-| !assign <`user name or id`>                       | assign issue to choosen user                                        |
-| !move                                             | list all available statuses of issue to move                        |
-| !move <`status id`>/<`status name`>               | move status of issue                                                |
-| !spec <`user name or id`>                         | add watcher to issue                                                |
-| !prio                                             | list all available priorities of issue                              |
-| !prio <`index of priority`>/<`index of priority`> | change priority of issue                                            |
-| (admins only) !op <`user name or id`>             | gives admin status to user                                          |
-| (admins only) !invite <`room name`>/<`room id`>   | invite user to room with such issue name or matrix room id          |
-| (admins only) !ignore [add`|`del] typeTask        | Ignore typeTask (task`|`error`|`bug`|`etc) for project current room |
-| !create <`task type`> "Name for issue"            | Create new issue in Jira and create link with current issue         |
-| !alive                                            | In info room only!!! Call for bot connection check                  |
-| !getInfo <`project name`>                         | In info room only!!! Show info about rooms where bot is joined      |
+Work with `Riot` is based on input command in room with Bot.
 
 All commands are available only in rooms with Bot and that compares with Jira.
 Get all commands and their rules to use in `Riot` you can get with first command - `!help`.
