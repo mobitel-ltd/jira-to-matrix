@@ -236,6 +236,12 @@ describe('redis-data-handle test', () => {
         });
 
         it('test error in key handleRedisData', async () => {
+            nock.cleanAll();
+            nock(getRestUrl())
+                .get(`/issue/${JSONbody.issue.key}`)
+                .times(3)
+                .reply(200, issueJson);
+
             postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
 
             const dataFromRedisBefore = await getDataFromRedis();
@@ -246,6 +252,21 @@ describe('redis-data-handle test', () => {
             expect(dataFromRedisBefore).to.have.deep.members(expectedData);
             expect(dataFromRedisAfter).to.have.deep.members(expectedData);
             expect(redisRooms).deep.eq([{ issue: { key: JSONbody.issue.key } }]);
+            expect(postEpicUpdatesStub).to.be.called;
+        });
+
+        it('test error in key handleRedisData if issue is not exists', async () => {
+            postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
+
+            const dataFromRedisBefore = await getDataFromRedis();
+            const redisRoomsBefore = await getRedisRooms();
+            await handleRedisData('client', dataFromRedisBefore);
+            const dataFromRedisAfter = await getDataFromRedis();
+            const redisRooms = await getRedisRooms();
+
+            expect(dataFromRedisBefore).to.have.deep.members(expectedData);
+            expect(dataFromRedisAfter).to.be.null;
+            expect(redisRooms).deep.eq(redisRoomsBefore);
             expect(postEpicUpdatesStub).to.be.called;
         });
 

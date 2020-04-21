@@ -6,6 +6,7 @@ const redis = require('../redis-client.js');
 const bot = require('../bot/actions');
 const { prefix } = require('../config').redis;
 const { REDIS_ROOM_KEY, isIgnoreKey, HANDLED_KEY, ARCHIVE_PROJECT } = require('../lib/utils.js');
+const jiraRequest = require('../lib/jira-request');
 const utils = require('../lib/utils');
 
 const getRedisKeys = async () => {
@@ -140,6 +141,8 @@ const rewriteRooms = async createRoomData => {
     logger.info('Rooms data rewrited by redis.');
 };
 
+const getLog = (key, success) => `${key} --- ${success}`;
+
 const handleRedisData = async (client, dataFromRedis, config) => {
     try {
         if (!dataFromRedis) {
@@ -155,28 +158,33 @@ const handleRedisData = async (client, dataFromRedis, config) => {
                     await bot[funcName]({ ...data, chatApi, config });
                     await redis.delAsync(redisKey);
 
-                    const log = `${redisKey} --- true`;
-
-                    return { log };
+                    return { redisKey, success: true };
                 } catch (err) {
                     const errBody = typeof err === 'string' ? err : err.stack;
                     logger.error(`Error in ${redisKey}\n`, err);
-                    const log = `${redisKey} --- false`;
 
                     if (utils.isNoRoomError(errBody)) {
-                        const key = utils.getKeyFromError(errBody);
-                        logger.warn(`Room with key ${key} is not found, trying to create it again`);
-                        const newRoomRecord = key.includes('-') ? { issue: { key } } : { projectKey: key };
+                        if (await jiraRequest.getIssueSafety(utils.getKeyFromError(errBody))) {
+                            const key = utils.getKeyFromError(errBody);
+                            logger.warn(`Room with key ${key} is not found, trying to create it again`);
+                            const newRoomRecord = key.includes('-') ? { issue: { key } } : { projectKey: key };
 
-                        return { newRoomRecord, log };
+                            return { redisKey, newRoomRecord, success: false };
+                        }
+
+                        await redis.delAsync(redisKey);
+
+                        return { redisKey, success: true };
                     }
-                    return { log };
+
+                    return { redisKey, success: false };
                 }
             }),
         );
 
         const newRoomRecords = result.map(({ newRoomRecord }) => newRoomRecord).filter(Boolean);
-        const logs = result.map(({ log }) => log);
+        const logs = result.map(({ redisKey, success }) => getLog(redisKey, success));
+
         if (newRoomRecords.length) {
             logger.info('This room should be created', JSON.stringify(newRoomRecords));
             const redisRoomsData = (await getRedisRooms()) || [];
