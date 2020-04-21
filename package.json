@@ -16,6 +16,7 @@
     "debug": "nodemon --inspect src/app.js",
     "test-single": "NODE_ENV=test nyc mocha",
     "test": "NODE_ENV=test nyc mocha --timeout 10000  test/* --exit",
+    "test-all": "TEST_WATCH=1 npm run test",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "repository": {
@@ -32,7 +33,7 @@
   },
   "pre-commit": [
     "lint",
-    "test"
+    "test-all"
   ],
   "devDependencies": {
     "chai": "^4.2.0",

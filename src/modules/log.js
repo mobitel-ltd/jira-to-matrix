@@ -42,7 +42,7 @@ const getTransports = data => {
         level: logConfig.consoleLevel,
         json: false,
         prettyPrint: true,
-        // silent: process.env.NODE_ENV === 'test',
+        silent: Boolean(process.env.TEST_WATCH),
     });
 
     const levels = {

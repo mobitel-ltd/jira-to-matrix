@@ -20,3 +20,9 @@ app-run:
 
 app-kill:
 	docker-compose down -v
+
+git:
+	npm run format
+	git add .
+	git commit -m "$m"
+	git push origin HEAD

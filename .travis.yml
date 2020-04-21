@@ -11,6 +11,6 @@ install:
 
 script:
     - npm run lint
-    - npm test
+    - npm run test-all
     - npm run report-coverage
     - codecov
