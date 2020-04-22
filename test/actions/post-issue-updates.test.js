@@ -18,6 +18,7 @@ const sinonChai = require('sinon-chai');
 const { expect } = chai;
 const testUtils = require('../test-utils');
 const { pipe, set, clone } = require('lodash/fp');
+const issueBodyJSON = require('../fixtures/jira-api-requests/issue.json');
 
 chai.use(sinonChai);
 
@@ -42,14 +43,20 @@ describe('Post issue updates test', () => {
     beforeEach(() => {
         nock(utils.getRestUrl())
             .get(`/issue/${utils.getKey(descriptionUpdateJSON)}`)
+            .reply(200, issueBodyJSON)
+            .get(`/issue/${utils.getKey(descriptionUpdateJSON)}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
             .get(`/issue/${utils.getOldKey(issueMovedJSON)}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
+            .get(`/issue/${utils.getOldKey(issueMovedJSON)}`)
+            .reply(200, issueBodyJSON)
             .get(`/issue/${utils.getKey(issueStatusChangedJSON)}`)
             .query(utils.expandParams)
             .reply(200, renderedIssueJSON)
+            .get(`/issue/${utils.getKey(issueStatusChangedJSON)}`)
+            .reply(200, issueBodyJSON)
             .get(`/status/${issueStatusChangedJSON.changelog.items[0].to}`)
             .reply(200, greenStatus)
             .get(`/status/${yellowStatusId}`)
@@ -255,5 +262,12 @@ describe('Post issue updates test', () => {
         const res = await postIssueUpdates_({ chatApi, config: archiveConfig, ...data });
         expect(res).to.be.true;
         expect(kickStub).not.to.be.called;
+    });
+
+    it('Should return false if issue is not exists', async () => {
+        nock.cleanAll();
+
+        const result = await postIssueUpdates({ chatApi, ...postIssueUpdatesData });
+        expect(result).to.be.false;
     });
 });

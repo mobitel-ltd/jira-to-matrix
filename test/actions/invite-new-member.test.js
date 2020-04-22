@@ -54,26 +54,23 @@ describe('inviteNewMembers test', () => {
         },
     };
 
-    before(() => {
+    beforeEach(() => {
         nock(utils.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}`)
-            .times(4)
+            .times(2)
             .reply(200, issueBodyJSON)
             .get(`/issue/${JSONbody.issue.key}/watchers`)
-            .times(4)
             .reply(200, watchersBody)
             // .get(`/issue/${inviteUpperCase.issue.key}/watchers`)
             // .reply(200, upperWatchersBody)
             .get(`/issue/${inviteUpperCase.issue.key}`)
             .reply(200, issueBodyJSON);
-    });
 
-    beforeEach(() => {
         chatApi = testUtils.getChatApi({ alias: [inviteNewMembersData.issue.key, inviteUpperCase.issue.key] });
         chatApi.getRoomMembers.resolves([chatApi.getChatUserId('jira_test')]);
     });
 
-    after(() => {
+    afterEach(() => {
         nock.cleanAll();
     });
 
@@ -131,14 +128,20 @@ describe('inviteNewMembers test', () => {
         nock.cleanAll();
         nock(utils.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}`)
-            .times(4)
+            .times(2)
             .reply(200, issueBodyJSONbot)
             .get(`/issue/${JSONbody.issue.key}/watchers`)
-            .times(4)
             .reply(200, watchersBody);
 
         const result = await inviteNewMembers({ chatApi, ...inviteNewMembersData });
 
         expect(result.sort()).to.deep.equal(expectedWatcherWithoutCreator.sort());
+    });
+
+    it('Should return false if issue is not exists', async () => {
+        nock.cleanAll();
+        const result = await inviteNewMembers({ chatApi, ...inviteNewMembersData });
+
+        expect(result).to.be.false;
     });
 });

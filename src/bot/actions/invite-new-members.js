@@ -1,7 +1,7 @@
 const Ramda = require('ramda');
 const conf = require('../../config');
 const { errorTracing } = require('../../lib/utils.js');
-const { getIssueWatchers } = require('../../lib/jira-request.js');
+const { getIssueWatchers, hasIssue } = require('../../lib/jira-request.js');
 const { getAutoinviteUsers } = require('../settings');
 const logger = require('../../modules/log.js')(module);
 
@@ -11,6 +11,12 @@ const {
 
 module.exports = async ({ chatApi, issue }) => {
     try {
+        if (!(await hasIssue(issue.key))) {
+            logger.warn(`Issue by key ${issue.key} is not exists`);
+
+            return false;
+        }
+
         const { key, typeName, projectKey } = issue;
         const roomId = await chatApi.getRoomId(key);
         const chatRoomMembers = await chatApi.getRoomMembers({ name: key });
