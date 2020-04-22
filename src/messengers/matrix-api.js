@@ -595,6 +595,7 @@ module.exports = class Matrix extends MessengerAbstract {
         const newAlias = this._getMatrixRoomAlias(name);
         try {
             await this.client.createAlias(newAlias, roomId);
+            this.logger.info(`New alias ${newAlias} for room with id ${roomId} is added`);
 
             return newAlias;
         } catch (err) {
@@ -636,6 +637,7 @@ module.exports = class Matrix extends MessengerAbstract {
     async setRoomTopic(roomId, topic) {
         try {
             await this.client.setRoomTopic(roomId, topic);
+            this.logger.debug(`New room topic is added for room with id ${roomId}`);
         } catch (err) {
             if (this._isEventExeptionError(err)) {
                 this.logger.warn(err.message);

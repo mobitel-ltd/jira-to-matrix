@@ -33,16 +33,16 @@ const isArchiveStatus = async (exportConfigParams, projectKey, statusId) => {
  * @param  {object} options options
  * @param  {object} options.chatApi messenger client instance
  * @param  {string} options.oldKey old key of issue
- * @param  {string?} options.newKey new key of issue
- * @param  {Object?} options.newNameData new name of room
+ * @param  {string} [options.newKey] new key of issue
+ * @param  {{key: string, summary: string}} [options.newNameData] new name of room
  * @param  {object} options.changelog changes object\
  * @param  {string} options.author changes author
- * @param  {string?} options.newStatusId new status id for issue
+ * @param  {string} [options.newStatusId] new status id for issue
  * @param  {object} options.config config data
  */
 const postIssueUpdates = async ({ chatApi, newStatusId, config, ...body }) => {
     try {
-        if (!(await jiraRequests.hasIssue(body.oldKey)) && body.newKey && !(await jiraRequests.hasIssue(body.newKey))) {
+        if (!(await jiraRequests.hasIssue(body.oldKey))) {
             logger.warn(`Issue by key ${body.oldKey} is not exists`);
 
             return false;
@@ -58,7 +58,7 @@ const postIssueUpdates = async ({ chatApi, newStatusId, config, ...body }) => {
 
         if (body.newNameData) {
             await chatApi.updateRoomName(roomId, body.newNameData);
-            logger.debug(`Room ${body.oldKey} name updated`);
+            logger.debug(`Room ${body.oldKey} name updated with ${body.newNameData.summary}`);
         }
 
         const info = await getIssueUpdateInfoMessageBody(body);

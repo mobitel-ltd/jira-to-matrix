@@ -9,7 +9,10 @@ const isPostIssueUpdates = body =>
 
 const isCreateRoom = body => features.createRoom && utils.getKey(body) && utils.getTypeEvent(body) !== 'issue_moved';
 
-const isMemberInvite = body => features.inviteNewMembers && utils.isCorrectWebhook(body, 'jira:issue_updated');
+const isMemberInvite = body =>
+    features.inviteNewMembers &&
+    utils.isCorrectWebhook(body, 'jira:issue_updated') &&
+    utils.getTypeEvent(body) !== 'issue_moved';
 
 const isPostEpicUpdates = body =>
     features.epicUpdates.on() &&

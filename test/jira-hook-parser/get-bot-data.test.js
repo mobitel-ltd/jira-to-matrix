@@ -51,17 +51,6 @@ describe('get-bot-data', () => {
                     author: 'jira_test',
                 },
             },
-            {
-                redisKey: 'inviteNewMembers_2019-2-27 13:30:21,620',
-                funcName: 'inviteNewMembers',
-                data: {
-                    issue: {
-                        key: 'INDEV-130',
-                        projectKey: 'INDEV',
-                        typeName: 'Story',
-                    },
-                },
-            },
         ];
 
         assert.deepEqual(res, expected);

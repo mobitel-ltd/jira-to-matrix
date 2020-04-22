@@ -23,6 +23,55 @@ module.exports = class ChatFasade extends MessengerAbstract {
     }
 
     /**
+     * Update room info data
+     * @param  {string} roomId room id
+     * @param  {String} topic new room topic
+     * @param  {String} key new issue key
+     * @returns {Promise<void>} void
+     */
+    async updateRoomData(roomId, topic, key) {
+        const client = await this._getTargetClient(roomId);
+
+        return client.updateRoomData(roomId, topic, key);
+    }
+
+    /**
+     * Create alias for the room
+     * @param  {string} name matrix room name
+     * @param  {string} roomId matrix room id
+     */
+    async createAlias(name, roomId) {
+        const client = await this._getTargetClient(roomId);
+
+        return client.createAlias(name, roomId);
+    }
+
+    /**
+     * Update room name
+     * @param  {string} roomId matrix room id
+     * @param  {Object} roomData issue data
+     * @param  {String} roomData.key jira issue key
+     * @param  {String} roomData.summary jira issue summary
+     * @returns {Promise<void>} update room data
+     */
+    async updateRoomName(roomId, roomData) {
+        const client = await this._getTargetClient(roomId);
+
+        return client.updateRoomName(roomId, roomData);
+    }
+
+    /**
+     * Set new topic for matrix room
+     * @param  {string} roomId matrix room id
+     * @param  {string} topic matrix room topic
+     */
+    async setRoomTopic(roomId, topic) {
+        const client = await this._getTargetClient(roomId);
+
+        return client.setRoomTopic(roomId, topic);
+    }
+
+    /**
      * @returns {string[]} users which should be informed
      */
     getInfoUsers() {
