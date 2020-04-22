@@ -275,6 +275,16 @@ const jiraRequests = {
         }
     },
 
+    /**
+     * @param {string} idOrKey jira issue key or id
+     * @returns {boolean} true if exists
+     */
+    hasIssue: async idOrKey => {
+        const res = await jiraRequests.getIssueSafety(idOrKey);
+
+        return Boolean(res);
+    },
+
     getStatusData: async statusId => {
         try {
             const statusUrl = utils.getRestUrl('status', statusId);

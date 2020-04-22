@@ -42,6 +42,12 @@ const isArchiveStatus = async (exportConfigParams, projectKey, statusId) => {
  */
 const postIssueUpdates = async ({ chatApi, newStatusId, config, ...body }) => {
     try {
+        if (!(await jiraRequests.hasIssue(body.oldKey)) && body.newKey && !(await jiraRequests.hasIssue(body.newKey))) {
+            logger.warn(`Issue by key ${body.oldKey} is not exists`);
+
+            return false;
+        }
+
         const roomId = await chatApi.getRoomId(body.oldKey);
 
         if (body.newKey) {
