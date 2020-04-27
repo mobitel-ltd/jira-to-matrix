@@ -96,9 +96,7 @@ const postIssueUpdates = async ({ chatApi, newStatusId, config, ...body }) => {
                 roomData,
                 client,
                 repoName,
-                baseLink: config.baseLink,
-                baseRemote: config.baseRemote,
-                gitReposPath: config.gitReposPath,
+                ...config,
             });
             if (!archivedRoomLinks) {
                 logger.debug(translate('archiveFail', { alias: roomData.alias }));

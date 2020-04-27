@@ -229,21 +229,19 @@ describe('Archive command', () => {
         let server;
         let tmpDir;
         let configWithTmpPath;
+        let repoName;
 
         beforeEach(async () => {
             const _repoName = chatApi.getChatUserId(adminSender.name).replace(/[^a-z0-9_.-]+/g, '__');
-            const repoName = _repoName[0] === '_' ? _repoName.slice(2) : _repoName;
+            repoName = _repoName[0] === '_' ? _repoName.slice(2) : _repoName;
 
             expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
             expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
-            expectedGitLink = `${config.baseLink.replace('http', 'git')}/${projectKey.toLowerCase()}/${issueKey}.git`;
+            expectedGitLink = `${config.sshLink}/${projectKey.toLowerCase()}.git`;
             expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
             expectedRemoteWithCustomName = `${config.baseRemote}/${repoName.toLowerCase()}.git`;
             expectedRepoLinkWithCustomName = `${config.baseLink}/${repoName.toLowerCase()}/tree/master/${issueKey}`;
-            expectedGitWithCustomNameLink = `${config.baseLink.replace(
-                'http',
-                'git',
-            )}/${repoName.toLowerCase()}/${issueKey}.git`;
+            expectedGitWithCustomNameLink = `${config.sshLink}/${repoName.toLowerCase()}.git`;
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
 
@@ -270,7 +268,7 @@ describe('Archive command', () => {
             const expectedMsg = translate('successExport', {
                 httpLink: expectedRepoLink,
                 gitLink: expectedGitLink,
-                dirName: issueKey,
+                dirName: `${projectKey.toLowerCase()}/${issueKey}`,
             });
 
             expect(result).to.be.eq(expectedMsg);
@@ -344,7 +342,7 @@ describe('Archive command', () => {
                 translate('successExport', {
                     httpLink: expectedRepoLinkWithCustomName,
                     gitLink: expectedGitWithCustomNameLink,
-                    dirName: issueKey,
+                    dirName: `${repoName}/${issueKey}`,
                 }),
                 translate('adminsAreNotKicked'),
             ].join('<br>');
@@ -363,7 +361,7 @@ describe('Archive command', () => {
             const expectedMsg = translate('successExport', {
                 httpLink: expectedRepoLinkWithCustomName,
                 gitLink: expectedGitWithCustomNameLink,
-                dirName: issueKey,
+                dirName: `${repoName.toLowerCase()}/${issueKey}`,
             });
 
             expect(result).to.be.eq(expectedMsg);
@@ -435,7 +433,7 @@ describe('Archive command', () => {
                 translate('successExport', {
                     httpLink: expectedRepoLink,
                     gitLink: expectedGitLink,
-                    dirName: issueKey,
+                    dirName: `${projectKey.toLowerCase()}/${issueKey}`,
                 }),
                 translate('adminsAreNotKicked'),
             ].join('<br>');
@@ -515,7 +513,7 @@ describe('Archive command', () => {
                 translate('successExport', {
                     httpLink: expectedRepoLink,
                     gitLink: expectedGitLink,
-                    dirName: issueKey,
+                    dirName: `${projectKey.toLowerCase()}/${issueKey}`,
                 }),
                 translate('noBotPower', { power: 100 }),
             ].join('<br>');
