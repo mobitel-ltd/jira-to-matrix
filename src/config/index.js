@@ -49,11 +49,12 @@ const composeConfig = baseConfig => {
         const baseTmpPath = config.gitArchive.baseDir || os.tmpdir();
         const repoDirName = config.gitArchive.gitReposName || defaultRepoName;
         const gitReposPath = path.resolve(baseTmpPath, repoDirName);
+        const sshLink = `git@${config.gitArchive.repoPrefix.replace('/', ':')}`;
         if (!fs.existsSync(gitReposPath)) {
             fs.mkdirSync(gitReposPath);
         }
 
-        return { ...config, messenger, baseRemote, baseLink, gitReposPath };
+        return { ...config, messenger, baseRemote, baseLink, sshLink, gitReposPath };
     }
 
     return { ...config, messenger };

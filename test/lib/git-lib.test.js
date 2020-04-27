@@ -161,16 +161,10 @@ describe('Archive command', () => {
     describe('gitPull', () => {
         const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
         const expectedRepoHttpLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
-        const expectedRepoGitLink = `${config.baseLink.replace(
-            'http',
-            'git',
-        )}/${projectKey.toLowerCase()}/${issueKey}.git`;
+        const expectedRepoGitLink = `${config.sshLink}/${projectKey.toLowerCase()}.git`;
         const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
         const expectedDefaultRepoHttpLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/tree/master/${issueKey}`;
-        const expectedDefaultRepoGitLink = `${config.baseLink.replace(
-            'http',
-            'git',
-        )}/${DEFAULT_REMOTE_NAME}/${issueKey}.git`;
+        const expectedDefaultRepoGitLink = `${config.sshLink}/${DEFAULT_REMOTE_NAME}.git`;
         let server;
         let tmpDir;
         let configWithTmpPath;

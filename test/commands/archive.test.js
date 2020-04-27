@@ -237,14 +237,11 @@ describe('Archive command', () => {
 
             expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
             expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
-            expectedGitLink = `${config.baseLink.replace('http', 'git')}/${projectKey.toLowerCase()}/${issueKey}.git`;
+            expectedGitLink = `${config.sshLink}/${projectKey.toLowerCase()}.git`;
             expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
             expectedRemoteWithCustomName = `${config.baseRemote}/${repoName.toLowerCase()}.git`;
             expectedRepoLinkWithCustomName = `${config.baseLink}/${repoName.toLowerCase()}/tree/master/${issueKey}`;
-            expectedGitWithCustomNameLink = `${config.baseLink.replace(
-                'http',
-                'git',
-            )}/${repoName.toLowerCase()}/${issueKey}.git`;
+            expectedGitWithCustomNameLink = `${config.sshLink}/${repoName.toLowerCase()}.git`;
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
 

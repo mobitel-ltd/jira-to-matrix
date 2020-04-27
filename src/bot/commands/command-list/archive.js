@@ -82,9 +82,7 @@ const archive = async ({ bodyText = '', sender, chatApi, roomData, config }) => 
         roomData,
         chatApi,
         repoName,
-        baseLink: config.baseLink,
-        baseRemote: config.baseRemote,
-        gitReposPath: config.gitReposPath,
+        ...config,
     });
     if (!archivedRoomLinks) {
         return translate('archiveFail', { alias });
