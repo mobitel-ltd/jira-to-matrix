@@ -77,7 +77,7 @@ const archive = async ({ bodyText = '', sender, chatApi, roomData, config }) => 
     }
 
     const listEvents = await chatApi.getAllEventsFromRoom(id);
-    const archivedRoomLink = await exportEvents({
+    const archivedRoomLinks = await exportEvents({
         listEvents,
         roomData,
         chatApi,
@@ -86,13 +86,13 @@ const archive = async ({ bodyText = '', sender, chatApi, roomData, config }) => 
         baseRemote: config.baseRemote,
         gitReposPath: config.gitReposPath,
     });
-    if (!archivedRoomLink) {
+    if (!archivedRoomLinks) {
         return translate('archiveFail', { alias });
     }
 
     logger.debug(`Git push successfully complited in room ${id}!!!`);
 
-    const successExportMsg = translate('successExport', { link: archivedRoomLink });
+    const successExportMsg = translate('successExport', archivedRoomLinks);
     if (!textOptions.has(KICK_ALL_OPTION)) {
         logger.debug(`Command was made without kick option in room with id ${roomData.id}`);
 

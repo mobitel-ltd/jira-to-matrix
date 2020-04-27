@@ -221,6 +221,8 @@ describe('Archive command', () => {
     describe('archive with export', () => {
         let expectedRemote;
         let expectedRepoLink;
+        let expectedGitLink;
+        let expectedGitWithCustomNameLink;
         let expectedDefaultRemote;
         let expectedRemoteWithCustomName;
         let expectedRepoLinkWithCustomName;
@@ -234,9 +236,14 @@ describe('Archive command', () => {
 
             expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
             expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
+            expectedGitLink = `${config.baseLink.replace('http', 'git')}/${projectKey.toLowerCase()}/${issueKey}.git`;
             expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
             expectedRemoteWithCustomName = `${config.baseRemote}/${repoName.toLowerCase()}.git`;
             expectedRepoLinkWithCustomName = `${config.baseLink}/${repoName.toLowerCase()}/tree/master/${issueKey}`;
+            expectedGitWithCustomNameLink = `${config.baseLink.replace(
+                'http',
+                'git',
+            )}/${repoName.toLowerCase()}/${issueKey}.git`;
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
 
@@ -260,7 +267,11 @@ describe('Archive command', () => {
                 roomName: issueKey,
                 config: configWithTmpPath,
             });
-            const expectedMsg = translate('successExport', { link: expectedRepoLink });
+            const expectedMsg = translate('successExport', {
+                httpLink: expectedRepoLink,
+                gitLink: expectedGitLink,
+                dirName: issueKey,
+            });
 
             expect(result).to.be.eq(expectedMsg);
 
@@ -330,7 +341,11 @@ describe('Archive command', () => {
             expect(chatApi.deleteRoomAlias).not.to.be.called;
             expect(chatApi.leaveRoom).to.be.calledWithExactly(roomData.id);
             const expectedMsg = [
-                translate('successExport', { link: expectedRepoLinkWithCustomName }),
+                translate('successExport', {
+                    httpLink: expectedRepoLinkWithCustomName,
+                    gitLink: expectedGitWithCustomNameLink,
+                    dirName: issueKey,
+                }),
                 translate('adminsAreNotKicked'),
             ].join('<br>');
             expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
@@ -345,7 +360,11 @@ describe('Archive command', () => {
                 config: configWithTmpPath,
                 bodyText,
             });
-            const expectedMsg = translate('successExport', { link: expectedRepoLinkWithCustomName });
+            const expectedMsg = translate('successExport', {
+                httpLink: expectedRepoLinkWithCustomName,
+                gitLink: expectedGitWithCustomNameLink,
+                dirName: issueKey,
+            });
 
             expect(result).to.be.eq(expectedMsg);
 
@@ -413,7 +432,11 @@ describe('Archive command', () => {
             expect(chatApi.deleteRoomAlias).not.to.be.called;
             expect(chatApi.leaveRoom).to.be.calledWithExactly(roomData.id);
             const expectedMsg = [
-                translate('successExport', { link: expectedRepoLink }),
+                translate('successExport', {
+                    httpLink: expectedRepoLink,
+                    gitLink: expectedGitLink,
+                    dirName: issueKey,
+                }),
                 translate('adminsAreNotKicked'),
             ].join('<br>');
             expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, expectedMsg, expectedMsg);
@@ -489,7 +512,11 @@ describe('Archive command', () => {
                 bodyText,
             });
             const expectedMsg = [
-                translate('successExport', { link: expectedRepoLink }),
+                translate('successExport', {
+                    httpLink: expectedRepoLink,
+                    gitLink: expectedGitLink,
+                    dirName: issueKey,
+                }),
                 translate('noBotPower', { power: 100 }),
             ].join('<br>');
 

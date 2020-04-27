@@ -57,7 +57,7 @@ const archiveAndForget = async ({ client, roomData, keepTimestamp, config }) => 
 
             return stateEnum.STILL_ACTIVE;
         }
-        const repoLink = await exportEvents({
+        const repoLinks = await exportEvents({
             listEvents: allEvents,
             baseLink: config.baseLink,
             baseRemote: config.baseRemote,
@@ -66,13 +66,13 @@ const archiveAndForget = async ({ client, roomData, keepTimestamp, config }) => 
             gitReposPath: config.gitReposPath,
             repoName: utils.getProjectKeyFromIssueKey(roomData.alias),
         });
-        if (!repoLink) {
+        if (!repoLinks) {
             logger.error(`Some fail has happen after attempt to archive room with alias ${roomData.alias}`);
 
             return stateEnum.ERROR_ARCHIVING;
         }
 
-        logger.info(`Room "${roomData.alias}" with id ${roomData.id} is archived to ${repoLink}`);
+        logger.info(`Room "${roomData.alias}" with id ${roomData.id} is archived to ${repoLinks.httpLink}`);
 
         await kick(client, roomData);
         await client.leaveRoom(roomData.id);

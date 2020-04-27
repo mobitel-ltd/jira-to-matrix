@@ -160,9 +160,17 @@ describe('Archive command', () => {
 
     describe('gitPull', () => {
         const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
-        const expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
+        const expectedRepoHttpLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
+        const expectedRepoGitLink = `${config.baseLink.replace(
+            'http',
+            'git',
+        )}/${projectKey.toLowerCase()}/${issueKey}.git`;
         const expectedDefaultRemote = `${config.baseRemote}/${DEFAULT_REMOTE_NAME}.git`;
-        const expectedDefaultRepoLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/tree/master/${issueKey}`;
+        const expectedDefaultRepoHttpLink = `${config.baseLink}/${DEFAULT_REMOTE_NAME}/tree/master/${issueKey}`;
+        const expectedDefaultRepoGitLink = `${config.baseLink.replace(
+            'http',
+            'git',
+        )}/${DEFAULT_REMOTE_NAME}/${issueKey}.git`;
         let server;
         let tmpDir;
         let configWithTmpPath;
@@ -185,7 +193,7 @@ describe('Archive command', () => {
         });
 
         it('expect git pull send event data', async () => {
-            const linkToRepo = await exportEvents({
+            const repoLinks = await exportEvents({
                 ...configWithTmpPath,
                 listEvents: rawEvents,
                 roomData,
@@ -193,7 +201,11 @@ describe('Archive command', () => {
                 repoName: projectKey,
             });
 
-            expect(linkToRepo).to.eq(expectedRepoLink);
+            expect(repoLinks).to.deep.eq({
+                httpLink: expectedRepoHttpLink,
+                gitLink: expectedRepoGitLink,
+                dirName: issueKey,
+            });
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
@@ -219,14 +231,18 @@ describe('Archive command', () => {
         });
 
         it('expect git pull send event data', async () => {
-            const linkToRepo = await exportEvents({
+            const links = await exportEvents({
                 ...configWithTmpPath,
                 listEvents: [...rawEvents, eventBefore],
                 roomData,
                 chatApi,
             });
 
-            expect(linkToRepo).to.eq(expectedDefaultRepoLink);
+            expect(links).to.deep.eq({
+                httpLink: expectedDefaultRepoHttpLink,
+                gitLink: expectedDefaultRepoGitLink,
+                dirName: issueKey,
+            });
 
             const cloneName = 'clone-repo';
             const gitLocal = gitSimple(tmpDir.path);
