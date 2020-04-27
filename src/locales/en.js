@@ -77,7 +77,8 @@ const dict = Object.freeze({
     alive: 'Bot "%{botId}" is connected',
     getInfo: 'All rooms = %{allRooms}<br>Single rooms = %{single}<br>Multiple joined members = %{many}',
     archiveFail: 'Error git command for room with alias "%{alias}"',
-    successExport: 'Export finished %{link}',
+    successExport:
+        'Export finished:<ul><li>%{httpLink}</li><li>ssh:</li></p>\n<pre><code>git clone %{gitLink} && cd %{dirName}\n</code></pre>\n</ul>',
     issueNotExistOrPermDen: 'Task not exist in jira or permition denied.',
     noAlias: 'No room alias. Add it and try again.',
     noBotPower: 'Bot cannot do this operation, needed power is %{power}',

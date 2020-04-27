@@ -86,7 +86,8 @@ const dict = Object.freeze({
     getInfo: 'Всего комнат = %{allRooms}<br>Только с ботом = %{single}<br>С двумя и более пользователями = %{many}',
     archiveFail:
         'Ошибка при попытке экспортировать данные комнаты "%{alias}", проверьте его существование в удаленном репозитории',
-    successExport: 'Экспорт совершен %{link}',
+    successExport:
+        'Экспорт совершен:<ul><li>%{httpLink}</li><li>ssh:</li></p>\n<pre><code>git clone %{gitLink} && cd %{dirName}\n</code></pre>\n</ul>',
     issueNotExistOrPermDen: 'Задачи в jira не существует, либо недостаточно полномочий на ее просмотр.',
     noAlias: 'Алиас у комнаты отсутствует. Добавьте его и повторите операцию.',
     noBotPower: 'Бот не имеет привелегий для осуществлений действия, требуемый уровень - %{power}',

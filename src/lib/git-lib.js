@@ -120,6 +120,17 @@ const getRepoLink = (baseLink, projectKey = DEFAULT_REMOTE_NAME, roomName) => {
     return args.join('/');
 };
 
+const getGitLink = (baseLink, projectKey = DEFAULT_REMOTE_NAME, roomName) => {
+    const projectExt = projectKey.toLowerCase();
+    const [, base] = baseLink.split('://');
+    const gitBase = `git://${base}`;
+    const args = roomName ? [gitBase, projectExt, roomName] : [gitBase, projectExt];
+
+    return args.join('/').concat('.git');
+};
+
+const getResDirName = (projectKey = DEFAULT_REMOTE_NAME, roomName) => roomName || projectKey.toLowerCase();
+
 // It helps remove all property which dynamically created by the moment of archive
 // Instead of it we will get new event each time arhive run
 const transformEvent = event => {
@@ -263,9 +274,11 @@ const exportEvents = async ({
         await repoGit.commit(`set event data for room ${roomData.alias}`);
         await repoGit.push('origin', 'master');
 
-        const link = getRepoLink(baseLink, repoName, roomData.alias);
+        const httpLink = getRepoLink(baseLink, repoName, roomData.alias);
+        const gitLink = getGitLink(baseLink, repoName, roomData.alias);
+        const dirName = getResDirName(repoName, roomData.alias);
 
-        return link;
+        return { httpLink, gitLink, dirName };
     } catch (err) {
         const msg = utils.errorTracing(`exportEvents ${roomData.alias}`, err);
         logger.error(msg);

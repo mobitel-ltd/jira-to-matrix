@@ -91,7 +91,7 @@ const postIssueUpdates = async ({ chatApi, newStatusId, config, ...body }) => {
 
             const listEvents = await chatApi.getAllEventsFromRoom(roomId);
             const { roomData, client } = await chatApi.getRoomAndClient(roomId);
-            const archivedRoomLink = await exportEvents({
+            const archivedRoomLinks = await exportEvents({
                 listEvents,
                 roomData,
                 client,
@@ -100,7 +100,7 @@ const postIssueUpdates = async ({ chatApi, newStatusId, config, ...body }) => {
                 baseRemote: config.baseRemote,
                 gitReposPath: config.gitReposPath,
             });
-            if (!archivedRoomLink) {
+            if (!archivedRoomLinks) {
                 logger.debug(translate('archiveFail', { alias: roomData.alias }));
 
                 return true;
