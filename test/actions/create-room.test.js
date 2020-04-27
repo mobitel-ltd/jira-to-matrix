@@ -109,6 +109,7 @@ describe('Create room test', () => {
         nock(utils.getRestUrl())
             // comment created hook
             .get(`/issue/${utils.getIssueId(commentCreatedJSON)}`)
+            .times(2)
             .reply(200, issueBodyJSON)
             .get(`/issue/${issueBodyJSON.key}`)
             .reply(200, issueBodyJSON)
@@ -227,6 +228,14 @@ describe('Create room test', () => {
             res = err;
         }
         expect(res).to.be.deep.equal(expectedError);
+    });
+
+    it('Expect room not creates if issue not exists', async () => {
+        nock.cleanAll();
+        const result = await createRoom({ chatApi, ...getCreateRoomData(commentCreatedJSON) });
+
+        expect(chatApi.createRoom).not.to.be.called;
+        expect(result).to.be.false;
     });
 
     it('Expect room created if we get create_comment hook', async () => {

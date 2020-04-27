@@ -106,7 +106,13 @@ const hasData = issue => issue.key && issue.summary;
  */
 module.exports = async ({ chatApi, issue, projectKey }) => {
     try {
-        if (issue && (issue.key || issue.id)) {
+        const keyOrId = issue.key || issue.id;
+        if (issue && keyOrId) {
+            if (!(await jiraRequest.hasIssue(keyOrId))) {
+                logger.warn(`Issue ${keyOrId} is not exists`);
+
+                return false;
+            }
             const checkedIssue = hasData(issue) ? issue : await getCheckedIssue(issue);
 
             (await chatApi.getRoomIdByName(checkedIssue.key)) || (await createIssueRoom(chatApi, checkedIssue));
