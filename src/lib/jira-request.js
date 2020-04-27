@@ -235,8 +235,8 @@ const jiraRequests = {
         }
     },
 
-    getUsersByParam: username => {
-        const queryPararms = querystring.stringify({ username });
+    getUsersByParam: query => {
+        const queryPararms = querystring.stringify({ query });
         const url = utils.getRestUrl('user', `search?${queryPararms}`);
 
         return request(url);
