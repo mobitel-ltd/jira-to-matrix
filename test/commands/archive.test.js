@@ -229,10 +229,11 @@ describe('Archive command', () => {
         let server;
         let tmpDir;
         let configWithTmpPath;
+        let repoName;
 
         beforeEach(async () => {
             const _repoName = chatApi.getChatUserId(adminSender.name).replace(/[^a-z0-9_.-]+/g, '__');
-            const repoName = _repoName[0] === '_' ? _repoName.slice(2) : _repoName;
+            repoName = _repoName[0] === '_' ? _repoName.slice(2) : _repoName;
 
             expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
             expectedRepoLink = `${config.baseLink}/${projectKey.toLowerCase()}/tree/master/${issueKey}`;
@@ -270,7 +271,7 @@ describe('Archive command', () => {
             const expectedMsg = translate('successExport', {
                 httpLink: expectedRepoLink,
                 gitLink: expectedGitLink,
-                dirName: issueKey,
+                dirName: `${projectKey.toLowerCase()}/${issueKey}`,
             });
 
             expect(result).to.be.eq(expectedMsg);
@@ -344,7 +345,7 @@ describe('Archive command', () => {
                 translate('successExport', {
                     httpLink: expectedRepoLinkWithCustomName,
                     gitLink: expectedGitWithCustomNameLink,
-                    dirName: issueKey,
+                    dirName: `${repoName}/${issueKey}`,
                 }),
                 translate('adminsAreNotKicked'),
             ].join('<br>');
@@ -363,7 +364,7 @@ describe('Archive command', () => {
             const expectedMsg = translate('successExport', {
                 httpLink: expectedRepoLinkWithCustomName,
                 gitLink: expectedGitWithCustomNameLink,
-                dirName: issueKey,
+                dirName: `${repoName.toLowerCase()}/${issueKey}`,
             });
 
             expect(result).to.be.eq(expectedMsg);
@@ -435,7 +436,7 @@ describe('Archive command', () => {
                 translate('successExport', {
                     httpLink: expectedRepoLink,
                     gitLink: expectedGitLink,
-                    dirName: issueKey,
+                    dirName: `${projectKey.toLowerCase()}/${issueKey}`,
                 }),
                 translate('adminsAreNotKicked'),
             ].join('<br>');
@@ -515,7 +516,7 @@ describe('Archive command', () => {
                 translate('successExport', {
                     httpLink: expectedRepoLink,
                     gitLink: expectedGitLink,
-                    dirName: issueKey,
+                    dirName: `${projectKey.toLowerCase()}/${issueKey}`,
                 }),
                 translate('noBotPower', { power: 100 }),
             ].join('<br>');

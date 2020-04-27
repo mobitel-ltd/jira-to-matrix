@@ -204,7 +204,7 @@ describe('Archive command', () => {
             expect(repoLinks).to.deep.eq({
                 httpLink: expectedRepoHttpLink,
                 gitLink: expectedRepoGitLink,
-                dirName: issueKey,
+                dirName: `${projectKey.toLowerCase()}/${issueKey}`,
             });
 
             const cloneName = 'clone-repo';
@@ -241,7 +241,7 @@ describe('Archive command', () => {
             expect(links).to.deep.eq({
                 httpLink: expectedDefaultRepoHttpLink,
                 gitLink: expectedDefaultRepoGitLink,
-                dirName: issueKey,
+                dirName: `${DEFAULT_REMOTE_NAME}/${issueKey}`,
             });
 
             const cloneName = 'clone-repo';
