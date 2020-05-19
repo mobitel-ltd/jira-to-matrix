@@ -2,7 +2,7 @@ const { random } = require('faker');
 const nock = require('nock');
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
-const marked = require('marked');
+import * as marked from 'marked';
 const { expect } = chai;
 chai.use(sinonChai);
 const translate = require('../../src/locales');

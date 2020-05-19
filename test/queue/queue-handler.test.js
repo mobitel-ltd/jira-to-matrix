@@ -45,11 +45,7 @@ describe('Queue handler test', () => {
             .get('')
             .reply(200, '<HTML>');
 
-        nock(utils.getRestUrl(), {
-            reqheaders: {
-                Authorization: utils.auth(),
-            },
-        })
+        nock(utils.getRestUrl())
             .get(`/project/${projectData.id}`)
             .reply(200, projectData)
             .get(`/issue/${sourceIssueId}`)

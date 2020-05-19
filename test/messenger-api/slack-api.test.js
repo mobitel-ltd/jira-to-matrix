@@ -128,7 +128,7 @@ describe('Slack api testing', () => {
         expect(sdk.chat.postMessage).to.be.calledWithExactly(expectedData);
     });
 
-    it('Expect getRoomId returns correct id if it exists', async () => {
+    it('Expect getRoomId return correct id if it exists', async () => {
         const [channel] = usersConversationsJSON.correct.channels;
         const roomId = await slackApi.getRoomId(channel.name);
 
@@ -145,14 +145,14 @@ describe('Slack api testing', () => {
         expect(err).not.to.be.undefined;
     });
 
-    it('Expect getRoomId returns correct id if it exists and put to method in upperCase', async () => {
+    it('Expect getRoomId return correct id if it exists and put to method in upperCase', async () => {
         const [channel] = usersConversationsJSON.correct.channels;
         const roomId = await slackApi.getRoomId(channel.name.toUpperCase());
 
         expect(roomId).to.be.eq(channel.id);
     });
 
-    it('Expect invite room returns true if user invited', async () => {
+    it('Expect invite room return true if user invited', async () => {
         const channel = conversationsInviteJSON.correct.channel.id;
         const res = await slackApi.invite(channel, trueUserMail);
 

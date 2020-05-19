@@ -34,11 +34,7 @@ describe('spec test', () => {
     const commandName = 'spec';
 
     before(() => {
-        nock(utils.getRestUrl(), {
-            reqheaders: {
-                Authorization: utils.auth(),
-            },
-        })
+        nock(utils.getRestUrl())
             .post(`/issue/${roomName}/watchers`, schemas.watcher(userB.accountId))
             .times(2)
             .reply(204)

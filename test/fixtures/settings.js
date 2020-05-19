@@ -1,3 +1,3 @@
-module.exports = {
+export const {
     gitServerPort: 7005,
 };

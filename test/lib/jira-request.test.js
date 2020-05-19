@@ -1,4 +1,4 @@
-const Ramda = require('ramda');
+import * as Ramda from 'ramda';
 const nock = require('nock');
 const proxyquire = require('proxyquire');
 
@@ -133,12 +133,12 @@ describe('Jira request test', () => {
     });
 
     it('expect getIssueWatchers works correct', async () => {
-        const result = await getIssueWatchers({ key: issue.key });
+        const result = await getIssueWatchers(issue.key);
         expect(result.sort()).to.be.deep.eq([...expectedWatchersUsers]);
     });
 
     it('expect getIssueWatchers works correct with empty roomMembers', async () => {
-        const result = await getIssueWatchers({ key: issue.key });
+        const result = await getIssueWatchers(issue.key);
         expect(result.sort()).to.be.deep.eq(expectedWatchersUsers);
     });
 
@@ -149,7 +149,7 @@ describe('Jira request test', () => {
             },
         });
         const expected = Ramda.difference(members, watchers);
-        const result = await getCollectParticipantsProxy({ key: issue.key });
+        const result = await getCollectParticipantsProxy(issue.key);
 
         expect(result.sort()).to.be.deep.eq(expected.sort());
     });
@@ -162,7 +162,7 @@ describe('Jira request test', () => {
                 inviteIgnoreUsers: usersToIgnore,
             },
         });
-        const result = await getCollectParticipantsProxy({ key: issue.key });
+        const result = await getCollectParticipantsProxy(issue.key);
         expect(result.sort()).to.be.deep.eq(expected);
     });
 

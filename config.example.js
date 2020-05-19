@@ -1,4 +1,4 @@
-module.exports = Object.freeze({
+export const Object.freeze({
     // where to listen JIRA webhooks
     port: 4100,
     // a language bot talks to users in

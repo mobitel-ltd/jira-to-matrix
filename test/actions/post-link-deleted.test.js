@@ -9,7 +9,7 @@ const { isDeleteLinks } = require('../../src/jira-hook-parser/bot-handler.js');
 const { getPostLinkMessageBody } = require('../../src/bot/actions/helper');
 const { cleanRedis, getChatApi } = require('../test-utils');
 const translate = require('../../src/locales');
-const marked = require('marked');
+import * as marked from 'marked';
 
 const chai = require('chai');
 const sinonChai = require('sinon-chai');

@@ -93,12 +93,6 @@ describe('Utils testing', () => {
         });
     });
 
-    it('Test correct auth', () => {
-        const currentAuth = utils.auth();
-
-        expect(currentAuth).to.be.equal('Basic amlyYV9ib3Q6ZmFrZXBhc3N3cHJk');
-    });
-
     it('Test correct getChangelogField', () => {
         const changelogField = utils.getChangelogField('status', body);
         const expected = {

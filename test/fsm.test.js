@@ -1,6 +1,6 @@
 const { getChatApi } = require('./test-utils');
 const app = require('../src/jira-app');
-const delay = require('delay');
+import * as delay from 'delay';
 const Fsm = require('../src/fsm');
 const { states } = require('../src/fsm/states');
 const chai = require('chai');

@@ -2,8 +2,8 @@ const faker = require('faker');
 const tmp = require('tmp-promise');
 const gitSimple = require('simple-git/promise');
 const config = require('../../src/config');
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 const {
     getMDtext,
     exportEvents,

@@ -1,5 +1,5 @@
 /* eslint-disable id-length */
-const Ramda = require('ramda');
+import * as Ramda from 'ramda';
 const { tValues } = require('../../src/locales/ru');
 const assert = require('assert');
 

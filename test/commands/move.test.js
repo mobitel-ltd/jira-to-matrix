@@ -1,4 +1,4 @@
-const R = require('ramda');
+import * as R from 'ramda';
 const nock = require('nock');
 const schemas = require('../../src/lib/schemas');
 const transitionsJSON = require('../fixtures/jira-api-requests/transitions.json');

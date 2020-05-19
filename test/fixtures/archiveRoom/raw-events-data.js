@@ -2,7 +2,7 @@ const imgId = 'imageid';
 const avatarId = 'avatarid';
 const blobId = 'blobid';
 
-module.exports = {
+export const {
     imgUrl: `mxc://example.com/${imgId}`,
     mediaId: imgId,
     mediaName: 'my-media-file.jpg',

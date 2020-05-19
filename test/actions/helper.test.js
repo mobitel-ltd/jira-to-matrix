@@ -7,7 +7,7 @@ const renderedIssueJSON = require('../fixtures/jira-api-requests/issue-rendered.
 const statusJSON = require('../fixtures/jira-api-requests/status.json');
 const htmlToText = require('html-to-text').fromString;
 const faker = require('faker');
-const marked = require('marked');
+import * as marked from 'marked';
 const newLinksbody = require('../fixtures/webhooks/issuelink/created.json');
 const linksDeletedBody = require('../fixtures/webhooks/issuelink/deleted.json');
 const {

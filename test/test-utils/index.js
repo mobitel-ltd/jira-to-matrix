@@ -1,11 +1,11 @@
 /* eslint-disable no-empty-function */
 /* eslint-disable handle-callback-err */
 const faker = require('faker');
-const R = require('ramda');
+import * as R from 'ramda';
 const simpleGit = require('simple-git/promise');
 const fs = require('fs').promises;
 const fsExtra = require('fs-extra');
-const path = require('path');
+import * as path from 'path';
 const Server = require('node-git-server');
 const { prefix } = require('../fixtures/config.js').redis;
 const redis = require('../../src/redis-client.js');
@@ -50,7 +50,7 @@ const baseMedia = 'http://base.example';
 
 const getMediaLink = el => `${baseMedia}/${el}`;
 
-module.exports = {
+export const {
     baseMedia,
 
     roomAdmins,
@@ -111,7 +111,7 @@ module.exports = {
             getMyId: realChatApi.getMyId(),
             getBotId: realChatApi.getBotId(),
             getNotifyData: realChatApi.getNotifyData(),
-            isConnected: stub().returns(true),
+            isConnected: stub().return(true),
             isInRoom: stub().resolves(true),
             getCommandRoomName: realChatApi.getCommandRoomName(),
             getUserIdByDisplayName: stub().callsFake(name => realChatApi.getChatUserId(usersDict[name])),

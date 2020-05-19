@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "module": "CommonJS",
+        "strictNullChecks": true,
+        "declaration": true,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "allowSyntheticDefaultImports": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        // "lib": ["esnext"],
+        "target": "ES2020",
+        "sourceMap": true,
+        "outDir": "./dist",
+        "baseUrl": "./"
+    },
+    "exclude": ["node_modules"]
+}

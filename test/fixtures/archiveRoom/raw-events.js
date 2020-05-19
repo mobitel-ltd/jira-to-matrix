@@ -1,7 +1,7 @@
 const info = require('./raw-events-data');
 
 /* eslint-disable id-length */
-module.exports = [
+export const [
     {
         type: 'm.sticker',
         room_id: '!FvlvzjbOzNhrCRcAjB:matrix.example.com',

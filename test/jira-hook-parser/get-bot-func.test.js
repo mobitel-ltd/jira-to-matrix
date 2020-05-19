@@ -29,13 +29,13 @@ describe('bot func', () => {
         assert.deepEqual(result, expected);
     });
 
-    it('Expect issueCommentedHook returns correct funcs list', () => {
+    it('Expect issueCommentedHook return correct funcs list', () => {
         const result = getBotActions(issueCommentedHook);
         const expected = ['inviteNewMembers', 'postEpicUpdates'];
         assert.deepEqual(result, expected);
     });
 
-    it('Expect issueUpdatedGenericHook returns correct funcs list', () => {
+    it('Expect issueUpdatedGenericHook return correct funcs list', () => {
         const funcsForBot = getBotActions(issueUpdatedGenericHook);
         assert.deepEqual(funcsForBot, [
             'postIssueUpdates',
@@ -47,25 +47,25 @@ describe('bot func', () => {
         ]);
     });
 
-    it('Expect issueLinkCreatedHook returns correct funcs list', () => {
+    it('Expect issueLinkCreatedHook return correct funcs list', () => {
         const result = getBotActions(issueLinkCreatedHook);
         const expected = ['postNewLinks'];
         assert.deepEqual(result, expected);
     });
 
-    it('Expect issueLinkDeletedHook returns correct funcs list', () => {
+    it('Expect issueLinkDeletedHook return correct funcs list', () => {
         const result = getBotActions(issueLinkDeletedHook);
         const expected = ['postLinksDeleted'];
         assert.deepEqual(result, expected);
     });
 
-    it('Expect issueCreatedHook returns correct funcs list', () => {
+    it('Expect issueCreatedHook return correct funcs list', () => {
         const result = getBotActions(issueCreatedHook);
         const expected = ['postEpicUpdates'];
         assert.deepEqual(result, expected);
     });
 
-    it('Expect issueCommentedChangedHook returns correct funcs list', () => {
+    it('Expect issueCommentedChangedHook return correct funcs list', () => {
         const result = getBotActions(issueCommentedChangedHook);
         const expected = ['postIssueUpdates', 'inviteNewMembers', 'postEpicUpdates'];
         assert.deepEqual(result, expected);

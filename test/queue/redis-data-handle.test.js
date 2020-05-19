@@ -1,4 +1,4 @@
-const path = require('path');
+import * as path from 'path';
 const tmp = require('tmp-promise');
 const { setArchiveProject } = require('../../src/bot/settings');
 const utils = require('../../src/lib/utils');

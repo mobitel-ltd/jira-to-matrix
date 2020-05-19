@@ -23,9 +23,7 @@ describe('Post comments test', () => {
     const postCommentUpdatedData = parser.getPostCommentData(commentUpdatedHook);
 
     before(() => {
-        nock(utils.getRestUrl(), {
-            reqheaders: { Authorization: utils.auth() },
-        })
+        nock(utils.getRestUrl())
             .get(`/issue/${postCommentData.issueID}`)
             .query(utils.expandParams)
             .times(2)

@@ -7,7 +7,7 @@ const { getPostEpicUpdatesData } = require('../../src/jira-hook-parser/parse-bod
 const { cleanRedis, getChatApi } = require('../test-utils');
 const translate = require('../../src/locales');
 const redis = require('../../src/redis-client');
-const marked = require('marked');
+import * as marked from 'marked';
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
 const { expect } = chai;
@@ -69,7 +69,7 @@ describe('Post epic updates test', () => {
         expect(res.includes(someError)).to.be.true;
     });
 
-    it('Expect postEpicUpdates returns true after running with correct data', async () => {
+    it('Expect postEpicUpdates return true after running with correct data', async () => {
         const result = await postEpicUpdates({ chatApi, ...postEpicUpdatesData });
 
         expect(chatApi.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);

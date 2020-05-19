@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const marked = require('marked');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as marked from 'marked';
 const chai = require('chai');
 const sinonChai = require('sinon-chai');
 const { expect } = chai;

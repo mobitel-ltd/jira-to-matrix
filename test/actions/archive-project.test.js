@@ -1,5 +1,5 @@
 const ChatFasade = require('../../src/messengers/chat-fasade');
-const path = require('path');
+import * as path from 'path';
 const tmp = require('tmp-promise');
 const nock = require('nock');
 const { baseRemote } = require('../../src/config');
@@ -118,7 +118,7 @@ describe('Test handle archive project data', () => {
         expect(messengerApi.leaveRoom).not.to.called;
     });
 
-    it('Expect STILL_ACTIVE returns and no kick, delete alias and leave is called if timestamp is less than keep time', async () => {
+    it('Expect STILL_ACTIVE return and no kick, delete alias and leave is called if timestamp is less than keep time', async () => {
         const res = await getRoomArchiveState(chatApi, { ...options, keepTimestamp: rawEventsData.maxTs - 10 });
 
         expect(res).to.eq(stateEnum.STILL_ACTIVE);

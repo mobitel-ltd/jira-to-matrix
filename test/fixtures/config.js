@@ -2,7 +2,7 @@ const faker = require('faker');
 const { slack, matrix } = require('./messenger-settings');
 const settings = require('./settings');
 
-module.exports = {
+export const {
     port: 4300,
     lang: faker.random.arrayElement(['ru', 'en']),
     jira: {

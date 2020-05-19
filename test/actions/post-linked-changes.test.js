@@ -1,4 +1,4 @@
-const marked = require('marked');
+import * as marked from 'marked';
 const translate = require('../../src/locales');
 const nock = require('nock');
 const utils = require('../../src/lib/utils.js');
@@ -108,7 +108,7 @@ describe('post New Links test', () => {
 });
 
 // const checkedIssues = await Promise.all(linksKeys.map(async key => {
-//     const issue = await jiraRequests.getIssueSafety(key);
+//     const issue = await taskTracker.getIssueSafety(key);
 
 //     return issue && key;
 // }));

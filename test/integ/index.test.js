@@ -1,4 +1,4 @@
-const Ramda = require('ramda');
+import * as Ramda from 'ramda';
 const { pipe, set, clone } = require('lodash/fp');
 const { WebClient } = require('@slack/web-api');
 const nock = require('nock');

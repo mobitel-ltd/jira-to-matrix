@@ -1,6 +1,6 @@
 const faker = require('faker');
 
-module.exports = {
+export const {
     slack: {
         name: 'slack',
         admins: ['jira_test'],
