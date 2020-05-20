@@ -1,7 +1,9 @@
-import Polyglot from 'node-polyglot';
+import * as Polyglot from 'node-polyglot';
 import { config } from '../config';
+import * as en from './en';
+import * as ru from './ru';
 
-const lang = await import(`./${config.lang}`);
+const lang: { dict: Record<string, string>; tValues?: Function } = config.lang === 'en' ? en : ru;
 
 const polyglot = new Polyglot({
     phrases: lang.dict,

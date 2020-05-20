@@ -12,10 +12,11 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         // "lib": ["esnext"],
-        "target": "ES2020",
+        "target": "ES2018",
         "sourceMap": true,
         "outDir": "./dist",
-        "baseUrl": "./"
+        "baseUrl": "./",
+        // "moduleResolution": "Node"
     },
     "exclude": ["node_modules"]
 }

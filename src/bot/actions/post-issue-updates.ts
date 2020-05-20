@@ -2,12 +2,58 @@ import { getLogger } from '../../modules/log';
 import * as utils from '../../lib/utils';
 import * as R from 'ramda';
 import { translate } from '../../locales';
-import { PostIssueUpdatesActions } from '../../types';
-import { getIssueUpdateInfoMessageBody, getNewAvatarUrl } from './helper';
+import { PostIssueUpdatesActions, TaskTracker } from '../../types';
 import { isRepoExists, getRepoLink, exportEvents } from '../../lib/git-lib';
 import { kick } from '../commands/command-list/common-actions';
+import { isAvatarIssueKey } from './helper';
 
 const logger = getLogger(module);
+
+// usingPojects: 'all' | [string] | undefined
+export const getNewAvatarUrl = async (taskTracker, issueKey, { statusId, colors, usingPojects }) => {
+    if (!colors) {
+        logger.warn(`No color links is passed to update avatar for room ${issueKey}`);
+
+        return;
+    }
+    if (!statusId) {
+        logger.warn(`No statusId is passed to update avatar for room ${issueKey}`);
+
+        return;
+    }
+
+    if (isAvatarIssueKey(issueKey, usingPojects)) {
+        const { colorName } = await taskTracker.getStatusData(statusId);
+
+        return colors[colorName];
+    }
+};
+
+export const fieldNames = items => items.reduce((acc, { field }) => (field ? [...acc, field] : acc), []);
+
+export const itemsToString = items =>
+    items.reduce((acc, { field, toString }) => (field ? { ...acc, [field]: toString } : acc), {});
+
+export const composeText = ({ author, fields, formattedValues }) => {
+    const message = translate('issue_updated', { name: author });
+    const changesDescription = fields.map(field => `${field}: ${formattedValues[field]}`);
+
+    return [message, ...changesDescription].join('<br>');
+};
+
+export const getIssueUpdateInfoMessageBody = async ({ changelog, oldKey, author }, taskTracker: TaskTracker) => {
+    const fields = fieldNames(changelog.items);
+    const renderedValues = await taskTracker.getRenderedValues(oldKey, fields);
+
+    const changelogItemsTostring = itemsToString(changelog.items);
+    const formattedValues = { ...changelogItemsTostring, ...renderedValues };
+
+    const htmlBody = composeText({ author, fields, formattedValues });
+    const body = translate('issueHasChanged');
+
+    return { htmlBody, body };
+};
+
 export const isArchiveStatus = async (taskTracker, exportConfigParams, projectKey, statusId) => {
     if (!statusId) {
         logger.debug('Status is not changed');
@@ -68,11 +114,11 @@ export const postIssueUpdates = async ({
             logger.debug(`Room ${body.oldKey} name updated with ${body.newNameData.summary}`);
         }
 
-        const info = await getIssueUpdateInfoMessageBody(body);
+        const info = await getIssueUpdateInfoMessageBody(body, taskTracker);
         await chatApi.sendHtmlMessage(roomId, info.body, info.htmlBody);
         logger.debug(`Posted updates to ${roomId}`);
 
-        const newAvatarUrl = await getNewAvatarUrl(body.oldKey, {
+        const newAvatarUrl = await getNewAvatarUrl(taskTracker, body.oldKey, {
             statusId: newStatusId,
             colors: R.path(['colors', 'links'], config),
             usingPojects: R.path(['colors', 'projects'], config),

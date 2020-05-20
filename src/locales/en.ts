@@ -1,5 +1,7 @@
+/* eslint-disable max-len */
 /* eslint-disable camelcase */
-const dict = Object.freeze({
+
+export const dict = Object.freeze({
     successProjectAddToArchive:
         'Project "%{projectKey}" is added to archive with activity limit "%{activeTime}" months',
     successProjectAddToArchiveWithStatus:
@@ -98,5 +100,3 @@ const dict = Object.freeze({
     oneOptionOnly: 'Command cannot be used with more than one option',
     forbiddenAdminKick: 'User "%{userId}" is room admin and cannot be kicked',
 });
-
-module.exports.dict = dict;

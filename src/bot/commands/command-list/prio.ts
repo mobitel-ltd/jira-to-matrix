@@ -10,7 +10,7 @@ const getCommandAction = (val, collection) => {
     return collection.find(el => el.name.toLowerCase() === val.toLowerCase());
 };
 
-export const prio = async ({ bodyText, roomId, roomName, chatApi, taskTracker }) => {
+export const prio = async ({ bodyText, roomName, taskTracker }) => {
     const allPriorities = await taskTracker.getIssuePriorities(roomName);
     if (!allPriorities) {
         return translate('notPrio');

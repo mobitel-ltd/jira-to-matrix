@@ -1,18 +1,20 @@
 {
   "name": "jira-matrix-bot",
-  "version": "0.6.0",
-  "main": "index.js",
+  "version": "0.7.0",
+  "main": "src/app.ts",
   "license": "WTFPL",
   "engines": {
-    "node": ">=10"
+    "node": ">=13"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "compile:test": "rimraf dist && npm run build && rimraf dist",
     "format": "prettier --write \"{src,test}/**/*.js\"",
     "dev": "nodemon logs/start.js",
     "dev:debug": "nodemon --inspect logs/start.js",
     "lint": "eslint \"{src,test}/**/*.js\"",
     "start": "node src/app.js",
-    "start-dev": "nodemon src/app.js",
+    "start-dev": "ts-node src/app.ts",
     "debug": "nodemon --inspect src/app.js",
     "test-single": "NODE_ENV=test nyc mocha",
     "test": "NODE_ENV=test nyc mocha --timeout 10000  test/* --exit",
@@ -43,9 +45,11 @@
     "@types/luxon": "^1.24.0",
     "@types/marked": "^0.7.4",
     "@types/minimist": "^1.2.0",
+    "@types/node": "^14.0.4",
     "@types/node-polyglot": "^0.4.34",
     "@types/ramda": "^0.27.5",
     "@types/redis": "^2.8.21",
+    "@types/request-promise-native": "^1.0.17",
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^2.21.0",
     "@typescript-eslint/parser": "^2.21.0",
@@ -70,6 +74,7 @@
     "sinon": "^9.0.1",
     "sinon-chai": "^3.5.0",
     "supertest": "^4.0.2",
+    "ts-node": "^8.10.1",
     "typescript": "^3.9.2"
   },
   "dependencies": {
@@ -92,6 +97,7 @@
     "redis": "^3.0.2",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.8",
+    "rimraf": "^3.0.2",
     "ru-names": "^1.0.7",
     "simple-git": "^1.132.0",
     "tmp-promise": "^2.0.2",

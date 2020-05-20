@@ -1,9 +1,7 @@
+/* eslint-disable no-console */
 import * as fs from 'fs';
 import * as R from 'ramda';
 import * as Joi from 'joi';
-import { getLogger } from '../modules/log.js';
-
-const logger = getLogger(module);
 
 const int = Joi.number()
     .integer()
@@ -123,9 +121,9 @@ export const validate = config => {
     };
     const { error } = Joi.validate(config, schema, options);
     if (error) {
-        logger.error('Config is invalid:');
+        console.error('Config is invalid:');
         error.details.forEach(detail => {
-            logger.error(`  - ${detail.path}: ${detail.message}`);
+            console.error(`  - ${detail.path}: ${detail.message}`);
         });
         return false;
     }

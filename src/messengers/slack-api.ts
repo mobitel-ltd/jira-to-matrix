@@ -4,14 +4,16 @@ import Ramda from 'ramda';
 import { WebClient } from '@slack/web-api';
 import { fromString } from 'html-to-text';
 import express from 'express';
-import bodyParser from 'body-parser';
+import bodyParser, { OptionsJson } from 'body-parser';
 import { BaseChatApi } from './base-api';
-import { MessengerApi } from '../types';
+// import { MessengerApi } from '../types';
 
-export class SlackApi extends BaseChatApi implements MessengerApi {
+// export class SlackApi extends BaseChatApi implements MessengerApi {
+export class SlackApi extends BaseChatApi {
     sdk;
     commandServer;
     count = 0;
+    client;
 
     constructor(commandsHandler, config, logger, sdk) {
         super(commandsHandler, config, logger);
@@ -25,7 +27,7 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
      * @returns {string} user email like ii_ivanov@ example.com
      */
     getChatUserId(shortName) {
-        return shortName && `${shortName.toLocaleLowerCase()}@${this.config.domain}`;
+        return shortName && `${shortName.toLocaleLowerCase()}@${this.config.messenger.domain}`;
     }
 
     /**
@@ -33,7 +35,7 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
      *
      * @param {string} roomId matrix room id
      */
-    leaveRoom(roomId) {
+    leaveRoom() {
         // TODO override
     }
 
@@ -62,11 +64,11 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
                 roomId: eventBody.channel_id,
                 commandName: eventBody.command.slice(2),
                 bodyText: eventBody.text,
-                config: this.config.baseConfig,
+                config: this.config,
             };
             await this.commandsHandler(options);
         } catch (error) {
-            this.logger.error('Error while handling slash command from Slack', error, eventBody);
+            this.logger.error('Error while handling slash command from Slack');
         }
     }
 
@@ -76,18 +78,17 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
     _slashCommandsListener() {
         const app = express();
 
-        app.use(
-            bodyParser.urlencoded({
-                strict: false,
-            }),
-        ).post('/commands', async (req, res, next) => {
+        const options: OptionsJson = {
+            strict: false,
+        };
+        app.use(bodyParser.urlencoded(options)).post('/commands', async (req, res) => {
             await this._eventHandler(req.body);
             res.send(200);
         });
 
         this.commandServer = http.createServer(app);
-        this.commandServer.listen(this.config.eventPort, () => {
-            this.logger.info(`Slack commands are listening on port ${this.config.eventPort}`);
+        this.commandServer.listen(this.config.messenger.eventPort, () => {
+            this.logger.info(`Slack commands are listening on port ${this.config.messenger.eventPort}`);
         });
     }
 
@@ -111,7 +112,7 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
      * @param {string} userId chat user id
      * @returns {Promise<User>} void
      */
-    getUser(userId) {
+    getUser() {
         return true;
     }
 
@@ -334,7 +335,7 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
      * @param {string} slack channel id
      * @returns {string[]} channel members like [nfakjgba, fabfaif]
      */
-    async getRoomMembers({ name, roomId }) {
+    async getRoomMembers({ name, roomId }: { roomId?: string; name: string } | { roomId: string; name?: string }) {
         try {
             const channel = roomId || (await this.getRoomId(name));
             const { members } = await this.client.conversations.members({ channel });
@@ -386,7 +387,7 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
      * @returns {string} email
      */
     _getEmail(name) {
-        return name.includes('@') ? name : `${name}@${this.config.domain}`;
+        return name.includes('@') ? name : `${name}@${this.config.messenger.domain}`;
     }
 
     /**
@@ -404,12 +405,7 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     *
-     * @param {string} roomId conversation id
-     * @param {string} userId user id
-     */
-    setPower(roomId, userId) {
+    setPower() {
         this.logger.warn('Set power command is not available now');
     }
 
@@ -467,26 +463,16 @@ export class SlackApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Get matrix room by alias
-     *
-     * @param  {string?} name matrix room alias
-     * @param  {string?} roomId matrix roomId
-     * @returns {Array} matrix room members
      */
-    getRoomAdmins({ name, roomId }) {
+    getRoomAdmins() {
         return [];
     }
 
-    /**
-     * Get bot which joined to room in chat
-     *
-     * @param {string} roomId chat room id
-     * @returns {Array} void
-     */
-    getAllMessagesFromRoom(roomId) {
+    getAllMessagesFromRoom() {
         return [];
     }
 
-    kickUserByRoom({ roomId, userId }) {
+    kickUserByRoom() {
         return {};
     }
 

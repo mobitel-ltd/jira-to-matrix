@@ -1,11 +1,12 @@
 import requestPromise from 'request-promise-native';
 import querystring from 'querystring';
 import R from 'ramda';
-import { getLogger } from '../../modules/log.js';
+import { getLogger } from '../../modules/log';
 import * as utils from '../../lib/utils';
 import * as messages from '../../lib/messages';
 import { schemas } from './schemas';
 import delay from 'delay';
+import { Issue, RenderedIssue, Transition, Project } from '../../types/index';
 
 const logger = getLogger(module);
 
@@ -25,15 +26,6 @@ export class Jira {
     pingCount: number;
     expandParams: { expand: string };
 
-    /**
-     * @param  {object} options constructor options
-     * @param  {string} options.url jira url
-     * @param  {string} options.user jira user
-     * @param  {string} options.password jira password
-     * @param  {string} options.ignoreUsers users to ignore
-     * @param  {number} [options.interval] ping interval
-     * @param  {number} [options.count] ping count
-     */
     constructor({ url, user, ignoreUsers, password, interval, count }) {
         this.url = url;
         this.user = user;
@@ -45,40 +37,24 @@ export class Jira {
         this.expandParams = { expand: 'renderedFields' };
     }
 
-    /**
-     * @returns {{ expand: 'renderedFields' }} query object
-     */
-    static get expandParams() {
+    static get expandParams(): { expand: 'renderedFields' } {
         return this.expandParams;
     }
 
     /**
      * Create jira url
-     *
-     * @param  {string[]} args request params
-     * @returns {string} url
      */
-    getUrl(...args) {
+    getUrl(...args: string[]): string {
         return [this.url, this.restVersion, ...args].join('/');
     }
 
-    /**
-     * Get token
-     *
-     * @returns {string} auth token
-     */
-    get token() {
+    get token(): string {
         const encoded = Buffer.from(`${this.user}:${this.password}`).toString('base64');
 
         return `Basic ${encoded}`;
     }
 
-    /**
-     * @param  {string} url request url
-     * @param  {object} newOptions request options
-     * @returns {Promise<object>} result of request
-     */
-    async request(url, newOptions) {
+    async request(url: string, newOptions?: requestPromise.RequestPromiseOptions): Promise<any> {
         const options = {
             method: 'GET',
             headers: { Authorization: this.token, 'content-type': 'application/json' },
@@ -98,34 +74,26 @@ export class Jira {
 
     /**
      * POST request
-     *
-     * @param  {string} url url
-     * @param  {object} body request body
-     * @returns {object} request result
      */
-    requestPost(url, body) {
+    requestPost(url: string, body: string): Promise<any> {
         const options = {
             method: 'POST',
             body,
         };
 
-        return request(url, options);
+        return this.request(url, options);
     }
 
     /**
      * PUT request
-     *
-     * @param  {string} url url
-     * @param  {object} body request body
-     * @returns {object} request result
      */
-    requestPut(url, body) {
+    requestPut(url: string, body: string): Promise<any> {
         const options = {
             method: 'PUT',
             body,
         };
 
-        return request(url, options);
+        return this.request(url, options);
     }
 
     /**
@@ -134,93 +102,65 @@ export class Jira {
      * @param  {string} name user name
      * @returns {boolean} true if can be invite
      */
-    _isExpectedToInvite(name) {
-        return name && !this.ignoreUsers.includes(name);
+    _isExpectedToInvite(name: string): boolean {
+        return Boolean(name && !this.ignoreUsers.includes(name));
     }
 
     /**
      * Check if user display name includes name part
-     *
-     * @param  {string} displayName user displayName
-     * @param  {string} expectedName user name
-     * @returns {boolean} is string display name includes name part
      */
-    checkUser(displayName, expectedName) {
+    checkUser(displayName: string, expectedName: string): boolean {
         return displayName.toLowerCase().includes(expectedName.toLowerCase());
     }
 
     /**
      * Post comment to issue
-     *
-     * @param  {string} keyOrId issue key or id
-     * @param  {string} sender sender dispaly name
-     * @param  {string} bodyText message text
-     * @returns {Promise<void>} void
      */
-    async postComment(keyOrId, sender, bodyText) {
+    async postComment(keyOrId: string, sender: string, bodyText: string): Promise<void> {
         const url = this.getUrl('issue', keyOrId, 'comment');
 
-        await requestPost(url, schemas.comment(sender, bodyText));
+        await this.requestPost(url, schemas.comment(sender, bodyText));
     }
 
     /**
      * Set issue to special transition
-     *
-     * @param {string} keyOrId issue key or id
-     * @param {string} id transition id
-     * @returns {Promise<void>} void
      */
-    async postIssueStatus(keyOrId, id) {
+    async postIssueStatus(keyOrId: string, id: string): Promise<void> {
         const url = this.getUrl('issue', keyOrId, 'transitions');
 
-        await requestPost(url, schemas.move(id));
+        await this.requestPost(url, schemas.move(id));
     }
 
     /**
      * Get all issue transitions
-     *
-     * @param {string} keyOrId issue key or id
-     * @returns {Promise<object[]>} list of transitions
      */
-    async getPossibleIssueStatuses(keyOrId) {
+    async getPossibleIssueStatuses(keyOrId: string): Promise<Transition[]> {
         const url = this.getUrl('issue', keyOrId, 'transitions');
-        const { transitions } = await request(url);
+        const { transitions } = await this.request(url);
 
         return transitions;
     }
 
     /**
      * Get all issue priorities
-     *
-     * @param {string} keyOrId issue key or id
-     * @returns {Promise<object[]>} list of issue priorities
      */
-    async getIssuePriorities(keyOrId) {
+    async getIssuePriorities(keyOrId: string): Promise<any[] | undefined> {
         const url = this.getUrl('issue', keyOrId, 'editmeta');
-        const res = await request(url);
+        const res = await this.request(url);
 
         return R.path(['fields', 'priority', 'allowedValues'], res);
     }
 
     /**
      * Update issue priorities
-     *
-     * @param {string} keyOrId issue key or id
-     * @param {string} priorityId priority id
-     * @returns {Promise<void>} list of priorities
      */
-    async updateIssuePriority(keyOrId, priorityId) {
+    async updateIssuePriority(keyOrId: string, priorityId: string): Promise<void> {
         const url = this.getUrl('issue', keyOrId);
 
-        await requestPut(url, schemas.fields(priorityId));
+        await this.requestPut(url, schemas.fields(priorityId));
     }
 
-    /**
-     * @param  {Function} func function
-     * @param  {number} interval interval
-     * @param  {number} count time to repeat
-     */
-    async _connect(func, interval, count) {
+    async _connect(func: Function, interval: number, count: number) {
         if (count === 0) {
             throw new Error('No connection.');
         }
@@ -234,12 +174,10 @@ export class Jira {
 
     /**
      * Ping tasktracker
-     *
-     * @returns {Promise<void>} void
      */
-    async testJiraRequest() {
+    async testJiraRequest(): Promise<void> {
         try {
-            const pingJira = () => request(this.url);
+            const pingJira = () => this.request(this.url);
             await this._connect(pingJira, this.pingInterval, this.pingCount);
         } catch (err) {
             logger.error(messages.noJiraConnection, err);
@@ -250,13 +188,10 @@ export class Jira {
 
     /**
      * Make jira request to get all watchers, assign, creator and reporter of issue from url
-     *
-     * @param {string} keyOrId issue key
-     * @returns {Promise<string[]>} roomMembers array of users linked to current issue except jira bot
      */
     async getIssueWatchers(keyOrId) {
         const url = this.getUrl('issue', keyOrId, 'watchers');
-        const body = await request(url);
+        const body = await this.request(url);
         const watchers = body && Array.isArray(body.watchers) ? body.watchers.map(item => utils.extractName(item)) : [];
 
         const issue = await this.getIssue(keyOrId);
@@ -269,13 +204,10 @@ export class Jira {
 
     /**
      * Make GET request to jira by ID to get linked issues
-     *
-     * @param {string} id linked issue ID in jira
-     * @returns {Promise<Issue>} jira response with issue
      */
     async getLinkedIssue(id) {
         try {
-            const body = await request(this.getUrl('issueLink', id));
+            const body = await this.request(this.getUrl('issueLink', id));
 
             return body;
         } catch (err) {
@@ -285,15 +217,13 @@ export class Jira {
 
     /**
      * Make GET request to jira by issueID and params
-     *
-     * @param {string} keyOrId issue ID or key in jira
-     * @param {object} [params] url query params
-     * @returns {Promise<Issue>} jira response with issue
      */
-    async getIssue(keyOrId, params) {
+    async getIssue(keyOrId: string): Promise<Issue>;
+    async getIssue(keyOrId: string, params: object): Promise<RenderedIssue>;
+    async getIssue(keyOrId: string, params?: any): Promise<Issue | RenderedIssue> {
         try {
             const url = this.getUrl('issue', keyOrId);
-            const issue = await request(url, { qs: params });
+            const issue = await this.request(url, { qs: params });
 
             return issue;
         } catch (err) {
@@ -303,59 +233,67 @@ export class Jira {
 
     /**
      * Create issue
-     *
-     * @param {object} options create issue options
-     * @param  {string} options.summary issue summary
-     * @param  {string} options.issueTypeId issue issueTypeId
-     * @param  {string} options.projectId issue projectId
-     * @param  {string} options.parentId issue parentId
-     * @param  {boolean} options.isEpic issue isEpic
-     * @param  {boolean} options.isSubtask issue isSubtask
-     * @param  {string} options.styleProject issue styleProject
-     * @returns {object} issue
      */
-    createIssue({ summary, issueTypeId, projectId, parentId, isEpic, isSubtask, styleProject }) {
+    createIssue({
+        summary,
+        issueTypeId,
+        projectId,
+        parentId,
+        isEpic,
+        isSubtask,
+        styleProject,
+    }: {
+        summary: string;
+        issueTypeId: string;
+        projectId: string;
+        parentId: string;
+        isEpic: boolean;
+        isSubtask: boolean;
+        styleProject: string;
+    }): Promise<Issue> {
         const uri = this.getUrl('issue');
 
         if (isSubtask || (isEpic && styleProject !== 'classic')) {
-            return requestPost(uri, schemas.issueChild(summary, issueTypeId, projectId, parentId));
+            return this.requestPost(uri, schemas.issueChild(summary, issueTypeId, projectId, parentId));
         }
 
-        return requestPost(uri, schemas.issueNotChild(summary, issueTypeId, projectId));
+        return this.requestPost(uri, schemas.issueNotChild(summary, issueTypeId, projectId));
     }
 
     /**
      * Create link with issue
-     *
-     * @param  {string} issueKey issue key
-     * @param  {string} parentId issue parent id
      */
-    async createEpicLinkClassic(issueKey, parentId) {
+    async createEpicLinkClassic(issueKey: string, parentId: string) {
         const uri = this.getUrl('issue', issueKey);
 
-        await requestPut(uri, schemas.issueEpicLink(parentId));
+        await this.requestPut(uri, schemas.issueEpicLink(parentId));
     }
 
     /**
      * Create issue link
-     *
-     * @param  {string} issueKey1 issue key
-     * @param  {string} issueKey2 issue key
      */
-    async createIssueLink(issueKey1, issueKey2) {
+    async createIssueLink(issueKey1: string, issueKey2: string) {
         const uri = this.getUrl('issueLink');
 
-        await requestPost(uri, schemas.issueLink(issueKey1, issueKey2));
+        await this.requestPost(uri, schemas.issueLink(issueKey1, issueKey2));
     }
 
     /**
      * Make GET request to jira by project id or key
-     *
-     * @param {string} keyOrId project ID in jira
-     * @returns {Promise<{key: string, id: number, name: string, lead: string, issueTypes: Array<{ id: number, name: string, description: string, subtask: any }>, adminsURL: string, isIgnore: boolean, style: string}>} jira response with issue
      */
-    async getProject(keyOrId) {
-        const projectBody = await request(this.getUrl('project', keyOrId));
+    async getProject(
+        keyOrId: string,
+    ): Promise<{
+        key: string;
+        id: string;
+        name: string;
+        lead: string;
+        issueTypes: Array<{ id: number; name: string; description: string; subtask: any }>;
+        adminsURL: string;
+        isIgnore: boolean;
+        style: string;
+    }> {
+        const projectBody = await this.request(this.getUrl('project', keyOrId));
         const {
             id,
             key,
@@ -390,7 +328,7 @@ export class Jira {
      * @param  {string} keyOrId issue key or id
      * @returns {Promise<boolean>} true if issue exists
      */
-    async isJiraPartExists(keyOrId) {
+    async isJiraPartExists(keyOrId: string): Promise<boolean> {
         const projectKey = utils.getProjectKeyFromIssueKey(keyOrId);
         try {
             await this.getProject(projectKey);
@@ -401,26 +339,14 @@ export class Jira {
     }
 
     /**
-     * @typedef Project
-     * @property {string} key project key
-     * @property {number} id project id
-     * @property {string} name project name
-     * @property {string} lead project lead
-     * @property {string[]} [admins] project admins
-     */
-
-    /**
      * Make GET request to jira by projectID
-     *
-     * @param {string} projectKey project ID in jira
-     * @returns {Promise<Project>} jira response with issue
      */
-    async getProjectWithAdmins(projectKey) {
+    async getProjectWithAdmins(projectKey: string): Promise<Project> {
         const projectBody = await this.getProject(projectKey);
         const { adminsURL } = projectBody;
 
         try {
-            const { actors } = await request(adminsURL);
+            const { actors } = await this.request(adminsURL);
             const admins = actors.map(item => utils.extractName(item));
 
             return { ...projectBody, admins };
@@ -433,11 +359,8 @@ export class Jira {
 
     /**
      * Make request to jira by issueID adding renderedFields
-     *
-     * @param {string} issueID issue ID in jira
-     * @returns {Promise<object>} jira response
      */
-    async getIssueFormatted(issueID) {
+    async getIssueFormatted(issueID: string): Promise<RenderedIssue> {
         try {
             const result = await this.getIssue(issueID, this.expandParams);
 
@@ -449,12 +372,8 @@ export class Jira {
 
     /**
      * Make request to jira by issueID adding renderedFields and filter by fields
-     *
-     * @param {string} key issue key in jira
-     * @param {object} fields fields for filtering
-     * @returns {Promise<object>} data from fields
      */
-    async getRenderedValues(key, fields) {
+    async getRenderedValues(key: string, fields: string[]): Promise<object> {
         try {
             const issue = await this.getIssueFormatted(key);
 
@@ -471,52 +390,40 @@ export class Jira {
 
     /**
      * Get user list by part of the name
-     *
-     * @param  {string} [partName] part of displayname
-     * @returns {Promise<object[]>} users collection
      */
-    async searchUser(partName) {
+    async searchUser(partName: string): Promise<object[]> {
         if (!partName) {
             return [];
         }
         const queryPararms = querystring.stringify({ query: partName });
         const url = this.getUrl('user', `search?${queryPararms}`);
-        const allUsers = await request(url);
+        const allUsers = await this.request(url);
 
         return allUsers.filter(user => this.checkUser(user.displayName, partName));
     }
 
     /**
      * Add watcher to issue
-     *
-     * @param  {string} accountId user account id
-     * @param  {string} keyOrId issue key or id
      */
-    async addWatcher(accountId, keyOrId) {
+    async addWatcher(accountId: string, keyOrId: string) {
         const watchersUrl = this.getUrl('issue', keyOrId, 'watchers');
 
-        await requestPost(watchersUrl, schemas.watcher(accountId));
+        await this.requestPost(watchersUrl, schemas.watcher(accountId));
     }
 
     /**
      * Add assign to issue
-     *
-     * @param  {string} accountId user account id
-     * @param  {string} keyOrId issue key or id
      */
-    async addAssignee(accountId, keyOrId) {
+    async addAssignee(accountId: string, keyOrId: string) {
         const assigneeUrl = this.getUrl('issue', keyOrId, 'assignee');
 
-        await requestPut(assigneeUrl, schemas.assignee(accountId));
+        await this.requestPut(assigneeUrl, schemas.assignee(accountId));
     }
 
     /**
      * Get issue without throw on error
-     *
-     * @param  {string} keyOrId issue key or id
-     * @returns {Promise<Issue|boolean>} return false Issue or issue if not found
      */
-    async getIssueSafety(keyOrId) {
+    async getIssueSafety(keyOrId: string): Promise<Issue | false> {
         try {
             const issue = await this.getIssue(keyOrId);
 
@@ -529,11 +436,8 @@ export class Jira {
 
     /**
      * Check if issue exists
-     *
-     * @param {string} keyOrId jira issue key or id
-     * @returns {Promise<boolean>} true if exists
      */
-    async hasIssue(keyOrId) {
+    async hasIssue(keyOrId: string): Promise<boolean> {
         const res = await this.getIssueSafety(keyOrId);
 
         return Boolean(res);
@@ -541,15 +445,12 @@ export class Jira {
 
     /**
      * Get status data with color
-     *
-     * @param  {string} statusId issue status id
-     * @returns {Promise<object>} status data with color
      */
-    async getStatusData(statusId) {
+    async getStatusData(statusId: string): Promise<object> {
         try {
             const statusUrl = this.getUrl('status', statusId);
 
-            const data = await request(statusUrl);
+            const data = await this.request(statusUrl);
 
             return { colorName: R.path(['statusCategory', 'colorName'], data) };
         } catch (error) {
@@ -561,15 +462,12 @@ export class Jira {
 
     /**
      * Get last created issue key in project
-     *
-     * @param  {string} projectKey project key
-     * @returns {Promise<string|undefined>} issue key
      */
-    async getLastIssueKey(projectKey) {
+    async getLastIssueKey(projectKey: string): Promise<string | undefined> {
         try {
             const searchUrl = this.getUrl('search');
 
-            const data = await request(searchUrl, {
+            const data = await this.request(searchUrl, {
                 qs: {
                     jql: `project=${projectKey}`,
                 },
@@ -584,12 +482,8 @@ export class Jira {
 
     /**
      * Check if status exists in project
-     *
-     * @param  {string} projectKey project key
-     * @param  {string} status status
-     * @returns {Promise<boolean>} true if exists
      */
-    async hasStatusInProject(projectKey, status) {
+    async hasStatusInProject(projectKey: string, status: string): Promise<boolean> {
         const issuKey = await this.getLastIssueKey(projectKey);
         if (issuKey) {
             const transitions = await this.getPossibleIssueStatuses(issuKey);
@@ -602,11 +496,8 @@ export class Jira {
 
     /**
      * Get issue current status
-     *
-     * @param  {string} keyOrId issue key or id
-     * @returns {Promise<string>} issue status name
      */
-    async getCurrentStatus(keyOrId) {
+    async getCurrentStatus(keyOrId: string): Promise<string | undefined> {
         const issue = await this.getIssueSafety(keyOrId);
 
         return R.path(['fields', 'status', 'name'], issue);

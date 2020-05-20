@@ -15,31 +15,26 @@ const getEvent = content => ({
 
 export class MatrixApi extends BaseChatApi implements MessengerApi {
     sdk;
+    userId: string;
+    baseUrl: string;
 
     constructor(commandsHandler, config, logger, sdk = matrixSdk) {
         super(commandsHandler, config, logger);
         this.sdk = sdk;
-        // TODO: delete EVENT_EXCEPTION check in errors after resolving 'no-event' bug
+        this.userId = `@${this.config.user}:${this.config.messenger.domain}`;
+        this.baseUrl = `https://${this.config.messenger.domain}`;
     }
 
     get postfix() {
-        return `:${this.config.domain}`.length;
+        return `:${this.config.messenger.domain}`.length;
     }
 
     get USER_ALREADY_IN_ROOM() {
         return 'is already in the room';
     }
 
-    get baseUrl() {
-        return `https://${this.config.domain}`;
-    }
-
     get BOT_OUT_OF_ROOM_EXEPTION() {
-        return `User ${this.userId} not in room`;
-    }
-
-    get userId() {
-        `@${this.config.user}:${this.config.domain}`;
+        return `User ${this.getMyId()} not in room`;
     }
 
     /**
@@ -53,7 +48,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
      * @returns {string} matrix user id
      */
     getBotId() {
-        return this.userId;
+        return this.getMyId();
     }
 
     get EVENT_EXCEPTION() {
@@ -71,7 +66,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
      * @returns {string} matrix user id like @ii_ivanov:matrix.example.com
      */
     getChatUserId(shortName) {
-        return shortName && `@${shortName.toLowerCase()}:${this.config.domain}`;
+        return shortName && `@${shortName.toLowerCase()}:${this.config.messenger.domain}`;
     }
 
     /**
@@ -142,7 +137,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
      * @returns {string} alias in matrix
      */
     _getMatrixRoomAlias(alias) {
-        return `#${alias}:${this.config.domain}`;
+        return `#${alias}:${this.config.messenger.domain}`;
     }
 
     /**
@@ -163,9 +158,6 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * @private
-     * @param {string} baseUrl from config.
-     * @param {string} userId from config.
-     * @param {string} password from config.
      * @returns {void} MatrixClient class
      */
     async _createClient() {
@@ -233,13 +225,13 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         if (
             !this.config.admins.includes(sender) &&
             sender !== this.config.user &&
-            event.getStateKey() === this.userId
+            event.getStateKey() === this.getMyId()
         ) {
             await this.client.leave(event.getRoomId());
             return;
         }
 
-        if (event.getStateKey() === this.userId) {
+        if (event.getStateKey() === this.getMyId()) {
             await this.client.joinRoom(event.getRoomId());
         }
     }
@@ -300,10 +292,10 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         });
 
         this.client.on('RoomMember.membership', async (event, member) => {
-            if (member.membership === 'invite' && member.userId === this.userId) {
+            if (member.membership === 'invite' && member.userId === this.getMyId()) {
                 try {
                     await this.client.joinRoom(member.roomId);
-                    this.logger.info(`${this.userId} joined to room with id = ${member.roomId}`);
+                    this.logger.info(`${this.getMyId()} joined to room with id = ${member.roomId}`);
                 } catch (error) {
                     this.logger.error(`Error joining to room with id = ${member.roomId}`);
                 }
@@ -682,7 +674,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
      * @returns {boolean} return true if it's matrix room name
      */
     _isRoomAlias(room) {
-        return room.includes(this.config.domain) && room[0] === '#';
+        return room.includes(this.config.messenger.domain) && room[0] === '#';
     }
 
     /**

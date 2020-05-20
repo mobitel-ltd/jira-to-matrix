@@ -1,8 +1,8 @@
 import { translate } from '../locales';
-import Ramda from 'ramda';
+import * as Ramda from 'ramda';
 import { config } from '../config';
 import * as messages from './messages';
-import { Issue } from '../types';
+import { Issue, ChangelogItem } from '../types';
 
 const { jira, features, messenger } = config;
 
@@ -58,9 +58,9 @@ const getIdFromUrl = url => {
 
 const getNameFromMail = mail => mail && mail.split('@')[0];
 
-const extractName = (body, path: string[] = []) => Ramda.path([...path, 'displayName'], body);
+export const extractName = (body, path: string[] = []) => Ramda.path([...path, 'displayName'], body);
 
-export const getBodyWebhookEvent = body => Ramda.path(['webhookEvent'], body);
+export const getBodyWebhookEvent = (body): string => Ramda.path(['webhookEvent'], body) as string;
 
 const handlers = {
     project: {
@@ -110,8 +110,8 @@ const handlers = {
         getIssueId: body => getIdFromUrl(handlers.comment.getUrl(body)),
         getIssueName: body => handlers.comment.getIssueId(body),
         getCommentBody: body => ({
-            body: Ramda.path(['comment', 'body'], body),
-            id: Ramda.path(['comment', 'id'], body),
+            body: Ramda.path(['comment', 'body'], body) as string,
+            id: Ramda.path(['comment', 'id'], body) as string,
         }),
     },
     issuelink: {
@@ -224,7 +224,8 @@ export const isCommentEvent = body => getHookType(body) === 'comment' && !getBod
  * @param {object} body webhook body
  * @returns {object} changelog field
  */
-export const getChangelogField = (fieldName, body) => getChangelogItems(body).find(item => item.field === fieldName);
+export const getChangelogField = (fieldName, body) =>
+    getChangelogItems(body).find((item: ChangelogItem) => item.field === fieldName);
 
 export const getNewSummary = body => Ramda.path(['toString'], getChangelogField('summary', body));
 
@@ -275,9 +276,9 @@ export const getLinkKeys = body => {
     const links = getLinks(body);
 
     return links.reduce((acc, link) => {
-        const destIssue = Ramda.either(Ramda.prop('outwardIssue'), Ramda.prop('inwardIssue'))(link);
+        const destIssue = Ramda.either(Ramda.prop('outwardIssue'), Ramda.prop('inwardIssue'))(link) as any;
 
-        const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue);
+        const destStatusCat = Ramda.path(['fields', 'status', 'statusCategory', 'id'], destIssue) as number;
         if (postChangesToLinks.ignoreDestStatusCat.includes(destStatusCat)) {
             return acc;
         }
@@ -362,7 +363,7 @@ export const getListToHTML = list =>
 
 export const getCommandList = list =>
     list.reduce(
-        (acc, { name, id }, index) => `${acc}<strong>${index + 1})</strong> - ${name}<br>`,
+        (acc, { name }, index) => `${acc}<strong>${index + 1})</strong> - ${name}<br>`,
         `${translate('listJiraCommand')}:<br>`,
     );
 

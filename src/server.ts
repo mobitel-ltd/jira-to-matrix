@@ -1,14 +1,15 @@
-import express from 'express';
-import bodyParser from 'body-parser';
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
 import { getParsedAndSaveToRedis } from './jira-hook-parser';
 import { getAllSettingData, setSettingsData, delSettingsData } from './bot/settings';
 import { httpStatus } from './lib/utils';
 import { getLogger } from './modules/log';
+import { TaskTracker } from './types';
 
 const logger = getLogger(module);
 const app = express();
 
-export const server = handleFunc => {
+export const getServer = (taskTracker: TaskTracker, handleFunc: Function): express.Application => {
     app.use(
         bodyParser.json({
             strict: false,
@@ -19,7 +20,7 @@ export const server = handleFunc => {
             logger.info('Webhook received! Start getting ignore status');
             logger.silly('Jira body', req.body);
 
-            const saveStatus = await getParsedAndSaveToRedis(req.body);
+            const saveStatus = await getParsedAndSaveToRedis(taskTracker, req.body);
 
             if (saveStatus) {
                 await handleFunc();
@@ -81,6 +82,7 @@ export const server = handleFunc => {
         .use((req, res) => {
             res.end();
         })
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .use((err, req, res, next) => {
             if (err) {
                 logger.error(err);

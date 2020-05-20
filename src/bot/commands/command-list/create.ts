@@ -1,12 +1,12 @@
-import * as Ramda from 'ramda';
 import * as marked from 'marked';
 import { translate } from '../../../locales';
 import * as utils from '../../../lib/utils';
 import { getLogger } from '../../../modules/log';
+import { CommandOptions } from '../../../types';
 
 const logger = getLogger(module);
 
-export const create = async ({ bodyText = '', roomName, taskTracker }) => {
+export const create = async ({ bodyText = '', roomName, taskTracker }: CommandOptions): Promise<string | undefined> => {
     try {
         const [issueType, ...wordsNameNewIssue] = bodyText.split(' ');
         const summary = wordsNameNewIssue.join(' ');
@@ -24,24 +24,24 @@ export const create = async ({ bodyText = '', roomName, taskTracker }) => {
         if (summary.length > 255 || summary.includes('\n')) {
             return translate('issueNameTooLong');
         }
-        const { id: issueTypeId, subtask: isSubtask } = Ramda.find(Ramda.propEq('name', issueType))(issueTypes);
+        const type = issueTypes.find(el => (el.name = issueType))!;
         const issue = await taskTracker.getIssue(roomName);
         const isEpic = utils.isEpic({ issue });
-        if (isEpic && isSubtask) {
+        if (isEpic && type?.subtask) {
             return translate('epicShouldNotHaveSubtask');
         }
 
         // create issue, for sub-task and epic next-gen also will be created link
         const { key: newIssueKey } = await taskTracker.createIssue({
             summary,
-            issueTypeId,
+            issueTypeId: type.id,
             projectId,
             parentId: roomName,
             isEpic,
-            isSubtask,
+            isSubtask: type?.subtask,
             styleProject,
         });
-        if (!isEpic && !isSubtask) {
+        if (!isEpic && !type?.subtask) {
             await taskTracker.createIssueLink(newIssueKey, roomName);
             return;
         }
@@ -50,6 +50,7 @@ export const create = async ({ bodyText = '', roomName, taskTracker }) => {
             return;
         }
         const viewUrl = utils.getViewUrl(newIssueKey);
+
         return marked(translate('newTaskWasCreated', { summary, newIssueKey, viewUrl }));
     } catch (err) {
         logger.error(err);

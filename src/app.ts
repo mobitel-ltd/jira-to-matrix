@@ -1,13 +1,13 @@
 import { config } from './config';
 import { getChatClass } from './messengers';
-import { getLogger } from './modules/log';
 import { commandsHandler } from './bot/commands';
 import { FSM } from './fsm';
-import { server } from './server';
+import { getServer } from './server';
 import { queueHandler } from './queue';
 import matrixSdk from 'matrix-js-sdk';
 import * as matrixLogger from 'matrix-js-sdk/lib/logger';
 import { getTaskTracker } from './task-trackers';
+import { getLogger } from './modules/log';
 
 const logger = getLogger(module);
 
@@ -39,15 +39,10 @@ const taskTracker = new TaskTracker({
  * @type {import('./messengers/messenger-abstract')[]} chat instance
  */
 const chatApiPool = config.messenger.bots.map(item => {
-    return new ChatApi({
-        config: { ...config.messenger, ...item, baseConfig: config },
-        commandsHandler,
-        logger: getLogger('messenger-api'),
-        sdk,
-    });
+    return new ChatApi(commandsHandler, { ...item, ...config }, getLogger('messenger-api'), sdk);
 });
 
-const fsm = new FSM(chatApiPool, queueHandler, server, taskTracker, config.port);
+const fsm = new FSM(chatApiPool, queueHandler, getServer, taskTracker, config.port);
 
 fsm.start();
 

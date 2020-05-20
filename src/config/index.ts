@@ -1,17 +1,18 @@
-import { resolve } from 'path';
-import { validate } from './validate-config.js';
-import os from 'os';
-import fs from 'fs';
-import path from 'path';
-import { Config } from '../types/index.js';
+// import { resolve } from 'path';
+import { validate } from './validate-config';
+import * as os from 'os';
+import * as fs from 'fs';
+import * as path from 'path';
+import { Config } from '../types/index';
+import * as configData from '../../config';
 
 const defaultRepoName = 'git-repo';
 
-const configPath = process.env.NODE_ENV === 'test' ? './test/fixtures/' : './';
+// const configPath = process.env.NODE_ENV === 'test' ? './test/fixtures/' : './';
 
-const configFilepath = resolve(configPath, 'config.js');
+// const configFilepath = resolve(configPath, 'config');
 
-const configData = await import(configFilepath);
+// const configData = await import(configFilepath);
 
 const defaultConfigData = {
     delayInterval: 500,

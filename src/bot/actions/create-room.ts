@@ -44,8 +44,7 @@ export const getDescription = async (
 ): Promise<{ body: string; htmlBody: string }> => {
     try {
         const { description } = await taskTracker.getRenderedValues(issue.key, ['description']);
-        const handleBody = description ? { ...issue.descriptionFields, description } : issue.descriptionFields;
-        const htmlBody = getPost(handleBody);
+        const htmlBody = getPost(description);
         const body = fromString(htmlBody);
 
         return { body, htmlBody };

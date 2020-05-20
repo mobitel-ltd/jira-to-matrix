@@ -1,6 +1,7 @@
-import * as utils from '../lib/utils.js';
+import * as utils from '../lib/utils';
+import { PostCommentData } from '../types/index';
 
-export const getPostCommentData = body => {
+export const getPostCommentData = (body): PostCommentData => {
     const headerText = utils.getHeaderText(body);
     const author = utils.getDisplayName(body);
     const issueID = utils.getIssueId(body);

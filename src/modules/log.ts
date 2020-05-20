@@ -1,9 +1,6 @@
-import path from 'path';
+import * as path from 'path';
 import * as winston from 'winston';
-
-const configPath = path.resolve('./', process.env.NODE_ENV === 'test' ? 'test/fixtures' : '', 'config.js');
-
-const { log: logConfig } = await import(configPath);
+import { config } from '../config';
 
 /**
  * Customize logger timestamp format to locale datetime with milliseconds
@@ -13,7 +10,7 @@ const { log: logConfig } = await import(configPath);
 const timestamp = () => {
     const datetime = new Date();
     const ms = String(datetime.getMilliseconds() % 1000);
-    return `${datetime.toLocaleString()},${ms.padEnd(3, 0)}`;
+    return `${datetime.toLocaleString()},${ms.padEnd(3)}`;
 };
 
 const getLabel = mod => {
@@ -34,15 +31,15 @@ const getTransports = data => {
 
     const fileTransport = new winston.transports.File({
         ...baseTransport,
-        filename: logConfig.filePath,
-        level: logConfig.fileLevel,
+        filename: config.log.filePath,
+        level: config.log.fileLevel,
         json: true,
     });
 
     const consoleTransport = new winston.transports.Console({
         ...baseTransport,
         colorize: true,
-        level: logConfig.consoleLevel,
+        level: config.log.consoleLevel,
         json: false,
         prettyPrint: true,
         silent: Boolean(process.env.TEST_WATCH),
@@ -54,7 +51,7 @@ const getTransports = data => {
         both: [fileTransport, consoleTransport],
     };
 
-    return levels[logConfig.type];
+    return levels[config.log.type];
 };
 
 /**

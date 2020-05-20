@@ -1,7 +1,7 @@
 import { config } from '../config';
-import { getFuncAndBody } from './bot-handler.js';
+import { getFuncAndBody } from './bot-handler';
 import { isIgnore } from './is-ignore';
-import { saveIncoming, saveToHandled } from '../queue/redis-data-handle.js';
+import { saveIncoming, saveToHandled } from '../queue/redis-data-handle';
 import { getLogger } from '../modules/log';
 
 const logger = getLogger(module);
@@ -15,11 +15,16 @@ const { usersToIgnore, testMode } = config;
  * @param {{on: boolean, users: string[]}} _testMode test mode data
  * @returns {boolean} ignore or not
  */
-export const getParsedAndSaveToRedis = async (body, _usersToIgnore = usersToIgnore, _testMode = testMode) => {
+export const getParsedAndSaveToRedis = async (
+    taskTracker,
+    body,
+    _usersToIgnore = usersToIgnore,
+    _testMode = testMode,
+) => {
     try {
         const ignoredUsers = [..._usersToIgnore, ...testMode.users];
         const mode = _testMode.on;
-        if (await isIgnore(body, ignoredUsers, mode)) {
+        if (await isIgnore(body, ignoredUsers, mode, taskTracker)) {
             return;
         }
 

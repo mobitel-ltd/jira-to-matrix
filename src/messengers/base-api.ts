@@ -1,17 +1,9 @@
-// eslint-disable-next-line prettier/prettier
-const voidFunc = (): void => { return; };
-
-const defaultLogger = {
-    info: () => voidFunc,
-    error: () => voidFunc,
-    warn: () => voidFunc,
-    debug: () => voidFunc,
-};
+import { ChatConfig } from '../types';
 
 export class BaseChatApi {
     commandsHandler;
-    config;
-    logger = defaultLogger;
+    config: ChatConfig;
+    logger;
 
     constructor(commandsHandler: Function, config, logger) {
         this.commandsHandler = commandsHandler;
@@ -20,7 +12,7 @@ export class BaseChatApi {
     }
 
     getAdmins(): string[] {
-        return this.config.admins;
+        return this.config.messenger.admins;
     }
 
     getMyId(): string {
@@ -32,7 +24,7 @@ export class BaseChatApi {
     }
 
     getNotifyData(): { name: string; users: string[] } | undefined {
-        return this.config.infoRoom;
+        return this.config.messenger.infoRoom;
     }
 
     getCommandRoomName(): string | undefined {

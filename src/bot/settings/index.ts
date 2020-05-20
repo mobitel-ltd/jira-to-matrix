@@ -3,7 +3,7 @@ import { getLogger } from '../../modules/log';
 import { promises } from 'fs';
 import Ramda from 'ramda';
 import { redis } from '../../redis-client';
-import * as utils from '../../lib/utils.js';
+import * as utils from '../../lib/utils';
 
 const logger = getLogger(module);
 

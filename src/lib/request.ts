@@ -5,7 +5,7 @@ import { getLogger } from '../modules/log';
 
 const logger = getLogger(module);
 
-export const fileRequest = async (url, newOptions) => {
+export const fileRequest = async (url, newOptions?: requestPromise.RequestPromiseOptions) => {
     const options = {
         url,
         timeout: TIMEOUT,

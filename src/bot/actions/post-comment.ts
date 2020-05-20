@@ -1,10 +1,28 @@
+import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
 import { fromString } from 'html-to-text';
+import { PostCommentActions, RenderedIssue, Comment } from '../../types';
 
 const logger = getLogger(module);
-const { getCommentHTMLBody, getCommentBody } = require('./helper');
 
-export const postComment = async ({ chatApi, issueID, headerText, comment, author, taskTracker }) => {
+const getCommentHTMLBody = (headerText, commentBody) => `${headerText}: <br>${commentBody}`;
+
+const getCommentBody = (issue: RenderedIssue, comment) => {
+    const comments: Comment[] = R.path(['renderedFields', 'comment', 'comments'], issue) as Comment[];
+
+    const result = R.propOr(comment.body, 'body', R.find(R.propEq('id', comment.id), comments));
+
+    return result;
+};
+
+export const postComment = async ({
+    chatApi,
+    issueID,
+    headerText,
+    comment,
+    author,
+    taskTracker,
+}: PostCommentActions) => {
     try {
         if (!issueID) {
             logger.warn('No IssueId for posting comment. No way to define params for posting comment');

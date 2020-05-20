@@ -1,11 +1,11 @@
-import http from 'http';
+import * as http from 'http';
 import * as StateMachine from 'javascript-state-machine';
-import StateMachineHistory from 'javascript-state-machine/lib/history';
+import * as StateMachineHistory from 'javascript-state-machine/lib/history';
 import { states } from './states';
 import { ChatFasade } from '../messengers/chat-fasade';
 import { timing } from '../lib/utils';
 import { getLogger } from '../modules/log';
-import { Jira } from '../task-trackers/jira';
+import { TaskTracker, MessengerApi } from '../types';
 
 const logger = getLogger(module);
 
@@ -114,7 +114,7 @@ const getChatFsm = (chatFasade, handler) => {
 };
 
 export class FSM {
-    taskTracker: Jira;
+    taskTracker: TaskTracker;
     chatFSM;
     jiraFsm;
 
@@ -126,11 +126,11 @@ export class FSM {
      * @param {import('../task-trackers/jira')} taskTracker task tracker instance
      * @param {number} port jira server port
      */
-    constructor(chatApi, queueHandler, app, taskTracker, port) {
-        const chatFasade = new ChatFasade(chatApi);
+    constructor(chatApiPool: MessengerApi[], queueHandler: Function, getServer: Function, taskTracker, port) {
+        const chatFasade = new ChatFasade(chatApiPool);
         this.taskTracker = taskTracker;
-        this.chatFSM = getChatFsm(chatFasade, queueHandler);
-        this.jiraFsm = getJiraFsm(app(this.handleHook.bind(this)), port);
+        this.chatFSM = getChatFsm(chatFasade, queueHandler(taskTracker));
+        this.jiraFsm = getJiraFsm(getServer(taskTracker, this.handleHook.bind(this)), port);
     }
 
     /**

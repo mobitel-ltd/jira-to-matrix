@@ -4,6 +4,7 @@ import * as bot from '../bot/actions';
 import * as utils from '../lib/utils';
 import { config } from '../config';
 import { getLogger } from '../modules/log';
+import { MessengerFasade, Config, TaskTracker } from '../types';
 
 const prefix = config.redis;
 const logger = getLogger(module);
@@ -142,7 +143,12 @@ export const rewriteRooms = async createRoomData => {
 
 const getLog = (key, success) => `${key} --- ${success}`;
 
-export const handleRedisData = async (client, dataFromRedis, config) => {
+export const handleRedisData = async (
+    client: MessengerFasade,
+    dataFromRedis,
+    config: Config,
+    taskTracker: TaskTracker,
+) => {
     try {
         if (!dataFromRedis) {
             logger.warn('No data from redis');

@@ -3,10 +3,11 @@ import * as path from 'path';
 import * as marked from 'marked';
 import { translate } from '../../../locales';
 import { getLogger } from '../../../modules/log';
+import { CommandOptions } from '../../../types';
 
 const logger = getLogger(module);
 
-export const help = ({ bodyText, config, chatApi, roomData }) => {
+export const help = ({ bodyText, config, chatApi, roomData }: CommandOptions) => {
     if (chatApi.getCommandRoomName() === roomData.alias) {
         if (!chatApi.isMaster()) {
             logger.warn('Skip operation for not master bot');
@@ -31,7 +32,7 @@ export const help = ({ bodyText, config, chatApi, roomData }) => {
             const textHelp = fs.readFileSync(path.resolve(pathBase, base), 'utf8');
             return { textHelp, name };
         });
-    const allHelpCommands = content.reduce((acc, command) => {
+    const allHelpCommands: Record<string, string> = content.reduce((acc, command) => {
         const { name, textHelp } = command;
         return { ...acc, [name]: textHelp };
     }, {});

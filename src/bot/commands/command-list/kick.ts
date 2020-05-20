@@ -6,7 +6,7 @@ import * as actions from './common-actions';
 export const ALL_OPTION = 'all';
 export const USER_OPTION = 'user';
 
-export const kick = async ({ bodyText, sender, chatApi, roomData, config, taskTracker }) => {
+export const kick = async ({ bodyText, sender, chatApi, roomData, taskTracker }) => {
     if (!bodyText) {
         return translate('noOptions');
     }

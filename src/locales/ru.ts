@@ -127,5 +127,6 @@ const getGenderVerbEnding = function getGenderVerbEnding(fullName) {
 
 export const tValues = function tValues(values, personName) {
     const ending = getGenderVerbEnding(personName);
+
     return Ramda.assoc('f', ending, values);
 };

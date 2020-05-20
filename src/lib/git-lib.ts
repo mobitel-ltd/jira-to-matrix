@@ -1,8 +1,8 @@
 import isImage from 'is-image';
-import fileSystem from 'fs';
-import path from 'path';
-import R from 'ramda';
-import git from 'simple-git/promise';
+import * as fileSystem from 'fs';
+import * as path from 'path';
+import * as R from 'ramda';
+import * as git from 'simple-git/promise';
 import * as utils from './utils';
 import { fileRequest } from './request';
 import { getLogger } from '../modules/log';
@@ -18,7 +18,7 @@ export const FILE_DELIMETER = '__';
 export const DEFAULT_EXT = '.png';
 export const VIEW_FILE_NAME = 'README.md';
 
-const getName = (url, delim) => R.pipe(R.split(delim), R.last)(url);
+const getName = (url: string, delim: string): string => R.pipe(R.split(delim), R.last)(url) as string;
 
 export const getMediaFileData = (url, { imageName, msgtype }) => {
     const imageId = getName(url, '/');
@@ -47,7 +47,7 @@ export const getMediaFileData = (url, { imageName, msgtype }) => {
     return { fileName, skip: true, imageName };
 };
 
-export const getImageData = (event, api) => {
+export const getImageData = (event, api?) => {
     const chatImageUrl = R.path(['content', 'url'], event);
     if (chatImageUrl) {
         const imageName = R.path(['content', 'body'], event);
@@ -78,7 +78,8 @@ const getBody = event => {
     }
 
     if (event.content.msgtype === 'm.text') {
-        const textBody = R.path(['content', 'm.new_content', 'body'], event) || R.path(['content', 'body'], event);
+        const textBody: string | undefined =
+            R.path(['content', 'm.new_content', 'body'], event) || R.path(['content', 'body'], event);
 
         return hasNotCloseQuote(textBody) ? closeQuote(textBody) : textBody;
     }

@@ -1,5 +1,5 @@
 import { getLogger } from '../modules/log';
-import ramda from 'ramda';
+import * as ramda from 'ramda';
 import { MessengerApi, RoomData, MessengerFasade } from '../types';
 
 const logger = getLogger(module);
@@ -87,10 +87,8 @@ export class ChatFasade implements MessengerFasade {
 
     /**
      * Get bot which will create new room for new hooks
-     *
-     * @returns {MessengerApi} - chat bot
      */
-    getCurrentClient() {
+    getCurrentClient(): MessengerApi {
         return this.worker;
     }
 

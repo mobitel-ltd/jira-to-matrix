@@ -1,7 +1,6 @@
 import minimist from 'minimist';
 import * as R from 'ramda';
 import { getLogger } from '../../../modules/log';
-import { ChatFasade } from '../../../messengers/chat-fasade';
 import { MessengerApi } from '../../../types';
 
 const logger = getLogger(module);
@@ -29,7 +28,7 @@ export const getGroupedUsers = (
     members: { userId: string; powerLevel: number }[],
     botId: string,
 ): { simpleUsers: string[]; admins: string[]; bot: string[] } => {
-    const getGroup = user => {
+    const getGroup = (user: { userId: string; powerLevel: number }) => {
         if (user.powerLevel < EXPECTED_POWER) {
             return 'simpleUsers';
         }
@@ -37,7 +36,10 @@ export const getGroupedUsers = (
         return user.userId.includes(botId) ? 'bot' : 'admins';
     };
 
-    const res = R.pipe(R.groupBy(getGroup), R.map(R.map(R.path(['userId']))))(members);
+    const res: { admins?: string[]; simpleUsers?: string[]; bot?: string[] } = R.pipe(
+        R.groupBy(getGroup),
+        R.map(R.map(R.path(['userId']))) as any,
+    )(members) as { admins?: string[]; simpleUsers?: string[]; bot?: string[] };
 
     return {
         admins: res.admins || [],
@@ -52,9 +54,13 @@ export const hasPowerToKick = (botId, members, expectedPower) => {
     return botData && botData.powerLevel === expectedPower;
 };
 
-export const kickUsers = async (chatApi, roomId, users) => {
+export const kickUsers = async (
+    chatApi: MessengerApi,
+    roomId: string,
+    users: string[],
+): Promise<{ userId: string; isKicked: boolean }[]> => {
     const result = await Promise.all(
-        users.map(async userId => {
+        users.map(async (userId: string) => {
             const res = await chatApi.kickUserByRoom({ roomId, userId });
 
             return { userId, isKicked: Boolean(res) };
@@ -102,8 +108,14 @@ export const kick = async (chatApi: MessengerApi, { id, members }, userToKick?: 
     return ALL_KICKED;
 };
 
-export const parseBodyText = (bodyText = '', { first, ...usingParam }) => {
-    const unknown = [];
+export const parseBodyText = (
+    bodyText = '',
+    {
+        first,
+        ...usingParam
+    }: { first?: boolean } & { boolean?: string[]; string?: string[]; alias: Record<string, string> },
+) => {
+    const unknown: string[] = [];
     const arrFromBody = bodyText
         .split('\n')
         .join(' ')
@@ -111,7 +123,8 @@ export const parseBodyText = (bodyText = '', { first, ...usingParam }) => {
         .filter(Boolean)
         .map(el => el.trim());
 
-    const [param, ...rest] = first ? arrFromBody : [null, ...arrFromBody];
+    const rest = first ? arrFromBody.slice(1) : arrFromBody;
+    const param = first ? arrFromBody[0] : null;
 
     const res = minimist(rest, {
         ...usingParam,

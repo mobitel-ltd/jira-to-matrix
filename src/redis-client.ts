@@ -1,4 +1,4 @@
-import redis from 'redis';
+import * as redisApi from 'redis';
 import { config } from './config';
 import { promisify } from 'util';
 import { getRedisLinkKey } from './lib/utils';
@@ -8,7 +8,7 @@ const logger = getLogger(module);
 
 const createClient = conf => {
     try {
-        return redis.createClient(conf);
+        return redisApi.createClient(conf);
     } catch (err) {
         logger.error(`Error while creating redis client`, err);
         process.exit(1);

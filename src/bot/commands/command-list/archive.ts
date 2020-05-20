@@ -61,7 +61,7 @@ export const archive = async ({ bodyText = '', sender, chatApi, roomData, config
             R.pipe(
                 chatApi.getChatUserId.bind(chatApi),
                 R.when(R.pathEq([0], '@'), R.drop(1)),
-                R.replace(/[^a-z0-9_.-]+/g, '__'),
+                R.replace(/[^a-z0-9_.-]+/g, '__') as any,
             ),
         ],
         [R.always(isJiraRoom), R.always(utils.getProjectKeyFromIssueKey(alias))],
