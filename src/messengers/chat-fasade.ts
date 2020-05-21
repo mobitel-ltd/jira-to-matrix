@@ -232,18 +232,12 @@ export class ChatFasade implements MessengerFasade {
 
     /**
      * Get get command room name
-     *
-     * @returns {string|undefined} info data if exists
      */
-    getCommandRoomName() {
+    getCommandRoomName(): string | undefined {
         return this.worker.getCommandRoomName();
     }
 
-    /**
-     * @param {string} roomName room name
-     * @returns {Promise<string>} return room id of created room
-     */
-    async getOrCreateNotifyRoom(roomName) {
+    async getOrCreateNotifyRoom(roomName: string): Promise<string> {
         const worker = this.chatPool.find(item => item.isConnected())!;
         const roomId = await worker.getRoomIdByName(roomName);
         if (roomId) {
@@ -265,11 +259,7 @@ export class ChatFasade implements MessengerFasade {
         return createdRoomId;
     }
 
-    /**
-     * @param {string} text message
-     * @returns {boolean} notified or not
-     */
-    async sendNotify(text) {
+    async sendNotify(text: string): Promise<boolean | undefined> {
         try {
             logger.info(text);
 

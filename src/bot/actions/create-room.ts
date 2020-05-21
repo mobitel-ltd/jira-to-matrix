@@ -1,5 +1,5 @@
 import { fromString } from 'html-to-text';
-import * as marked from 'marked';
+import marked from 'marked';
 import { getLogger } from '../../modules/log';
 import { translate } from '../../locales';
 import * as utils from '../../lib/utils';
@@ -38,13 +38,10 @@ const getPost = body => {
     return [post, epicInfo].join('\n');
 };
 
-export const getDescription = async (
-    issue: Issue,
-    taskTracker: TaskTracker,
-): Promise<{ body: string; htmlBody: string }> => {
+export const getDescription = (issue: Issue): { body: string; htmlBody: string } => {
     try {
-        const { description } = await taskTracker.getRenderedValues(issue.key, ['description']);
-        const htmlBody = getPost(description);
+        const descriptionFields = utils.getDescriptionFields(issue);
+        const htmlBody = getPost(descriptionFields);
         const body = fromString(htmlBody);
 
         return { body, htmlBody };
@@ -89,7 +86,7 @@ const createIssueRoom = async (chatApi, issue, config, taskTracker): Promise<voi
         const roomId = await chatApi.createRoom(options);
 
         logger.info(`Created room for ${key}: ${roomId}`);
-        const { body, htmlBody } = await getDescription(issue, taskTracker);
+        const { body, htmlBody } = await getDescription(issue);
 
         await chatApi.sendHtmlMessage(roomId, body, htmlBody);
         await chatApi.sendHtmlMessage(roomId, infoBody, infoBody);

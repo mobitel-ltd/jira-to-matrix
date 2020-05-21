@@ -3,8 +3,8 @@
 /* eslint-disable no-undefined */
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 import matrixSdk from 'matrix-js-sdk';
-import utils from '../lib/utils';
-import R from 'ramda';
+import * as utils from '../lib/utils';
+import * as R from 'ramda';
 import { BaseChatApi } from './base-api';
 import { MessengerApi } from '../types';
 
@@ -117,7 +117,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
                 roomId: room.roomId,
                 commandName,
                 bodyText,
-                config: this.config.baseConfig,
+                config: this.config,
             };
 
             await this.commandsHandler(options);

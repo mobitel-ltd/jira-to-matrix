@@ -1,4 +1,4 @@
-import * as Polyglot from 'node-polyglot';
+import Polyglot from 'node-polyglot';
 import { config } from '../config';
 import * as en from './en';
 import * as ru from './ru';

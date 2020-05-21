@@ -43,12 +43,9 @@ const getJiraFsm = (app, port) =>
     });
 
 /**
- *
- * @param {ChatFasade} chatFasade chat fasade
- * @param {Function} handler hook handler
  * @returns {StateMachine} state machine
  */
-const getChatFsm = (chatFasade, handler) => {
+const getChatFsm = (chatFasade: ChatFasade, handler): StateMachine => {
     const startTime = Date.now();
     const fsm = new StateMachine({
         init: states.init,
@@ -129,7 +126,7 @@ export class FSM {
     constructor(chatApiPool: MessengerApi[], queueHandler: Function, getServer: Function, taskTracker, port) {
         const chatFasade = new ChatFasade(chatApiPool);
         this.taskTracker = taskTracker;
-        this.chatFSM = getChatFsm(chatFasade, queueHandler(taskTracker));
+        this.chatFSM = getChatFsm(chatFasade, queueHandler);
         this.jiraFsm = getJiraFsm(getServer(taskTracker, this.handleHook.bind(this)), port);
     }
 

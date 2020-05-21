@@ -1,5 +1,5 @@
 import * as utils from '../lib/utils';
-import { PostCommentData } from '../types/index';
+import { PostCommentData, PostEpicUpdatesData, PostIssueUpdatesData } from '../types/index';
 
 export const getPostCommentData = (body): PostCommentData => {
     const headerText = utils.getHeaderText(body);
@@ -37,10 +37,10 @@ export const getPostNewLinksData = body => {
     return { links };
 };
 
-export const getPostEpicUpdatesData = body => {
-    const epicKey = utils.getEpicKey(body);
+export const getPostEpicUpdatesData = (body): PostEpicUpdatesData => {
+    const epicKey = utils.getEpicKey(body)!;
     const id = utils.getIssueId(body);
-    const key = utils.getKey(body);
+    const key = utils.getKey(body)!;
     const summary = utils.getSummary(body);
     const status = utils.getNewStatus(body);
     const name = utils.getDisplayName(body);
@@ -77,14 +77,16 @@ export const getPostProjectUpdatesData = body => {
     return { typeEvent, projectKey, data };
 };
 
-export const getPostIssueUpdatesData = body => {
+export const getPostIssueUpdatesData = (body): PostIssueUpdatesData => {
     const author = utils.getDisplayName(body);
     const changelog = utils.getChangelog(body);
     const newKey = utils.getNewKey(body);
-    const oldKey = utils.getOldKey(body) || utils.getKey(body);
+    const oldKey = (utils.getOldKey(body) || utils.getKey(body))!;
     const newNameData = newKey
         ? { key: newKey, summary: utils.getSummary(body) }
-        : utils.getNewSummary(body) && { key: oldKey, summary: utils.getNewSummary(body) };
+        : typeof utils.getNewSummary(body) === 'string'
+        ? { key: oldKey, summary: utils.getNewSummary(body)! }
+        : undefined;
 
     const newStatusId = utils.getNewStatusId(body);
 

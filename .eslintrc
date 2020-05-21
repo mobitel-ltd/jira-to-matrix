@@ -6,13 +6,8 @@
         "node": true,
         "jest": true
     },
-    "plugins": ["prettier", "jest"],
+    "plugins": ["prettier"],
     "rules": {
-        "jest/no-disabled-tests": "warn",
-        "jest/no-focused-tests": "error",
-        "jest/no-identical-title": "error",
-        "jest/prefer-to-have-length": "warn",
-        "jest/valid-expect": "error",
         "@typescript-eslint/no-useless-constructor": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "class-methods-use-this": "off",

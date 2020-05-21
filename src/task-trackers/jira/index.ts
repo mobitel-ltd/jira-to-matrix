@@ -1,6 +1,6 @@
 import requestPromise from 'request-promise-native';
 import querystring from 'querystring';
-import R from 'ramda';
+import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
 import * as utils from '../../lib/utils';
 import * as messages from '../../lib/messages';
@@ -37,9 +37,7 @@ export class Jira {
         this.expandParams = { expand: 'renderedFields' };
     }
 
-    static get expandParams(): { expand: 'renderedFields' } {
-        return this.expandParams;
-    }
+    static expandParams = { expand: 'renderedFields' };
 
     /**
      * Create jira url
@@ -189,7 +187,7 @@ export class Jira {
     /**
      * Make jira request to get all watchers, assign, creator and reporter of issue from url
      */
-    async getIssueWatchers(keyOrId) {
+    async getIssueWatchers(keyOrId: string): Promise<string[]> {
         const url = this.getUrl('issue', keyOrId, 'watchers');
         const body = await this.request(url);
         const watchers = body && Array.isArray(body.watchers) ? body.watchers.map(item => utils.extractName(item)) : [];
@@ -199,7 +197,9 @@ export class Jira {
 
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
-        return [...allWatchersSet].filter(this._isExpectedToInvite).filter(user => !user.includes(this.user));
+        return [...allWatchersSet]
+            .filter(user => this._isExpectedToInvite(user))
+            .filter(user => !user.includes(this.user));
     }
 
     /**
@@ -288,7 +288,7 @@ export class Jira {
         id: string;
         name: string;
         lead: string;
-        issueTypes: Array<{ id: number; name: string; description: string; subtask: any }>;
+        issueTypes: Array<{ id: string; name: string; description: string; subtask: any }>;
         adminsURL: string;
         isIgnore: boolean;
         style: string;
@@ -373,7 +373,7 @@ export class Jira {
     /**
      * Make request to jira by issueID adding renderedFields and filter by fields
      */
-    async getRenderedValues(key: string, fields: string[]): Promise<object> {
+    async getRenderedValues(key: string, fields: string[]): Promise<any> {
         try {
             const issue = await this.getIssueFormatted(key);
 

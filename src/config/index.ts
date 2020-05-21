@@ -4,7 +4,8 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Config } from '../types/index';
-import * as configData from '../../config';
+// import * as configData from '../../config';
+import * as configData from '../../test/fixtures/config';
 
 const defaultRepoName = 'git-repo';
 
@@ -62,4 +63,4 @@ const composeConfig = (baseConfig: any): Config => {
     return { ...config, messenger };
 };
 
-export const config: Config = composeConfig(configData);
+export const config: Config = composeConfig(configData.config);

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as marked from 'marked';
+import marked from 'marked';
 import { translate } from '../../../locales';
 import { getLogger } from '../../../modules/log';
 import { CommandOptions } from '../../../types';

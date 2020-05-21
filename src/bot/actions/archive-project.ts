@@ -1,10 +1,10 @@
-import * as delay from 'delay';
+import delay from 'delay';
 import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
 import * as utils from '../../lib/utils';
 import { kick } from '../commands/command-list/common-actions';
 import { exportEvents } from '../../lib/git-lib';
-import { MessengerApi } from '../../types';
+import { MessengerApi, Config, TaskTracker } from '../../types';
 
 const logger = getLogger(module);
 
@@ -81,6 +81,7 @@ export const archiveAndForget = async ({ client, roomData, keepTimestamp, config
 
         logger.info(`Room "${roomData.alias}" with id ${roomData.id} is archived to ${repoLinks.httpLink}`);
 
+        console.log('archiveAndForget -> roomData', roomData);
         await kick(client, roomData);
         await client.leaveRoom(roomData.id);
 
@@ -147,7 +148,18 @@ export const handleKnownRoom = async (chatApi, { keepTimestamp, roomId, alias, s
     return state;
 };
 
-export const getRoomArchiveState = async (chatApi, { alias, keepTimestamp, status, config, taskTracker }) => {
+export interface ArchiveOptions {
+    alias: string;
+    keepTimestamp: number;
+    status?: string;
+    config: Config;
+    taskTracker: TaskTracker;
+}
+
+export const getRoomArchiveState = async (
+    chatApi: MessengerApi,
+    { alias, keepTimestamp, status, config, taskTracker }: ArchiveOptions,
+) => {
     const roomId = await chatApi.getRoomIdByName(alias);
 
     return roomId

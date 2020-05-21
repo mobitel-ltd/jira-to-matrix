@@ -2,7 +2,7 @@ import isImage from 'is-image';
 import * as fileSystem from 'fs';
 import * as path from 'path';
 import * as R from 'ramda';
-import * as git from 'simple-git/promise';
+import gitP, { SimpleGit } from 'simple-git/promise';
 import * as utils from './utils';
 import { fileRequest } from './request';
 import { getLogger } from '../modules/log';
@@ -232,7 +232,7 @@ const getRepoPath = async (repoName, { baseRemote, gitReposPath }) => {
 
     if (fileSystem.existsSync(repoPath)) {
         logger.debug(`Remote repo by project key ${repoName} is already exists by path ${repoPath}`);
-        const repoGit = git(repoPath);
+        const repoGit = gitP(repoPath);
         await repoGit.pull('origin', 'master');
         logger.debug(`Remote repo by project key ${repoName} successfully pulled to ${repoPath}`);
 
@@ -240,7 +240,8 @@ const getRepoPath = async (repoName, { baseRemote, gitReposPath }) => {
     }
 
     const remote = getProjectRemote(baseRemote, repoName);
-    await git(gitReposPath).clone(remote, repoName, ['--depth=3']);
+    const git: SimpleGit = gitP(gitReposPath);
+    await git.clone(remote, repoName, ['--depth=3']);
     logger.debug(`clone repo by project key ${repoName} is succedded to tmp dir ${gitReposPath}`);
 
     return repoPath;
@@ -263,7 +264,7 @@ export const exportEvents = async ({
         const createdFileNames = await writeEventsData(listEvents, repoRoomPath, chatApi, roomData);
         logger.debug(`File creation for ${createdFileNames.length} events is succedded for room ${roomData.alias}!!!`);
 
-        const repoGit = git(repoPath);
+        const repoGit: SimpleGit = gitP(repoPath);
 
         await repoGit.addConfig('user.name', 'bot');
         await repoGit.addConfig('user.email', 'bot@example.com');
@@ -287,7 +288,8 @@ export const isRepoExists = async (baseRemote, repoName = DEFAULT_REMOTE_NAME) =
     try {
         const remote = getProjectRemote(baseRemote, repoName);
 
-        await git().listRemote([remote]);
+        const git: SimpleGit = gitP();
+        await git.listRemote([remote]);
 
         return true;
     } catch (error) {

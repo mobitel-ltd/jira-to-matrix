@@ -74,7 +74,7 @@ const handlers = {
         getDisplayName: body => Ramda.path(['user', 'displayName'], body),
         getSummary: body => Ramda.path(['issue', 'fields', 'summary'], body),
         getUserName: body => Ramda.path(['user', 'name'], body),
-        getEpicKey: body => Ramda.path(['issue', 'fields', epicField], body),
+        getEpicKey: (body): string | undefined => Ramda.path(['issue', 'fields', epicField], body),
         getType: body => Ramda.path(['issue', 'fields', 'issuetype', 'name'], body),
         getIssueId: body => Ramda.path(['issue', 'id'], body),
         getIssueKey: (body): string => Ramda.path(['issue', 'key'], body) as string,
@@ -163,7 +163,7 @@ export const getDisplayName = body => runMethod(body, 'getDisplayName');
 
 export const getMembers = body => runMethod(body, 'getMembers') || handlers.issue.getMembers({ issue: body });
 
-export const getIssueId = body => runMethod(body, 'getIssueId');
+export const getIssueId = (body): string => runMethod(body, 'getIssueId');
 
 export const getIssueKey = body => runMethod(body, 'getIssueKey');
 
@@ -189,9 +189,9 @@ export const getCommentBody = body => handlers.comment.getCommentBody(body);
 
 export const getUserName = body => handlers.issue.getUserName(body);
 
-export const getEpicKey = body => handlers.issue.getEpicKey(body);
+export const getEpicKey = (body): string | undefined => handlers.issue.getEpicKey(body);
 
-export const getKey = (body: Issue): string | undefined =>
+export const getKey = (body: Issue | any): string | undefined =>
     handlers.issue.getIssueKey(body) || Ramda.path(['key'], body);
 
 export const getIssueLinkSourceId = body => handlers.issuelink.getIssueLinkSourceId(body);
@@ -204,7 +204,7 @@ export const getSourceRelation = body => handlers.issuelink.getSourceRelation(bo
 
 export const getDestinationRelation = body => handlers.issuelink.getDestinationRelation(body);
 
-export const getSummary = body => runMethod(body, 'getSummary') || getResponcedSummary(body);
+export const getSummary = (body): string => runMethod(body, 'getSummary') || getResponcedSummary(body);
 
 export const getBodyTimestamp = body => Ramda.path(['timestamp'], body);
 
@@ -227,15 +227,15 @@ export const isCommentEvent = body => getHookType(body) === 'comment' && !getBod
 export const getChangelogField = (fieldName, body) =>
     getChangelogItems(body).find((item: ChangelogItem) => item.field === fieldName);
 
-export const getNewSummary = body => Ramda.path(['toString'], getChangelogField('summary', body));
+export const getNewSummary = (body): string | undefined => Ramda.path(['toString'], getChangelogField('summary', body));
 
-export const getNewStatus = body => Ramda.path(['toString'], getChangelogField('status', body));
+export const getNewStatus = (body): string | undefined => Ramda.path(['toString'], getChangelogField('status', body));
 
-export const getNewStatusId = body => Ramda.path(['to'], getChangelogField('status', body));
+export const getNewStatusId = (body): string | undefined => Ramda.path(['to'], getChangelogField('status', body));
 
-export const getNewKey = body => Ramda.path(['toString'], getChangelogField('Key', body));
+export const getNewKey = (body): string | undefined => Ramda.path(['toString'], getChangelogField('Key', body));
 
-export const getOldKey = body => Ramda.path(['fromString'], getChangelogField('Key', body));
+export const getOldKey = (body): string | undefined => Ramda.path(['fromString'], getChangelogField('Key', body));
 
 export const getRelations = issueLinkBody => ({
     inward: {
@@ -306,7 +306,7 @@ export const isIgnoreKey = key => !KEYS_TO_IGNORE.some(val => key.includes(val))
 
 export const getDefaultErrorLog = funcName => `Error in ${funcName}`;
 
-export const errorTracing = (name, err) => {
+export const errorTracing = (name, err = '') => {
     const log = messages[name] || getDefaultErrorLog(name);
 
     return [log, err].join('\n');

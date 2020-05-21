@@ -1,4 +1,4 @@
-import R from 'ramda';
+import * as R from 'ramda';
 import { translate } from '../../locales';
 import * as commands from './command-list';
 import { getLogger } from '../../modules/log';

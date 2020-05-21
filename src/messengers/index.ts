@@ -6,4 +6,4 @@ const messengers = {
     slack: SlackApi,
 };
 
-export const getChatClass = type => messengers[type];
+export const getChatClass = (type: 'matrix' | 'slack'): typeof SlackApi | typeof MatrixApi => messengers[type];

@@ -5,9 +5,9 @@ import { PostCommentActions, RenderedIssue, Comment } from '../../types';
 
 const logger = getLogger(module);
 
-const getCommentHTMLBody = (headerText, commentBody) => `${headerText}: <br>${commentBody}`;
+export const getCommentHTMLBody = (headerText, commentBody) => `${headerText}: <br>${commentBody}`;
 
-const getCommentBody = (issue: RenderedIssue, comment) => {
+export const getCommentBody = (issue: RenderedIssue, comment) => {
     const comments: Comment[] = R.path(['renderedFields', 'comment', 'comments'], issue) as Comment[];
 
     const result = R.propOr(comment.body, 'body', R.find(R.propEq('id', comment.id), comments));

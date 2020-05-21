@@ -6,10 +6,10 @@ import { config } from '../config';
 import { getLogger } from '../modules/log';
 import { MessengerFasade, Config, TaskTracker } from '../types';
 
-const prefix = config.redis;
+const { prefix } = config.redis;
 const logger = getLogger(module);
 
-const getRedisKeys = async () => {
+export const getRedisKeys = async () => {
     try {
         const allKeys = await redis.keysAsync(`${prefix}*`);
         return allKeys.filter(utils.isIgnoreKey);
@@ -43,7 +43,7 @@ export const getCommandKeys = async () => {
     }
 };
 
-export const getRedisValue = async key => {
+export const getRedisValue = async (key: string) => {
     try {
         const newKey = key.replace(prefix, '');
 

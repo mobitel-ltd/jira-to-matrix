@@ -61,7 +61,7 @@ export interface Config {
             password: string;
             isMaster?: true;
         }[];
-        infoRoom: {
+        infoRoom?: {
             users: string[];
             name: string;
         };
@@ -85,7 +85,7 @@ export interface Config {
             'blue-gray': string;
             purple: string;
         };
-        projects: ['TEST'];
+        projects: string[] | 'all';
     };
     gitArchive?: {
         user: string;
@@ -514,7 +514,7 @@ export interface TaskTracker {
     /**
      * Get all issue priorities
      */
-    getIssuePriorities(keyOrId: string): Promise<object[]>;
+    getIssuePriorities(keyOrId: string): Promise<object[] | undefined>;
 
     /**
      * Update issue priorities
@@ -598,7 +598,7 @@ export interface TaskTracker {
     /**
      * Make request to jira by issueID adding renderedFields and filter by fields
      */
-    getRenderedValues(key: string, fields: object): Promise<object & { description: object }>;
+    getRenderedValues(key: string, fields: string[]): Promise<any>;
 
     /**
      * Get user list by part of the name
@@ -643,7 +643,7 @@ export interface TaskTracker {
     /**
      * Get issue current status
      */
-    getCurrentStatus(keyOrId: string): Promise<string>;
+    getCurrentStatus(keyOrId: string): Promise<string | undefined>;
 }
 
 interface CommonMessengerApi {
@@ -821,6 +821,33 @@ export interface MessengerFasade extends CommonMessengerApi {
      * Get bot which will create new room for new hooks
      */
     getCurrentClient(): MessengerApi;
+
+    /**
+     * Get each instance of bots
+     */
+    getAllInstance(): MessengerApi[];
+
+    /**
+     * Disconnect each bot
+     */
+    disconnect(): void;
+
+    /**
+     * Invite watchers to info room
+     */
+    inviteInfoWatchers(): Promise<void>;
+
+    /**
+     * Send notify to an info room
+     */
+    sendNotify(text: string): Promise<boolean | undefined>;
+
+    /**
+     * Get or create room for notify message
+     */
+    getOrCreateNotifyRoom(roomName: string): Promise<string>;
+
+    joinBotToInfoRoom(userId: string): Promise<void>;
 }
 
 export interface BaseActions {
@@ -839,20 +866,24 @@ export interface InviteMemberActions extends BaseActions {
     projectKey?: string;
 }
 
-export interface PostIssueUpdatesActions extends BaseActions {
+export interface PostIssueUpdatesData {
     newStatusId?: string;
     oldKey: string;
-    newKey: string;
-    newNameData: { key: string; summary: string };
+    newKey?: string;
+    newNameData?: { key: string; summary: string };
     changelog: object;
     author: string;
     projectKey?: string;
 }
 
-export interface PostEpicUpdatesActions extends BaseActions {
+export interface PostIssueUpdatesActions extends BaseActions, PostIssueUpdatesData {}
+
+export interface PostEpicUpdatesData {
     epicKey: string;
-    data: { epic: { key: string }; issue: { key: string; id: string }; status?: string };
+    data: { key: string; summary: string; id: string; name: string; status?: string };
 }
+
+export interface PostEpicUpdatesActions extends BaseActions, PostEpicUpdatesData {}
 
 export interface PostNewLinksActions extends BaseActions {
     links: string[];
