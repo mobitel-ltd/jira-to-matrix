@@ -1,10 +1,10 @@
 import * as faker from 'faker';
-const tmp from 'tmp-promise');
-const gitSimple from 'simple-git/promise');
+import * as tmp from 'tmp-promise';
+import gitP from 'simple-git/promise';
 import { config } from '../../src/config';
 import * as fs from 'fs';
 import * as path from 'path';
-const {
+import {
     getMDtext,
     exportEvents,
     EVENTS_DIR_NAME,
@@ -16,33 +16,33 @@ const {
     FILE_DELIMETER,
     DEFAULT_REMOTE_NAME,
     getRoomMainInfoMd,
-} from '../../src/lib/git-lib');
-
+} from '../../src/lib/git-lib';
 import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
-const { expect } = chai;
-chai.use(sinonChai);
-const testUtils from '../test-utils');
-const issueJSON from '../fixtures/jira-api-requests/issue.json');
-const projectJSON from '../fixtures/jira-api-requests/project.json');
-
+import { getChatClass, getRoomId, baseMedia, cleanRedis, startGitServer, setRepo } from '../test-utils';
+import issueJSON from '../fixtures/jira-api-requests/issue.json';
+import projectJSON from '../fixtures/jira-api-requests/project.json';
 import { rawEvents } from '../fixtures/archiveRoom/raw-events';
 import { info } from '../fixtures/archiveRoom/raw-events-data';
-const utils from '../../src/lib/utils');
+import * as utils from '../../src/lib/utils';
+import eventBefore from '../fixtures/archiveRoom/already-exisits-git/res/$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA.json';
+
+const { expect } = chai;
+chai.use(sinonChai);
+
 const messagesMD = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/allMessagesFromRoom.md'), 'utf8');
 const infoMd = fs.readFileSync(path.resolve(__dirname, '../fixtures/archiveRoom/room-info.md'), 'utf8');
 const messagesWithBefore = fs.readFileSync(
     path.resolve(__dirname, '../fixtures/archiveRoom/withbefore-readme.md'),
     'utf8',
 );
-const eventBefore from '../fixtures/archiveRoom/already-exisits-git/res/$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA.json');
 
 const fsProm = fs.promises;
 
 describe('Archive command', () => {
     let chatApi;
-    const roomId = testUtils.getRoomId();
+    const roomId = getRoomId();
     let roomNameNotGitProject;
     let notExistProject;
     const notAdminSender = 'notAdmin';
@@ -73,7 +73,7 @@ describe('Archive command', () => {
     beforeEach(() => {
         notExistProject = faker.name.firstName().toUpperCase();
         roomNameNotGitProject = `${notExistProject}-123`;
-        chatApi = testUtils.getChatClass({ existedUsers: [notAdminSender] });
+        chatApi = getChatClass({ existedUsers: [notAdminSender] }).chatApiSingle;
         roomData = {
             alias: issueKey,
             topic: 'room topic',
@@ -83,12 +83,12 @@ describe('Archive command', () => {
             members: [
                 ...baseMembers,
                 {
-                    userId: `@${chatSingle.getMyId()}:matrix.test.com`,
+                    userId: `@${chatApi.getMyId()}:matrix.test.com`,
                     powerLevel: 100,
                 },
             ],
         };
-        nock(testUtils.baseMedia)
+        nock(baseMedia)
             .get(`/${info.mediaId}`)
             .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'))
             .get(`/${info.blobId}`)
@@ -109,7 +109,7 @@ describe('Archive command', () => {
 
     afterEach(async () => {
         nock.cleanAll();
-        await testUtils.cleanRedis();
+        await cleanRedis();
     });
 
     it('transform event', () => {
@@ -173,10 +173,10 @@ describe('Archive command', () => {
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
 
-            server = testUtils.startGitServer(path.resolve(tmpDir.path, 'git-server'));
+            server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
-            await testUtils.setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: issueKey });
-            await testUtils.setRepo(tmpDir.path, expectedDefaultRemote, {
+            await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: issueKey });
+            await setRepo(tmpDir.path, expectedDefaultRemote, {
                 roomName: issueKey,
             });
         });
@@ -202,7 +202,7 @@ describe('Archive command', () => {
             });
 
             const cloneName = 'clone-repo';
-            const gitLocal = gitSimple(tmpDir.path);
+            const gitLocal = gitP(tmpDir.path);
             await gitLocal.clone(expectedRemote, cloneName);
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
             const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);
@@ -239,7 +239,7 @@ describe('Archive command', () => {
             });
 
             const cloneName = 'clone-repo';
-            const gitLocal = gitSimple(tmpDir.path);
+            const gitLocal = gitP(tmpDir.path);
             await gitLocal.clone(expectedDefaultRemote, cloneName);
             const files = await fsProm.readdir(path.resolve(tmpDir.path, cloneName, issueKey, EVENTS_DIR_NAME));
             const allEvents = [...rawEvents, eventBefore].map(event => `${event.event_id}.json`);

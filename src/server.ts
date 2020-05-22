@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 import * as bodyParser from 'body-parser';
 import { getParsedAndSaveToRedis } from './jira-hook-parser';
 import { getAllSettingData, setSettingsData, delSettingsData } from './bot/settings';

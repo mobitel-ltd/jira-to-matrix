@@ -1,19 +1,18 @@
-// import { resolve } from 'path';
+import { resolve } from 'path';
 import { validate } from './validate-config';
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Config } from '../types/index';
-// import * as configData from '../../config';
-import * as configData from '../../test/fixtures/config';
+import proxyquire from 'proxyquire';
 
 const defaultRepoName = 'git-repo';
 
-// const configPath = process.env.NODE_ENV === 'test' ? './test/fixtures/' : './';
+const configPath = process.env.NODE_ENV === 'test' ? './test/fixtures/' : './';
 
-// const configFilepath = resolve(configPath, 'config');
+const configFilepath = resolve(configPath, 'config');
 
-// const configData = await import(configFilepath);
+const configData = proxyquire(configFilepath, {});
 
 const defaultConfigData = {
     delayInterval: 500,

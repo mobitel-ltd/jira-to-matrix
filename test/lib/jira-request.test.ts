@@ -1,26 +1,23 @@
+import * as assert from 'assert';
 import * as Ramda from 'ramda';
 import nock from 'nock';
-import proxyquire from 'proxyquire';
-
 import * as utils from '../../src/lib/utils';
-const { expect } from 'chai');
-const {
-    getRenderedValues,
-    isJiraPartExists,
-    getIssueWatchers,
-    checkUser,
-    getProject,
-    getProjectWithAdmins,
-} from '../../src/lib/jira-request');
-const { getRequestErrorLog } from '../../src/lib/messages');
-const { url } from '../../src/config').jira;
-const renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json');
-const watchersJSON from '../fixtures/jira-api-requests/watchers.json');
-const issueJSON from '../fixtures/jira-api-requests/issue.json');
+import renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json';
+import watchersJSON from '../fixtures/jira-api-requests/watchers.json';
+import issueJSON from '../fixtures/jira-api-requests/issue.json';
 
-const classicProject from '../fixtures/jira-api-requests/project-gens/classic/correct.json');
-const newgenProject from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json');
-const adminsProject from '../fixtures/jira-api-requests/project-gens/admins-project.json');
+import classicProject from '../fixtures/jira-api-requests/project-gens/classic/correct.json';
+import newgenProject from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json';
+import adminsProject from '../fixtures/jira-api-requests/project-gens/admins-project.json';
+import { Jira } from '../../src/task-trackers/jira';
+import { config } from '../../src/config';
+import { getRequestErrorLog } from '../../src/lib/messages';
+import { stub } from 'sinon';
+import * as chai from 'chai';
+import sinonChai from 'sinon-chai';
+
+const { expect } = chai;
+chai.use(sinonChai);
 
 // ii_ivanov pp_petrov bb_borisov
 const watchers = watchersJSON.watchers
@@ -36,6 +33,15 @@ const members = [
 
 const expectedWatchersUsers = [...new Set([...watchers, ...members])].sort();
 describe('Jira request test', () => {
+    const jiraApi = new Jira({
+        url: config.jira.url,
+        password: config.jira.password,
+        user: config.jira.user,
+        count: config.ping && config.ping.count,
+        interval: config.ping && config.ping.interval,
+        inviteIgnoreUsers: config.usersToIgnore,
+    });
+
     const users = [
         {
             displayName: 'Ivan Andreevich A',
@@ -59,7 +65,6 @@ describe('Jira request test', () => {
         id: 26313,
         key: 'ABC',
     };
-    const fakeKey = 'NANANAN';
 
     const params = {
         username: utils.COMMON_NAME,
@@ -98,84 +103,75 @@ describe('Jira request test', () => {
     });
 
     it('Default or not default', async () => {
-        const checkProjectRoom = await isJiraPartExists('INDEV-123');
+        const checkProjectRoom = await jiraApi.isJiraPartExists('INDEV-123');
         expect(checkProjectRoom).to.be.true;
-        const checkNotProjectRoom = await isJiraPartExists('hjshhhhd');
+        const checkNotProjectRoom = await jiraApi.isJiraPartExists('hjshhhhd');
         expect(checkNotProjectRoom).to.be.false;
     });
 
     it('getRenderedValues test', async () => {
-        const getRenderedValuesData = await getRenderedValues(issue.key, ['description']);
+        const getRenderedValuesData = await jiraApi.getRenderedValues(issue.key, ['description']);
         expect(getRenderedValuesData).to.be.deep.equal({ description: renderedIssueJSON.renderedFields.description });
-    });
-
-    it('getRenderedValues error test', async () => {
-        const fakeUrl = utils.getRestUrl('issue', fakeKey);
-        const expectedData = [
-            'getRenderedValues error',
-            'getIssueFormatted Error',
-            'Error in get issue',
-            getRequestErrorLog(fakeUrl),
-        ];
-        try {
-            await getRenderedValues(fakeKey, ['description']);
-        } catch (error) {
-            expect(error).to.be.deep.equal(expectedData.join('\n'));
-        }
     });
 
     it('getViewUrl test', () => {
         const projectResult = utils.getViewUrl(issue.id, 'projects');
-        expect(projectResult).to.be.deep.equal(`${url}/projects/${issue.id}`);
+        expect(projectResult).to.be.deep.equal(`${config.jira.url}/projects/${issue.id}`);
 
         const issueResult = utils.getViewUrl(issue.id);
-        expect(issueResult).to.be.deep.equal(`${url}/browse/${issue.id}`);
+        expect(issueResult).to.be.deep.equal(`${config.jira.url}/browse/${issue.id}`);
     });
 
     it('expect getIssueWatchers works correct', async () => {
-        const result = await getIssueWatchers(issue.key);
+        const result = await jiraApi.getIssueWatchers(issue.key);
         expect(result.sort()).to.be.deep.eq([...expectedWatchersUsers]);
     });
 
     it('expect getIssueWatchers works correct with empty roomMembers', async () => {
-        const result = await getIssueWatchers(issue.key);
+        const result = await jiraApi.getIssueWatchers(issue.key);
         expect(result.sort()).to.be.deep.eq(expectedWatchersUsers);
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list', async () => {
-        const { getIssueWatchers: getCollectParticipantsProxy } = proxyquire('../../src/lib/jira-request', {
-            '../config': {
-                inviteIgnoreUsers: watchers,
-            },
+        const jiraApi_ = new Jira({
+            url: config.jira.url,
+            password: config.jira.password,
+            user: config.jira.user,
+            count: config.ping && config.ping.count,
+            interval: config.ping && config.ping.interval,
+            inviteIgnoreUsers: watchers,
         });
-        const expected = Ramda.difference(members, watchers);
-        const result = await getCollectParticipantsProxy(issue.key);
 
+        const result = await jiraApi_.getIssueWatchers(issue.key);
+
+        const expected = Ramda.difference(members, watchers);
         expect(result.sort()).to.be.deep.eq(expected.sort());
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list2', async () => {
         const [addUser, ...usersToIgnore] = members;
         const expected = Ramda.difference([...watchers, addUser], usersToIgnore);
-        const { getIssueWatchers: getCollectParticipantsProxy } = proxyquire('../../src/lib/jira-request', {
-            '../config': {
-                inviteIgnoreUsers: usersToIgnore,
-            },
+        const jiraApi_ = new Jira({
+            url: config.jira.url,
+            password: config.jira.password,
+            user: config.jira.user,
+            count: config.ping && config.ping.count,
+            interval: config.ping && config.ping.interval,
+            inviteIgnoreUsers: usersToIgnore,
         });
-        const result = await getCollectParticipantsProxy(issue.key);
-        expect(result.sort()).to.be.deep.eq(expected);
+
+        const result = await jiraApi_.getIssueWatchers(issue.key);
+        expect(result.sort()).to.be.deep.eq(expected.sort());
     });
 
     it('checkUser test', () => {
-        const user = {
-            displayName: 'My Test User',
-        };
+        const user = 'My Test User';
         const result = [
-            checkUser(user, 'My'),
-            checkUser(user, 'MY TEST'),
-            checkUser(user, 'test'),
-            checkUser(user, '_NAMe'),
-            checkUser(user, '_NMe'),
+            jiraApi.checkUser(user, 'My'),
+            jiraApi.checkUser(user, 'MY TEST'),
+            jiraApi.checkUser(user, 'test'),
+            jiraApi.checkUser(user, '_NAMe'),
+            jiraApi.checkUser(user, '_NMe'),
         ];
         expect(result).to.deep.equal([true, true, true, false, false]);
     });
@@ -259,13 +255,13 @@ describe('Jira request test', () => {
         });
 
         it('check classic project', async () => {
-            const project = await getProject(classicProject.id);
+            const project = await jiraApi.getProject(classicProject.id);
 
             expect(project).to.be.deep.eq(expectedClassicProject);
         });
 
         it('check classic project with admins', async () => {
-            const project = await getProjectWithAdmins(classicProject.id);
+            const project = await jiraApi.getProjectWithAdmins(classicProject.id);
 
             expect(project).to.be.deep.eq({
                 ...expectedClassicProject,
@@ -274,18 +270,86 @@ describe('Jira request test', () => {
         });
 
         it('check newgen project', async () => {
-            const project = await getProject(newgenProject.id);
+            const project = await jiraApi.getProject(newgenProject.id);
 
             expect(project).to.be.deep.eq(expectedNewgenProject);
         });
 
         it('check newgen project with admins', async () => {
-            const project = await getProjectWithAdmins(newgenProject.id);
+            const project = await jiraApi.getProjectWithAdmins(newgenProject.id);
 
             expect(project).to.be.deep.eq({
                 ...expectedNewgenProject,
                 admins: adminsProject.actors.map(item => item.displayName),
             });
         });
+    });
+});
+
+describe('request testing', () => {
+    const jiraApi = new Jira({
+        url: config.jira.url,
+        password: config.jira.password,
+        user: config.jira.user,
+        count: config.ping && config.ping.count,
+        interval: config.ping && config.ping.interval,
+        inviteIgnoreUsers: config.usersToIgnore,
+    });
+
+    const urlPath = '12345';
+    const fakePath = 'error';
+    const body = { result: true };
+
+    before(() => {
+        nock(utils.getRestUrl())
+            .get(`/${urlPath}`)
+            .reply(200, body)
+            .get(`/${fakePath}`)
+            .reply(400, 'Bad Request');
+    });
+
+    after(() => {
+        nock.cleanAll();
+    });
+
+    it('Expect request works', async () => {
+        const testUrl = utils.getRestUrl(urlPath);
+        const result = await jiraApi.request(testUrl);
+
+        assert.deepEqual(result, body);
+    });
+
+    it('test request with error url', async () => {
+        const testUrl = utils.getRestUrl(fakePath);
+        let res;
+        const expected = getRequestErrorLog(testUrl, 400);
+
+        try {
+            await jiraApi.request(testUrl);
+        } catch (err) {
+            res = err;
+        }
+        assert.deepEqual(res, expected);
+    });
+
+    it('connect any times (7)', async () => {
+        const func = stub();
+        func.rejects('Some error');
+        func.onCall(7).resolves();
+        await jiraApi._connect(func, 100, 10);
+
+        expect(func).to.be.callCount(8);
+    });
+
+    it('connect more 10 time and error', async () => {
+        const func = stub();
+        func.rejects('Some error');
+        const countCall = 10;
+        try {
+            await jiraApi._connect(func, 10, countCall);
+        } catch (err) {
+            expect(err.message).to.be.equal('No connection.');
+        }
+        expect(func).to.be.callCount(countCall);
     });
 });

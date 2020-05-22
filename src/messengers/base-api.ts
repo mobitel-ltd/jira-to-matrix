@@ -23,7 +23,7 @@ export class BaseChatApi {
         return Boolean(this.config.isMaster);
     }
 
-    getNotifyData(): { name: string; users: string[] } | undefined {
+    getNotifyData(): { name: string; users?: string[] } | undefined {
         return this.config.messenger.infoRoom;
     }
 

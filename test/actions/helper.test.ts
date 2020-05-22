@@ -1,15 +1,15 @@
 // const { getRestUrl } from '../../src/lib/utils';
 // import { pipe, set, clone } from 'lodash/fp';
-// const projectCreatedJSON from '../fixtures/webhooks/project/created.json');
-// const issueCreatedJSON from '../fixtures/webhooks/issue/created.json');
+// const projectCreatedJSON from '../fixtures/webhooks/project/created.json'
+// const issueCreatedJSON from '../fixtures/webhooks/issue/created.json'
 // const { getCreateRoomData } from '../../src/jira-hook-parser/parse-body';
-// const renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json');
-// const statusJSON from '../fixtures/jira-api-requests/status.json');
+// const renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json'
+// const statusJSON from '../fixtures/jira-api-requests/status.json'
 // const htmlToText from 'html-to-text').fromString;
 // import * as faker from 'faker';
 // import marked from 'marked';
-// const newLinksbody from '../fixtures/webhooks/issuelink/created.json');
-// const linksDeletedBody from '../fixtures/webhooks/issuelink/deleted.json');
+// const newLinksbody from '../fixtures/webhooks/issuelink/created.json'
+// const linksDeletedBody from '../fixtures/webhooks/issuelink/deleted.json'
 // const {
 //     jira: { url: jiraUrl },
 //     usersToIgnore,
@@ -18,14 +18,14 @@
 
 // const assert from 'assert');
 
-// // const testNewUserAssignBody from '../fixtures/webhooks/issue/updated/issue-assigned.json');
-// const newGenNotIgnoreProject from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json');
-// const commentCreatedHook from '../fixtures/webhooks/comment/created.json');
-// const notIgnoredIssueHook from '../fixtures/webhooks/issue/updated/commented-changed.json');
-// const ignoredIssueHook from '../fixtures/webhooks/issue/updated/generic.json');
-// const notIgnoreCreatorIssueBody from '../fixtures/jira-api-requests/issue.json');
-// const rankHook from '../fixtures/webhooks/issue/updated/rank-changed.json');
-// const utils from '../../src/lib/utils');
+// // const testNewUserAssignBody from '../fixtures/webhooks/issue/updated/issue-assigned.json'
+// const newGenNotIgnoreProject from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json'
+// const commentCreatedHook from '../fixtures/webhooks/comment/created.json'
+// const notIgnoredIssueHook from '../fixtures/webhooks/issue/updated/commented-changed.json'
+// const ignoredIssueHook from '../fixtures/webhooks/issue/updated/generic.json'
+// const notIgnoreCreatorIssueBody from '../fixtures/jira-api-requests/issue.json'
+// const rankHook from '../fixtures/webhooks/issue/updated/rank-changed.json'
+// import * as utils from '../../src/lib/utils';
 // const messages from '../../src/lib/messages');
 // import nock from 'nock';
 

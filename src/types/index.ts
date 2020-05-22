@@ -62,7 +62,7 @@ export interface Config {
             isMaster?: true;
         }[];
         infoRoom?: {
-            users: string[];
+            users?: string[];
             name: string;
         };
     };

@@ -1,34 +1,35 @@
 import * as path from 'path';
-const tmp from 'tmp-promise');
-const { setArchiveProject } from '../../src/bot/settings');
-const utils from '../../src/lib/utils');
+import * as tmp from 'tmp-promise';
+import { info } from '../fixtures/archiveRoom/raw-events-data';
+import * as utils from '../../src/lib/utils';
 import nock from 'nock';
 import { config } from '../../src/config';
-const { getRestUrl, expandParams } from '../../src/lib/utils';
-const { getCreateRoomData } from '../../src/jira-hook-parser/parse-body';
-const JSONbody from '../fixtures/webhooks/issue/created.json');
-const issueJson from '../fixtures/jira-api-requests/issue.json');
-const issueBody from '../fixtures/jira-api-requests/issue-rendered.json');
-const getParsedAndSaveToRedis from '../../src/jira-hook-parser');
 import proxyquire from 'proxyquire';
-import * as chai from 'chai';
 import { stub } from 'sinon';
+import { cleanRedis, getChatClass, startGitServer, setRepo, baseMedia, taskTracker } from '../test-utils';
+import { getRestUrl } from '../../src/lib/utils';
+import { setArchiveProject } from '../../src/bot/settings';
+import { getCreateRoomData } from '../../src/jira-hook-parser/parse-body';
+import JSONbody from '../fixtures/webhooks/issue/created.json';
+import issueJson from '../fixtures/jira-api-requests/issue.json';
+import issueBody from '../fixtures/jira-api-requests/issue-rendered.json';
+import { getParsedAndSaveToRedis } from '../../src/jira-hook-parser';
+import * as handlers from '../../src/queue/redis-data-handle';
+import searchProject from '../fixtures/jira-api-requests/project-gens/search-project.json';
+import { stateEnum } from '../../src/bot/actions/archive-project';
+import { redis } from '../../src/redis-client';
+import { ChatFasade } from '../../src/messengers/chat-fasade';
+import { Jira } from '../../src/task-trackers/jira';
+import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
+
 const { expect } = chai;
 chai.use(sinonChai);
-import { cleanRedis, getChatClass, startGitServer, setRepo, baseMedia } from '../test-utils';
-const handlers from '../../src/queue/redis-data-handle';
-const searchProject from '../fixtures/jira-api-requests/project-gens/search-project.json');
-import { info } from '../fixtures/archiveRoom/raw-events-data';
 
-const { stateEnum } from '../../src/bot/actions/archive-project');
-const redisClient from '../../src/redis-client');
-const ChatFasade from '../../src/messengers/chat-fasade');
 const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
 const {
     jira: { url: jiraUrl },
-    redis,
     usersToIgnore,
     testMode,
     baseRemote,
@@ -43,7 +44,7 @@ const {
     handleRedisData,
     handleRedisRooms,
     createRoomDataOnlyNew,
-} = proxyquire('../../src/queue/redis-data-handle.js', {
+} = proxyquire('../../src/queue/redis-data-handle', {
     '../bot/actions': {
         createRoom: createRoomStub,
         postEpicUpdates: postEpicUpdatesStub,
@@ -80,7 +81,7 @@ describe('redis-data-handle test', () => {
     ];
     const redisKey = 'postEpicUpdates_2018-1-11 13:08:04,225';
 
-    const expectedFuncKeys = [`${redis.prefix}${redisKey}`];
+    const expectedFuncKeys = [`${config.redis.prefix}${redisKey}`];
     // const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
 
     const expectedData = [
@@ -154,10 +155,10 @@ describe('redis-data-handle test', () => {
             .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, { ...responce, id: 28516 })
             .get(`/issue/30369`)
-            .query(expandParams)
+            .query(Jira.expandParams)
             .reply(200, issueBody)
             .get(`/issue/BBCOM-801`)
-            .query(expandParams)
+            .query(Jira.expandParams)
             .reply(200, issueBody)
             .get(url => url.indexOf('null') > 0)
             .reply(404);
@@ -172,7 +173,7 @@ describe('redis-data-handle test', () => {
         beforeEach(async () => {
             const notIgnoreCreatorHook = JSONbody;
 
-            await getParsedAndSaveToRedis(notIgnoreCreatorHook);
+            await getParsedAndSaveToRedis(taskTracker, notIgnoreCreatorHook);
         });
 
         it('Expect hook to be ignore and both redisKeys and redisData to be empty if hook issue creator is not in the list of config ignore users', async () => {
@@ -190,7 +191,7 @@ describe('redis-data-handle test', () => {
         beforeEach(async () => {
             const notIgnoreCreatorHook = JSONbody;
 
-            await getParsedAndSaveToRedis(notIgnoreCreatorHook, usersToIgnore, prodMode);
+            await getParsedAndSaveToRedis(taskTracker, notIgnoreCreatorHook, usersToIgnore, prodMode);
         });
 
         it('test correct not saving the same hook', async () => {
@@ -201,15 +202,15 @@ describe('redis-data-handle test', () => {
                 .get(`/issue/BBCOM-1398/watchers`)
                 .reply(200, { ...responce, id: 28516 })
                 .get(`/issue/30369`)
-                .query(expandParams)
+                .query(Jira.expandParams)
                 .reply(200, issueBody)
                 .get(`/issue/BBCOM-801`)
-                .query(expandParams)
+                .query(Jira.expandParams)
                 .reply(200, issueBody)
                 .get(url => url.indexOf('null') > 0)
                 .reply(404);
 
-            await getParsedAndSaveToRedis(JSONbody);
+            await getParsedAndSaveToRedis(taskTracker, JSONbody);
 
             const redisKeys = await getRedisKeys();
             expect(redisKeys).be.deep.eq(expectedFuncKeys);
@@ -227,7 +228,7 @@ describe('redis-data-handle test', () => {
 
         it('test correct handleRedisData', async () => {
             const dataFromRedisBefore = await getDataFromRedis();
-            await handleRedisData('client', dataFromRedisBefore);
+            await handleRedisData('client', dataFromRedisBefore, config, taskTracker);
             const dataFromRedisAfter = await getDataFromRedis();
 
             expect(dataFromRedisBefore).to.have.deep.members(expectedData);
@@ -245,7 +246,7 @@ describe('redis-data-handle test', () => {
             postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
 
             const dataFromRedisBefore = await getDataFromRedis();
-            await handleRedisData('client', dataFromRedisBefore);
+            await handleRedisData('client', dataFromRedisBefore, config, taskTracker);
             const dataFromRedisAfter = await getDataFromRedis();
             const redisRooms = await getRedisRooms();
 
@@ -260,7 +261,7 @@ describe('redis-data-handle test', () => {
 
             const dataFromRedisBefore = await getDataFromRedis();
             const redisRoomsBefore = await getRedisRooms();
-            await handleRedisData('client', dataFromRedisBefore);
+            await handleRedisData('client', dataFromRedisBefore, config, taskTracker);
             const dataFromRedisAfter = await getDataFromRedis();
             const redisRooms = await getRedisRooms();
 
@@ -356,7 +357,7 @@ describe('Test handle archive project data', () => {
         messengerApi = getChatClass({
             alias: [lastKey, aliasExists, laterProjectKey, aliasRemoved, otherCreator, laterProjectKey],
             roomId: [lastKey, aliasExists, laterProjectKey],
-        });
+        }).chatApiSingle;
         chatApi = new ChatFasade([messengerApi]);
     });
 
@@ -367,13 +368,13 @@ describe('Test handle archive project data', () => {
 
     it('Expect nothing handles if redis key is empty', async () => {
         const keys = await handlers.getCommandKeys();
-        const res = await handlers.handleCommandKeys(chatApi, keys);
+        const res = await handlers.handleCommandKeys(chatApi, keys, config, taskTracker);
         expect(res).to.be.empty;
     });
 
     it('expect setArchiveProject work correct', async () => {
         await setArchiveProject(projectKey);
-        const [data] = await redisClient.getList(utils.ARCHIVE_PROJECT);
+        const [data] = await redis.getList(utils.ARCHIVE_PROJECT);
         expect(data).to.include(projectKey);
     });
 
@@ -431,11 +432,12 @@ describe('Test handle archive project data', () => {
 
             const keys = await handlers.getCommandKeys();
             // set order
-            const { [projectKey]: res1, [laterProject]: res2 } = await handlers.handleCommandKeys(
+            const { [projectKey]: res1, [laterProject]: res2 } = (await handlers.handleCommandKeys(
                 chatApi,
                 keys,
                 configWithTmpPath,
-            );
+                taskTracker,
+            ))!;
 
             expect(res1[stateEnum.NOT_FOUND]).to.have.length(2);
             expect(res1[stateEnum.ARCHIVED]).to.have.length(2);

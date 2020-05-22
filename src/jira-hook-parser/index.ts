@@ -3,6 +3,7 @@ import { getFuncAndBody } from './bot-handler';
 import { isIgnore } from './is-ignore';
 import { saveIncoming, saveToHandled } from '../queue/redis-data-handle';
 import { getLogger } from '../modules/log';
+import { TaskTracker } from '../types';
 
 const logger = getLogger(module);
 
@@ -16,8 +17,8 @@ const { usersToIgnore, testMode } = config;
  * @returns {boolean} ignore or not
  */
 export const getParsedAndSaveToRedis = async (
-    taskTracker,
-    body,
+    taskTracker: TaskTracker,
+    body: any,
     _usersToIgnore = usersToIgnore,
     _testMode = testMode,
 ) => {

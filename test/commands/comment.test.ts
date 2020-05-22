@@ -1,14 +1,14 @@
 import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
+import { translate } from '../../src/locales';
+import { getChatClass, taskTracker } from '../test-utils';
+import { commandsHandler } from '../../src/bot/commands';
+import * as utils from '../../src/lib/utils';
+import { schemas } from '../../src/task-trackers/jira/schemas';
+
 const { expect } = chai;
 chai.use(sinonChai);
-import { translate } from '../../src/locales';
-const testUtils from '../test-utils');
-
-const commandHandler from '../../src/bot/commands');
-const utils from '../../src/lib/utils');
-const schemas from '../../src/lib/schemas';
 
 describe('comment test', () => {
     let chatApi;
@@ -20,8 +20,8 @@ describe('comment test', () => {
     const commandName = 'comment';
 
     beforeEach(() => {
-        chatApi = testUtils.getChatClass();
-        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
+        chatApi = getChatClass().chatApiSingle;
+        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText, taskTracker };
         nock(utils.getRestUrl())
             .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
             .reply(201);
@@ -32,16 +32,16 @@ describe('comment test', () => {
     });
 
     it('Expect comment to be sent', async () => {
-        const result = await commandHandler(baseOptions);
-        expect(chatSingle.sendHtmlMessage).not.to.be.called;
+        const result = await commandsHandler(baseOptions);
+        expect(chatApi.sendHtmlMessage).not.to.be.called;
         expect(result).to.be.undefined;
     });
 
     it('Expect comment not to be sent with empty body and warn message will be sent', async () => {
         const post = translate('emptyMatrixComment');
-        const result = await commandHandler({ ...baseOptions, bodyText: '' });
+        const result = await commandsHandler({ ...baseOptions, bodyText: '' });
 
         expect(result).to.be.eq(post);
-        expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, post, post);
     });
 });

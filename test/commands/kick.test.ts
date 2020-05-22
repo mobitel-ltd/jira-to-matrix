@@ -1,33 +1,32 @@
 import * as faker from 'faker';
 import { config } from '../../src/config';
-
-const commandHandler from '../../src/bot/commands');
-const { USER_OPTION, ALL_OPTION } from '../../src/bot/commands/command-list/kick');
-const { getUserIdByDisplayName } from '../test-utils');
+import { commandsHandler } from '../../src/bot/commands';
+import * as utils from '../../src/lib/utils';
 import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
+import { translate } from '../../src/locales';
+import { getChatClass, taskTracker, getRoomId, roomAdmins, cleanRedis } from '../test-utils';
+import { USER_OPTION, ALL_OPTION } from '../../src/bot/commands/command-list/kick';
+import { getUserIdByDisplayName } from '../test-utils';
+import issueJSON from '../fixtures/jira-api-requests/issue.json';
+import projectJSON from '../fixtures/jira-api-requests/project.json';
+
 const { expect } = chai;
 chai.use(sinonChai);
-import { translate } from '../../src/locales';
-const testUtils from '../test-utils');
-const issueJSON from '../fixtures/jira-api-requests/issue.json');
-const projectJSON from '../fixtures/jira-api-requests/project.json');
-
-const utils from '../../src/lib/utils');
 
 describe('Kick command', () => {
     const kickAllOption = `--${ALL_OPTION}`;
     const kickUserOption = `--${USER_OPTION}`;
     let chatApi;
     const sender = getUserIdByDisplayName(issueJSON.fields.creator.displayName);
-    const roomId = testUtils.getRoomId();
+    const roomId = getRoomId();
     const commandName = 'kick';
     let baseOptions;
     let roomNameNotGitProject;
     let notExistProject;
     const notAdminSender = 'notAdmin';
-    const [adminSender] = testUtils.roomAdmins;
+    const [adminSender] = roomAdmins;
     const projectKey = 'MYPROJECTKEY';
     const issueKey = `${projectKey}-123`;
     let roomData;
@@ -40,21 +39,21 @@ describe('Kick command', () => {
     beforeEach(() => {
         notExistProject = faker.name.firstName().toUpperCase();
         roomNameNotGitProject = `${notExistProject}-123`;
-        chatApi = testUtils.getChatClass({ existedUsers: [notAdminSender] });
+        chatApi = getChatClass({ existedUsers: [{ userId: notAdminSender, displayName: 'lalal' }] }).chatApiSingle;
         simpleMembers = [
             {
-                userId: chatSingle.getChatUserId(userToKick),
+                userId: chatApi.getChatUserId(userToKick),
                 powerLevel: 0,
             },
             {
-                userId: chatSingle.getChatUserId('member2'),
+                userId: chatApi.getChatUserId('member2'),
                 powerLevel: 50,
             },
         ];
 
         const admin = [
             {
-                userId: chatSingle.getChatUserId(adminId),
+                userId: chatApi.getChatUserId(adminId),
                 powerLevel: 100,
             },
         ];
@@ -69,12 +68,13 @@ describe('Kick command', () => {
             members: [
                 ...baseMembers,
                 {
-                    userId: chatSingle.getChatUserId(chatSingle.getMyId()),
+                    userId: chatApi.getChatUserId(chatApi.getMyId()),
                     powerLevel: 100,
                 },
             ],
         };
         baseOptions = {
+            taskTracker,
             config,
             roomId,
             commandName,
@@ -95,13 +95,13 @@ describe('Kick command', () => {
 
     afterEach(async () => {
         nock.cleanAll();
-        await testUtils.cleanRedis();
+        await cleanRedis();
     });
 
     // TODO set readable test case names
     it('should return notAdmin for not admin users', async () => {
         const post = translate('notAdmin', { sender: 'notAdmin' });
-        const result = await commandHandler({ ...baseOptions, bodyText: kickAllOption, sender: 'notAdmin' });
+        const result = await commandsHandler({ ...baseOptions, bodyText: kickAllOption, sender: 'notAdmin' });
         expect(result).to.be.eq(post);
     });
 
@@ -112,12 +112,12 @@ describe('Kick command', () => {
             members: [
                 ...baseMembers,
                 {
-                    userId: `@${chatSingle.getMyId()}:matrix.test.com`,
+                    userId: `@${chatApi.getMyId()}:matrix.test.com`,
                     powerLevel: 99,
                 },
             ],
         };
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             roomData: roomDataWihLessPower,
             bodyText: kickAllOption,
@@ -129,7 +129,7 @@ describe('Kick command', () => {
         const post = translate('issueNotExistOrPermDen');
         const notAvailableIssueKey = `${projectKey}-1010`;
         const roomDataWithNotExistAlias = { ...roomData, alias: notAvailableIssueKey };
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             bodyText: kickAllOption,
             roomData: roomDataWithNotExistAlias,
@@ -139,7 +139,7 @@ describe('Kick command', () => {
 
     it('expect return notFoundUser message if body text have not exist in room user', async () => {
         const user = 'lallaal';
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             bodyText: [kickUserOption, user].join(' '),
         });
@@ -147,8 +147,8 @@ describe('Kick command', () => {
     });
 
     it('expect return noSelfKick message if option to kick user passed with bot id', async () => {
-        const user = chatSingle.getMyId();
-        const result = await commandHandler({
+        const user = chatApi.getMyId();
+        const result = await commandsHandler({
             ...baseOptions,
             bodyText: [kickUserOption, user].join(' '),
         });
@@ -157,7 +157,7 @@ describe('Kick command', () => {
 
     it('expect return unknownArgs message if body text have extra data exept command options', async () => {
         const text = 'lallaal';
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             bodyText: [text, kickAllOption].join(' '),
         });
@@ -165,7 +165,7 @@ describe('Kick command', () => {
     });
 
     it('expect return oneOptionOnly message if both command options are used', async () => {
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             bodyText: [kickUserOption, kickAllOption].join(' '),
         });
@@ -173,7 +173,7 @@ describe('Kick command', () => {
     });
 
     it('expect return noOptionArg message if both command options are used', async () => {
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             bodyText: kickUserOption,
         });
@@ -181,7 +181,7 @@ describe('Kick command', () => {
     });
 
     it('expect return noOptions message if no options exists', async () => {
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             bodyText: '',
         });
@@ -189,7 +189,7 @@ describe('Kick command', () => {
     });
 
     it('expect command succeded with --all option', async () => {
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             sender: adminSender.name,
             roomName: issueKey,
@@ -198,12 +198,12 @@ describe('Kick command', () => {
 
         expect(result).to.be.eq(translate('allKicked'));
         simpleMembers.forEach(({ userId }) =>
-            expect(chatSingle.kickUserByRoom).to.be.calledWithExactly({ roomId, userId }),
+            expect(chatApi.kickUserByRoom).to.be.calledWithExactly({ roomId, userId }),
         );
     });
 
     it('expect command succeded with kick user option', async () => {
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             sender: adminSender.name,
             roomName: issueKey,
@@ -212,11 +212,14 @@ describe('Kick command', () => {
 
         expect(result).to.be.eq(translate('userKicked', { userId: userToKick }));
 
-        expect(chatSingle.kickUserByRoom).to.be.calledWithExactly({ roomId, userId: chatSingle.getChatUserId(userToKick) });
+        expect(chatApi.kickUserByRoom).to.be.calledWithExactly({
+            roomId,
+            userId: chatApi.getChatUserId(userToKick),
+        });
     });
 
     it('expect command is no succeded if user to kick is admin', async () => {
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             sender: adminSender.name,
             roomName: issueKey,

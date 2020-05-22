@@ -81,7 +81,7 @@ export const getChatClass = (options?: {
     type?: object;
     alias?: string | string[];
     roomId?: string | string[];
-    existedUsers?: { userId: string; displayName: string }[];
+    existedUsers?: ({ userId: string; displayName: string } | string)[];
     joinedRooms?: string[];
 }): {
     chatApi: MessengerFasade;
@@ -105,7 +105,7 @@ export const getChatClass = (options?: {
             () => {
                 return;
             },
-            { ...item, ...config },
+            { ...config, ...item },
             console,
             {},
         );
@@ -162,7 +162,10 @@ export const getChatClass = (options?: {
     });
 
     chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');
-    existedUsers.forEach(({ userId }) => chatApiSingle.getUser.withArgs(chatApi.getChatUserId(userId)).resolves(true));
+    existedUsers.forEach(user => {
+        const userId = typeof user === 'string' ? user : user.userId;
+        chatApiSingle.getUser.withArgs(chatApi.getChatUserId(userId)).resolves(true);
+    });
     allRoomIds.forEach(id => {
         chatApiSingle.getRoomAdmins.withArgs({ roomId: id }).resolves(
             roomAdmins.map(({ name }) => ({
@@ -223,13 +226,17 @@ export const startGitServer = (tmpDirName: string) => {
     return repos;
 };
 
-export const setRepo = async (basePath: string, remote, { pathToExistFixtures, roomName }) => {
+export const setRepo = async (
+    basePath: string,
+    remote,
+    options: { pathToExistFixtures?: string; roomName: string },
+) => {
     const tmpPath = path.resolve(basePath, `git-init-${faker.random.alphaNumeric(10)}`);
     await fs.promises.mkdir(tmpPath);
     await fs.promises.writeFile(path.join(tmpPath, 'readme.txt'), '');
-    if (pathToExistFixtures) {
-        const existDataPathName = path.resolve(tmpPath, roomName);
-        await fsExtra.copy(pathToExistFixtures, existDataPathName);
+    if (options.pathToExistFixtures) {
+        const existDataPathName = path.resolve(tmpPath, options.roomName);
+        await fsExtra.copy(options.pathToExistFixtures, existDataPathName);
     }
 
     const git: SimpleGit = gitP(tmpPath);

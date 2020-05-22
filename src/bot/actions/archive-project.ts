@@ -81,7 +81,6 @@ export const archiveAndForget = async ({ client, roomData, keepTimestamp, config
 
         logger.info(`Room "${roomData.alias}" with id ${roomData.id} is archived to ${repoLinks.httpLink}`);
 
-        console.log('archiveAndForget -> roomData', roomData);
         await kick(client, roomData);
         await client.leaveRoom(roomData.id);
 

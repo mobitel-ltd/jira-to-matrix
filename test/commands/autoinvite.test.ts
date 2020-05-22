@@ -1,19 +1,19 @@
-const { random } from 'faker');
-const { cleanRedis, getUserIdByDisplayName } from '../test-utils');
+import { config } from '../../src/config';
+import { random } from 'faker';
 import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
-const { expect } = chai;
-chai.use(sinonChai);
 import { translate } from '../../src/locales';
 import { redis } from '../../src/redis-client';
-const testUtils from '../test-utils');
-const jiraProject from '../fixtures/jira-api-requests/project-gens/classic/correct.json');
-const jiraProjectNewGen from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json');
-const adminsProject from '../fixtures/jira-api-requests/project-gens/admins-project.json');
+import { getChatClass, taskTracker, getUserIdByDisplayName, cleanRedis } from '../test-utils';
+import jiraProject from '../fixtures/jira-api-requests/project-gens/classic/correct.json';
+import jiraProjectNewGen from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json';
+import adminsProject from '../fixtures/jira-api-requests/project-gens/admins-project.json';
+import { commandsHandler } from '../../src/bot/commands';
+import * as utils from '../../src/lib/utils';
 
-const commandHandler from '../../src/bot/commands');
-const utils from '../../src/lib/utils');
+const { expect } = chai;
+chai.use(sinonChai);
 
 describe('Invite setting for projects', () => {
     let chatApi;
@@ -36,8 +36,8 @@ describe('Invite setting for projects', () => {
 
     beforeEach(() => {
         // await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
-        chatApi = testUtils.getChatClass({ existedUsers: [correctUser, anotherCorrectUser] });
-        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
+        chatApi = getChatClass({ existedUsers: [correctUser, anotherCorrectUser] }).chatApiSingle;
+        baseOptions = { config, roomId, roomName, commandName, sender, chatApi, bodyText, taskTracker };
         issueType = random.arrayElement(projectIssueTypes);
         anotherTaskName = projectIssueTypes.find(item => item !== issueType);
         nock(utils.getRestUrl())
@@ -55,41 +55,41 @@ describe('Invite setting for projects', () => {
     // TODO set readable test case names
     it('Permition denided for not admin in projects', async () => {
         const post = translate('notAdmin', { sender: 'notAdmin' });
-        const result = await commandHandler({ ...baseOptions, sender: 'notAdmin' });
+        const result = await commandsHandler({ ...baseOptions, sender: 'notAdmin' });
         expect(result).to.be.eq(post);
     });
 
     it('Expect empty body - empty list', async () => {
         const post = translate('emptySettingsList', { projectKey });
-        const result = await commandHandler(baseOptions);
+        const result = await commandsHandler(baseOptions);
         expect(result).to.be.eq(post);
     });
 
     it('Exist command and empty key', async () => {
         const post = translate('invalidCommand');
-        const result = await commandHandler({ ...baseOptions, bodyText: 'add' });
+        const result = await commandsHandler({ ...baseOptions, bodyText: 'add' });
         expect(result).to.be.eq(post);
     });
 
     it('Exist command and key not in project', async () => {
         const post = utils.ignoreKeysInProject(projectKey, projectIssueTypes);
-        const result = await commandHandler({ ...baseOptions, bodyText: `add ${notUsedIssueTypes} ii_petrov` });
+        const result = await commandsHandler({ ...baseOptions, bodyText: `add ${notUsedIssueTypes} ii_petrov` });
         expect(result).to.be.eq(post);
     });
 
     it('Exist user not in matrix', async () => {
         const post = translate('notInMatrix', { userFromCommand: 'notInMatrixtUser' });
-        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType} notInMatrixtUser` });
+        const result = await commandsHandler({ ...baseOptions, bodyText: `add ${issueType} notInMatrixtUser` });
         expect(result).to.be.eq(post);
     });
 
     it('Success add key', async () => {
         const post = translate('autoinviteKeyAdded', {
             projectKey,
-            matrixUserFromCommand: await chatSingle.getChatUserId(correctUser),
+            matrixUserFromCommand: await chatApi.getChatUserId(correctUser),
             typeTaskFromUser: issueType,
         });
-        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType} ${correctUser}` });
+        const result = await commandsHandler({ ...baseOptions, bodyText: `add ${issueType} ${correctUser}` });
         expect(result).to.be.eq(post);
 
         const res = await redis.getAsync(utils.REDIS_INVITE_PREFIX);
@@ -99,10 +99,10 @@ describe('Invite setting for projects', () => {
     it('Success add key admin (not lead)', async () => {
         const post = translate('autoinviteKeyAdded', {
             projectKey,
-            matrixUserFromCommand: chatSingle.getChatUserId(correctUser),
+            matrixUserFromCommand: chatApi.getChatUserId(correctUser),
             typeTaskFromUser: issueType,
         });
-        const result = await commandHandler({
+        const result = await commandsHandler({
             ...baseOptions,
             bodyText: `add ${issueType} ${correctUser}`,
             sender: 'ii_ivanov',
@@ -112,7 +112,7 @@ describe('Invite setting for projects', () => {
 
     it('Command not found', async () => {
         const post = translate('invalidCommand');
-        const result = await commandHandler({ ...baseOptions, bodyText: `${notExistedCommand} ${issueType}` });
+        const result = await commandsHandler({ ...baseOptions, bodyText: `${notExistedCommand} ${issueType}` });
         expect(result).to.be.eq(post);
     });
 
@@ -126,7 +126,7 @@ describe('Invite setting for projects', () => {
 
         it('Delete key, not in ignore list', async () => {
             const post = translate('keyNotFoundForDelete', { projectKey });
-            const result = await commandHandler({
+            const result = await commandsHandler({
                 ...baseOptions,
                 bodyText: `del ${anotherTaskName} ${anotherCorrectUser}`,
             });
@@ -139,19 +139,19 @@ describe('Invite setting for projects', () => {
                 matrixUserFromCommand: correctUser,
                 typeTaskFromUser: issueType,
             });
-            const result = await commandHandler({ ...baseOptions, bodyText: `del ${issueType} ${correctUser}` });
+            const result = await commandsHandler({ ...baseOptions, bodyText: `del ${issueType} ${correctUser}` });
             expect(result).to.be.eq(post);
         });
 
         it('Add key, such already added', async () => {
             const post = translate('keyAlreadyExistForAdd', { typeTaskFromUser: correctUser, projectKey });
-            const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType} ${correctUser}` });
+            const result = await commandsHandler({ ...baseOptions, bodyText: `add ${issueType} ${correctUser}` });
             expect(result).to.be.eq(post);
         });
 
         it('Expect empty body - full list', async () => {
             const post = utils.getIgnoreTips(projectKey, [[issueType, [correctUser]]], 'autoinvite');
-            const result = await commandHandler(baseOptions);
+            const result = await commandsHandler(baseOptions);
             expect(result).to.be.eq(post);
         });
     });
@@ -162,7 +162,7 @@ describe('Ignore setting for projects, check admins for next-gen projects', () =
     const roomName = `${jiraProjectNewGen.key}-123`;
     const projectKey = jiraProjectNewGen.key;
     const projectId = jiraProjectNewGen.id;
-    const sender = jiraProjectNewGen.lead.name;
+    const sender = jiraProjectNewGen.lead.displayName;
     const roomId = random.number();
     const commandName = 'ignore';
     const bodyText = '';
@@ -173,8 +173,8 @@ describe('Ignore setting for projects, check admins for next-gen projects', () =
 
     beforeEach(() => {
         // await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
-        chatApi = testUtils.getChatClass();
-        baseOptions = { roomId, roomName, commandName, sender, chatApi, bodyText };
+        chatApi = getChatClass().chatApiSingle;
+        baseOptions = { config, roomId, roomName, commandName, sender, chatApi, bodyText, taskTracker };
         issueType = random.arrayElement(projectIssueTypes);
         nock(utils.getRestUrl())
             .get(`/project/${projectKey}`)
@@ -191,13 +191,13 @@ describe('Ignore setting for projects, check admins for next-gen projects', () =
     // TODO set readable test case names
     it('Permition denided for not admin in projects', async () => {
         const post = translate('notAdmin', { sender: 'notAdmin' });
-        const result = await commandHandler({ ...baseOptions, sender: 'notAdmin' });
+        const result = await commandsHandler({ ...baseOptions, sender: 'notAdmin' });
         expect(result).to.be.eq(post);
     });
 
     it('Success add key admin (not lead)', async () => {
         const post = translate('ignoreKeyAdded', { projectKey, typeTaskFromUser: issueType });
-        const result = await commandHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'ii_ivanov' });
+        const result = await commandsHandler({ ...baseOptions, bodyText: `add ${issueType}`, sender: 'ii_ivanov' });
         expect(result).to.be.eq(post);
     });
 });

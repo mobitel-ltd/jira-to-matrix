@@ -2,6 +2,7 @@ import * as messages from '../lib/messages';
 import { getLogger } from '../modules/log';
 import * as utils from '../lib/utils';
 import { redis } from '../redis-client';
+import { TaskTracker } from '../types';
 
 const logger = getLogger(module);
 
@@ -122,7 +123,7 @@ export const getIgnoreProject = async (body, usersToIgnore, testMode, taskTracke
     return { timestamp, webhookEvent, ignoreStatus, issueName };
 };
 
-export const isIgnore = async (body, usersToIgnore, testMode, taskTracker) => {
+export const isIgnore = async (body: any, usersToIgnore: string[], testMode: boolean, taskTracker: TaskTracker) => {
     const projectStatus = await getIgnoreProject(body, usersToIgnore, testMode, taskTracker);
     const msg = messages.getWebhookStatusLog({ projectStatus });
 

@@ -1,6 +1,6 @@
-const { isCreateRoom } from '../../src/jira-hook-parser/bot-handler');
-const assert from 'assert');
-const commentHook from '../fixtures/webhooks/comment/created.json');
+import { isCreateRoom } from '../../src/jira-hook-parser/bot-handler';
+import * as assert from 'assert';
+import commentHook from '../fixtures/webhooks/comment/created.json';
 
 describe('create-room', () => {
     it('Should create room on webhook or not', () => {
@@ -11,7 +11,7 @@ describe('create-room', () => {
             [{}, undefined],
             [undefined, undefined],
         ];
-        samples.forEach((sample, index) => {
+        samples.forEach(sample => {
             const result = isCreateRoom(sample[0]);
             assert.equal(result, sample[1]);
         });

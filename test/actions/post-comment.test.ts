@@ -7,12 +7,12 @@ import issueRenderedBody from '../fixtures/jira-api-requests/issue-rendered.json
 import { postComment } from '../../src/bot/actions';
 import { getChatClass, taskTracker } from '../test-utils';
 
-import * as chai from 'chai';
-import sinonChai from 'sinon-chai';
 import { Jira } from '../../src/task-trackers/jira';
 import { getPostCommentData } from '../../src/jira-hook-parser/parse-body';
 import { getCommentBody, getCommentHTMLBody } from '../../src/bot/actions/post-comment';
 import { config } from '../../src/config';
+import * as chai from 'chai';
+import sinonChai from 'sinon-chai';
 
 const { expect } = chai;
 chai.use(sinonChai);

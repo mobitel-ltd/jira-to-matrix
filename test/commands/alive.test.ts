@@ -1,7 +1,7 @@
-import { config } from '../../src/config';
-const { matrix } from '../fixtures/messenger-settings');
-const commandHandler from '../../src/bot/commands');
-const { getChatClass } from '../test-utils');
+import * as defaultConfig from '../../src/config';
+import { matrix } from '../fixtures/messenger-settings';
+import { commandsHandler } from '../../src/bot/commands';
+import { getChatClass, taskTracker } from '../test-utils';
 import { translate } from '../../src/locales';
 
 import * as chai from 'chai';
@@ -19,12 +19,12 @@ describe('alive test', () => {
 
     describe('No command room in config', () => {
         beforeEach(() => {
-            chatApi = getChatClass();
-            baseOptions = { roomName, commandName, chatApi, config };
+            chatApi = getChatClass().chatApiSingle;
+            baseOptions = { roomName, commandName, chatApi, config, taskTracker };
         });
 
         it('Expect return error message if room is not command', async () => {
-            const result = await commandHandler(baseOptions);
+            const result = await commandsHandler(baseOptions);
 
             expect(result).to.be.eq(translate('notCommandRoom'));
         });
@@ -32,24 +32,24 @@ describe('alive test', () => {
 
     describe('command room in config exists', () => {
         const matrixMessengerDataWithRoom = { ...matrix, infoRoom: { name: 'roomName' } };
-        const configWithInfo = { ...defaultConfig, messenger: matrixMessengerDataWithRoom };
+        const configWithInfo = { ...defaultConfig.config, messenger: matrixMessengerDataWithRoom };
 
         beforeEach(() => {
             chatApi = getChatClass({
                 config: configWithInfo,
-            });
+            }).chatApiSingle;
             baseOptions = { roomName, commandName, chatApi, config };
         });
 
         it('Expect return error message if room is not command', async () => {
-            const result = await commandHandler(baseOptions);
+            const result = await commandsHandler(baseOptions);
 
             expect(result).to.be.eq(translate('notCommandRoom'));
         });
 
         it('Expect return correct message in command room', async () => {
-            const body = translate('alive', { botId: chatSingle.getMyId() });
-            const result = await commandHandler({
+            const body = translate('alive', { botId: chatApi.getMyId() });
+            const result = await commandsHandler({
                 ...baseOptions,
                 roomName: matrixMessengerDataWithRoom.infoRoom.name,
             });

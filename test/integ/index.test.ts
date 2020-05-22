@@ -1,61 +1,64 @@
 import * as Ramda from 'ramda';
 import { pipe, set, clone } from 'lodash/fp';
-const { WebClient } from '@slack/web-api');
 import nock from 'nock';
-const supertest from 'supertest');
 import * as faker from 'faker';
-const conf from '../../src/config');
-const SlackApi from '../../src/messengers/slack-api');
-const logger from '../../src/modules/log')('slack-api');
-const FSM from '../../src/fsm');
-const app from '../../src/jira-app');
-const queueHandler from '../../src/queue');
-import * as utils from '../../src/lib/utils';
-const { cleanRedis } from '../test-utils');
-const redisUtils from '../../src/queue/redis-data-handle';
 import { redis } from '../../src/redis-client';
+import * as utils from '../../src/lib/utils';
+import { WebClient } from '@slack/web-api';
+import supertest from 'supertest';
+import { config } from '../../src/config';
+import { SlackApi } from '../../src/messengers/slack-api';
+import { FSM } from '../../src/fsm';
+import { queueHandler } from '../../src/queue';
+import { cleanRedis, getUserIdByDisplayName } from '../test-utils';
+import * as redisUtils from '../../src/queue/redis-data-handle';
+import { getLogger } from '../../src/modules/log';
 
-const issueBody from '../fixtures/jira-api-requests/issue-rendered.json');
-const notIgnoreCreatorIssueBody from '../fixtures/jira-api-requests/issue.json');
-const jiraCommentCreatedJSON from '../fixtures/webhooks/comment/created.json');
-const jiraIssueCreatedJSON from '../fixtures/webhooks/issue/updated/generic.json');
-const jiraProjectData from '../fixtures/jira-api-requests/project.json');
-const jiraWatchersBody from '../fixtures/jira-api-requests/watchers.json');
-const jiraRenderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json');
-const issueLinkBody from '../fixtures/jira-api-requests/issuelink.json');
+import issueBody from '../fixtures/jira-api-requests/issue-rendered.json';
+import notIgnoreCreatorIssueBody from '../fixtures/jira-api-requests/issue.json';
+import jiraCommentCreatedJSON from '../fixtures/webhooks/comment/created.json';
+import jiraIssueCreatedJSON from '../fixtures/webhooks/issue/updated/generic.json';
+import jiraProjectData from '../fixtures/jira-api-requests/project.json';
+import jiraWatchersBody from '../fixtures/jira-api-requests/watchers.json';
+import jiraRenderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json';
+import issueLinkBody from '../fixtures/jira-api-requests/issuelink.json';
 
-const conversationRenameJSON from '../fixtures/slack-requests/conversations/rename.json');
-const conversationSetTopicJSON from '../fixtures/slack-requests/conversations/setTopic.json');
-const conversationMembersJSON from '../fixtures/slack-requests/conversations/mamebers.json');
-const conversationsInviteJSON from '../fixtures/slack-requests/conversations/invite.json');
-const usersConversationsJSON from '../fixtures/slack-requests/users/conversations.json');
-const postMessageJSON from '../fixtures/slack-requests/chat/post-message.json');
-const userJSON from '../fixtures/slack-requests/user.json');
-const testJSON from '../fixtures/slack-requests/auth-test.json');
-const slackConversationJSON from '../fixtures/slack-requests/conversation.json');
-const conversationPurposeJSON from '../fixtures/slack-requests/conversations/setPurpose.json');
-const { testMode } from '../../src/config');
-const testUtils from '../test-utils');
+import conversationRenameJSON from '../fixtures/slack-requests/conversations/rename.json';
+import conversationSetTopicJSON from '../fixtures/slack-requests/conversations/setTopic.json';
+import conversationMembersJSON from '../fixtures/slack-requests/conversations/mamebers.json';
+import conversationsInviteJSON from '../fixtures/slack-requests/conversations/invite.json';
+import usersConversationsJSON from '../fixtures/slack-requests/users/conversations.json';
+import postMessageJSON from '../fixtures/slack-requests/chat/post-message.json';
+import userJSON from '../fixtures/slack-requests/user.json';
+import testJSON from '../fixtures/slack-requests/auth-test.json';
+import slackConversationJSON from '../fixtures/slack-requests/conversation.json';
+import conversationPurposeJSON from '../fixtures/slack-requests/conversations/setPurpose.json';
+import { taskTracker } from '../test-utils';
 
 import * as chai from 'chai';
 import { stub, createStubInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
+import { Jira } from '../../src/task-trackers/jira';
+import { getServer } from '../../src/server';
+import { Config } from '../../src/types';
+import { slack } from '../fixtures/messenger-settings';
 const { expect } = chai;
 chai.use(sinonChai);
 
-const request = supertest(`http://localhost:${conf.port}`);
+const logger = getLogger('slack-api');
+const request = supertest(`http://localhost:${config.port}`);
 
 const issueId = jiraCommentCreatedJSON.comment.self.split('/').reverse()[2];
 
-// const messengerConfig = conf.messenger;
-const messengerConfig = {
-    name: 'slack',
-    admins: ['test_user'],
-    user: 'jirabot',
-    domain: faker.internet.domainName(),
-    password: faker.random.uuid(),
-    eventPort: 3001,
-};
+// const messengerConfig = config.messenger;
+// const messengerConfig = {
+//     name: 'slack',
+//     admins: ['test_user'],
+//     user: 'jirabot',
+//     domain: faker.internet.domainName(),
+//     password: faker.random.uuid(),
+//     eventPort: 3001,
+// };
 
 const auth = {
     test: stub().resolves(testJSON.user),
@@ -76,7 +79,7 @@ const slackChannels = {
         // Add epic key of isuue_created hook to cahnnels list, it's made to handle posyEpicUpdates
         {
             ...expectedChannel,
-            name: utils.getEpicKey(jiraIssueCreatedJSON).toLowerCase(),
+            name: utils.getEpicKey(jiraIssueCreatedJSON)!.toLowerCase(),
             id: slackExpectedChannelId,
         },
         {
@@ -154,7 +157,7 @@ const sdk = { ...createStubInstance(WebClient), auth, conversations, users, chat
 
 const commandsHandler = stub().resolves();
 
-// const methodName = conf.messenger.name === 'slack' ? 'only' : 'skip';
+// const methodName = config.messenger.name === 'slack' ? 'only' : 'skip';
 // describe[methodName]('Integ tests', () => {
 
 const ignoreData = {
@@ -170,14 +173,15 @@ const ignoreData = {
 
 const { httpStatus } = utils;
 
-const testUserId = faker.random.arrayElement(testMode.users);
-const ignoredBody = pipe(clone, set('fields.creator.displayName', testUserId))(notIgnoreCreatorIssueBody);
+const testUserId = faker.random.arrayElement(config.testMode.users);
+const ignoredBody = pipe(clone, set('fields.creator.displayName', testUserId))(notIgnoreCreatorIssueBody) as any;
 
 describe('Integ tests', () => {
-    const slackApi = new SlackApi({ config: messengerConfig, sdk, commandsHandler, logger });
-    slackApi.getUserIdByDisplayName = testUtils.getUserIdByDisplayName;
+    const slackConfig: Config = { ...config, messenger: slack };
+    const slackApi = new SlackApi(commandsHandler, slackConfig, logger, sdk);
+    slackApi.getUserIdByDisplayName = getUserIdByDisplayName;
 
-    const fsm = new FSM([slackApi], queueHandler, app, conf.port);
+    const fsm = new FSM([slackApi as any], queueHandler(taskTracker), getServer, taskTracker, config.port);
 
     beforeEach(async () => {
         fsm.start();
@@ -185,7 +189,7 @@ describe('Integ tests', () => {
         const bodyToJSON = JSON.stringify(ignoreData);
         await redis.setAsync(utils.REDIS_IGNORE_PREFIX, bodyToJSON);
 
-        nock(conf.jira.url)
+        nock(config.jira.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');
@@ -240,7 +244,7 @@ describe('Integ tests', () => {
 
     it('Expect comment created hook to be handled', async () => {
         nock.cleanAll();
-        nock(conf.jira.url)
+        nock(config.jira.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');
@@ -272,7 +276,7 @@ describe('Integ tests', () => {
 
     it.skip('Expect issue_generic hook to be handled and all keys should be handled', async () => {
         nock.cleanAll();
-        nock(conf.jira.url)
+        nock(config.jira.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');

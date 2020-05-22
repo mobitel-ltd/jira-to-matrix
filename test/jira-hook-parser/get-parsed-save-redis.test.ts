@@ -1,19 +1,14 @@
 import nock from 'nock';
-const { expect } from 'chai');
-const commentCreatedHook from '../fixtures/webhooks/comment/created.json');
-const issueCommentedHook from '../fixtures/webhooks/issue/updated/commented.json');
-const getParsedAndSaveToRedis from '../../src/jira-hook-parser');
+import { expect } from 'chai';
+import commentCreatedHook from '../fixtures/webhooks/comment/created.json';
+import issueCommentedHook from '../fixtures/webhooks/issue/updated/commented.json';
+import { getParsedAndSaveToRedis } from '../../src/jira-hook-parser';
 import { redis } from '../../src/redis-client';
-const utils from '../../src/lib/utils');
-const {
-    jira: { url: jiraUrl },
-    usersToIgnore,
-    testMode,
-} from '../../src/config');
-const notIgnoreIssueBody from '../fixtures/jira-api-requests/issue.json');
-
-const { cleanRedis } from '../test-utils');
+import * as utils from '../../src/lib/utils';
+import notIgnoreIssueBody from '../fixtures/jira-api-requests/issue.json';
+import { cleanRedis, taskTracker } from '../test-utils';
 import { translate } from '../../src/locales';
+import { config } from '../../src/config';
 
 const issueId = commentCreatedHook.comment.self.split('/').reverse()[2];
 
@@ -42,7 +37,8 @@ describe('get-parsed-save to redis', () => {
             .get(`/issue/${issueId}`)
             .times(2)
             .reply(200, notIgnoreIssueBody);
-        nock(jiraUrl)
+
+        nock(config.jira.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');
@@ -64,7 +60,10 @@ describe('get-parsed-save to redis', () => {
     });
 
     it('Expect comment_created hook to be parsed and save to redis without ignore', async () => {
-        await getParsedAndSaveToRedis(commentCreatedHook, usersToIgnore, { ...testMode, on: false });
+        await getParsedAndSaveToRedis(taskTracker, commentCreatedHook, config.usersToIgnore, {
+            ...config.testMode,
+            on: false,
+        });
 
         const redisValue = await redis.getAsync(redisKey);
         const result = JSON.parse(redisValue);

@@ -20,17 +20,17 @@ export class Jira {
     url: string;
     user: string;
     password: string;
-    ignoreUsers: string[];
+    inviteIgnoreUsers: string[];
     restVersion: string;
     pingInterval: number;
     pingCount: number;
     expandParams: { expand: string };
 
-    constructor({ url, user, ignoreUsers, password, interval, count }) {
+    constructor({ url, user, inviteIgnoreUsers, password, interval, count }) {
         this.url = url;
         this.user = user;
         this.password = password;
-        this.ignoreUsers = ignoreUsers;
+        this.inviteIgnoreUsers = inviteIgnoreUsers || [];
         this.restVersion = 'rest/api/2';
         this.pingInterval = interval || 500;
         this.pingCount = count || 10;
@@ -101,7 +101,7 @@ export class Jira {
      * @returns {boolean} true if can be invite
      */
     _isExpectedToInvite(name: string): boolean {
-        return Boolean(name && !this.ignoreUsers.includes(name));
+        return Boolean(name && !this.inviteIgnoreUsers.includes(name));
     }
 
     /**
@@ -198,6 +198,7 @@ export class Jira {
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
         return [...allWatchersSet]
+            .filter(Boolean)
             .filter(user => this._isExpectedToInvite(user))
             .filter(user => !user.includes(this.user));
     }

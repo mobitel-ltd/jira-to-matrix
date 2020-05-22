@@ -1,7 +1,6 @@
-/* eslint-disable id-length */
 import * as Ramda from 'ramda';
-const { tValues } from '../../src/locales/ru');
-const assert from 'assert');
+import { tValues } from '../../src/locales/ru';
+import * as assert from 'assert';
 
 it('Gender ending for a Russian full name', () => {
     const samples = [

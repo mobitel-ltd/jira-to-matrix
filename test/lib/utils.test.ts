@@ -1,14 +1,11 @@
-const utils from '../../src/lib/utils');
-const assert from 'assert');
-const issueChangedHook from '../fixtures/webhooks/issue/updated/commented-changed.json');
-const body from '../fixtures/webhooks/issue/updated/generic.json');
-const issueUpdatedGenericHook from '../fixtures/webhooks/issue/updated/generic.json');
-const issueBody from '../fixtures/jira-api-requests/issue.json');
+import * as utils from '../../src/lib/utils';
+import * as assert from 'assert';
+import issueChangedHook from '../fixtures/webhooks/issue/updated/commented-changed.json';
+import body from '../fixtures/webhooks/issue/updated/generic.json';
+import issueUpdatedGenericHook from '../fixtures/webhooks/issue/updated/generic.json';
+import issueBody from '../fixtures/jira-api-requests/issue.json';
 import * as chai from 'chai';
-import { stub } from 'sinon';
-import sinonChai from 'sinon-chai';
 const { expect } = chai;
-chai.use(sinonChai);
 
 describe('Utils testing', () => {
     const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
@@ -183,28 +180,6 @@ describe('Utils testing', () => {
             const { commandName, bodyText } = utils.parseEventBody(body);
             expect(commandName).not.to.be;
             expect(bodyText).not.to.be;
-        });
-    });
-
-    describe('connect (ping Jira)', () => {
-        it('connect any times (7)', async () => {
-            const func = stub();
-            func.rejects('Some error');
-            func.onCall(7).resolves();
-            await utils.connect(func, 100, 10);
-            expect(func).to.be.callCount(8);
-        });
-
-        it('connect more 10 time and error', async () => {
-            const func = stub();
-            func.rejects('Some error');
-            const countCall = 10;
-            try {
-                await utils.connect(func, 10, countCall);
-            } catch (err) {
-                expect(err).to.be.equal('No connection.');
-            }
-            expect(func).to.be.callCount(countCall);
         });
     });
 });

@@ -160,7 +160,7 @@ export const handleRedisData = async (
                 try {
                     const chatApi = await client;
 
-                    await bot[funcName]({ ...data, chatApi, config });
+                    await bot[funcName]({ ...data, chatApi, config, taskTracker });
                     await redis.delAsync(redisKey);
 
                     return { redisKey, success: true };
@@ -202,11 +202,11 @@ export const handleRedisData = async (
     }
 };
 
-export const handleRedisRooms = async (client, roomsData) => {
+export const handleRedisRooms = async (client, roomsData, taskTracker) => {
     const roomHandle = async data => {
         try {
             const chatApi = await client;
-            await bot.createRoom({ ...data, chatApi });
+            await bot.createRoom({ ...data, chatApi, taskTracker });
 
             return null;
         } catch (err) {
@@ -274,12 +274,17 @@ export const saveIncoming = async ({ redisKey, ...restData }) => {
     }
 };
 
-export const handleCommandKeys = async (chatApi, keys, config) => {
+export const handleCommandKeys = async (
+    chatApi,
+    keys,
+    config,
+    taskTracker,
+): Promise<Record<string, any> | undefined> => {
     try {
         const result = {};
         for await (const key of keys) {
             const { operationName, projectKey, value, ...options } = key;
-            const res = await bot[operationName]({ chatApi, projectKey, config, ...options });
+            const res = await bot[operationName]({ chatApi, projectKey, config, ...options, taskTracker });
             await redis.srem(operationName, value);
 
             logger.info(`Result of handling project ${value}`, JSON.stringify(res));

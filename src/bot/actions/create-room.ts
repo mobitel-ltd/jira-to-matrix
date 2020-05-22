@@ -50,7 +50,7 @@ export const getDescription = (issue: Issue): { body: string; htmlBody: string }
     }
 };
 
-const createIssueRoom = async (chatApi, issue, config, taskTracker): Promise<void> => {
+const createIssueRoom = async (chatApi, issue, config, taskTracker: TaskTracker): Promise<void> => {
     try {
         const { colors } = config;
         const {

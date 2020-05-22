@@ -1,40 +1,45 @@
-const logger from '../../src/modules/log')('slack-api');
 import * as faker from 'faker';
-const { WebClient } from '@slack/web-api');
-const htmlToText from 'html-to-text').fromString;
-
-const messages from '../fixtures/events/slack/messages.json');
-const conversationInfoJSON from '../fixtures/slack-requests/conversations/rename.json');
-const conversationRenameJSON from '../fixtures/slack-requests/conversations/rename.json');
-const conversationPurposeJSON from '../fixtures/slack-requests/conversations/setPurpose.json');
-const conversationMembersJSON from '../fixtures/slack-requests/conversations/mamebers.json');
-const conversationsInviteJSON from '../fixtures/slack-requests/conversations/invite.json');
-const usersConversationsJSON from '../fixtures/slack-requests/users/conversations.json');
-const postMessageJSON from '../fixtures/slack-requests/chat/post-message.json');
-const userJSON from '../fixtures/slack-requests/user.json');
-const testJSON from '../fixtures/slack-requests/auth-test.json');
-const conversationJSON from '../fixtures/slack-requests/conversation.json');
-const SlackApi from '../../src/messengers/slack-api');
-const commandsHandler from '../../src/bot/commands');
-const utils from '../../src/lib/utils');
-
-const supertest from 'supertest');
+import { WebClient } from '@slack/web-api';
+import { fromString } from 'html-to-text';
+import messages from '../fixtures/events/slack/messages.json';
+import conversationInfoJSON from '../fixtures/slack-requests/conversations/rename.json';
+import conversationRenameJSON from '../fixtures/slack-requests/conversations/rename.json';
+import conversationPurposeJSON from '../fixtures/slack-requests/conversations/setPurpose.json';
+import conversationMembersJSON from '../fixtures/slack-requests/conversations/mamebers.json';
+import conversationsInviteJSON from '../fixtures/slack-requests/conversations/invite.json';
+import usersConversationsJSON from '../fixtures/slack-requests/users/conversations.json';
+import postMessageJSON from '../fixtures/slack-requests/chat/post-message.json';
+import userJSON from '../fixtures/slack-requests/user.json';
+import testJSON from '../fixtures/slack-requests/auth-test.json';
+import conversationJSON from '../fixtures/slack-requests/conversation.json';
+import { SlackApi } from '../../src/messengers/slack-api';
+import { commandsHandler } from '../../src/bot/commands';
+import * as utils from '../../src/lib/utils';
+import supertest from 'supertest';
 import * as chai from 'chai';
 import { stub, createStubInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
+import { getLogger } from '../../src/modules/log';
+import { slack } from '../fixtures/messenger-settings';
+import { config } from '../../src/config';
+import { Config } from '../../src/types';
+
+const logger = getLogger('slack-api');
+
 const { expect } = chai;
 chai.use(sinonChai);
+// const testConfig = {
+//     name: 'slack',
+//     admins: ['test_user'],
+//     user: 'jirabot',
+//     domain: faker.internet.domainName(),
+//     password: faker.random.uuid(),
+//     eventPort: 3000,
+// };
 
-const testConfig = {
-    name: 'slack',
-    admins: ['test_user'],
-    user: 'jirabot',
-    domain: faker.internet.domainName(),
-    password: faker.random.uuid(),
-    eventPort: 3000,
-};
+const testConfig: Config = { ...config, messenger: slack };
 
-const request = supertest(`http://localhost:${testConfig.eventPort}`);
+const request = supertest(`http://localhost:${testConfig.messenger.eventPort}`);
 
 const testTopic = 'My topic';
 const trueUserMail = 'user@example.com';
@@ -79,7 +84,7 @@ describe('Slack api testing', () => {
 
     const sdk = { ...createStubInstance(WebClient), auth, conversations, users, chat };
 
-    const slackApi = new SlackApi({ config: testConfig, sdk, commandsHandler, logger });
+    const slackApi = new SlackApi(commandsHandler, testConfig, logger, sdk);
 
     beforeEach(async () => {
         await slackApi.connect();
@@ -192,7 +197,7 @@ describe('Slack api testing', () => {
             channel: messages.help.channel_id,
             attachments: [
                 {
-                    text: htmlToText(utils.helpPost),
+                    text: fromString(utils.helpPost),
                     mrkdwn_in: ['text'],
                 },
             ],

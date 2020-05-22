@@ -1,6 +1,6 @@
 import * as http from 'http';
-import * as StateMachine from 'javascript-state-machine';
-import * as StateMachineHistory from 'javascript-state-machine/lib/history';
+import StateMachine from 'javascript-state-machine';
+import StateMachineHistory from 'javascript-state-machine/lib/history';
 import { states } from './states';
 import { ChatFasade } from '../messengers/chat-fasade';
 import { timing } from '../lib/utils';

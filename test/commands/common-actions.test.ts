@@ -1,11 +1,10 @@
 import * as faker from 'faker';
-
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
+import { getGroupedUsers, parseBodyText } from '../../src/bot/commands/command-list/common-actions';
+
 const { expect } = chai;
 chai.use(sinonChai);
-
-const { getGroupedUsers, parseBodyText } from '../../src/bot/commands/command-list/common-actions');
 
 describe('Common test', () => {
     describe('groupedusers', () => {

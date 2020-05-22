@@ -2,7 +2,7 @@ import { translate } from '../../../locales';
 import * as utils from '../../../lib/utils';
 import { getAllSettingData, setSettingsData } from '../../settings';
 
-export const autoinvite = async ({ bodyText, roomId, roomName, sender, chatApi, config, taskTracker }) => {
+export const autoinvite = async ({ bodyText, roomName, sender, chatApi, config, taskTracker }) => {
     const jiraBotUser = config.jira.user;
     const projectKey = utils.getProjectKeyFromIssueKey(roomName);
     const { lead, issueTypes, admins } = await taskTracker.getProjectWithAdmins(projectKey);

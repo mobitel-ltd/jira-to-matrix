@@ -12,5 +12,5 @@ export const getTaskTracker = (config: Config): TaskTracker =>
         user: config.jira.user,
         count: config.ping && config.ping.count,
         interval: config.ping && config.ping.interval,
-        ignoreUsers: config.usersToIgnore,
+        inviteIgnoreUsers: config.inviteIgnoreUsers,
     });

@@ -1,6 +1,6 @@
 import { getChatClass } from './test-utils';
 import { getServer } from '../src/server';
-import * as delay from 'delay';
+import delay from 'delay';
 import { FSM } from '../src/fsm';
 import { states } from '../src/fsm/states';
 import * as chai from 'chai';
@@ -28,7 +28,7 @@ describe('Fsm test', () => {
     let chatApi;
     const chatRoomId = 'roomId';
     const configMatrix = { ...defaultConfig.config, messenger: matrix };
-    const taskTracker = getTaskTracker('jira');
+    const taskTracker = getTaskTracker(defaultConfig.config);
 
     const handler = stub().resolves();
 
