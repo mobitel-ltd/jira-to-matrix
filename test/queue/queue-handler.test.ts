@@ -1,46 +1,37 @@
 import issueBody from '../fixtures/jira-api-requests/issue.json';
 import deletedLinkBody from '../fixtures/webhooks/issuelink/deleted.json';
-/* eslint {no-unused-expressions: 0, max-nested-callbacks: 0, global-require: 0} */
 import nock from 'nock';
-import { stub } from 'sinon';
+import { stub, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
-import proxyquire from 'proxyquire';
 import * as utils from '../../src/lib/utils';
 import * as chai from 'chai';
 import projectData from '../fixtures/jira-api-requests/project.json';
 import JSONbody from '../fixtures/webhooks/issue/created.json';
-import { cleanRedis, taskTracker } from '../test-utils';
+import { cleanRedis, taskTracker, getChatClass } from '../test-utils';
 import { config } from '../../src/config';
-
-const createRoomStub = stub();
-
-const { getRedisRooms, handleRedisRooms, handleRedisData, getDataFromRedis } = proxyquire(
-    '../../src/queue/redis-data-handle',
-    {
-        '../bot/actions': {
-            createRoom: createRoomStub,
-        },
-    },
-);
-
-const { getParsedAndSaveToRedis } = proxyquire('../../src/jira-hook-parser', {
-    './is-ignore': {
-        isIgnore: stub(),
-    },
-});
+import { QueueHandler } from '../../src/queue';
+import * as botActions from './../../src/bot/actions';
+import { HookParser } from '../../src/jira-hook-parser';
 
 const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Queue handler test', () => {
+    let queueHandler: QueueHandler;
     const { sourceIssueId } = deletedLinkBody.issueLink;
     const { destinationIssueId } = deletedLinkBody.issueLink;
+    let createRoomStub: SinonStub;
+    let hookParser: HookParser;
 
-    const chatApi = {
-        sendHtmlMessage: stub(),
-        getRoomId: stub(),
-    };
     beforeEach(() => {
+        createRoomStub = stub();
+        const { chatApi, chatApiSingle } = getChatClass();
+        chatApiSingle.getRoomId = stub();
+        const actions = { ...botActions, createRoom: createRoomStub };
+        queueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+        hookParser = new HookParser(taskTracker, config, queueHandler);
+        stub(hookParser, 'isIgnore');
+
         nock(config.jira.url)
             .get('')
             .reply(200, '<HTML>');
@@ -60,15 +51,15 @@ describe('Queue handler test', () => {
     });
 
     it('Room should not be created, room should be in redis', async () => {
-        await getParsedAndSaveToRedis(taskTracker, JSONbody);
-        const roomsKeys = await getRedisRooms();
+        await hookParser.getParsedAndSaveToRedis(JSONbody);
+        const roomsKeys = await queueHandler.getRedisRooms();
         expect(roomsKeys)
             .to.be.an('array')
             .that.has.length(1);
 
         createRoomStub.throws('Incorrect room data');
-        await handleRedisRooms(chatApi, roomsKeys, taskTracker);
-        const newRoomsKeys = await getRedisRooms();
+        await queueHandler.handleRedisRooms(roomsKeys);
+        const newRoomsKeys = await queueHandler.getRedisRooms();
 
         expect(newRoomsKeys)
             .to.be.an('array')
@@ -77,11 +68,11 @@ describe('Queue handler test', () => {
     });
 
     it('Expect deleteLink to be handled', async () => {
-        await getParsedAndSaveToRedis(taskTracker, deletedLinkBody);
-        const data = await getDataFromRedis();
-        await handleRedisData(chatApi, data, config, taskTracker);
+        await hookParser.getParsedAndSaveToRedis(deletedLinkBody);
+        const data = await queueHandler.getDataFromRedis();
+        await queueHandler.handleRedisData(data);
 
-        const resKeys = await getDataFromRedis();
+        const resKeys = await queueHandler.getDataFromRedis();
         expect(resKeys).to.be.null;
     });
 });

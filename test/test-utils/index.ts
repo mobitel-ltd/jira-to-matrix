@@ -138,7 +138,7 @@ export const getChatClass = (options?: {
 
     const chatApi = new ChatFasade([(chatApiSingle as any) as MessengerApi]);
     chatApi.getRoomIdForJoinedRoom = stub();
-    chatApi.getRoomAndClient = stub();
+    // chatApi.getRoomAndClient = stub();
 
     const allMembers = allRoomMembers.map(member => chatApi.getChatUserId(member.userId ? member.userId : member.name));
     chatApiSingle.getRoomMembers.resolves(allMembers);
@@ -155,10 +155,10 @@ export const getChatClass = (options?: {
             members: allMembersWithPower,
         };
         chatApiSingle.getRoomDataById.withArgs(id).resolves(roomData);
-        (chatApi.getRoomAndClient as Sinon.SinonStub).resolves({
-            roomData,
-            client: chatApi,
-        });
+        // (chatApi.getRoomAndClient as Sinon.SinonStub).resolves({
+        //     roomData,
+        //     client: chatApi,
+        // });
     });
 
     chatApi.getRoomIdForJoinedRoom = stub().throws('No bot in room with id');

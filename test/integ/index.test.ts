@@ -1,3 +1,4 @@
+import * as botActions from './../../src/bot/actions';
 import * as Ramda from 'ramda';
 import { pipe, set, clone } from 'lodash/fp';
 import nock from 'nock';
@@ -9,9 +10,7 @@ import supertest from 'supertest';
 import { config } from '../../src/config';
 import { SlackApi } from '../../src/messengers/slack-api';
 import { FSM } from '../../src/fsm';
-import { queueHandler } from '../../src/queue';
 import { cleanRedis, getUserIdByDisplayName } from '../test-utils';
-import * as redisUtils from '../../src/queue/redis-data-handle';
 import { getLogger } from '../../src/modules/log';
 
 import issueBody from '../fixtures/jira-api-requests/issue-rendered.json';
@@ -42,6 +41,7 @@ import { Jira } from '../../src/task-trackers/jira';
 import { getServer } from '../../src/server';
 import { Config } from '../../src/types';
 import { slack } from '../fixtures/messenger-settings';
+import { QueueHandler } from '../../src/queue';
 const { expect } = chai;
 chai.use(sinonChai);
 
@@ -179,9 +179,10 @@ const ignoredBody = pipe(clone, set('fields.creator.displayName', testUserId))(n
 describe('Integ tests', () => {
     const slackConfig: Config = { ...config, messenger: slack };
     const slackApi = new SlackApi(commandsHandler, slackConfig, logger, sdk);
+    const queueHandler = new QueueHandler(taskTracker, slackApi as any, config, botActions);
     slackApi.getUserIdByDisplayName = getUserIdByDisplayName;
 
-    const fsm = new FSM([slackApi as any], queueHandler(taskTracker), getServer, taskTracker, config.port);
+    const fsm = new FSM([slackApi as any], getServer, taskTracker, config);
 
     beforeEach(async () => {
         fsm.start();
@@ -321,8 +322,8 @@ describe('Integ tests', () => {
         //     // 'user_ids': [userJSON.correct.user.id],
         // };
 
-        const dataKeys = await redisUtils.getDataFromRedis();
-        const roomKeys = await redisUtils.getRedisRooms();
+        const dataKeys = await queueHandler.getDataFromRedis();
+        const roomKeys = await queueHandler.getRedisRooms();
 
         expect(sdk.conversations.create).to.be.calledWithExactly(expectedCreateRoomData);
         expect(dataKeys).to.be.null;

@@ -117,7 +117,7 @@ const handlers = {
     issuelink: {
         getLinks: body => [Ramda.path(['issueLink'], body)],
         getIssueName: body => Ramda.path(['issueLink', 'id'], body),
-        getIssueLinkSourceId: body => Ramda.path(['issueLink', 'sourceIssueId'], body),
+        getIssueLinkSourceId: (body): string | undefined => Ramda.path(['issueLink', 'sourceIssueId'], body),
         getIssueLinkDestinationId: body => Ramda.path(['issueLink', 'destinationIssueId'], body),
         getNameIssueLinkType: body => Ramda.path(['issueLink', 'issueLinkType', 'name'], body),
         getSourceRelation: body => Ramda.path(['issueLink', 'issueLinkType', 'outwardName'], body),
@@ -194,7 +194,7 @@ export const getEpicKey = (body): string | undefined => handlers.issue.getEpicKe
 export const getKey = (body: Issue | any): string | undefined =>
     handlers.issue.getIssueKey(body) || Ramda.path(['key'], body);
 
-export const getIssueLinkSourceId = body => handlers.issuelink.getIssueLinkSourceId(body);
+export const getIssueLinkSourceId = (body): string | undefined => handlers.issuelink.getIssueLinkSourceId(body);
 
 export const getIssueLinkDestinationId = body => handlers.issuelink.getIssueLinkDestinationId(body);
 

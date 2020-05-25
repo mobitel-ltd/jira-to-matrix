@@ -1,9 +1,13 @@
 import { expect } from 'chai';
-import { saveIncoming } from '../../src/queue/redis-data-handle';
-import { cleanRedis } from '../test-utils';
-import { getRedisValue, getRedisKeys, getDataFromRedis, getRedisRooms } from '../../src/queue/redis-data-handle';
+import { cleanRedis, getChatClass, taskTracker } from '../test-utils';
+import * as botActions from './../../src/bot/actions';
+import { config } from '../../src/config';
+import { QueueHandler } from '../../src/queue';
 
 describe('Test save data to redis', () => {
+    const { chatApi } = getChatClass();
+    const queueHandler = new QueueHandler(taskTracker, chatApi, config, botActions);
+
     const expectedFuncKeys1 = [
         {
             redisKey: 'inviteNewMembers_1',
@@ -67,67 +71,67 @@ describe('Test save data to redis', () => {
     });
 
     it('test no keys and rooms in redis', async () => {
-        const keys = await getRedisKeys();
+        const keys = await queueHandler.getRedisKeys();
         expect(keys).to.be.empty;
 
-        const data = await getDataFromRedis();
+        const data = await queueHandler.getDataFromRedis();
         expect(data).to.be.null;
 
-        const rooms = await getRedisRooms();
+        const rooms = await queueHandler.getRedisRooms();
         expect(rooms).to.be.null;
     });
 
     it('test no key', async () => {
-        const result = await getRedisValue('NO_SUCH_KEY');
+        const result = await queueHandler.getRedisValue('NO_SUCH_KEY');
 
         expect(result).to.be.false;
     });
 
     it('test correct redis save', async () => {
-        await Promise.all(dataToSave1.map(saveIncoming));
+        await Promise.all(dataToSave1.map(el => queueHandler.saveIncoming(el)));
 
-        const funcKeysData = await getDataFromRedis();
+        const funcKeysData = await queueHandler.getDataFromRedis();
         expectedFuncKeys1.forEach(key => expect(funcKeysData).to.deep.include(key));
 
-        const roomsKeys = await getRedisRooms();
+        const roomsKeys = await queueHandler.getRedisRooms();
         const expectedRoom = [{ issue: 'some data' }];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
 
     it('test second correct redis save', async () => {
-        await Promise.all(dataToSave2.map(saveIncoming));
+        await Promise.all(dataToSave2.map(el => queueHandler.saveIncoming(el)));
 
-        const funcKeysData = await getDataFromRedis();
+        const funcKeysData = await queueHandler.getDataFromRedis();
         [...expectedFuncKeys1, ...expectedFuncKeys2].forEach(key => expect(funcKeysData).to.deep.include(key));
 
-        const roomsKeys = await getRedisRooms();
+        const roomsKeys = await queueHandler.getRedisRooms();
         const expectedRoom = [{ issue: 'some data' }, { issue: 'some data else' }];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
 
     it('test save empty room data', async () => {
-        await Promise.all(dataToSave3.map(saveIncoming));
+        await Promise.all(dataToSave3.map(el => queueHandler.saveIncoming(el)));
 
-        const funcKeysData = await getDataFromRedis();
+        const funcKeysData = await queueHandler.getDataFromRedis();
         [...expectedFuncKeys1, ...expectedFuncKeys2, ...expectedFuncKeys3].forEach(key =>
             expect(funcKeysData).to.deep.include(key),
         );
 
-        const roomsKeys = await getRedisRooms();
+        const roomsKeys = await queueHandler.getRedisRooms();
         const expectedRoom = [{ issue: 'some data' }, { issue: 'some data else' }];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);
     });
 
     it("test don't save one room data two times", async () => {
-        await Promise.all(dataToSave2.map(saveIncoming));
+        await Promise.all(dataToSave2.map(el => queueHandler.saveIncoming(el)));
 
-        const funcKeysData = await getDataFromRedis();
+        const funcKeysData = await queueHandler.getDataFromRedis();
         [...expectedFuncKeys1, ...expectedFuncKeys2].forEach(key => expect(funcKeysData).to.deep.include(key));
 
-        const roomsKeys = await getRedisRooms();
+        const roomsKeys = await queueHandler.getRedisRooms();
         const expectedRoom = [{ issue: 'some data' }, { issue: 'some data else' }];
 
         expect(roomsKeys).to.deep.equal(expectedRoom);

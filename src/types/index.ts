@@ -1,4 +1,5 @@
 import { BaseChatApi } from '../messengers/base-api';
+import { ChatFasade } from '../messengers/chat-fasade';
 
 export interface ChangelogItem {
     field: string;
@@ -851,7 +852,7 @@ export interface MessengerFasade extends CommonMessengerApi {
 }
 
 export interface BaseActions {
-    chatApi: MessengerFasade;
+    chatApi: ChatFasade;
     config: Config;
     taskTracker: TaskTracker;
 }

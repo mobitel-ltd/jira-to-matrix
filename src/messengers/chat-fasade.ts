@@ -153,7 +153,7 @@ export class ChatFasade implements MessengerFasade {
      * @param limit
      * @returns {Promise<any>} void
      */
-    getAllEventsFromRoom(roomId, limit) {
+    getAllEventsFromRoom(roomId, limit = 10000) {
         return this.worker.getAllEventsFromRoom(roomId, limit);
     }
 

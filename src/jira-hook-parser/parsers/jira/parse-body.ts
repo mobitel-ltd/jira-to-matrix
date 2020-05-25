@@ -1,5 +1,5 @@
-import * as utils from '../lib/utils';
-import { PostCommentData, PostEpicUpdatesData, PostIssueUpdatesData } from '../types/index';
+import * as utils from '../../../lib/utils';
+import { PostCommentData, PostEpicUpdatesData, PostIssueUpdatesData } from '../../../types/index';
 
 export const getPostCommentData = (body): PostCommentData => {
     const headerText = utils.getHeaderText(body);

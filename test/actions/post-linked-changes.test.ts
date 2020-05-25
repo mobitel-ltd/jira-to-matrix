@@ -4,9 +4,9 @@ import nock from 'nock';
 import * as utils from '../../src/lib/utils';
 import body from '../fixtures/webhooks/issue/updated/generic.json';
 import issueJson from '../fixtures/jira-api-requests/issue.json';
-import { getPostLinkedChangesData } from '../../src/jira-hook-parser/parse-body';
+import { getPostLinkedChangesData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
 import { postLinkedChanges } from '../../src/bot/actions/post-linked-changes';
-import { isPostLinkedChanges } from '../../src/jira-hook-parser/bot-handler';
+import { isPostLinkedChanges } from '../../src/jira-hook-parser/parsers/jira';
 import { getChatClass, taskTracker, getAlias, getRoomId } from '../test-utils';
 import { config } from '../../src/config';
 

@@ -4,7 +4,8 @@ import { getLogger } from '../../modules/log';
 import * as utils from '../../lib/utils';
 import { kick } from '../commands/command-list/common-actions';
 import { exportEvents } from '../../lib/git-lib';
-import { MessengerApi, Config, TaskTracker } from '../../types';
+import { Config, TaskTracker } from '../../types';
+import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
 
@@ -105,7 +106,10 @@ export const deleteByEachBot = async (fasadeApi, alias) => {
     return stateEnum.OTHER_ALIAS_CREATOR;
 };
 
-export const handleKnownRoom = async (chatApi, { keepTimestamp, roomId, alias, status, config, taskTracker }) => {
+export const handleKnownRoom = async (
+    chatApi: ChatFasade,
+    { keepTimestamp, roomId, alias, status, config, taskTracker },
+) => {
     const data = await chatApi.getRoomAndClient(roomId);
     if (!data) {
         logger.debug(`No bot can get room meta by alias ${alias} they are not joined. Try remove it.`);
@@ -156,7 +160,7 @@ export interface ArchiveOptions {
 }
 
 export const getRoomArchiveState = async (
-    chatApi: MessengerApi,
+    chatApi: ChatFasade,
     { alias, keepTimestamp, status, config, taskTracker }: ArchiveOptions,
 ) => {
     const roomId = await chatApi.getRoomIdByName(alias);
@@ -167,7 +171,7 @@ export const getRoomArchiveState = async (
 };
 
 const runArchive = (
-    chatApi: MessengerApi,
+    chatApi: ChatFasade,
     { projectKey, lastNumber, keepTimestamp, status, config, taskTracker },
 ): Promise<Record<stateEnum, string[]>> => {
     const iter = async (num: number, accum: Record<stateEnum, string[]>): Promise<Record<stateEnum, string[]>> => {

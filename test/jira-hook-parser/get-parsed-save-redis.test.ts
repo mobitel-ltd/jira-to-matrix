@@ -1,14 +1,17 @@
+import { pipe, set, clone } from 'lodash/fp';
 import nock from 'nock';
 import { expect } from 'chai';
 import commentCreatedHook from '../fixtures/webhooks/comment/created.json';
 import issueCommentedHook from '../fixtures/webhooks/issue/updated/commented.json';
-import { getParsedAndSaveToRedis } from '../../src/jira-hook-parser';
 import { redis } from '../../src/redis-client';
 import * as utils from '../../src/lib/utils';
 import notIgnoreIssueBody from '../fixtures/jira-api-requests/issue.json';
-import { cleanRedis, taskTracker } from '../test-utils';
+import { cleanRedis, taskTracker, getChatClass } from '../test-utils';
 import { translate } from '../../src/locales';
 import { config } from '../../src/config';
+import { HookParser } from '../../src/jira-hook-parser';
+import { QueueHandler } from '../../src/queue';
+import { Config } from '../../src/types';
 
 const issueId = commentCreatedHook.comment.self.split('/').reverse()[2];
 
@@ -28,6 +31,11 @@ describe('get-parsed-save to redis', () => {
             author: commentCreatedHook.comment.author.displayName,
         },
     };
+
+    const configProdMode: Config = pipe(clone, set('testMode.on', false))(config) as Config;
+
+    const queueHandler = new QueueHandler(taskTracker, getChatClass().chatApi, configProdMode, {});
+    const hookParser = new HookParser(taskTracker, configProdMode, queueHandler);
 
     before(() => {
         nock(utils.getRestUrl())
@@ -60,10 +68,7 @@ describe('get-parsed-save to redis', () => {
     });
 
     it('Expect comment_created hook to be parsed and save to redis without ignore', async () => {
-        await getParsedAndSaveToRedis(taskTracker, commentCreatedHook, config.usersToIgnore, {
-            ...config.testMode,
-            on: false,
-        });
+        await hookParser.getParsedAndSaveToRedis(commentCreatedHook);
 
         const redisValue = await redis.getAsync(redisKey);
         const result = JSON.parse(redisValue);

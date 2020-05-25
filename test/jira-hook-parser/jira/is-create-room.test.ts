@@ -1,6 +1,6 @@
-import { isCreateRoom } from '../../src/jira-hook-parser/bot-handler';
+import { isCreateRoom } from '../../../src/jira-hook-parser/parsers/jira';
 import * as assert from 'assert';
-import commentHook from '../fixtures/webhooks/comment/created.json';
+import commentHook from '../../fixtures/webhooks/comment/created.json';
 
 describe('create-room', () => {
     it('Should create room on webhook or not', () => {

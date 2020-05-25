@@ -8,7 +8,7 @@ import { postComment } from '../../src/bot/actions';
 import { getChatClass, taskTracker } from '../test-utils';
 
 import { Jira } from '../../src/task-trackers/jira';
-import { getPostCommentData } from '../../src/jira-hook-parser/parse-body';
+import { getPostCommentData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
 import { getCommentBody, getCommentHTMLBody } from '../../src/bot/actions/post-comment';
 import { config } from '../../src/config';
 import * as chai from 'chai';

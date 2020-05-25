@@ -5,7 +5,11 @@ import { states } from './states';
 import { ChatFasade } from '../messengers/chat-fasade';
 import { timing } from '../lib/utils';
 import { getLogger } from '../modules/log';
-import { TaskTracker, MessengerApi } from '../types';
+import { TaskTracker, MessengerApi, Config } from '../types';
+import { QueueHandler } from '../queue';
+import * as botActions from '../bot/actions';
+import { HookParser } from '../jira-hook-parser';
+import { getServerType } from '../server';
 
 const logger = getLogger(module);
 
@@ -45,7 +49,7 @@ const getJiraFsm = (app, port) =>
 /**
  * @returns {StateMachine} state machine
  */
-const getChatFsm = (chatFasade: ChatFasade, handler): StateMachine => {
+const getChatFsm = (chatFasade: ChatFasade, handler: QueueHandler): StateMachine => {
     const startTime = Date.now();
     const fsm = new StateMachine({
         init: states.init,
@@ -88,7 +92,7 @@ const getChatFsm = (chatFasade: ChatFasade, handler): StateMachine => {
             },
             async onHandleQueue() {
                 logger.debug('Start queue handling');
-                await handler(chatFasade);
+                await handler.queueHandler();
             },
             onFinishHandle() {
                 logger.debug('Finish queue handling');
@@ -115,19 +119,14 @@ export class FSM {
     chatFSM;
     jiraFsm;
 
-    // eslint-disable-next-line valid-jsdoc
-    /**
-     * @param {import('../messengers/messenger-abstract')[]} chatApi array of instances of messenger Api, matrix or slack for example
-     * @param {Function} queueHandler redis queue handle function
-     * @param {Function} app jira express REST app
-     * @param {import('../task-trackers/jira')} taskTracker task tracker instance
-     * @param {number} port jira server port
-     */
-    constructor(chatApiPool: MessengerApi[], queueHandler: Function, getServer: Function, taskTracker, port) {
+    constructor(chatApiPool: MessengerApi[], getServer: getServerType, taskTracker: TaskTracker, config: Config) {
         const chatFasade = new ChatFasade(chatApiPool);
+        const queueHandler = new QueueHandler(taskTracker, chatFasade, config, botActions);
+        const hookParser = new HookParser(taskTracker, config, queueHandler);
+        const server = getServer(this.handleHook.bind(this), hookParser);
         this.taskTracker = taskTracker;
         this.chatFSM = getChatFsm(chatFasade, queueHandler);
-        this.jiraFsm = getJiraFsm(getServer(taskTracker, this.handleHook.bind(this)), port);
+        this.jiraFsm = getJiraFsm(server, config.port);
     }
 
     /**

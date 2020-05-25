@@ -1,15 +1,16 @@
 import express from 'express';
 import * as bodyParser from 'body-parser';
-import { getParsedAndSaveToRedis } from './jira-hook-parser';
 import { getAllSettingData, setSettingsData, delSettingsData } from './bot/settings';
 import { httpStatus } from './lib/utils';
 import { getLogger } from './modules/log';
-import { TaskTracker } from './types';
+import { HookParser } from './jira-hook-parser';
 
 const logger = getLogger(module);
 const app = express();
 
-export const getServer = (taskTracker: TaskTracker, handleFunc: Function): express.Application => {
+export type getServerType = (handleFunc: Function, hookParser: HookParser) => express.Application;
+
+export const getServer: getServerType = (handleFunc, hookParser): express.Application => {
     app.use(
         bodyParser.json({
             strict: false,
@@ -20,7 +21,7 @@ export const getServer = (taskTracker: TaskTracker, handleFunc: Function): expre
             logger.info('Webhook received! Start getting ignore status');
             logger.silly('Jira body', req.body);
 
-            const saveStatus = await getParsedAndSaveToRedis(taskTracker, req.body);
+            const saveStatus = await hookParser.getParsedAndSaveToRedis(req.body);
 
             if (saveStatus) {
                 await handleFunc();

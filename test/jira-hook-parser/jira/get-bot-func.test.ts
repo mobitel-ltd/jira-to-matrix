@@ -1,14 +1,14 @@
 import * as assert from 'assert';
-import { getBotActions } from '../../src/jira-hook-parser/bot-handler';
-import commentCreatedHook from '../fixtures/webhooks/comment/created.json';
-import commentDeletedHook from '../fixtures/webhooks/comment/deleted.json';
-import commentUpdatedHook from '../fixtures/webhooks/comment/updated.json';
-import issueCommentedHook from '../fixtures/webhooks/issue/updated/commented.json';
-import issueCommentedChangedHook from '../fixtures/webhooks/issue/updated/commented-changed.json';
-import issueUpdatedGenericHook from '../fixtures/webhooks/issue/updated/generic.json';
-import issueCreatedHook from '../fixtures/webhooks/issue/created.json';
-import issueLinkCreatedHook from '../fixtures/webhooks/issuelink/created.json';
-import issueLinkDeletedHook from '../fixtures/webhooks/issuelink/deleted.json';
+import { getBotActions } from '../../../src/jira-hook-parser/parsers/jira';
+import commentCreatedHook from '../../fixtures/webhooks/comment/created.json';
+import commentDeletedHook from '../../fixtures/webhooks/comment/deleted.json';
+import commentUpdatedHook from '../../fixtures/webhooks/comment/updated.json';
+import issueCommentedHook from '../../fixtures/webhooks/issue/updated/commented.json';
+import issueCommentedChangedHook from '../../fixtures/webhooks/issue/updated/commented-changed.json';
+import issueUpdatedGenericHook from '../../fixtures/webhooks/issue/updated/generic.json';
+import issueCreatedHook from '../../fixtures/webhooks/issue/created.json';
+import issueLinkCreatedHook from '../../fixtures/webhooks/issuelink/created.json';
+import issueLinkDeletedHook from '../../fixtures/webhooks/issuelink/deleted.json';
 
 describe('bot func', () => {
     it('Expect commentCreatedHook have only postComment func', () => {

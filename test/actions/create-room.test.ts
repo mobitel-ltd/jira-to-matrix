@@ -1,7 +1,7 @@
 import { pipe, set, clone } from 'lodash/fp';
 import nock from 'nock';
 import * as utils from '../../src/lib/utils';
-import { getCreateRoomData } from '../../src/jira-hook-parser/parse-body';
+import { getCreateRoomData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
 import { createRoom } from '../../src/bot/actions/create-room';
 import { config } from '../../src/config';
 import * as chai from 'chai';

@@ -66,7 +66,7 @@ export class SlackApi extends BaseChatApi {
                 bodyText: eventBody.text,
                 config: this.config,
             };
-            await this.commandsHandler(options);
+            await this.commandsHandler(options as any);
         } catch (error) {
             this.logger.error('Error while handling slash command from Slack');
         }

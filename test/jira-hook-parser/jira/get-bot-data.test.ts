@@ -1,10 +1,10 @@
 import * as assert from 'assert';
-import firstJSON from '../fixtures/webhooks/comment/created.json';
-import secondJSON from '../fixtures/webhooks/issue/updated/commented.json';
-import { getBotActions, getParserName, getFuncAndBody } from '../../src/jira-hook-parser/bot-handler';
-import { translate } from '../../src/locales';
-import issueMovedJSON from '../fixtures/webhooks/issue/updated/move-issue.json';
-import * as utils from '../../src/lib/utils';
+import firstJSON from '../../fixtures/webhooks/comment/created.json';
+import secondJSON from '../../fixtures/webhooks/issue/updated/commented.json';
+import { getBotActions, getParserName, getFuncAndBody } from '../../../src/jira-hook-parser/parsers/jira';
+import { translate } from '../../../src/locales';
+import issueMovedJSON from '../../fixtures/webhooks/issue/updated/move-issue.json';
+import * as utils from '../../../src/lib/utils';
 
 describe('get-bot-data', () => {
     const firstBodyArr = getBotActions(firstJSON);

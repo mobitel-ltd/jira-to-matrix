@@ -1,6 +1,6 @@
 import * as parsers from './parse-body';
-import * as utils from '../lib/utils';
-import { config } from '../config';
+import * as utils from '../../../lib/utils';
+import { config } from '../../../config';
 
 const { features } = config;
 export const isPostComment = body => features.postComments && utils.isCommentEvent(body) && utils.getComment(body);

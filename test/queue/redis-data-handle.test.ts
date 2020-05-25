@@ -4,24 +4,24 @@ import { info } from '../fixtures/archiveRoom/raw-events-data';
 import * as utils from '../../src/lib/utils';
 import nock from 'nock';
 import { config } from '../../src/config';
-import proxyquire from 'proxyquire';
 import { stub } from 'sinon';
 import { cleanRedis, getChatClass, startGitServer, setRepo, baseMedia, taskTracker } from '../test-utils';
 import { getRestUrl } from '../../src/lib/utils';
 import { setArchiveProject } from '../../src/bot/settings';
-import { getCreateRoomData } from '../../src/jira-hook-parser/parse-body';
+import { getCreateRoomData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
 import JSONbody from '../fixtures/webhooks/issue/created.json';
 import issueJson from '../fixtures/jira-api-requests/issue.json';
 import issueBody from '../fixtures/jira-api-requests/issue-rendered.json';
-import { getParsedAndSaveToRedis } from '../../src/jira-hook-parser';
-import * as handlers from '../../src/queue/redis-data-handle';
 import searchProject from '../fixtures/jira-api-requests/project-gens/search-project.json';
 import { stateEnum } from '../../src/bot/actions/archive-project';
 import { redis } from '../../src/redis-client';
-import { ChatFasade } from '../../src/messengers/chat-fasade';
 import { Jira } from '../../src/task-trackers/jira';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
+import * as botActions from './../../src/bot/actions';
+import { QueueHandler } from '../../src/queue';
+import { HookParser } from '../../src/jira-hook-parser';
+import { Config } from '../../src/types';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -30,36 +30,28 @@ const createRoomStub = stub();
 const postEpicUpdatesStub = stub();
 const {
     jira: { url: jiraUrl },
-    usersToIgnore,
-    testMode,
     baseRemote,
 } = config;
 
-const {
-    getHandledKeys,
-    saveIncoming,
-    getRedisKeys,
-    getDataFromRedis,
-    getRedisRooms,
-    handleRedisData,
-    handleRedisRooms,
-    createRoomDataOnlyNew,
-} = proxyquire('../../src/queue/redis-data-handle', {
-    '../bot/actions': {
-        createRoom: createRoomStub,
-        postEpicUpdates: postEpicUpdatesStub,
-    },
-});
+const actions = { ...botActions, createRoom: createRoomStub, postEpicUpdates: postEpicUpdatesStub };
 
 describe('saveIncoming', () => {
+    const { chatApi } = getChatClass();
+    const actions = { ...botActions, createRoom: createRoomStub, postEpicUpdates: postEpicUpdatesStub };
+    const queueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+
     it('test saveIncoming with no createRoomData args', async () => {
-        await saveIncoming({ redisKey: 'newrooms' });
-        const result = await getRedisRooms();
+        await queueHandler.saveIncoming({ redisKey: 'newrooms' });
+        const result = await queueHandler.getRedisRooms();
+
         expect(result).to.be.null;
     });
 });
 
 describe('redis-data-handle test', () => {
+    const { chatApi } = getChatClass();
+    const queueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+
     const createRoomData = [
         {
             issue: {
@@ -140,8 +132,6 @@ describe('redis-data-handle test', () => {
         },
     };
 
-    const chatApi = {};
-
     beforeEach(() => {
         nock(jiraUrl)
             .get('')
@@ -165,20 +155,22 @@ describe('redis-data-handle test', () => {
     });
 
     it('test null handleRedisRooms', async () => {
-        await handleRedisRooms(chatApi, null);
+        await queueHandler.handleRedisRooms(null);
         expect(createRoomStub).not.to.be.called;
     });
 
     describe('Test mode ON', () => {
+        const hookParser = new HookParser(taskTracker, config, queueHandler);
+
         beforeEach(async () => {
             const notIgnoreCreatorHook = JSONbody;
 
-            await getParsedAndSaveToRedis(taskTracker, notIgnoreCreatorHook);
+            await hookParser.getParsedAndSaveToRedis(notIgnoreCreatorHook);
         });
 
         it('Expect hook to be ignore and both redisKeys and redisData to be empty if hook issue creator is not in the list of config ignore users', async () => {
-            const redisKeys = await getRedisKeys();
-            const dataFromRedis = await getDataFromRedis();
+            const redisKeys = await queueHandler.getRedisKeys();
+            const dataFromRedis = await queueHandler.getDataFromRedis();
 
             expect(redisKeys).to.be.empty;
             expect(dataFromRedis).to.be.null;
@@ -186,12 +178,13 @@ describe('redis-data-handle test', () => {
     });
 
     describe('Test mode OFF', () => {
-        const prodMode = { ...testMode, on: false };
+        const configProdMode: Config = { ...config, testMode: { ...config.testMode, on: false } };
+        const hookParser = new HookParser(taskTracker, configProdMode, queueHandler);
 
         beforeEach(async () => {
             const notIgnoreCreatorHook = JSONbody;
 
-            await getParsedAndSaveToRedis(taskTracker, notIgnoreCreatorHook, usersToIgnore, prodMode);
+            await hookParser.getParsedAndSaveToRedis(notIgnoreCreatorHook);
         });
 
         it('test correct not saving the same hook', async () => {
@@ -210,26 +203,26 @@ describe('redis-data-handle test', () => {
                 .get(url => url.indexOf('null') > 0)
                 .reply(404);
 
-            await getParsedAndSaveToRedis(taskTracker, JSONbody);
+            await hookParser.getParsedAndSaveToRedis(JSONbody);
 
-            const redisKeys = await getRedisKeys();
+            const redisKeys = await queueHandler.getRedisKeys();
             expect(redisKeys).be.deep.eq(expectedFuncKeys);
-            const redisHandled = await getHandledKeys();
+            const redisHandled = await queueHandler.getHandledKeys();
             expect(redisHandled).be.deep.eq([redisKey]);
         });
 
         it('Expect hook NOT to be ignore and both redisKeys and redisData to exist if hook issue creator is not in the list of config ignore users', async () => {
-            const redisKeys = await getRedisKeys();
-            const dataFromRedis = await getDataFromRedis();
+            const redisKeys = await queueHandler.getRedisKeys();
+            const dataFromRedis = await queueHandler.getDataFromRedis();
 
             expect(redisKeys).not.to.be.empty;
             expect(dataFromRedis).not.to.be.null;
         });
 
         it('test correct handleRedisData', async () => {
-            const dataFromRedisBefore = await getDataFromRedis();
-            await handleRedisData('client', dataFromRedisBefore, config, taskTracker);
-            const dataFromRedisAfter = await getDataFromRedis();
+            const dataFromRedisBefore = await queueHandler.getDataFromRedis();
+            await queueHandler.handleRedisData(dataFromRedisBefore);
+            const dataFromRedisAfter = await queueHandler.getDataFromRedis();
 
             expect(dataFromRedisBefore).to.have.deep.members(expectedData);
             expect(dataFromRedisAfter).to.be.null;
@@ -245,10 +238,10 @@ describe('redis-data-handle test', () => {
 
             postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
 
-            const dataFromRedisBefore = await getDataFromRedis();
-            await handleRedisData('client', dataFromRedisBefore, config, taskTracker);
-            const dataFromRedisAfter = await getDataFromRedis();
-            const redisRooms = await getRedisRooms();
+            const dataFromRedisBefore = await queueHandler.getDataFromRedis();
+            await queueHandler.handleRedisData(dataFromRedisBefore);
+            const dataFromRedisAfter = await queueHandler.getDataFromRedis();
+            const redisRooms = await queueHandler.getRedisRooms();
 
             expect(dataFromRedisBefore).to.have.deep.members(expectedData);
             expect(dataFromRedisAfter).to.have.deep.members(expectedData);
@@ -259,11 +252,11 @@ describe('redis-data-handle test', () => {
         it('test error in key handleRedisData if issue is not exists', async () => {
             postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
 
-            const dataFromRedisBefore = await getDataFromRedis();
-            const redisRoomsBefore = await getRedisRooms();
-            await handleRedisData('client', dataFromRedisBefore, config, taskTracker);
-            const dataFromRedisAfter = await getDataFromRedis();
-            const redisRooms = await getRedisRooms();
+            const dataFromRedisBefore = await queueHandler.getDataFromRedis();
+            const redisRoomsBefore = await queueHandler.getRedisRooms();
+            await queueHandler.handleRedisData(dataFromRedisBefore);
+            const dataFromRedisAfter = await queueHandler.getDataFromRedis();
+            const redisRooms = await queueHandler.getRedisRooms();
 
             expect(dataFromRedisBefore).to.have.deep.members(expectedData);
             expect(dataFromRedisAfter).to.be.null;
@@ -272,31 +265,31 @@ describe('redis-data-handle test', () => {
         });
 
         it('test correct roomsData', async () => {
-            const roomsData = await getRedisRooms();
+            const roomsData = await queueHandler.getRedisRooms();
             expect(roomsData).to.have.deep.members(expectedRoom);
         });
 
         it('test handleRedisRooms with error', async () => {
-            await saveIncoming({ redisKey: 'newrooms', createRoomData });
+            await queueHandler.saveIncoming({ redisKey: 'newrooms', createRoomData });
             createRoomStub.callsFake(data => {
                 // logger.debug('data', data);
                 if (data.issue.key === 'BBCOM-1111') {
                     throw 'createRoomStub';
                 }
             });
-            const roomsData = await getRedisRooms();
+            const roomsData = await queueHandler.getRedisRooms();
             expect(roomsData).to.have.deep.equal([...expectedRoom, ...createRoomData]);
-            await handleRedisRooms(chatApi, roomsData);
+            await queueHandler.handleRedisRooms(roomsData);
 
-            const roomsKeysAfter = await getRedisRooms();
+            const roomsKeysAfter = await queueHandler.getRedisRooms();
             expect(roomsKeysAfter).to.have.deep.equal(createRoomData);
         });
 
         it('test correct handleRedisRooms', async () => {
-            const roomsKeysBefore = await getRedisRooms();
-            await handleRedisRooms(chatApi, roomsKeysBefore);
+            const roomsKeysBefore = await queueHandler.getRedisRooms();
+            await queueHandler.handleRedisRooms(roomsKeysBefore);
             expect(createRoomStub).to.be.called;
-            const roomsKeysAfter = await getRedisRooms();
+            const roomsKeysAfter = await queueHandler.getRedisRooms();
             expect(roomsKeysAfter).to.be.null;
         });
     });
@@ -309,6 +302,10 @@ describe('redis-data-handle test', () => {
 });
 
 describe('handle queue for only new task newrooms', () => {
+    const { chatApi } = getChatClass();
+    const actions = { ...botActions, createRoom: createRoomStub };
+    const queueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+
     it('test createRoomDataOnlyNew shoul be return array only new tasks', () => {
         const createRoomDataBase = getCreateRoomData(JSONbody);
         const createRoomDataIssueKeyOnly = { issue: { key: createRoomDataBase.issue.key } };
@@ -324,7 +321,7 @@ describe('handle queue for only new task newrooms', () => {
             projectKey: createRoomDataBase2.projectKey,
         };
 
-        const result = createRoomDataOnlyNew([
+        const result = queueHandler.createRoomDataOnlyNew([
             createRoomDataBase,
             createRoomDataIssueProjectOnly,
             createRoomDataIssueKeyOnly,
@@ -343,7 +340,7 @@ describe('Test handle archive project data', () => {
     const lastKey = searchProject.issues[0].key;
     const expectedIssueCount = Number(lastKey.split('-')[1]);
     let chatApi;
-    let messengerApi;
+    let chatSingle;
     const projectKey = 'INDEV';
 
     const laterProject = 'OROR';
@@ -354,11 +351,12 @@ describe('Test handle archive project data', () => {
     const otherCreator = `${projectKey}-${expectedIssueCount - 3}`;
 
     beforeEach(() => {
-        messengerApi = getChatClass({
+        const chatClass = getChatClass({
             alias: [lastKey, aliasExists, laterProjectKey, aliasRemoved, otherCreator, laterProjectKey],
             roomId: [lastKey, aliasExists, laterProjectKey],
-        }).chatApiSingle;
-        chatApi = new ChatFasade([messengerApi]);
+        });
+        chatSingle = chatClass.chatApiSingle;
+        chatApi = chatClass.chatApi;
     });
 
     afterEach(async () => {
@@ -366,22 +364,28 @@ describe('Test handle archive project data', () => {
         await cleanRedis();
     });
 
-    it('Expect nothing handles if redis key is empty', async () => {
-        const keys = await handlers.getCommandKeys();
-        const res = await handlers.handleCommandKeys(chatApi, keys, config, taskTracker);
-        expect(res).to.be.empty;
-    });
+    describe('Base operations', () => {
+        const queueHandler: QueueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
 
-    it('expect setArchiveProject work correct', async () => {
-        await setArchiveProject(projectKey);
-        const [data] = await redis.getList(utils.ARCHIVE_PROJECT);
-        expect(data).to.include(projectKey);
+        it('Expect nothing handles if redis key is empty', async () => {
+            const keys = await queueHandler.getCommandKeys();
+            const res = await queueHandler.handleCommandKeys(keys);
+            expect(res).to.be.empty;
+        });
+
+        it('expect setArchiveProject work correct', async () => {
+            await setArchiveProject(projectKey);
+            const [data] = await redis.getList(utils.ARCHIVE_PROJECT);
+            expect(data).to.include(projectKey);
+        });
     });
 
     describe('With exists key', () => {
-        let server;
-        let tmpDir;
-        let configWithTmpPath;
+        let gitServer;
+        let tmpDir: tmp.DirectoryResult;
+        let configWithTmpPath: Config;
+        let queueHandler: QueueHandler;
+
         const expectedRemote = `${baseRemote}/${projectKey.toLowerCase()}.git`;
 
         beforeEach(async () => {
@@ -411,33 +415,33 @@ describe('Test handle archive project data', () => {
             await setArchiveProject(laterProject, { keepTimestamp: info.maxTs - 5 });
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
-            server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
+            queueHandler = new QueueHandler(taskTracker, chatApi, configWithTmpPath, actions);
+            gitServer = startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
             await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: lastKey });
         });
 
         afterEach(() => {
-            server.close();
+            gitServer.close();
             tmpDir.cleanup();
         });
 
         it('Expect all data is handled', async () => {
-            messengerApi.getRoomIdByName
+            chatSingle.getRoomIdByName
                 .withArgs(otherCreator)
                 .resolves(notFoundId)
                 .withArgs(aliasRemoved)
                 .resolves(notFoundId);
-            messengerApi.isInRoom.withArgs(notFoundId).resolves(false);
-            messengerApi.deleteRoomAlias.withArgs(aliasRemoved).resolves('ok');
+            chatSingle.isInRoom.withArgs(notFoundId).resolves(false);
+            chatSingle.deleteRoomAlias.withArgs(aliasRemoved).resolves('ok');
 
-            const keys = await handlers.getCommandKeys();
+            const keys = await queueHandler.getCommandKeys();
             // set order
-            const { [projectKey]: res1, [laterProject]: res2 } = (await handlers.handleCommandKeys(
-                chatApi,
-                keys,
-                configWithTmpPath,
-                taskTracker,
-            ))!;
+            const { [projectKey]: res1, [laterProject]: res2 } = (await queueHandler.handleCommandKeys(keys))!;
+
+            expect(res2[stateEnum.NOT_FOUND]).to.have.length(5);
+            // expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
+            expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
 
             expect(res1[stateEnum.NOT_FOUND]).to.have.length(2);
             expect(res1[stateEnum.ARCHIVED]).to.have.length(2);
@@ -445,10 +449,6 @@ describe('Test handle archive project data', () => {
             expect(res1[stateEnum.ERROR_ARCHIVING]).to.have.length(0);
             expect(res1[stateEnum.OTHER_ALIAS_CREATOR]).to.have.length(1);
             expect(res1[stateEnum.STILL_ACTIVE]).to.have.length(0);
-
-            expect(res2[stateEnum.NOT_FOUND]).to.have.length(5);
-            // expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
-            expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
         });
     });
 });

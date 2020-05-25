@@ -10,7 +10,7 @@ import postNewLinksbody from '../fixtures/webhooks/issuelink/created_relates.jso
 import issueLinkBody from '../fixtures/jira-api-requests/issuelinkRelates.json';
 import issueBody from '../fixtures/jira-api-requests/issue.json';
 import { postNewLinks } from '../../src/bot/actions/post-new-links';
-import { getPostNewLinksData } from '../../src/jira-hook-parser/parse-body';
+import { getPostNewLinksData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
 import { getPostLinkMessageBody } from '../../src/bot/actions/helper';
 import { config } from '../../src/config';
 import { commandsHandler } from '../../src/bot/commands';

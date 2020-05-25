@@ -1,15 +1,13 @@
 import { ChatConfig } from '../types';
+import { commandsHandlerType } from '../bot/commands';
+import { LoggerInstance } from 'winston';
 
 export class BaseChatApi {
-    commandsHandler;
-    config: ChatConfig;
-    logger;
-
-    constructor(commandsHandler: Function, config, logger) {
-        this.commandsHandler = commandsHandler;
-        this.config = config;
-        this.logger = logger;
-    }
+    constructor(
+        public commandsHandler: commandsHandlerType,
+        public config: ChatConfig,
+        public logger: LoggerInstance,
+    ) {}
 
     getAdmins(): string[] {
         return this.config.messenger.admins;

@@ -8,8 +8,8 @@ import issueMovedJSON from '../fixtures/webhooks/issue/updated/move-issue.json';
 import issueStatusChangedJSON from '../fixtures/webhooks/issue/updated/status-changed.json';
 import statusJSON from '../fixtures/jira-api-requests/status.json';
 import descriptionUpdateJSON from '../fixtures/webhooks/issue/updated/description-update.json';
-import { getPostIssueUpdatesData } from '../../src/jira-hook-parser/parse-body';
-import { isPostIssueUpdates } from '../../src/jira-hook-parser/bot-handler';
+import { getPostIssueUpdatesData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
+import { isPostIssueUpdates } from '../../src/jira-hook-parser/parsers/jira';
 import { postIssueUpdates } from '../../src/bot/actions';
 import { isArchiveStatus } from '../../src/bot/actions/post-issue-updates';
 import renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json';
@@ -66,10 +66,9 @@ describe('Post issue updates test', () => {
             .get(`/status/${greenStatusId}`)
             .reply(200, greenStatus);
 
-        const chatClass = getChatClass();
+        const chatClass = getChatClass({ roomId });
         chatSingle = chatClass.chatApiSingle;
         chatApi = chatClass.chatApi;
-
         chatSingle.getRoomId
             .resolves(roomId)
             .withArgs(null)

@@ -4,7 +4,7 @@ import * as utils from '../../src/lib/utils';
 import JSONbody from '../fixtures/webhooks/issue/updated/generic.json';
 import watchersBody from '../fixtures/jira-api-requests/watchers.json';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
-import { getInviteNewMembersData } from '../../src/jira-hook-parser/parse-body';
+import { getInviteNewMembersData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
 import { inviteNewMembers } from '../../src/bot/actions/invite-new-members';
 import { getChatClass, taskTracker, getUserIdByDisplayName } from '../test-utils';
 import { config } from '../../src/config';
