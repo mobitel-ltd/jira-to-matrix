@@ -1,12 +1,12 @@
-// @ts-nocheck
-
 /* eslint-disable no-undefined */
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 import matrixSdk from 'matrix-js-sdk';
 import * as utils from '../lib/utils';
 import * as R from 'ramda';
 import { BaseChatApi } from './base-api';
-import { MessengerApi } from '../types';
+import { MessengerApi, RoomData, ChatConfig } from '../types';
+import { Commands } from '../bot/commands';
+import { LoggerInstance } from 'winston';
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -14,13 +14,14 @@ const getEvent = content => ({
 });
 
 export class MatrixApi extends BaseChatApi implements MessengerApi {
-    sdk;
     userId: string;
     baseUrl: string;
+    // matrix client
+    client: any;
+    connection = false;
 
-    constructor(commandsHandler, config, logger, sdk = matrixSdk) {
-        super(commandsHandler, config, logger);
-        this.sdk = sdk;
+    constructor(commands: Commands, config: ChatConfig, logger: LoggerInstance, sdk = matrixSdk) {
+        super(commands, config, logger, sdk);
         this.userId = `@${this.config.user}:${this.config.messenger.domain}`;
         this.baseUrl = `https://${this.config.messenger.domain}`;
     }
@@ -40,14 +41,14 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
     /**
      * @returns {string} user id
      */
-    getMyId() {
+    getMyId(): string {
         return this.config.user;
     }
 
     /**
      * @returns {string} matrix user id
      */
-    getBotId() {
+    getBotId(): string {
         return this.getMyId();
     }
 
@@ -61,21 +62,15 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Transform ldap user name to matrix user id
-     *
-     * @param {string} shortName shortName of user from ldap
-     * @returns {string} matrix user id like @ii_ivanov:matrix.example.com
      */
-    getChatUserId(shortName) {
+    getChatUserId(shortName: string): string {
         return shortName && `@${shortName.toLowerCase()}:${this.config.messenger.domain}`;
     }
 
     /**
      * Get name from matrix id
-     *
-     * @param {string} id matrix alias or name
-     * @returns {(string|undefined)} return id
      */
-    _getNameFromMatrixId(id) {
+    _getNameFromMatrixId(id: string): string | undefined {
         if (id) {
             const [name] = id.split(':').slice(0, 1);
 
@@ -85,18 +80,14 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Matrix events handler
-     *
-     * @param {object} event from matrix
-     * @param {object} room matrix room
-     * @param {boolean} toStartOfTimeline true if skip event
      */
-    async timelineHandler(event, room, toStartOfTimeline) {
+    async timelineHandler(event: any, room: any, toStartOfTimeline: boolean) {
         try {
             if (event.getType() !== 'm.room.message' || toStartOfTimeline) {
                 return;
             }
 
-            const sender = this._getNameFromMatrixId(event.getSender());
+            const sender = this._getNameFromMatrixId(event.getSender())!;
 
             const { body } = event.getContent();
 
@@ -109,18 +100,15 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
             const roomData = this.getRoomData(room);
             const roomName = roomData.alias;
 
-            const options = {
+            // TODO add class to commandsHandler
+            await this.commands.run(commandName, {
                 roomData,
                 chatApi: this,
                 sender,
                 roomName,
                 roomId: room.roomId,
-                commandName,
                 bodyText,
-                config: this.config,
-            };
-
-            await this.commandsHandler(options);
+            });
         } catch (err) {
             const errMsg = utils.errorTracing(
                 `Error while handling event from Matrix room "${room.name}" ${room.roomId}`,
@@ -132,11 +120,8 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Convert string with alias to matrix form
-     *
-     * @param  {string} alias alias for a room
-     * @returns {string} alias in matrix
      */
-    _getMatrixRoomAlias(alias) {
+    _getMatrixRoomAlias(alias: string): string {
         return `#${alias}:${this.config.messenger.domain}`;
     }
 
@@ -146,9 +131,9 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
      * @param  {object} err catching error body
      * @returns {boolean} true/false
      */
-    _isEventExeptionError(err) {
+    _isEventExeptionError(err: Error): boolean {
         return (
-            err.message &&
+            typeof err.message === 'string' &&
             (err.message.includes(this.EVENT_EXCEPTION) ||
                 err.message.includes(this.BOT_OUT_OF_ROOM_EXEPTION) ||
                 err.message.includes(this.MESSAGE_TO_LARGE) ||
@@ -156,11 +141,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         );
     }
 
-    /**
-     * @private
-     * @returns {void} MatrixClient class
-     */
-    async _createClient() {
+    async _createClient(): Promise<void> {
         try {
             const client = this.sdk.createClient(this.baseUrl);
             const { access_token: accessToken } = await client.loginWithPassword(this.userId, this.config.password);
@@ -178,12 +159,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * @private
-     * @param {string} resolve from config.
-     * @returns {void} emit sync when state of client is correct
-     */
-    _executor(resolve) {
+    _executor(resolve: Function): void {
         const syncHandler = state => {
             if (state === 'SYNCING') {
                 this.logger.info('well connected');
@@ -196,11 +172,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         this.client.once('sync', syncHandler);
     }
 
-    /**
-     * @private
-     * @returns {Promise} connected MatrixClient
-     */
-    async _startClient() {
+    async _startClient(): Promise<any> {
         try {
             await this._createClient();
             this.client.startClient();
@@ -211,10 +183,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * @param  {object} event matrix event
-     */
-    async _inviteBot(event) {
+    async _inviteBot(event: any) {
         if (event.event.membership !== 'invite') {
             return;
         }
@@ -223,7 +192,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         sender = sender.slice(1, -this.postfix);
 
         if (
-            !this.config.admins.includes(sender) &&
+            !this.config.messenger.admins.includes(sender) &&
             sender !== this.config.user &&
             event.getStateKey() === this.getMyId()
         ) {
@@ -236,12 +205,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Leave room by id
-     *
-     * @param {string} roomId matrix room id
-     */
-    async leaveRoom(roomId) {
+    async leaveRoom(roomId: string): Promise<string | false> {
         try {
             await this.client.leave(roomId);
             this.logger.info(`Left room with id ${roomId}`);
@@ -254,14 +218,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Remove listener
-     *
-     * @param  {string} eventName matrix event name
-     * @param  {string} listener  matrix event listener
-     * @param  {object} matrixClient matrix client
-     */
-    _removeListener(eventName, listener, matrixClient) {
+    _removeListener(eventName: string, listener: Function, matrixClient: any) {
         const listCount = matrixClient.listenerCount(eventName);
         if (listCount > 1) {
             matrixClient.removeListener(eventName, listener);
@@ -271,10 +228,8 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Handler to add timeline handler to watch events in a room
-     *
-     * @returns {object} matrix client
      */
-    _handler() {
+    _handler(): any {
         if (!this.client) {
             this.logger.error('matrixclient is undefined');
             return;
@@ -307,17 +262,11 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         return this.client;
     }
 
-    /**
-     * @returns {object} matrix client
-     */
-    getClient() {
+    getClient(): any {
         return this.client;
     }
 
-    /**
-     * @returns {boolean} connect status
-     */
-    isConnected() {
+    isConnected(): boolean {
         if (this.client) {
             return !!this.client.clientRunning && this.connection;
         }
@@ -325,10 +274,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         return false;
     }
 
-    /**
-     * @returns {object} connected MatrixClient with api for Jira
-     */
-    async connect() {
+    async connect(): Promise<void> {
         try {
             await this._startClient();
 
@@ -338,25 +284,14 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * @returns {void} disconnected MatrixClient
-     */
-    disconnect() {
+    disconnect(): void {
         if (this.isConnected()) {
             this.client.stopClient();
             this.logger.info('Disconnected from Matrix');
         }
     }
 
-    /**
-     * Set power level for current user in matrix room
-     *
-     * @param {string} roomId matrix room
-     * @param {string} userId matrix userId
-     * @param {number} level=50 power level, 50 by default
-     * @param level
-     */
-    async setPower(roomId, userId, level = 50) {
+    async setPower(roomId: string, userId: string, level = 50): Promise<boolean> {
         try {
             const content = await this.client.getStateEvent(roomId, 'm.room.power_levels', '');
             const event = getEvent(content);
@@ -370,11 +305,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * @param {string} searchParam param to search
-     * @returns {Promies<string|undefined>} user id in matrix if exists
-     */
-    async getUserIdByDisplayName(searchParam) {
+    async getUserIdByDisplayName(searchParam: string): Promise<string | undefined> {
         try {
             const method = 'POST';
             const path = '/user_directory/search';
@@ -384,7 +315,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
             };
 
             const result = await this.client._http.authedRequest(undefined, method, path, {}, body);
-            const userId = R.path(['results', 0, 'user_id'], result);
+            const userId: string | undefined = R.path(['results', 0, 'user_id'], result);
 
             if (!userId) {
                 this.logger.warn(`Not found user by search params ${searchParam}`);
@@ -397,18 +328,12 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Get room data
-     *
-     * @param {Room} room matrix room
-     * @returns {{alias: ?string, name: string, members: {userId: string, level: number}[], topic: string}} room data
-     */
-    getRoomData(room) {
+    getRoomData(room: any): RoomData {
         const lastCreatedAlias = R.head(room.getAliases()) || room.getCanonicalAlias();
         const alias = this._getNameFromMatrixId(lastCreatedAlias) || null;
         const joinedMembers = room.getJoinedMembers();
         const topicEvent = room.currentState.getStateEvents('m.room.topic', '');
-        const topic = topicEvent && R.path(['topic'], topicEvent.getContent());
+        const topic: string | undefined = topicEvent && R.path(['topic'], topicEvent.getContent());
 
         return {
             id: room.roomId,
@@ -422,24 +347,14 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         };
     }
 
-    /**
-     * Get room data by room id
-     *
-     * @param {string} roomId matrix room id
-     */
-    async getRoomDataById(roomId) {
+    async getRoomDataById(roomId: string): Promise<RoomData | undefined> {
         const room = await this.client.getRoom(roomId);
         if (room) {
             return this.getRoomData(room);
         }
     }
 
-    /**
-     * Get rooms from matrix
-     *
-     * @returns {Array} matrix rooms
-     */
-    getRooms() {
+    getRooms(): Array<any> {
         const getParsedRooms = room => {
             const joinedMembers = room.getJoinedMembers();
 
@@ -457,16 +372,19 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Create matrix room
-     *
-     * @param {object} options create room options
-     * @param {string}  options.room_alias_name alias for room
-     * @param {string[]} options.invite array of users to invite
-     * @param {string} options.name room name
-     * @param {string} options.topic room topic
-     * @param {string?} options.avatarUrl avatar url for room, optional
-     * @returns {string} matrix room id
      */
-    async createRoom({ invite, avatarUrl, ...options }) {
+    async createRoom({
+        invite,
+        avatarUrl,
+        ...options
+    }: {
+        room_alias_name: string;
+        invite: string[];
+        name: string;
+        topic?: string;
+        purpose?: string;
+        avatarUrl?: string;
+    }) {
         try {
             const lowerNameList = invite.filter(Boolean).map(name => name.toLowerCase());
             const createRoomOptions = {
@@ -490,10 +408,8 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Get matrix room id by alias
-     *
-     * @param  {string} alias matrix room alias
      */
-    async getRoomId(alias) {
+    async getRoomId(alias: string): Promise<string> {
         try {
             const { room_id: roomId } = await this.client.getRoomIdForAlias(this._getMatrixRoomAlias(alias));
             return roomId;
@@ -504,14 +420,13 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Get matrix room by alias
-     *
-     * @param  {string?} name matrix room alias
-     * @param  {string?} roomId matrix roomId
-     * @returns {Promise<string[]>} matrix room members
      */
-    async getRoomMembers({ name, roomId }) {
+    async getRoomMembers({
+        name,
+        roomId,
+    }: { name: string; roomId?: string } | { name?: string; roomId: string }): Promise<string[]> {
         try {
-            const id = roomId || (await this.getRoomId(name));
+            const id = roomId || (await this.getRoomId(name as string));
             const room = await this.client.getRoom(id);
             const joinedMembers = room.getJoinedMembers();
 
@@ -523,14 +438,15 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Get matrix room by alias
-     *
-     * @param  {string?} name matrix room alias
-     * @param  {string?} roomId matrix roomId
-     * @returns {Promise<{name: srting, userId: string}[]>} matrix room members
      */
-    async getRoomAdmins({ name, roomId }) {
+    async getRoomAdmins({
+        name,
+        roomId,
+    }: { name?: string; roomId: string } | { name: string; roomId?: string }): Promise<
+        { name: string; userId: string }[]
+    > {
         try {
-            const id = roomId || (await this.getRoomId(name));
+            const id = roomId || (await this.getRoomId(name as string));
             const room = await this.client.getRoom(id);
             const joinedMembers = room.getJoinedMembers();
 
@@ -544,23 +460,16 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Check if user is in matrix room
-     *
-     * @param {string} roomId matrix room id
-     * @param {string} user matrix user id
-     * @returns {Promise<boolean>} return true if user in room
      */
-    async isRoomMember(roomId, user) {
+    async isRoomMember(roomId: string, user: string): Promise<boolean> {
         const roomMembers = await this.getRoomMembers({ roomId });
         return roomMembers.includes(user);
     }
 
     /**
      * Invite user to matrix room
-     *
-     * @param  {string} roomId matrix room id
-     * @param  {string} userId matrix user id
      */
-    async invite(roomId, userId) {
+    async invite(roomId: string, userId: string): Promise<boolean> {
         try {
             const user = userId.toLowerCase();
             if (await this.isRoomMember(roomId, user)) {
@@ -582,12 +491,8 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Send message to matrix room
-     *
-     * @param  {string} roomId matrix room id
-     * @param  {string} body matrix info message body
-     * @param  {string} htmlBody matrix message body
      */
-    async sendHtmlMessage(roomId, body, htmlBody) {
+    async sendHtmlMessage(roomId: string, body: string, htmlBody: string): Promise<void> {
         try {
             await this.client.sendHtmlMessage(roomId, body, htmlBody);
         } catch (err) {
@@ -603,11 +508,8 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Create alias for the room
-     *
-     * @param  {string} name matrix room name
-     * @param  {string} roomId matrix room id
      */
-    async createAlias(name, roomId) {
+    async createAlias(name: string, roomId: string): Promise<string | false> {
         const newAlias = this._getMatrixRoomAlias(name);
         try {
             await this.client.createAlias(newAlias, roomId);
@@ -627,11 +529,8 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Set new name for matrix room
-     *
-     * @param  {string} roomId matrix room id
-     * @param  {string} name new room name
      */
-    async setRoomName(roomId, name) {
+    async setRoomName(roomId: string, name: string): Promise<boolean> {
         try {
             await this.client.setRoomName(roomId, name);
             return true;
@@ -646,21 +545,13 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Set new topic for matrix room
-     *
-     * @param  {string} roomId matrix room id
-     * @param  {string} topic matrix room topic
-     */
-    async setRoomTopic(roomId, topic) {
+    async setRoomTopic(roomId: string, topic: string): Promise<void> {
         try {
             await this.client.setRoomTopic(roomId, topic);
             this.logger.debug(`New room topic is added for room with id ${roomId}`);
         } catch (err) {
             if (this._isEventExeptionError(err)) {
                 this.logger.warn(err.message);
-
-                return null;
             }
 
             throw [`Error while setting room's topic`, err].join('\n');
@@ -669,22 +560,12 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     /**
      * Chack if it's room name
-     *
-     * @param {string} room room full or short name
-     * @returns {boolean} return true if it's matrix room name
      */
-    _isRoomAlias(room) {
+    _isRoomAlias(room: string): boolean {
         return room.includes(this.config.messenger.domain) && room[0] === '#';
     }
 
-    /**
-     * Get room id by name
-     *
-     * @param {string} text roomname or alias
-     * @param {boolean} notUpper transform to upper
-     * @returns {Promise<string|false>} return roomId or false if not exisits
-     */
-    async getRoomIdByName(text, notUpper) {
+    async getRoomIdByName(text: string, notUpper?: boolean): Promise<string | false> {
         try {
             const alias = this._isRoomAlias(text)
                 ? text
@@ -699,64 +580,27 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * compose room name for matrix
-     *
-     * @param {string} key Jira issue key
-     * @param {string} summary Jira issue summary
-     * @returns {string} room name for jira issue in matrix
-     */
-    composeRoomName(key, summary) {
+    composeRoomName(key: string, summary: string): string {
         return `${key} ${summary}`;
     }
 
-    /**
-     * Update room name
-     *
-     * @param  {string} roomId matrix room id
-     * @param  {object} roomData issue data
-     * @param  {string} roomData.key jira issue key
-     * @param  {string} roomData.summary jira issue summary
-     * @returns {Promise<void>} update room data
-     */
-    async updateRoomName(roomId, roomData) {
+    async updateRoomName(roomId: string, roomData: { key: string; summary: string }): Promise<void> {
         const newName = this.composeRoomName(roomData.key, roomData.summary);
         await this.setRoomName(roomId, newName);
     }
 
-    /**
-     * Update room info data
-     *
-     * @param  {string} roomId room id
-     * @param  {string} topic new room topic
-     * @param  {string} key new issue key
-     * @returns {Promise<void>} void
-     */
-    async updateRoomData(roomId, topic, key) {
+    async updateRoomData(roomId: string, topic: string, key: string): Promise<void> {
         await this.createAlias(key, roomId);
         await this.setRoomTopic(roomId, topic);
     }
 
-    /**
-     * Check if user is in room
-     *
-     * @param {string} roomId room id
-     * @returns {boolean} return true if user in this room
-     */
-    async isInRoom(roomId) {
+    async isInRoom(roomId: string): Promise<boolean> {
         const room = await this.client.getRoom(roomId);
 
         return Boolean(room);
     }
 
-    /**
-     * Get bot which joined to room in chat
-     *
-     * @param {string} roomId chat room id
-     * @param {string} url new avatar url
-     * @returns {Promise<void>} void
-     */
-    async setRoomAvatar(roomId, url) {
+    async setRoomAvatar(roomId: string, url: string): Promise<true | undefined> {
         try {
             const method = 'PUT';
             const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.avatar`;
@@ -771,13 +615,9 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Get bot which joined to room in chat
-     *
-     * @param {string} roomId chat room id
-     * @returns {Promise<void>} void
-     */
-    async getAllMessagesFromRoom(roomId) {
+    async getAllMessagesFromRoom(
+        roomId: string,
+    ): Promise<{ author: string; date: string; body: string; eventId: string }[] | undefined> {
         try {
             const method = 'GET';
             const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
@@ -802,11 +642,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Get all room events
-     *
-     */
-    async getAllEventsFromRoom(roomId: string, limit = 10000): Promise<any[]> {
+    async getAllEventsFromRoom(roomId: string, limit = 10000): Promise<any[] | undefined> {
         try {
             const method = 'GET';
             const path = `/rooms/${encodeURIComponent(roomId)}/messages`;
@@ -822,23 +658,11 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Get bot which joined to room in chat
-     *
-     * @param {string} mxcUrl mxc link
-     * @returns {string} string
-     */
-    getDownloadLink(mxcUrl) {
+    getDownloadLink(mxcUrl: string): string {
         return this.client.mxcUrlToHttp(mxcUrl);
     }
 
-    /**
-     * Get bot which joined to room in chat
-     *
-     * @param {string} roomId chat room id
-     * @returns {Promise<void>} void
-     */
-    async kickUserByRoom({ roomId, userId }) {
+    async kickUserByRoom({ roomId, userId }: { roomId: string; userId: string }): Promise<string | undefined> {
         try {
             const method = 'PUT';
             const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.member/${encodeURIComponent(userId)}`;
@@ -858,10 +682,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * @param {string} roomId room id
-     */
-    async setRoomJoinedByUrl(roomId) {
+    async setRoomJoinedByUrl(roomId: string): Promise<true | undefined> {
         try {
             const method = 'PUT';
             const path = `/rooms/${encodeURIComponent(roomId)}/state/m.room.join_rules`;
@@ -877,31 +698,23 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Get bot which joined to room in chat
-     *
-     * @param {string} userId chat user id
-     * @returns {Promise<({displayname:string, avatarUrl:string}|undefined)>} user profile info or nothing
-     */
-    async getUser(userId) {
+    async getUser(userId: string): Promise<{ displayName: string; avatarUrl: string } | undefined> {
         try {
             const user = await this.client.getProfileInfo(userId);
 
             return {
-                displayName: user.displayname,
-                avatarUrl: user.avatar_url,
+                displayName: user.displayname as string,
+                avatarUrl: user.avatar_url as string,
             };
         } catch (err) {
             this.logger.error(`User profile ${userId} is not found. \nError: ${JSON.stringify(err)}`);
         }
     }
 
-    /**
-     * @param {object} options join options
-     * @param {string} options.roomId room id to join
-     * @param {string} options.aliasPart alias part to join
-     */
-    async joinRoom({ roomId, aliasPart }) {
+    async joinRoom({
+        roomId,
+        aliasPart,
+    }: { roomId?: string; aliasPart: string } | { roomId: string; aliasPart?: string }) {
         try {
             if (aliasPart) {
                 const alias = this._getMatrixRoomAlias(aliasPart);
@@ -918,13 +731,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    /**
-     * Delete matrix room alias
-     *
-     * @param {string} aliasPart aliasPart
-     * @returns {string|undefined} return allias if command is succedded
-     */
-    async deleteRoomAlias(aliasPart) {
+    async deleteRoomAlias(aliasPart: string): Promise<string | void> {
         const alias = this._getMatrixRoomAlias(aliasPart);
         try {
             const roomId = await this.getRoomIdByName(alias, true);

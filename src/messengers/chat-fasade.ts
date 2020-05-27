@@ -1,10 +1,10 @@
 import { getLogger } from '../modules/log';
 import * as ramda from 'ramda';
-import { MessengerApi, RoomData, MessengerFasade } from '../types';
+import { MessengerApi, RoomData } from '../types';
 
 const logger = getLogger(module);
 
-export class ChatFasade implements MessengerFasade {
+export class ChatFasade {
     chatPool: MessengerApi[];
     worker: MessengerApi;
 

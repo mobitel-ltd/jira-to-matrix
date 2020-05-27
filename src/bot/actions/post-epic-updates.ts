@@ -2,11 +2,12 @@ import * as utils from '../../lib/utils';
 import { getLogger } from '../../modules/log';
 import { redis } from '../../redis-client';
 import { getNewIssueMessageBody, getPostStatusData } from './helper';
-import { PostEpicUpdatesActions, MessengerFasade } from '../../types';
+import { PostEpicUpdatesActions } from '../../types';
+import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
 
-const postNewIssue = async (roomID: string, { epic, issue }, chatApi: MessengerFasade): Promise<void> => {
+const postNewIssue = async (roomID: string, { epic, issue }, chatApi: ChatFasade): Promise<void> => {
     const redisEpicKey = utils.getRedisEpicKey(epic.id);
     if (await redis.isInEpic(redisEpicKey, issue.id)) {
         logger.debug(`Issue ${issue.key} already saved in Redis by epic ${epic.key}`);

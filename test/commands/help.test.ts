@@ -9,21 +9,25 @@ import { getChatClass, taskTracker } from '../test-utils';
 const { expect } = chai;
 chai.use(sinonChai);
 
-import { commandsHandler } from '../../src/bot/commands';
+import { Commands } from '../../src/bot/commands';
+import { CommandNames, Config } from '../../src/types';
+import { config } from '../../src/config';
 
 describe('comment help', () => {
     let chatApi;
     let baseOptions;
+    let commands: Commands;
+
+    const commandName = CommandNames.Help;
     const roomData = {
         alias: 'BBCOM-123',
         id: 12345,
     };
     const bodyText = 'text in body';
     const sender = 'user';
-    const commandName = 'help';
-    const config = { pathToDocs: 'http://example.com', lang: 'en' };
+    const customConfig: Config = { ...config, pathToDocs: 'http://example.com', lang: 'en' };
 
-    const pathBase = path.resolve('.', 'docs', config.lang, 'commands');
+    const pathBase = path.resolve('.', 'docs', customConfig.lang, 'commands');
     const content = fs
         .readdirSync(pathBase)
         .filter(fileName => 'help.md' !== fileName)
@@ -39,12 +43,13 @@ describe('comment help', () => {
 
     beforeEach(() => {
         chatApi = getChatClass().chatApiSingle;
-        baseOptions = { roomData, commandName, sender, chatApi, bodyText, config, taskTracker };
+        commands = new Commands(customConfig, taskTracker);
+        baseOptions = { roomData, commandName, sender, chatApi, bodyText, customConfig, taskTracker };
     });
 
     it('Expect comment only command help', async () => {
         const post = translate('helpDocs', { link: 'http://example.com/en/commands/help.md', text: '' });
-        const result = await commandsHandler({ ...baseOptions, bodyText: '' });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: '' });
         expect(result).to.be.eq(post);
     });
 
@@ -53,7 +58,7 @@ describe('comment help', () => {
             link: 'http://example.com/en/commands/op.md',
             text: marked(allHelpCommands.op),
         });
-        const result = await commandsHandler({ ...baseOptions, bodyText: 'op' });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: 'op' });
         expect(result).to.be.eq(post);
     });
 
@@ -62,7 +67,7 @@ describe('comment help', () => {
             link: 'http://example.com/en/commands/help.md',
             command: 'lalala',
         });
-        const result = await commandsHandler({ ...baseOptions, bodyText: 'lalala' });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: 'lalala' });
         expect(result).to.be.eq(post);
     });
 
@@ -73,12 +78,12 @@ describe('comment help', () => {
 
         it('Expect help NOT works if bot is not master', async () => {
             chatApi.isMaster = () => false;
-            expect(await commandsHandler(baseOptions)).to.be.undefined;
+            expect(await commands.run(commandName, baseOptions)).to.be.undefined;
         });
 
         it('Expect help works if bot is master', async () => {
             const post = translate('helpDocs', { link: 'http://example.com/en/commands/help.md', text: '' });
-            const result = await commandsHandler({ ...baseOptions, bodyText: '' });
+            const result = await commands.run(commandName, { ...baseOptions, bodyText: '' });
             expect(result).to.be.eq(post);
         });
     });

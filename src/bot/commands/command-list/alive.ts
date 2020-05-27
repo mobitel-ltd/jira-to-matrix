@@ -1,12 +1,16 @@
 import { translate } from '../../../locales';
+import { Command, RunCommand } from './command-base';
+import { CommandOptions } from '../../../types';
 
-export const alive = ({ roomName, chatApi }) => {
-    if (chatApi.getCommandRoomName() !== roomName) {
-        return translate('notCommandRoom');
+export class AliveCommand extends Command implements RunCommand {
+    run(data: CommandOptions) {
+        if (this.chatApi.getCommandRoomName() !== data.roomData.alias) {
+            return translate('notCommandRoom');
+        }
+
+        const botId = this.chatApi.getMyId();
+        const message = translate('alive', { botId });
+
+        return message;
     }
-
-    const botId = chatApi.getMyId();
-    const message = translate('alive', { botId });
-
-    return message;
-};
+}

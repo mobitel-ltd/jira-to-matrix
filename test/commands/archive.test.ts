@@ -25,7 +25,7 @@ import projectJSON from '../fixtures/jira-api-requests/project.json';
 import { deleteAlias, KICK_ALL_OPTION, PERSONAL_REPO_OPTION } from '../../src/bot/commands/command-list/archive';
 import { rawEvents } from '../fixtures/archiveRoom/raw-events';
 import { info } from '../fixtures/archiveRoom/raw-events-data';
-import { commandsHandler } from '../../src/bot/commands';
+import { Commands } from '../../src/bot/commands';
 import * as utils from '../../src/lib/utils';
 import {
     DEFAULT_REMOTE_NAME,
@@ -36,6 +36,7 @@ import {
     FILE_DELIMETER,
 } from '../../src/lib/git-lib';
 import eventBefore from '../fixtures/archiveRoom/already-exisits-git/res/$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA.json';
+import { CommandNames, RunCommandsOptions } from '../../src/types';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -54,8 +55,10 @@ describe('Archive command', () => {
     const roomName = issueJSON.key;
     const sender = getUserIdByDisplayName(issueJSON.fields.creator.displayName);
     const roomId = getRoomId();
-    const commandName = 'archive';
-    let baseOptions;
+    const commandName = CommandNames.Archive;
+
+    let commands: Commands;
+    let baseOptions: RunCommandsOptions;
     let roomNameNotGitProject;
     let notExistProject;
     const notAdminSender = 'notAdmin';
@@ -85,6 +88,8 @@ describe('Archive command', () => {
     const baseMembers = [...simpleMembers, ...admin];
 
     beforeEach(() => {
+        commands = new Commands(config, taskTracker);
+
         notExistProject = faker.name.firstName().toUpperCase();
         roomNameNotGitProject = `${notExistProject}-123`;
         chatApi = getChatClass({ existedUsers: [{ userId: notAdminSender, displayName: 'lalal' }] }).chatApiSingle;
@@ -103,14 +108,11 @@ describe('Archive command', () => {
             ],
         };
         baseOptions = {
-            config,
             roomId,
             roomName,
-            commandName,
             sender,
             chatApi,
             roomData,
-            taskTracker,
         };
         nock(baseMedia)
             .get(`/${info.mediaId}`)
@@ -149,7 +151,7 @@ describe('Archive command', () => {
     // TODO set readable test case names
     it('Permition denided for not admin', async () => {
         const post = translate('notAdmin', { sender: 'notAdmin' });
-        const result = await commandsHandler({ ...baseOptions, sender: 'notAdmin' });
+        const result = await commands.run(commandName, { ...baseOptions, sender: 'notAdmin' });
         expect(result).to.be.eq(post);
     });
 
@@ -157,7 +159,7 @@ describe('Archive command', () => {
         const post = translate('issueNotExistOrPermDen');
         const notAvailableIssueKey = `${projectKey}-1010`;
         const roomDataWithNotExistAlias = { ...roomData, alias: notAvailableIssueKey };
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             roomData: roomDataWithNotExistAlias,
@@ -168,7 +170,7 @@ describe('Archive command', () => {
     it('Expect send skip archive if room has no alias', async () => {
         const post = translate('noAlias');
         const roomDataWithoutAlias = { ...roomData, alias: null };
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             roomData: roomDataWithoutAlias,
@@ -177,11 +179,12 @@ describe('Archive command', () => {
     });
 
     it('expect return repoNotExists if repo is not exists', async () => {
+        const _commands = new Commands({ ...config, baseRemote: 'lalalla' }, taskTracker);
+
         const repoLink = `${config.baseLink}/${projectKey.toLowerCase()}`;
         const post = translate('repoNotExists', { repoLink });
-        const result = await commandsHandler({
+        const result = await _commands.run(commandName, {
             ...baseOptions,
-            config: { ...config, baseRemote: 'lalalla' },
             sender: adminSender.name,
         });
         expect(result).to.be.eq(post);
@@ -189,7 +192,7 @@ describe('Archive command', () => {
 
     it('expect return unknownArgs message body text have unexpected words', async () => {
         const text = 'lallaal';
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             bodyText: text,
@@ -199,7 +202,7 @@ describe('Archive command', () => {
 
     it('expect return unknownArgs message if body text have multiple unexpected words', async () => {
         const text = 'lallaal oooo -kickall';
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             bodyText: [kickAllWithPref, text].join(' '),
@@ -210,7 +213,7 @@ describe('Archive command', () => {
     it('expect return unknownArgs message if body text have multiple unexpected words around', async () => {
         const text1 = 'lallaal oooo -kickall';
         const text2 = '-h';
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             bodyText: [text1, kickAllWithPref, text2].join(' '),
@@ -219,7 +222,7 @@ describe('Archive command', () => {
     });
 
     it('expect return unknownArgs message if body have option with one -', async () => {
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             bodyText: `-${KICK_ALL_OPTION}`,
@@ -253,6 +256,7 @@ describe('Archive command', () => {
             expectedGitWithCustomNameLink = `${config.sshLink}/${repoName.toLowerCase()}.git`;
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
+            commands = new Commands(configWithTmpPath, taskTracker);
 
             server = startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
@@ -268,11 +272,10 @@ describe('Archive command', () => {
         });
 
         it('expect command succeded', async () => {
-            const result = await commandsHandler({
+            const result = await commands.run(commandName, {
                 ...baseOptions,
                 sender: adminSender.name,
                 roomName: issueKey,
-                config: configWithTmpPath,
             });
             const expectedMsg = translate('successExport', {
                 httpLink: expectedRepoLink,
@@ -311,11 +314,10 @@ describe('Archive command', () => {
                 `--${PERSONAL_REPO_OPTION}`,
                 '-p',
             ])} ${faker.random.arrayElement([kickAllWithPref, '-k'])}`;
-            const result = await commandsHandler({
+            const result = await commands.run(commandName, {
                 ...baseOptions,
                 sender: adminSender.name,
                 roomName: issueKey,
-                config: configWithTmpPath,
                 bodyText,
             });
 
@@ -360,11 +362,10 @@ describe('Archive command', () => {
 
         it('expect command succeded with custom repo name as option', async () => {
             const bodyText = faker.random.arrayElement([`--${PERSONAL_REPO_OPTION}`, '-p']);
-            const result = await commandsHandler({
+            const result = await commands.run(commandName, {
                 ...baseOptions,
                 sender: adminSender.name,
                 roomName: issueKey,
-                config: configWithTmpPath,
                 bodyText,
             });
             const expectedMsg = translate('successExport', {
@@ -402,12 +403,11 @@ describe('Archive command', () => {
         it('expect command succeded and all simple members are kicked but admins not if they are exists', async () => {
             const roomName = issueKey;
             const bodyText = faker.random.arrayElement([kickAllWithPref, '-k']);
-            const result = await commandsHandler({
+            const result = await commands.run(commandName, {
                 ...baseOptions,
                 roomName,
                 sender: adminSender.name,
                 bodyText,
-                config: configWithTmpPath,
             });
 
             expect(result).to.be.undefined;
@@ -462,13 +462,12 @@ describe('Archive command', () => {
                     },
                 ],
             };
-            const result = await commandsHandler({
+            const result = await commands.run(commandName, {
                 ...baseOptions,
                 roomData: roomDataWihotAdmins,
                 roomName,
                 sender: adminSender.name,
                 bodyText,
-                config: configWithTmpPath,
             });
             expect(result).to.be.undefined;
 
@@ -510,12 +509,11 @@ describe('Archive command', () => {
                     },
                 ],
             };
-            const result = await commandsHandler({
+            const result = await commands.run(commandName, {
                 ...baseOptions,
                 roomData: roomDataWihLessPower,
                 roomName,
                 sender: adminSender.name,
-                config: configWithTmpPath,
                 bodyText,
             });
             const expectedMsg = [
@@ -552,9 +550,8 @@ describe('Archive command', () => {
 
         it('command cannot be succeded if such project is not exists in git repo', async () => {
             chatApi.getDownloadLink.throws();
-            const result = await commandsHandler({
+            const result = await commands.run(commandName, {
                 ...baseOptions,
-                config: configWithTmpPath,
                 sender: adminSender.name,
             });
             const expected = translate('archiveFail', { alias: roomData.alias });

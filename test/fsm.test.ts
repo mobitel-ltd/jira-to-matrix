@@ -14,7 +14,6 @@ chai.use(sinonChai);
 const { expect } = chai;
 
 describe('Fsm test', () => {
-    const port = 3000;
     const expectedData = [
         states.init,
         states.startConnection,
@@ -46,7 +45,7 @@ describe('Fsm test', () => {
         });
 
         it('Expect fsm state is "ready" after queue is handled', async () => {
-            fsm = new FSM([chatApi], handler, getServer, taskTracker, port);
+            fsm = new FSM([chatApi], getServer, taskTracker, defaultConfig.config);
             await fsm.start();
             await fsm._handle();
 
@@ -54,7 +53,7 @@ describe('Fsm test', () => {
         });
 
         it('Expect fsm state is "ready" after start connection and call handle during connection', async () => {
-            fsm = new FSM([chatApi], handler, getServer, taskTracker, port);
+            fsm = new FSM([chatApi], getServer, taskTracker, defaultConfig.config);
             await fsm.start();
             await fsm.handleHook();
             await delay(50);
@@ -68,7 +67,7 @@ describe('Fsm test', () => {
             const longTimeHandler = stub()
                 .callsFake(() => delay(100))
                 .resolves();
-            fsm = new FSM([chatApi], longTimeHandler, getServer, taskTracker, port);
+            fsm = new FSM([chatApi], getServer, taskTracker, defaultConfig.config);
             await fsm.start();
             await delay(50);
             await fsm.handleHook();
@@ -91,7 +90,7 @@ describe('Fsm test', () => {
         });
 
         it('Expect fsm state is "ready" sending info after connection (roomInfo exists in config)', async () => {
-            fsm = new FSM([chatApi], handler, getServer, taskTracker, port);
+            fsm = new FSM([chatApi], getServer, taskTracker, defaultConfig.config);
             await fsm.start();
             expect(chatApi.sendHtmlMessage).to.be.calledWithMatch(chatRoomId);
             // await fsm._handle();
@@ -110,7 +109,7 @@ describe('Fsm test', () => {
             });
 
             it('Expect create room to be called if no room with such name is exists', async () => {
-                fsm = new FSM([chatApi], handler, getServer, taskTracker, port);
+                fsm = new FSM([chatApi], getServer, taskTracker, defaultConfig.config);
                 await fsm.start();
 
                 expect(chatApi.createRoom).to.be.calledOnceWithExactly({

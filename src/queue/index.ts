@@ -1,6 +1,6 @@
 import { config } from '../config';
 import { getLogger } from '../modules/log';
-import { MessengerFasade, TaskTracker, Config } from '../types';
+import { TaskTracker, Config } from '../types';
 import { redis } from '../redis-client';
 import {
     isIgnoreKey,
@@ -12,13 +12,14 @@ import {
     getKeyFromError,
 } from '../lib/utils';
 import { union } from 'ramda';
+import { ChatFasade } from '../messengers/chat-fasade';
 
 const logger = getLogger(module);
 
 export class QueueHandler {
     constructor(
         private taskTracker: TaskTracker,
-        private chatApi: MessengerFasade,
+        private chatApi: ChatFasade,
         private config: Config,
         private actions: any,
     ) {}

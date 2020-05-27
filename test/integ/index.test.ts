@@ -39,9 +39,10 @@ import { stub, createStubInstance } from 'sinon';
 import sinonChai from 'sinon-chai';
 import { Jira } from '../../src/task-trackers/jira';
 import { getServer } from '../../src/server';
-import { Config } from '../../src/types';
+import { Config, ChatConfig } from '../../src/types';
 import { slack } from '../fixtures/messenger-settings';
 import { QueueHandler } from '../../src/queue';
+import { Commands } from '../../src/bot/commands';
 const { expect } = chai;
 chai.use(sinonChai);
 
@@ -155,8 +156,6 @@ const conversations = {
 
 const sdk = { ...createStubInstance(WebClient), auth, conversations, users, chat };
 
-const commandsHandler = stub().resolves();
-
 // const methodName = config.messenger.name === 'slack' ? 'only' : 'skip';
 // describe[methodName]('Integ tests', () => {
 
@@ -178,7 +177,10 @@ const ignoredBody = pipe(clone, set('fields.creator.displayName', testUserId))(n
 
 describe('Integ tests', () => {
     const slackConfig: Config = { ...config, messenger: slack };
-    const slackApi = new SlackApi(commandsHandler, slackConfig, logger, sdk);
+    const testConfig: ChatConfig = { ...slackConfig, ...slackConfig.messenger.bots[0] };
+
+    const commands = new Commands(config, taskTracker);
+    const slackApi = new SlackApi(commands, testConfig, logger, sdk as any);
     const queueHandler = new QueueHandler(taskTracker, slackApi as any, config, botActions);
     slackApi.getUserIdByDisplayName = getUserIdByDisplayName;
 

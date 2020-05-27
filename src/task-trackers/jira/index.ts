@@ -392,7 +392,7 @@ export class Jira {
     /**
      * Get user list by part of the name
      */
-    async searchUser(partName: string): Promise<object[]> {
+    async searchUser(partName: string): Promise<{ displayName: string; accountId: string }[]> {
         if (!partName) {
             return [];
         }

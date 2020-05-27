@@ -2,7 +2,7 @@ import { config } from '../../src/config';
 import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
-import { commandsHandler } from '../../src/bot/commands';
+import { Commands } from '../../src/bot/commands';
 import { translate } from '../../src/locales';
 import { getChatClass, taskTracker, cleanRedis } from '../test-utils';
 import newgenProject from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json';
@@ -11,7 +11,7 @@ import { LAST_ACTIVE_OPTION, DEFAULT_MONTH, STATUS_OPTION } from '../../src/bot/
 import transitionsJSON from '../fixtures/jira-api-requests/transitions.json';
 import searchProject from '../fixtures/jira-api-requests/project-gens/search-project.json';
 import * as utils from '../../src/lib/utils';
-import { Config } from '../../src/types';
+import { Config, CommandNames } from '../../src/types';
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -23,7 +23,9 @@ describe('command project archive test', () => {
     const sender = 'user';
     const roomId = 'roomId';
     const roomName = 'BBCOM-123';
-    const commandName = 'projectarchive';
+    let commands: Commands;
+
+    const commandName = CommandNames.Projectarchive;
     const lastStatusName = transitionsJSON.transitions[1].to.name;
 
     beforeEach(() => {
@@ -35,7 +37,10 @@ describe('command project archive test', () => {
         const configWithInfo: Config = { ...config, messenger: matrixMessengerDataWithRoom };
 
         chatApi = getChatClass({ config: configWithInfo }).chatApiSingle;
-        baseOptions = { roomId, roomData, commandName, sender, chatApi, bodyText, config: configWithInfo, taskTracker };
+        commands = new Commands(configWithInfo, taskTracker);
+        baseOptions = { roomName, commandName, chatApi };
+
+        baseOptions = { roomId, roomData, sender, chatApi, bodyText };
         const lastIssueKey = searchProject.issues[0].key;
         nock(utils.getRestUrl())
             .get(`/search?jql=project=${bodyText}`)
@@ -52,7 +57,9 @@ describe('command project archive test', () => {
     });
 
     it('Expect archiveproject return ignoreCommand message if command is ignore list', async () => {
-        const result = await commandsHandler({
+        const _commands = new Commands({ ...config, ignoreCommands: [commandName] }, taskTracker);
+
+        const result = await _commands.run(commandName, {
             ...baseOptions,
             bodyText: 'olololo',
             config: { ignoreCommands: [commandName] },
@@ -63,14 +70,14 @@ describe('command project archive test', () => {
     });
 
     it('Expect archive return issueNotExistOrPermDen message if no jira project exists', async () => {
-        const result = await commandsHandler({ ...baseOptions, bodyText: 'olololo' });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: 'olololo' });
 
         expect(result).to.be.eq(translate('issueNotExistOrPermDen'));
         expect(await getArchiveProject()).to.be.empty;
     });
 
     it('Expect archive save project key to queue if all is OK', async () => {
-        const result = await commandsHandler(baseOptions);
+        const result = await commands.run(commandName, baseOptions);
         const expected = translate('successProjectAddToArchive', { projectKey: bodyText, activeTime: DEFAULT_MONTH });
         expect(result).to.be.eq(expected);
         const [data] = await getArchiveProject();
@@ -78,7 +85,7 @@ describe('command project archive test', () => {
     });
 
     it('Expect archive not save project key to queue if body text is empty', async () => {
-        const result = await commandsHandler({ ...baseOptions, bodyText: null });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: null });
         const expected = translate('emptyProject');
 
         expect(result).to.be.eq(expected);
@@ -87,7 +94,7 @@ describe('command project archive test', () => {
 
     it('expect return unknownArgs message if body text have multiple unexpected words', async () => {
         const text = 'lallaal oooo -labc';
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: [`--${LAST_ACTIVE_OPTION}`, text].join(' '),
         });
@@ -97,7 +104,7 @@ describe('command project archive test', () => {
     it('Expect archive return warning message if body month is not valid', async () => {
         const failedMonth = 'lallalalla';
         const body = `--${LAST_ACTIVE_OPTION}    ${failedMonth}`;
-        const result = await commandsHandler({ ...baseOptions, bodyText: `${bodyText} ${body}` });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: `${bodyText} ${body}` });
         const expected = translate('notValid', { body: failedMonth });
 
         expect(result).to.be.eq(expected);
@@ -107,7 +114,7 @@ describe('command project archive test', () => {
     it('Expect archive return succcess message if command with limit time options is coorectly added', async () => {
         const activeTime = 1;
         const body = `--${LAST_ACTIVE_OPTION}    ${activeTime}`;
-        const result = await commandsHandler({ ...baseOptions, bodyText: `${bodyText} ${body}` });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: `${bodyText} ${body}` });
         const expected = translate('successProjectAddToArchive', { projectKey: bodyText, activeTime });
 
         expect(result).to.be.eq(expected);
@@ -117,7 +124,7 @@ describe('command project archive test', () => {
 
     it('Expect archive return succcess message if command with limit time options is coorectly added', async () => {
         const body = `--${STATUS_OPTION}    ${lastStatusName}`;
-        const result = await commandsHandler({ ...baseOptions, bodyText: `${bodyText} ${body}` });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: `${bodyText} ${body}` });
         const expected = translate('successProjectAddToArchiveWithStatus', {
             projectKey: bodyText,
             activeTime: DEFAULT_MONTH,
@@ -133,7 +140,7 @@ describe('command project archive test', () => {
     it('Expect archive return not correct jira status message if its not found in transitions', async () => {
         const fakeStatus = 'olololol';
         const body = `--${STATUS_OPTION}    ${fakeStatus}`;
-        const result = await commandsHandler({ ...baseOptions, bodyText: `${bodyText} ${body}` });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: `${bodyText} ${body}` });
         const expected = translate('notValid', { body: fakeStatus });
 
         expect(result).to.be.eq(expected);
@@ -141,14 +148,14 @@ describe('command project archive test', () => {
     });
 
     it('Expect return error message if room is not command', async () => {
-        const result = await commandsHandler({ ...baseOptions, roomData: { alias: 'some other room' } });
+        const result = await commands.run(commandName, { ...baseOptions, roomData: { alias: 'some other room' } });
 
         expect(result).to.be.eq(translate('notCommandRoom'));
     });
 
     it('Expect return nothing if bot is not master', async () => {
         chatApi.isMaster = () => false;
-        const result = await commandsHandler(baseOptions);
+        const result = await commands.run(commandName, baseOptions);
 
         expect(result).to.be.undefined;
     });

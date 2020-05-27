@@ -14,10 +14,11 @@ import Sinon, { stub, createStubInstance } from 'sinon';
 import allMessagesFromRoom from '../fixtures/archiveRoom/allMessagesFromRoom.json';
 import { settings } from '../fixtures/settings';
 import { rawEvents } from '../fixtures/archiveRoom/raw-events';
-import { Config, MessengerApi, MessengerFasade } from '../../src/types';
+import { Config, MessengerApi, RoomData } from '../../src/types';
 import { ChatFasade } from '../../src/messengers/chat-fasade';
 import gitP, { SimpleGit } from 'simple-git/promise';
 import { getTaskTracker } from '../../src/task-trackers';
+import { Commands } from '../../src/bot/commands';
 
 export const taskTracker = getTaskTracker(baseConfig.config);
 
@@ -84,8 +85,9 @@ export const getChatClass = (options?: {
     existedUsers?: ({ userId: string; displayName: string } | string)[];
     joinedRooms?: string[];
 }): {
-    chatApi: MessengerFasade;
+    chatApi: ChatFasade;
     chatApiSingle;
+    getRoomData: (data?: { alias?: string; roomId?: string; name?: string }) => RoomData;
 } => {
     const { config, alias, roomId, existedUsers, joinedRooms = [] } = {
         config: baseConfig.config,
@@ -100,15 +102,9 @@ export const getChatClass = (options?: {
     const rooms = R.zipObj(allAliases, allRoomIds);
 
     const ChatApi = getApi.getChatClass(config.messenger.name);
+    const commands = new Commands(config, taskTracker);
     const [realChatApi] = config.messenger.bots.map(item => {
-        return new ChatApi(
-            () => {
-                return;
-            },
-            { ...config, ...item },
-            console,
-            {},
-        );
+        return new ChatApi(commands, { ...config, ...item }, console as any, {} as any);
     });
 
     const chatApiSingle = createStubInstance(ChatApi as any, {
@@ -143,14 +139,15 @@ export const getChatClass = (options?: {
     const allMembers = allRoomMembers.map(member => chatApi.getChatUserId(member.userId ? member.userId : member.name));
     chatApiSingle.getRoomMembers.resolves(allMembers);
 
-    const allMembersWithPower = [
+    const allMembersWithPower: RoomData['members'] = [
         ...allMembers.map(userId => ({ userId, powerLevel: 50 })),
         { userId: realChatApi.getMyId(), powerLevel: 100 },
     ];
 
     allRoomIds.forEach(id => {
-        const roomData = {
-            alias: allAliases.find(key => rooms[key] === id),
+        const roomData: RoomData = {
+            name: 'some name',
+            alias: allAliases.find(key => rooms[key] === id) || null,
             id,
             members: allMembersWithPower,
         };
@@ -191,8 +188,14 @@ export const getChatClass = (options?: {
     [defaultRoomId, ...joinedRooms].forEach(id => {
         (chatApi.getRoomIdForJoinedRoom as Sinon.SinonStub).withArgs(id).resolves(roomId);
     });
+    const getRoomData = (data?: { alias: string; roomId: string; name: string }): RoomData => ({
+        alias: data?.alias || defaultAlias,
+        id: data?.roomId || defaultRoomId,
+        name: data?.name || 'some name',
+        members: allMembersWithPower,
+    });
 
-    return { chatApiSingle, chatApi };
+    return { chatApiSingle, chatApi, getRoomData };
 };
 
 export const startGitServer = (tmpDirName: string) => {

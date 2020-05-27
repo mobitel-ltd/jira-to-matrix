@@ -58,7 +58,8 @@ const getIdFromUrl = url => {
 
 const getNameFromMail = mail => mail && mail.split('@')[0];
 
-export const extractName = (body, path: string[] = []) => Ramda.path([...path, 'displayName'], body);
+export const extractName = (body, path: string[] = []): string | undefined =>
+    Ramda.path([...path, 'displayName'], body);
 
 export const getBodyWebhookEvent = (body): string => Ramda.path(['webhookEvent'], body) as string;
 
@@ -80,7 +81,7 @@ const handlers = {
         getIssueKey: (body): string => Ramda.path(['issue', 'key'], body) as string,
         getCreatorDisplayName: body =>
             getNameFromMail(Ramda.path(['issue', 'fields', 'creator', 'emailAddress'], body)),
-        getCreator: body => extractName(body, ['issue', 'fields', 'creator']),
+        getCreator: (body): string | undefined => extractName(body, ['issue', 'fields', 'creator']),
         getReporter: body => extractName(body, ['issue', 'fields', 'reporter']),
         getAssignee: body => extractName(body, ['issue', 'fields', 'assignee']),
         getMembers: body => {
@@ -131,7 +132,7 @@ export const getResponcedSummary = body => Ramda.path(['fields', 'summary'], bod
 
 export const getTypeEvent = body => Ramda.path(['issue_event_type_name'], body);
 
-export const getIssueCreator = issue => handlers.issue.getCreator({ issue });
+export const getIssueCreator = (issue): string | undefined => handlers.issue.getCreator({ issue });
 
 export const getIssueAssignee = issue => handlers.issue.getAssignee({ issue });
 

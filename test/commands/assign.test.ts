@@ -7,12 +7,13 @@ import {
     usersWithSamePartName,
     getExistingDisplayName,
     getUserIdByDisplayName,
-    getRoomId,
 } from '../test-utils';
-import { commandsHandler } from '../../src/bot/commands';
+import { Commands } from '../../src/bot/commands';
 import sinonChai from 'sinon-chai';
 import { schemas } from '../../src/task-trackers/jira/schemas';
 import * as chai from 'chai';
+import { config } from '../../src/config';
+import { CommandNames } from '../../src/types';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -20,7 +21,9 @@ chai.use(sinonChai);
 describe('assign test', () => {
     let chatApi;
     let baseOptions;
-    const commandName = 'assign';
+    const commands = new Commands(config, taskTracker);
+
+    const commandName = CommandNames.Assign;
 
     const noPermissionUser = {
         displayName: 'Ignore User',
@@ -43,13 +46,15 @@ describe('assign test', () => {
 
     const userSender = { displayName: existingSenderDisplayName, accountId: 'userSenderAccountId' };
 
+    const roomId = 'roomId';
     const roomName = 'BBCOM-123';
 
-    const roomId = getRoomId();
-
     beforeEach(() => {
-        chatApi = getChatClass({ existedUsers: [existingUserChatData] }).chatApiSingle;
-        baseOptions = { taskTracker, roomId, roomName, commandName, sender: existingSenderId, chatApi };
+        const chatClass = getChatClass({ existedUsers: [existingUserChatData] });
+        chatApi = chatClass.chatApiSingle;
+        const roomData = chatClass.getRoomData({ alias: roomName, roomId });
+
+        baseOptions = { sender: existingSenderId, chatApi, roomData, roomId, roomName };
         nock(utils.getRestUrl())
             .put(`/issue/${roomName}/assignee`, schemas.assignee(userSender.accountId))
             .reply(204)
@@ -85,7 +90,7 @@ describe('assign test', () => {
     // TODO need the way how to get diplayname of sender
     it('Expect assign sender ("!assign")', async () => {
         const post = translate('successMatrixAssign', { displayName: existingSenderDisplayName });
-        const result = await commandsHandler(baseOptions);
+        const result = await commands.run(commandName, baseOptions);
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
@@ -94,7 +99,7 @@ describe('assign test', () => {
     it('Expect not assign sender ("!assign fake")', async () => {
         const bodyText = 'fake';
         const post = translate('errorMatrixAssign', { userToFind: bodyText });
-        const result = await commandsHandler({ bodyText, ...baseOptions });
+        const result = await commands.run(commandName, { bodyText, ...baseOptions });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
@@ -102,7 +107,7 @@ describe('assign test', () => {
 
     it('Expect assign list of senders ("!assign Ivan")', async () => {
         const post = utils.getListToHTML(ivanUsers);
-        const result = await commandsHandler({ bodyText: partName, ...baseOptions });
+        const result = await commands.run(commandName, { bodyText: partName, ...baseOptions });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
@@ -112,14 +117,14 @@ describe('assign test', () => {
         chatApi.invite.throws('Error!!!');
         const post = translate('errorMatrixCommands');
 
-        const result = await commandsHandler({ bodyText: userSender.displayName, ...baseOptions });
+        const result = await commands.run(commandName, { bodyText: userSender.displayName, ...baseOptions });
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
         expect(result).to.be.undefined;
     });
 
     it('Expect be sent msg about adding admin status if 403 error got in request', async () => {
         const post = translate('setBotToAdmin');
-        const result = await commandsHandler({ bodyText: noPermissionUser.displayName, ...baseOptions });
+        const result = await commands.run(commandName, { bodyText: noPermissionUser.displayName, ...baseOptions });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
@@ -127,7 +132,7 @@ describe('assign test', () => {
 
     it('Expect be sent msg about no access to project if 404 error got in request', async () => {
         const post = translate('noRulesToWatchIssue');
-        const result = await commandsHandler({ bodyText: noRulesUser.displayName, ...baseOptions });
+        const result = await commands.run(commandName, { bodyText: noRulesUser.displayName, ...baseOptions });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);

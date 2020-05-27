@@ -1,6 +1,6 @@
 import * as faker from 'faker';
 import { config } from '../../src/config';
-import { commandsHandler } from '../../src/bot/commands';
+import { Commands } from '../../src/bot/commands';
 import * as utils from '../../src/lib/utils';
 import nock from 'nock';
 import * as chai from 'chai';
@@ -11,6 +11,7 @@ import { USER_OPTION, ALL_OPTION } from '../../src/bot/commands/command-list/kic
 import { getUserIdByDisplayName } from '../test-utils';
 import issueJSON from '../fixtures/jira-api-requests/issue.json';
 import projectJSON from '../fixtures/jira-api-requests/project.json';
+import { CommandNames } from '../../src/types';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -21,8 +22,10 @@ describe('Kick command', () => {
     let chatApi;
     const sender = getUserIdByDisplayName(issueJSON.fields.creator.displayName);
     const roomId = getRoomId();
-    const commandName = 'kick';
     let baseOptions;
+    let commands: Commands;
+
+    const commandName = CommandNames.Kick;
     let roomNameNotGitProject;
     let notExistProject;
     const notAdminSender = 'notAdmin';
@@ -37,6 +40,7 @@ describe('Kick command', () => {
     const adminId = 'member3';
 
     beforeEach(() => {
+        commands = new Commands(config, taskTracker);
         notExistProject = faker.name.firstName().toUpperCase();
         roomNameNotGitProject = `${notExistProject}-123`;
         chatApi = getChatClass({ existedUsers: [{ userId: notAdminSender, displayName: 'lalal' }] }).chatApiSingle;
@@ -74,10 +78,7 @@ describe('Kick command', () => {
             ],
         };
         baseOptions = {
-            taskTracker,
-            config,
             roomId,
-            commandName,
             sender,
             chatApi,
             roomData,
@@ -101,7 +102,7 @@ describe('Kick command', () => {
     // TODO set readable test case names
     it('should return notAdmin for not admin users', async () => {
         const post = translate('notAdmin', { sender: 'notAdmin' });
-        const result = await commandsHandler({ ...baseOptions, bodyText: kickAllOption, sender: 'notAdmin' });
+        const result = await commands.run(commandName, { ...baseOptions, bodyText: kickAllOption, sender: 'notAdmin' });
         expect(result).to.be.eq(post);
     });
 
@@ -117,7 +118,7 @@ describe('Kick command', () => {
                 },
             ],
         };
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             roomData: roomDataWihLessPower,
             bodyText: kickAllOption,
@@ -129,7 +130,7 @@ describe('Kick command', () => {
         const post = translate('issueNotExistOrPermDen');
         const notAvailableIssueKey = `${projectKey}-1010`;
         const roomDataWithNotExistAlias = { ...roomData, alias: notAvailableIssueKey };
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: kickAllOption,
             roomData: roomDataWithNotExistAlias,
@@ -139,7 +140,7 @@ describe('Kick command', () => {
 
     it('expect return notFoundUser message if body text have not exist in room user', async () => {
         const user = 'lallaal';
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: [kickUserOption, user].join(' '),
         });
@@ -148,7 +149,7 @@ describe('Kick command', () => {
 
     it('expect return noSelfKick message if option to kick user passed with bot id', async () => {
         const user = chatApi.getMyId();
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: [kickUserOption, user].join(' '),
         });
@@ -157,7 +158,7 @@ describe('Kick command', () => {
 
     it('expect return unknownArgs message if body text have extra data exept command options', async () => {
         const text = 'lallaal';
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: [text, kickAllOption].join(' '),
         });
@@ -165,7 +166,7 @@ describe('Kick command', () => {
     });
 
     it('expect return oneOptionOnly message if both command options are used', async () => {
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: [kickUserOption, kickAllOption].join(' '),
         });
@@ -173,7 +174,7 @@ describe('Kick command', () => {
     });
 
     it('expect return noOptionArg message if both command options are used', async () => {
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: kickUserOption,
         });
@@ -181,7 +182,7 @@ describe('Kick command', () => {
     });
 
     it('expect return noOptions message if no options exists', async () => {
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: '',
         });
@@ -189,7 +190,7 @@ describe('Kick command', () => {
     });
 
     it('expect command succeded with --all option', async () => {
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             roomName: issueKey,
@@ -203,7 +204,7 @@ describe('Kick command', () => {
     });
 
     it('expect command succeded with kick user option', async () => {
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             roomName: issueKey,
@@ -219,7 +220,7 @@ describe('Kick command', () => {
     });
 
     it('expect command is no succeded if user to kick is admin', async () => {
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             sender: adminSender.name,
             roomName: issueKey,

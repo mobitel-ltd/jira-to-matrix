@@ -1,4 +1,6 @@
 import { translate } from '../../../locales';
+import { Command, RunCommand } from './command-base';
+import { CommandOptions } from '../../../types';
 
 const getParsedRooms = room => {
     const [issueName] = room.name.split(' ');
@@ -10,20 +12,22 @@ const getParsedRooms = room => {
     };
 };
 
-export const getInfo = async ({ roomName, chatApi, bodyText }) => {
-    if (chatApi.getCommandRoomName() !== roomName) {
-        return translate('notCommandRoom');
+export class GetInfoCommand extends Command implements RunCommand {
+    async run({ roomName, bodyText }: CommandOptions) {
+        if (this.chatApi.getCommandRoomName() !== roomName) {
+            return translate('notCommandRoom');
+        }
+
+        const rooms = this.chatApi.getRooms();
+        const parsedRooms = rooms.map(getParsedRooms).filter(room => (bodyText ? room.project === bodyText : true));
+        const singleRooms = parsedRooms.filter(room => room.members.length === 1);
+
+        const messageParams = {
+            allRooms: parsedRooms.length,
+            single: singleRooms.length,
+            many: parsedRooms.length - singleRooms.length,
+        };
+
+        return translate('getInfo', messageParams);
     }
-
-    const rooms = await chatApi.getRooms();
-    const parsedRooms = rooms.map(getParsedRooms).filter(room => (bodyText ? room.project === bodyText : true));
-    const singleRooms = parsedRooms.filter(room => room.members.length === 1);
-
-    const messageParams = {
-        allRooms: parsedRooms.length,
-        single: singleRooms.length,
-        many: parsedRooms.length - singleRooms.length,
-    };
-
-    return translate('getInfo', messageParams);
-};
+}

@@ -13,7 +13,6 @@ import userJSON from '../fixtures/slack-requests/user.json';
 import testJSON from '../fixtures/slack-requests/auth-test.json';
 import conversationJSON from '../fixtures/slack-requests/conversation.json';
 import { SlackApi } from '../../src/messengers/slack-api';
-import { commandsHandler } from '../../src/bot/commands';
 import * as utils from '../../src/lib/utils';
 import supertest from 'supertest';
 import * as chai from 'chai';
@@ -22,7 +21,9 @@ import sinonChai from 'sinon-chai';
 import { getLogger } from '../../src/modules/log';
 import { slack } from '../fixtures/messenger-settings';
 import { config } from '../../src/config';
-import { Config } from '../../src/types';
+import { Config, ChatConfig } from '../../src/types';
+import { Commands } from '../../src/bot/commands';
+import { taskTracker } from '../test-utils';
 
 const logger = getLogger('slack-api');
 
@@ -37,7 +38,8 @@ chai.use(sinonChai);
 //     eventPort: 3000,
 // };
 
-const testConfig: Config = { ...config, messenger: slack };
+const slackConfig: Config = { ...config, messenger: slack };
+const testConfig: ChatConfig = { ...slackConfig, ...slackConfig.messenger.bots[0] };
 
 const request = supertest(`http://localhost:${testConfig.messenger.eventPort}`);
 
@@ -84,7 +86,8 @@ describe('Slack api testing', () => {
 
     const sdk = { ...createStubInstance(WebClient), auth, conversations, users, chat };
 
-    const slackApi = new SlackApi(commandsHandler, testConfig, logger, sdk);
+    const commands = new Commands(testConfig, taskTracker);
+    const slackApi = new SlackApi(commands, testConfig, logger, sdk as any);
 
     beforeEach(async () => {
         await slackApi.connect();

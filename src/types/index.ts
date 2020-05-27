@@ -104,6 +104,7 @@ export interface Config {
     baseLink?: string;
     sshLink?: string;
     gitReposPath?: string;
+    ignoreCommands: string[];
 }
 
 export interface ChatConfig extends Config {
@@ -490,6 +491,10 @@ export interface Project {
     id: string;
     name: string;
     lead: string;
+    issueTypes: Array<{ id: string; name: string; description: string; subtask: any }>;
+    adminsURL: string;
+    isIgnore: boolean;
+    style: string;
     admins?: string[];
 }
 
@@ -604,7 +609,7 @@ export interface TaskTracker {
     /**
      * Get user list by part of the name
      */
-    searchUser(partName?: string): Promise<object[]>;
+    searchUser(partName?: string): Promise<{ displayName: string; accountId: string }[]>;
 
     /**
      * Add watcher to issue
@@ -656,12 +661,12 @@ interface CommonMessengerApi {
     /**
      * Get room id by name
      */
-    getRoomIdByName(name: string): Promise<string | false>;
+    getRoomIdByName(name: string, notUpper?: boolean): Promise<string | false>;
 
     /**
      * Set new topic for matrix room
      */
-    setRoomTopic(roomId: string, topic: string): Promise<boolean>;
+    setRoomTopic(roomId: string, topic: string): Promise<void>;
 
     /**
      *  disconnected Chat client
@@ -699,7 +704,7 @@ interface CommonMessengerApi {
     /**
      * Get bot which joined to room in chat
      */
-    setRoomAvatar(roomId: string, url: string): Promise<void>;
+    setRoomAvatar(roomId: string, url: string): Promise<true | undefined>;
 
     /**
      * Get chat id by displayName
@@ -707,14 +712,14 @@ interface CommonMessengerApi {
     getUserIdByDisplayName(name: string): Promise<any>;
 
     /**
-     * Get bot which joined to room in chat
+     * Kick bot from a roon
      */
-    kickUserByRoom(data: { roomId: string; userId: string }): Promise<void>;
+    kickUserByRoom(data: { roomId: string; userId: string }): Promise<string | undefined>;
 
     /**
      * Get all room events
      */
-    getAllEventsFromRoom(roomId: string, limit?: number): Promise<any[]>;
+    getAllEventsFromRoom(roomId: string, limit?: number): Promise<any[] | undefined>;
 
     /**
      * Get room id, throws if no bot is in room
@@ -724,15 +729,15 @@ interface CommonMessengerApi {
 
 export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
     /**
-     * Get bot which joined to room in chat
+     * Get link to download media
      */
-    getDownloadLink(chatLink: string): Promise<string>;
+    getDownloadLink(chatLink: string): string;
 
     /**
      * Delete matrix room alias
      * @param {string} aliasPart matrix room id
      */
-    deleteRoomAlias(aliasPart: string): Promise<void>;
+    deleteRoomAlias(aliasPart: string): Promise<string | void>;
 
     /**
      * @param {string} roomId room id
@@ -742,7 +747,7 @@ export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
     /**
      * Get bot which joined to room in chat
      */
-    getUser(userId: string): Promise<{ displayname: string; avatarUrl: string } | undefined>;
+    getUser(userId: string): Promise<{ displayName: string; avatarUrl: string } | undefined>;
 
     /**
      * Join Room
@@ -752,12 +757,14 @@ export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
     /**
      * Get matrix room by alias
      */
-    getRoomAdmins(data: { name?: string; roomId?: string }): Promise<string[]>;
+    getRoomAdmins(data: { name?: string; roomId?: string }): Promise<{ name: string; userId: string }[]>;
 
     /**
      * Get all messeges from room
      */
-    getAllMessagesFromRoom(roomId: string): Promise<{ author: string; date: string; body: string; eventId: string }[]>;
+    getAllMessagesFromRoom(
+        roomId: string,
+    ): Promise<{ author: string; date: string; body: string; eventId: string }[] | undefined>;
 
     /**
      * Set new name for chat room
@@ -794,6 +801,15 @@ export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
      * Check if user is in room
      */
     isInRoom(roomId: string): Promise<boolean>;
+
+    leaveRoom(roomId: string): Promise<string | false>;
+
+    getRooms(): Array<any>;
+
+    /**
+     * Check if user is in matrix room
+     */
+    isRoomMember(roomId: string, user: string): Promise<boolean>;
 }
 
 export interface RoomData {
@@ -804,51 +820,7 @@ export interface RoomData {
     members: {
         userId: string;
         powerLevel: number;
-    };
-}
-
-export interface MessengerFasade extends CommonMessengerApi {
-    /**
-     * Get room data and client instance in this room by roomId
-     */
-    getRoomAndClient(roomId: string): Promise<{ client: MessengerApi; roomData: RoomData } | undefined>;
-
-    /**
-     * Get room id, throws if no bot is in room
-     */
-    getRoomIdForJoinedRoom(key: string): Promise<string>;
-
-    /**
-     * Get bot which will create new room for new hooks
-     */
-    getCurrentClient(): MessengerApi;
-
-    /**
-     * Get each instance of bots
-     */
-    getAllInstance(): MessengerApi[];
-
-    /**
-     * Disconnect each bot
-     */
-    disconnect(): void;
-
-    /**
-     * Invite watchers to info room
-     */
-    inviteInfoWatchers(): Promise<void>;
-
-    /**
-     * Send notify to an info room
-     */
-    sendNotify(text: string): Promise<boolean | undefined>;
-
-    /**
-     * Get or create room for notify message
-     */
-    getOrCreateNotifyRoom(roomName: string): Promise<string>;
-
-    joinBotToInfoRoom(userId: string): Promise<void>;
+    }[];
 }
 
 export interface BaseActions {
@@ -922,12 +894,32 @@ export interface DeletedLinksActions extends BaseActions {
 }
 
 export interface CommandOptions {
-    bodyText: string;
-    roomId: string;
-    roomName: string;
     sender: string;
-    chatApi: MessengerApi;
+    roomName: string | null;
+    roomId: string;
+    bodyText?: string;
     roomData: RoomData;
-    config: Config;
-    taskTracker: TaskTracker;
+}
+
+export enum CommandNames {
+    Comment = 'comment',
+    Assign = 'assign',
+    Move = 'move',
+    Spec = 'spec',
+    Prio = 'prio',
+    Op = 'op',
+    Invite = 'invite',
+    Help = 'help',
+    Ignore = 'ignore',
+    Create = 'create',
+    Autoinvite = 'autoinvite',
+    Alive = 'alive',
+    GetInfo = 'getInfo',
+    Kick = 'kick',
+    Archive = 'archive',
+    Projectarchive = 'projectarchive',
+}
+
+export interface RunCommandsOptions extends CommandOptions {
+    chatApi: MessengerApi;
 }

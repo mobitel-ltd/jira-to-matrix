@@ -6,17 +6,19 @@ import { fromString } from 'html-to-text';
 import express from 'express';
 import bodyParser, { OptionsJson } from 'body-parser';
 import { BaseChatApi } from './base-api';
+import { ChatConfig } from '../types';
+import { LoggerInstance } from 'winston';
+import { Commands } from '../bot/commands';
 // import { MessengerApi } from '../types';
 
 // export class SlackApi extends BaseChatApi implements MessengerApi {
 export class SlackApi extends BaseChatApi {
-    sdk;
     commandServer;
     count = 0;
-    client;
+    client: any;
 
-    constructor(commandsHandler, config, logger, sdk) {
-        super(commandsHandler, config, logger);
+    constructor(commands: Commands, config: ChatConfig, logger: LoggerInstance, sdk: WebClient) {
+        super(commands, config, logger, sdk);
         this.sdk = sdk || new WebClient(config.password);
     }
 
@@ -56,17 +58,17 @@ export class SlackApi extends BaseChatApi {
     async _eventHandler(eventBody) {
         try {
             const info = await this.getRoomInfo(eventBody.channel_id);
+            const commandName = eventBody.command.slice(2);
 
             const options = {
                 chatApi: this,
                 sender: eventBody.user_name.replace(/[0-9]/g, ''),
                 roomName: info.name.toUpperCase(),
                 roomId: eventBody.channel_id,
-                commandName: eventBody.command.slice(2),
                 bodyText: eventBody.text,
-                config: this.config,
             };
-            await this.commandsHandler(options as any);
+            //! TODO options are incorrect!!!
+            await this.commands.run(commandName, options as any);
         } catch (error) {
             this.logger.error('Error while handling slash command from Slack');
         }

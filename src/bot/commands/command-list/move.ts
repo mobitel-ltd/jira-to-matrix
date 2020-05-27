@@ -1,5 +1,7 @@
 import { translate } from '../../../locales';
 import * as utils from '../../../lib/utils';
+import { Command, RunCommand } from './command-base';
+import { CommandOptions } from '../../../types';
 
 const getCommandAction = (val, collection) => {
     const numberVal = Number(val);
@@ -11,19 +13,25 @@ const getCommandAction = (val, collection) => {
     return collection.find(({ name, to }) => name.toLowerCase() === lowerVal || to.name.toLowerCase() === lowerVal);
 };
 
-export const move = async ({ bodyText, sender, roomName, taskTracker }) => {
-    const transitions = await taskTracker.getPossibleIssueStatuses(roomName);
-    if (!bodyText) {
-        return utils.getCommandList(transitions);
+export class MoveCommand extends Command implements RunCommand {
+    async run({ bodyText, sender, roomName }: CommandOptions) {
+        if (!roomName) {
+            throw new Error('Not issue room');
+        }
+
+        const transitions = await this.taskTracker.getPossibleIssueStatuses(roomName);
+        if (!bodyText) {
+            return utils.getCommandList(transitions);
+        }
+
+        const newStatus = getCommandAction(bodyText, transitions);
+
+        if (!newStatus) {
+            return translate('notFoundMove', { bodyText });
+        }
+
+        await this.taskTracker.postIssueStatus(roomName, newStatus.id);
+
+        return translate('successMoveJira', { ...newStatus, sender });
     }
-
-    const newStatus = getCommandAction(bodyText, transitions);
-
-    if (!newStatus) {
-        return translate('notFoundMove', { bodyText });
-    }
-
-    await taskTracker.postIssueStatus(roomName, newStatus.id);
-
-    return translate('successMoveJira', { ...newStatus, sender });
-};
+}

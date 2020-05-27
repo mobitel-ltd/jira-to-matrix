@@ -1,5 +1,7 @@
 import { translate } from '../../../locales';
 import * as utils from '../../../lib/utils';
+import { Command, RunCommand } from './command-base';
+import { CommandOptions } from '../../../types';
 
 const getCommandAction = (val, collection) => {
     const numberVal = Number(val);
@@ -10,23 +12,29 @@ const getCommandAction = (val, collection) => {
     return collection.find(el => el.name.toLowerCase() === val.toLowerCase());
 };
 
-export const prio = async ({ bodyText, roomName, taskTracker }) => {
-    const allPriorities = await taskTracker.getIssuePriorities(roomName);
-    if (!allPriorities) {
-        return translate('notPrio');
+export class PrioCommand extends Command implements RunCommand {
+    async run({ bodyText, roomName }: CommandOptions) {
+        if (!roomName) {
+            throw new Error('Not issue room');
+        }
+
+        const allPriorities = await this.taskTracker.getIssuePriorities(roomName);
+        if (!allPriorities) {
+            return translate('notPrio');
+        }
+
+        if (!bodyText) {
+            return utils.getCommandList(allPriorities);
+        }
+
+        const priority = getCommandAction(bodyText, allPriorities);
+
+        if (!priority) {
+            return translate('notFoundPrio', { bodyText });
+        }
+
+        await this.taskTracker.updateIssuePriority(roomName, priority.id);
+
+        return translate('setPriority', priority);
     }
-
-    if (!bodyText) {
-        return utils.getCommandList(allPriorities);
-    }
-
-    const priority = getCommandAction(bodyText, allPriorities);
-
-    if (!priority) {
-        return translate('notFoundPrio', { bodyText });
-    }
-
-    await taskTracker.updateIssuePriority(roomName, priority.id);
-
-    return translate('setPriority', priority);
-};
+}

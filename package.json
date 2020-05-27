@@ -13,7 +13,7 @@
     "dev": "nodemon logs/start.js",
     "dev:debug": "nodemon --inspect logs/start.js",
     "lint": "eslint \"{src,test}/**/*.ts\"",
-    "start": "node src/app.js",
+    "start": "ts-node src/app.js",
     "start-dev": "ts-node src/app.ts",
     "debug": "nodemon --inspect src/app.js",
     "test-single": "NODE_ENV=test nyc mocha --watch $1",

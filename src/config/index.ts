@@ -7,8 +7,15 @@ import { Config } from '../types/index';
 import proxyquire from 'proxyquire';
 
 const defaultRepoName = 'git-repo';
+const env = process.env.NODE_ENV || 'development';
 
-const configPath = process.env.NODE_ENV === 'test' ? './test/fixtures/' : './';
+const pathDict = {
+    test: './test/fixtures/',
+    development: './',
+    production: './dist',
+};
+
+const configPath = pathDict[env];
 
 const configFilepath = resolve(configPath, 'config');
 

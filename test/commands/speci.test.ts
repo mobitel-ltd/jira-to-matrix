@@ -1,11 +1,13 @@
 import nock from 'nock';
 import * as utils from '../../src/lib/utils';
 import { translate } from '../../src/locales';
-import { commandsHandler } from '../../src/bot/commands';
-import { getChatClass, taskTracker, usersWithSamePartName } from '../test-utils';
+import { Commands } from '../../src/bot/commands';
+import { getChatClass, taskTracker, usersWithSamePartName, getRoomId } from '../test-utils';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { schemas } from '../../src/task-trackers/jira/schemas';
+import { CommandNames } from '../../src/types';
+import { config } from '../../src/config';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -13,6 +15,9 @@ chai.use(sinonChai);
 describe('spec test', () => {
     let chatApi;
     let baseOptions;
+    const commands = new Commands(config, taskTracker);
+
+    const commandName = CommandNames.Spec;
     const noRulesUser = {
         displayName: 'No Rules User',
         accountId: 'noRulesUserAccountId',
@@ -30,8 +35,7 @@ describe('spec test', () => {
     const users = [userA, userB];
 
     const roomName = 'BBCOM-123';
-    const roomId = 12345;
-    const commandName = 'spec';
+    const roomId = getRoomId();
 
     before(() => {
         nock(utils.getRestUrl())
@@ -64,7 +68,7 @@ describe('spec test', () => {
 
     beforeEach(() => {
         chatApi = getChatClass().chatApiSingle;
-        baseOptions = { roomId, roomName, commandName, chatApi, taskTracker };
+        baseOptions = { roomId, roomName, chatApi };
     });
 
     after(() => {
@@ -73,14 +77,14 @@ describe('spec test', () => {
 
     it('should add user ("!spec Ivan Andreevich A")', async () => {
         const post = translate('successWatcherJira');
-        const result = await commandsHandler({ bodyText: userA.displayName, ...baseOptions });
+        const result = await commands.run(commandName, { bodyText: userA.displayName, ...baseOptions });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
     });
 
     it('should not add to watchers("!spec fake")', async () => {
-        const result = await commandsHandler({ bodyText: 'fake', ...baseOptions });
+        const result = await commands.run(commandName, { bodyText: 'fake', ...baseOptions });
         const post = translate('errorWatcherJira');
 
         expect(result).to.be.eq(post);
@@ -89,7 +93,7 @@ describe('spec test', () => {
 
     it('should show list of users ("!spec Ivan")', async () => {
         const post = utils.getListToHTML(users);
-        const result = await commandsHandler({
+        const result = await commands.run(commandName, {
             ...baseOptions,
             bodyText: partName,
         });
@@ -103,7 +107,7 @@ describe('spec test', () => {
         chatApi.invite.throws('Error!!!');
         let result;
         try {
-            result = await commandsHandler({ bodyText: userA.displayName, ...baseOptions });
+            result = await commands.run(commandName, { bodyText: userA.displayName, ...baseOptions });
         } catch (err) {
             result = err;
         }
@@ -116,7 +120,7 @@ describe('spec test', () => {
         const projectKey = utils.getProjectKeyFromIssueKey(roomName);
         const viewUrl = utils.getViewUrl(projectKey);
         const post = translate('setBotToAdmin', { projectKey, viewUrl });
-        const result = await commandsHandler({ bodyText: noPermissionUser.displayName, ...baseOptions });
+        const result = await commands.run(commandName, { bodyText: noPermissionUser.displayName, ...baseOptions });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
@@ -124,7 +128,7 @@ describe('spec test', () => {
 
     it('should be sent msg about no access to project if 404 error got in request', async () => {
         const post = translate('noRulesToWatchIssue');
-        const result = await commandsHandler({ bodyText: noRulesUser.displayName, ...baseOptions });
+        const result = await commands.run(commandName, { bodyText: noRulesUser.displayName, ...baseOptions });
 
         expect(result).to.be.eq(post);
         expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);

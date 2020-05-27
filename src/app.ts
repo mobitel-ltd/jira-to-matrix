@@ -1,6 +1,6 @@
 import { config } from './config';
 import { getChatClass } from './messengers';
-import { commandsHandler } from './bot/commands';
+import { Commands } from './bot/commands';
 import { FSM } from './fsm';
 import { getServer } from './server';
 import matrixSdk from 'matrix-js-sdk';
@@ -27,11 +27,12 @@ if (config.messenger.name === 'matrix') {
 
 const taskTracker = getTaskTracker(config);
 
+const commands = new Commands(config, taskTracker);
 /**
  * @type {import('./messengers/messenger-abstract')[]} chat instance
  */
 const chatApiPool = config.messenger.bots.map(item => {
-    return new ChatApi(commandsHandler, { ...item, ...config }, getLogger('messenger-api'), sdk);
+    return new ChatApi(commands, { ...item, ...config }, getLogger('messenger-api'), sdk);
 });
 
 const fsm = new FSM((chatApiPool as any) as MessengerApi[], getServer, taskTracker, config);
