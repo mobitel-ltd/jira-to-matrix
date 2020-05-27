@@ -1,4 +1,4 @@
-import { isCreateRoom } from '../../../src/jira-hook-parser/parsers/jira';
+import { isCreateRoom } from '../../../src/hook-parser/parsers/jira';
 import * as assert from 'assert';
 import commentHook from '../../fixtures/webhooks/comment/created.json';
 

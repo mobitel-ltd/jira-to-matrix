@@ -3,7 +3,7 @@ import * as utils from '../../src/lib/utils';
 import JSONbody from '../fixtures/webhooks/issue/updated/status-changed.json';
 import noStatusChangedJSON from '../fixtures/webhooks/issue/updated/commented.json';
 import epicIssueBody from '../fixtures/jira-api-requests/issue.json';
-import { getPostEpicUpdatesData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
+import { getPostEpicUpdatesData } from '../../src/hook-parser/parsers/jira/parse-body';
 import { config } from '../../src/config';
 import { cleanRedis, getChatClass, taskTracker } from '../test-utils';
 import { translate } from '../../src/locales';

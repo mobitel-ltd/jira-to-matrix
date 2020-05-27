@@ -9,7 +9,7 @@ import notIgnoreIssueBody from '../fixtures/jira-api-requests/issue.json';
 import { cleanRedis, taskTracker, getChatClass } from '../test-utils';
 import { translate } from '../../src/locales';
 import { config } from '../../src/config';
-import { HookParser } from '../../src/jira-hook-parser';
+import { HookParser } from '../../src/hook-parser';
 import { QueueHandler } from '../../src/queue';
 import { Config } from '../../src/types';
 

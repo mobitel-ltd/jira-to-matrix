@@ -8,7 +8,7 @@ import { stub } from 'sinon';
 import { cleanRedis, getChatClass, startGitServer, setRepo, baseMedia, taskTracker } from '../test-utils';
 import { getRestUrl } from '../../src/lib/utils';
 import { setArchiveProject } from '../../src/bot/settings';
-import { getCreateRoomData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
+import { getCreateRoomData } from '../../src/hook-parser/parsers/jira/parse-body';
 import JSONbody from '../fixtures/webhooks/issue/created.json';
 import issueJson from '../fixtures/jira-api-requests/issue.json';
 import issueBody from '../fixtures/jira-api-requests/issue-rendered.json';
@@ -20,7 +20,7 @@ import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import * as botActions from './../../src/bot/actions';
 import { QueueHandler } from '../../src/queue';
-import { HookParser } from '../../src/jira-hook-parser';
+import { HookParser } from '../../src/hook-parser';
 import { Config } from '../../src/types';
 
 const { expect } = chai;

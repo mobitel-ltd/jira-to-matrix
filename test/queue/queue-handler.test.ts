@@ -11,7 +11,7 @@ import { cleanRedis, taskTracker, getChatClass } from '../test-utils';
 import { config } from '../../src/config';
 import { QueueHandler } from '../../src/queue';
 import * as botActions from './../../src/bot/actions';
-import { HookParser } from '../../src/jira-hook-parser';
+import { HookParser } from '../../src/hook-parser';
 
 const { expect } = chai;
 chai.use(sinonChai);

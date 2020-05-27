@@ -8,7 +8,7 @@ import { getLogger } from '../modules/log';
 import { TaskTracker, MessengerApi, Config } from '../types';
 import { QueueHandler } from '../queue';
 import * as botActions from '../bot/actions';
-import { HookParser } from '../jira-hook-parser';
+import { HookParser } from '../hook-parser';
 import { getServerType } from '../server';
 
 const logger = getLogger(module);

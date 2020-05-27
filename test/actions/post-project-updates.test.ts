@@ -1,7 +1,7 @@
 import genericJSON from '../fixtures/webhooks/issue/updated/generic.json';
 import createdJSON from '../fixtures/webhooks/issue/created.json';
-import { getPostProjectUpdatesData } from '../../src/jira-hook-parser/parsers/jira/parse-body';
-import { isPostProjectUpdates } from '../../src/jira-hook-parser/parsers/jira';
+import { getPostProjectUpdatesData } from '../../src/hook-parser/parsers/jira/parse-body';
+import { isPostProjectUpdates } from '../../src/hook-parser/parsers/jira';
 import { postProjectUpdates } from '../../src/bot/actions';
 import { getEpicChangedMessageBody, getNewEpicMessageBody } from '../../src/bot/actions/helper';
 import { getChatClass, taskTracker, getRoomId } from '../test-utils';

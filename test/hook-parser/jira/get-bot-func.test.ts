@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { getBotActions } from '../../../src/jira-hook-parser/parsers/jira';
+import { getBotActions } from '../../../src/hook-parser/parsers/jira';
 import commentCreatedHook from '../../fixtures/webhooks/comment/created.json';
 import commentDeletedHook from '../../fixtures/webhooks/comment/deleted.json';
 import commentUpdatedHook from '../../fixtures/webhooks/comment/updated.json';

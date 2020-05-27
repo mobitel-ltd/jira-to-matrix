@@ -3,7 +3,7 @@ import * as bodyParser from 'body-parser';
 import { getAllSettingData, setSettingsData, delSettingsData } from './bot/settings';
 import { httpStatus } from './lib/utils';
 import { getLogger } from './modules/log';
-import { HookParser } from './jira-hook-parser';
+import { HookParser } from './hook-parser';
 
 const logger = getLogger(module);
 const app = express();
