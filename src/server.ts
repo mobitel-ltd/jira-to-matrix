@@ -1,12 +1,16 @@
 import express from 'express';
 import * as bodyParser from 'body-parser';
 import { getAllSettingData, setSettingsData, delSettingsData } from './bot/settings';
-import { httpStatus } from './lib/utils';
 import { getLogger } from './modules/log';
 import { HookParser } from './hook-parser';
 
 const logger = getLogger(module);
 const app = express();
+
+export const httpStatus = {
+    OK: 200,
+    BAD_REQUEST: 404,
+};
 
 export type getServerType = (handleFunc: Function, hookParser: HookParser) => express.Application;
 

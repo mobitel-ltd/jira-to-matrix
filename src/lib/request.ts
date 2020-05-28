@@ -1,6 +1,6 @@
 import requestPromise from 'request-promise-native';
 import { getRequestErrorLog } from './messages';
-import { TIMEOUT } from '../lib/utils';
+import { TIMEOUT } from '../lib/consts';
 import { getLogger } from '../modules/log';
 
 const logger = getLogger(module);

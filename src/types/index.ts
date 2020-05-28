@@ -1,5 +1,6 @@
 import { BaseChatApi } from '../messengers/base-api';
-import { ChatFasade } from '../messengers/chat-fasade';
+import { Changelog } from '../task-trackers/jira/types';
+import { Parser } from '../task-trackers/jira/hook-parser';
 
 export interface ChangelogItem {
     field: string;
@@ -148,6 +149,55 @@ export interface Comment {
     jsdPublic: boolean;
 }
 
+export interface IssueLink {
+    id: string;
+    self: string;
+    type: {
+        id: string;
+        name: string;
+        inward: string;
+        outward: string;
+        self: string;
+    };
+    outwardIssue: {
+        id: string;
+        key: string;
+        self: string;
+        fields: {
+            summary: string;
+            status: {
+                self: string;
+                description: string;
+                iconUrl: string;
+                name: string;
+                id: string;
+                statusCategory: {
+                    self: string;
+                    id: 2;
+                    key: string;
+                    colorName: string;
+                    name: string;
+                };
+            };
+            priority: {
+                self: string;
+                iconUrl: string;
+                name: string;
+                id: string;
+            };
+            issuetype: {
+                self: string;
+                id: string;
+                description: string;
+                iconUrl: string;
+                name: string;
+                subtask: false;
+                avatarId: number;
+            };
+        };
+    };
+}
+
 export interface Issue {
     expand: string;
     id: string;
@@ -208,54 +258,7 @@ export interface Issue {
         aggregatetimeoriginalestimate: null;
         timeestimate: null;
         versions: [];
-        issuelinks: {
-            id: string;
-            self: string;
-            type: {
-                id: string;
-                name: string;
-                inward: string;
-                outward: string;
-                self: string;
-            };
-            outwardIssue: {
-                id: string;
-                key: string;
-                self: string;
-                fields: {
-                    summary: string;
-                    status: {
-                        self: string;
-                        description: string;
-                        iconUrl: string;
-                        name: string;
-                        id: string;
-                        statusCategory: {
-                            self: string;
-                            id: 2;
-                            key: string;
-                            colorName: string;
-                            name: string;
-                        };
-                    };
-                    priority: {
-                        self: string;
-                        iconUrl: string;
-                        name: string;
-                        id: string;
-                    };
-                    issuetype: {
-                        self: string;
-                        id: string;
-                        description: string;
-                        iconUrl: string;
-                        name: string;
-                        subtask: false;
-                        avatarId: number;
-                    };
-                };
-            };
-        }[];
+        issuelinks: IssueLink[];
         assignee: {
             self: string;
             accountId: string;
@@ -498,7 +501,131 @@ export interface Project {
     admins?: string[];
 }
 
+export interface Relation {
+    relation: any;
+    related: any;
+}
+
+export interface DescriptionFields {
+    assigneeName: string;
+    reporterName: string;
+    typeName: string;
+    epicLink: string;
+    estimateTime: string;
+    description: string;
+    priority: string;
+}
+
+export interface Selectors {
+    extractName(body, path?: string[]): string | undefined;
+
+    getBodyWebhookEvent(body): string | undefined;
+
+    getResponcedSummary(body): string | undefined;
+
+    getTypeEvent(body): string | undefined;
+
+    getIssueCreator(body): string | undefined;
+
+    getIssueAssignee(body): string | undefined;
+
+    getIssueMembers(body): string[];
+
+    getHookType(body): string | undefined;
+
+    getHandler(body): string | undefined;
+
+    runMethod(body: any, method: string): string | undefined;
+
+    getDisplayName(body): string | undefined;
+
+    getMembers(body): string | undefined;
+
+    getIssueId<Issue>(body): string;
+    getIssueId<T>(body: T): string | undefined;
+
+    getIssueKey(body): string | undefined;
+
+    getIssueName(body): string | undefined;
+
+    getCreatorDisplayName(body): string | undefined;
+
+    getProjectKey(body): string | undefined;
+
+    getLinks(body): IssueLink[];
+
+    getChangelog(body): Changelog | undefined;
+
+    getCommentAuthor(body): string | undefined;
+
+    getComment(body): string | undefined;
+
+    getCommentBody(body): { body: string; id: string };
+
+    getUserName(body): string | undefined;
+
+    getEpicKey(body): string | undefined;
+
+    getKey(body): string | undefined;
+
+    getIssueLinkSourceId(body): string | undefined;
+
+    getIssueLinkDestinationId(body): string | undefined;
+
+    getNameIssueLinkType(body): string | undefined;
+
+    getSourceRelation(body): string | undefined;
+
+    getDestinationRelation(body): string | undefined;
+
+    getSummary(body): string | undefined;
+
+    getBodyTimestamp(body): number | undefined;
+
+    getRedisKey(funcName: string, body: any): string;
+
+    getHookUserName(body): string | undefined;
+
+    getChangelogItems(body): ChangelogItem[];
+
+    isCorrectWebhook(body: any, hookName: any): boolean;
+
+    isEpic(body): boolean;
+
+    isCommentEvent(body): boolean;
+
+    getChangelogField(fieldName: string, body: any);
+
+    getNewSummary(body): string | undefined;
+
+    getNewStatus(body): string | undefined;
+
+    getNewStatusId(body): string | undefined;
+
+    getNewKey(body): string | undefined;
+
+    getOldKey(body): string | undefined;
+
+    getRelations(body): { inward: Relation; outward: Relation };
+
+    getTextIssue(body: any, path: string): string;
+
+    getDescriptionFields(body): DescriptionFields;
+
+    getHeaderText(body): string | undefined;
+
+    getLinkKeys(body): string | undefined;
+
+    getInwardLinkKey(body): string | undefined;
+
+    getOutwardLinkKey(body): string | undefined;
+}
+
 export interface TaskTracker {
+    selectors: Selectors;
+
+    parser: Parser;
+
     request(url: string, newOptions: any): Promise<any>;
 
     requestPost(url: string, body: any): Promise<any>;
@@ -634,7 +761,7 @@ export interface TaskTracker {
     /**
      * Get status data with color
      */
-    getStatusData(statusId: string): Promise<object>;
+    getStatusData(statusId: string): Promise<{ colorName: string | undefined } | undefined>;
 
     /**
      * Get last created issue key in project
@@ -650,6 +777,16 @@ export interface TaskTracker {
      * Get issue current status
      */
     getCurrentStatus(keyOrId: string): Promise<string | undefined>;
+
+    /**
+     * Get url for rest api
+     */
+    getRestUrl(...args: string[]): string;
+
+    /**
+     * Get link to view in browser
+     */
+    getViewUrl(key: string, type?: string): string;
 }
 
 interface CommonMessengerApi {
@@ -823,18 +960,12 @@ export interface RoomData {
     }[];
 }
 
-export interface BaseActions {
-    chatApi: ChatFasade;
-    config: Config;
-    taskTracker: TaskTracker;
-}
-
-export interface CreateRoomActions extends BaseActions {
+export interface CreateRoomData {
     issue: { key: string; id?: string } | { key?: string; id: string };
     projectKey?: string;
 }
 
-export interface InviteMemberActions extends BaseActions {
+export interface InviteMemberData {
     issue: { key: string; typeName: string; projectKey: string };
     projectKey?: string;
 }
@@ -844,21 +975,23 @@ export interface PostIssueUpdatesData {
     oldKey: string;
     newKey?: string;
     newNameData?: { key: string; summary: string };
-    changelog: object;
+    changelog: Changelog;
     author: string;
     projectKey?: string;
 }
-
-export interface PostIssueUpdatesActions extends BaseActions, PostIssueUpdatesData {}
 
 export interface PostEpicUpdatesData {
     epicKey: string;
     data: { key: string; summary: string; id: string; name: string; status?: string };
 }
 
-export interface PostEpicUpdatesActions extends BaseActions, PostEpicUpdatesData {}
+export interface ArchiveProjectData {
+    projectKey: string;
+    keepTimestamp: string;
+    status?: string;
+}
 
-export interface PostNewLinksActions extends BaseActions {
+export interface PostNewLinksData {
     links: string[];
 }
 
@@ -872,9 +1005,7 @@ export interface PostCommentData {
     author: string;
 }
 
-export interface PostCommentActions extends BaseActions, PostCommentData {}
-
-export interface PostLinkedChangesActions extends BaseActions {
+export interface PostLinkedChangesData {
     linksKeys: string[];
     data: {
         status: string;
@@ -886,7 +1017,7 @@ export interface PostLinkedChangesActions extends BaseActions {
     };
 }
 
-export interface DeletedLinksActions extends BaseActions {
+export interface DeletedLinksData {
     sourceIssueId: string;
     destinationIssueId: string;
     sourceRelation: string;
@@ -922,4 +1053,17 @@ export enum CommandNames {
 
 export interface RunCommandsOptions extends CommandOptions {
     chatApi: MessengerApi;
+}
+
+export enum ActionNames {
+    CreateRoom = 'createRoom',
+    InviteNewMembers = 'inviteNewMembers',
+    PostComment = 'postComment',
+    PostIssueUpdates = 'postIssueUpdates',
+    PostEpicUpdates = 'postEpicUpdates',
+    PostProjectUpdates = 'postProjectUpdates',
+    PostNewLinks = 'postNewLinks',
+    PostLinkedChanges = 'postLinkedChanges',
+    PostLinksDeleted = 'postLinksDeleted',
+    ArchiveProject = 'archiveProject',
 }

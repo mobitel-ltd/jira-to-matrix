@@ -1,5 +1,4 @@
 /* eslint-disable id-length */
-import * as utils from '../../../lib/utils';
 import { translate } from '../../../locales';
 import * as actions from './common-actions';
 import { Command, RunCommand } from './command-base';
@@ -41,7 +40,7 @@ export class KickCommand extends Command implements RunCommand {
             return translate('issueNotExistOrPermDen');
         }
 
-        const issueCreator = utils.getIssueCreator(issue);
+        const issueCreator = this.taskTracker.selectors.getIssueCreator(issue);
         const issueCreatorChatId = issueCreator && (await this.chatApi.getUserIdByDisplayName(issueCreator));
 
         const matrixRoomAdminsId = (await this.chatApi.getRoomAdmins({ roomId: roomData.id })).map(

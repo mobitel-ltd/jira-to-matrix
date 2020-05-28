@@ -1,40 +1,44 @@
 import * as utils from '../../lib/utils';
-import { DeletedLinksActions } from '../../types';
+import { DeletedLinksData } from '../../types';
 import { getNoIssueLinkLog } from '../../lib/messages';
-import { getPostLinkMessageBody } from './helper';
+import { Action } from './base-action';
+import { ChatFasade } from '../../messengers/chat-fasade';
 
-const postLink = async (roomID, related, relation, chatApi): Promise<void> => {
-    if (roomID) {
-        const { body, htmlBody } = getPostLinkMessageBody({ relation, related }, 'deleteLink');
+export class PostLinkDeleted extends Action<ChatFasade> {
+    async postLink(roomId, related, relation): Promise<void> {
+        if (roomId) {
+            const { body, htmlBody } = this.getPostLinkMessageBody({ relation, related }, 'deleteLink');
 
-        await chatApi.sendHtmlMessage(roomID, body, htmlBody);
-    }
-};
-
-export const postLinksDeleted = async ({
-    chatApi,
-    sourceIssueId,
-    destinationIssueId,
-    sourceRelation,
-    destinationRelation,
-    taskTracker,
-}: DeletedLinksActions): Promise<true> => {
-    try {
-        const links = [sourceIssueId, destinationIssueId];
-        const [sourceIssue, destinationIssue] = await Promise.all(links.map(el => taskTracker.getIssueSafety(el)));
-        if (!sourceIssue && !destinationIssue) {
-            throw getNoIssueLinkLog(sourceIssueId, destinationIssueId);
+            await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
         }
-        const [sourceIssueKey, destinationIssueKey] = [sourceIssue, destinationIssue].map(utils.getKey)!;
-
-        const sourceIssueRoomId = sourceIssueKey && (await chatApi.getRoomId(sourceIssueKey));
-        const destinationIssueRoomId = destinationIssueKey && (await chatApi.getRoomId(destinationIssueKey));
-
-        await postLink(sourceIssueRoomId, destinationIssue, sourceRelation, chatApi);
-        await postLink(destinationIssueRoomId, sourceIssue, destinationRelation, chatApi);
-
-        return true;
-    } catch (err) {
-        throw utils.errorTracing('post delete link', err);
     }
-};
+    async run({
+        sourceIssueId,
+        destinationIssueId,
+        sourceRelation,
+        destinationRelation,
+    }: DeletedLinksData): Promise<boolean> {
+        try {
+            const links = [sourceIssueId, destinationIssueId];
+            const [sourceIssue, destinationIssue] = await Promise.all(
+                links.map(el => this.taskTracker.getIssueSafety(el)),
+            );
+            if (!sourceIssue && !destinationIssue) {
+                throw getNoIssueLinkLog(sourceIssueId, destinationIssueId);
+            }
+            const [sourceIssueKey, destinationIssueKey] = [sourceIssue, destinationIssue].map(el =>
+                this.taskTracker.selectors.getKey(el),
+            )!;
+
+            const sourceIssueRoomId = sourceIssueKey && (await this.chatApi.getRoomId(sourceIssueKey));
+            const destinationIssueRoomId = destinationIssueKey && (await this.chatApi.getRoomId(destinationIssueKey));
+
+            await this.postLink(sourceIssueRoomId, destinationIssue, sourceRelation);
+            await this.postLink(destinationIssueRoomId, sourceIssue, destinationRelation);
+
+            return true;
+        } catch (err) {
+            throw utils.errorTracing('post delete link', err);
+        }
+    }
+}

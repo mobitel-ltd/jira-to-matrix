@@ -35,7 +35,9 @@ export class ArchiveCommand extends Command implements RunCommand {
         }
 
         const issueMembersChatIds = await Promise.all(
-            utils.getIssueMembers(issue).map(displayName => this.chatApi.getUserIdByDisplayName(displayName)),
+            this.taskTracker.selectors
+                .getIssueMembers(issue)
+                .map(displayName => this.chatApi.getUserIdByDisplayName(displayName)),
         );
         const matrixRoomAdminsId = (await this.chatApi.getRoomAdmins({ roomId: id })).map(({ userId }) => userId);
         const admins = [...issueMembersChatIds, ...matrixRoomAdminsId].filter(Boolean);

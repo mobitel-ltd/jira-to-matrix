@@ -31,7 +31,7 @@ export class SpecCommand extends Command implements RunCommand {
         } catch (err) {
             if (err.includes('status is 403')) {
                 const projectKey = utils.getProjectKeyFromIssueKey(roomName);
-                const viewUrl = utils.getViewUrl(projectKey);
+                const viewUrl = this.taskTracker.getViewUrl(projectKey);
                 return translate('setBotToAdmin', { projectKey, viewUrl });
             }
 

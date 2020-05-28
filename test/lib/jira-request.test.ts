@@ -65,9 +65,10 @@ describe('Jira request test', () => {
         id: 26313,
         key: 'ABC',
     };
+    const [COMMON_NAME] = config.messenger.domain.split('.').slice(1, 2);
 
     const params = {
-        username: utils.COMMON_NAME,
+        username: COMMON_NAME,
         startAt: 0,
         maxResults: 3,
     };

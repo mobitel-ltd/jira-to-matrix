@@ -1,27 +1,17 @@
-import { config } from '../config';
 import { getLogger } from '../modules/log';
-import { TaskTracker, Config } from '../types';
-import { redis } from '../redis-client';
-import {
-    isIgnoreKey,
-    ARCHIVE_PROJECT,
-    errorTracing,
-    REDIS_ROOM_KEY,
-    HANDLED_KEY,
-    isNoRoomError,
-    getKeyFromError,
-} from '../lib/utils';
+import { TaskTracker, Config, ActionNames, CreateRoomData } from '../types';
+import { redis, isIgnoreKey, ARCHIVE_PROJECT, REDIS_ROOM_KEY, HANDLED_KEY } from '../redis-client';
+import { errorTracing, isNoRoomError, getKeyFromError } from '../lib/utils';
 import { union } from 'ramda';
-import { ChatFasade } from '../messengers/chat-fasade';
+import { RunAction } from '../bot/actions/base-action';
 
 const logger = getLogger(module);
 
 export class QueueHandler {
     constructor(
         private taskTracker: TaskTracker,
-        private chatApi: ChatFasade,
         private config: Config,
-        private actions: any,
+        private actions: Record<ActionNames, RunAction>,
     ) {}
 
     async queueHandler() {
@@ -180,38 +170,35 @@ export class QueueHandler {
                 return;
             }
             const result = await Promise.all(
-                dataFromRedis.map(async ({ redisKey, funcName, data }) => {
-                    try {
-                        await this.actions[funcName]({
-                            ...data,
-                            chatApi: this.chatApi,
-                            config,
-                            taskTracker: this.taskTracker,
-                        });
-                        await redis.delAsync(redisKey);
-
-                        return { redisKey, success: true };
-                    } catch (err) {
-                        const errBody = typeof err === 'string' ? err : err.stack;
-                        logger.error(`Error in ${redisKey}\n`, err);
-
-                        if (isNoRoomError(errBody)) {
-                            if (await this.taskTracker.getIssueSafety(getKeyFromError(errBody))) {
-                                const key = getKeyFromError(errBody);
-                                logger.warn(`Room with key ${key} is not found, trying to create it again`);
-                                const newRoomRecord = key.includes('-') ? { issue: { key } } : { projectKey: key };
-
-                                return { redisKey, newRoomRecord, success: false };
-                            }
-
+                dataFromRedis.map(
+                    async ({ redisKey, funcName, data }: { redisKey: string; funcName: ActionNames; data: any }) => {
+                        try {
+                            await this.actions[funcName].run(data);
                             await redis.delAsync(redisKey);
 
                             return { redisKey, success: true };
-                        }
+                        } catch (err) {
+                            const errBody = typeof err === 'string' ? err : err.stack;
+                            logger.error(`Error in ${redisKey}\n`, err);
 
-                        return { redisKey, success: false };
-                    }
-                }),
+                            if (isNoRoomError(errBody)) {
+                                if (await this.taskTracker.getIssueSafety(getKeyFromError(errBody))) {
+                                    const key = getKeyFromError(errBody);
+                                    logger.warn(`Room with key ${key} is not found, trying to create it again`);
+                                    const newRoomRecord = key.includes('-') ? { issue: { key } } : { projectKey: key };
+
+                                    return { redisKey, newRoomRecord, success: false };
+                                }
+
+                                await redis.delAsync(redisKey);
+
+                                return { redisKey, success: true };
+                            }
+
+                            return { redisKey, success: false };
+                        }
+                    },
+                ),
             );
 
             const newRoomRecords = result.map(({ newRoomRecord }) => newRoomRecord).filter(Boolean);
@@ -230,9 +217,9 @@ export class QueueHandler {
     }
 
     async handleRedisRooms(roomsData) {
-        const roomHandle = async data => {
+        const roomHandle = async (data: CreateRoomData) => {
             try {
-                await this.actions.createRoom({ ...data, chatApi: this.chatApi, taskTracker: this.taskTracker });
+                await this.actions.createRoom.run(data);
 
                 return null;
             } catch (err) {
@@ -305,13 +292,7 @@ export class QueueHandler {
             const result = {};
             for await (const key of keys) {
                 const { operationName, projectKey, value, ...options } = key;
-                const res = await this.actions[operationName]({
-                    chatApi: this.chatApi,
-                    projectKey,
-                    config: this.config,
-                    taskTracker: this.taskTracker,
-                    ...options,
-                });
+                const res = await this.actions[operationName].run({ projectKey, ...options });
                 await redis.srem(operationName, value);
 
                 logger.info(`Result of handling project ${value}`, JSON.stringify(res));

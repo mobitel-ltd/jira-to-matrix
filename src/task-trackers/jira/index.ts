@@ -2,11 +2,15 @@ import requestPromise from 'request-promise-native';
 import querystring from 'querystring';
 import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
-import * as utils from '../../lib/utils';
 import * as messages from '../../lib/messages';
 import { schemas } from './schemas';
 import delay from 'delay';
-import { Issue, RenderedIssue, Transition, Project } from '../../types/index';
+import { Issue, RenderedIssue, Transition, Project, Selectors, Config } from '../../types/index';
+import { TIMEOUT } from '../../lib/consts';
+import * as selectors from './selector.jira';
+import { TaskTracker } from '../../types';
+import { getProjectKeyFromIssueKey, errorTracing } from '../../lib/utils';
+import { Parser } from './hook-parser';
 
 const logger = getLogger(module);
 
@@ -16,7 +20,7 @@ const logger = getLogger(module);
  * @property {string} key issue key
  */
 
-export class Jira {
+export class Jira implements TaskTracker {
     url: string;
     user: string;
     password: string;
@@ -25,8 +29,26 @@ export class Jira {
     pingInterval: number;
     pingCount: number;
     expandParams: { expand: string };
+    public selectors: Selectors;
+    public parser: Parser;
 
-    constructor({ url, user, inviteIgnoreUsers, password, interval, count }) {
+    constructor({
+        url,
+        user,
+        inviteIgnoreUsers,
+        password,
+        interval,
+        count,
+        features,
+    }: {
+        url: string;
+        user: string;
+        inviteIgnoreUsers: string[];
+        password: string;
+        interval: number;
+        count: number;
+        features: Config['features'];
+    }) {
         this.url = url;
         this.user = user;
         this.password = password;
@@ -35,6 +57,8 @@ export class Jira {
         this.pingInterval = interval || 500;
         this.pingCount = count || 10;
         this.expandParams = { expand: 'renderedFields' };
+        this.selectors = selectors;
+        this.parser = new Parser(features, selectors);
     }
 
     static expandParams = { expand: 'renderedFields' };
@@ -56,7 +80,7 @@ export class Jira {
         const options = {
             method: 'GET',
             headers: { Authorization: this.token, 'content-type': 'application/json' },
-            timeout: utils.TIMEOUT,
+            timeout: TIMEOUT,
             ...newOptions,
         };
         try {
@@ -190,10 +214,11 @@ export class Jira {
     async getIssueWatchers(keyOrId: string): Promise<string[]> {
         const url = this.getUrl('issue', keyOrId, 'watchers');
         const body = await this.request(url);
-        const watchers = body && Array.isArray(body.watchers) ? body.watchers.map(item => utils.extractName(item)) : [];
+        const watchers =
+            body && Array.isArray(body.watchers) ? body.watchers.map(item => this.selectors.extractName(item)) : [];
 
         const issue = await this.getIssue(keyOrId);
-        const roomMembers = utils.getIssueMembers(issue);
+        const roomMembers = this.selectors.getIssueMembers(issue);
 
         const allWatchersSet = new Set([...roomMembers, ...watchers]);
 
@@ -330,7 +355,7 @@ export class Jira {
      * @returns {Promise<boolean>} true if issue exists
      */
     async isJiraPartExists(keyOrId: string): Promise<boolean> {
-        const projectKey = utils.getProjectKeyFromIssueKey(keyOrId);
+        const projectKey = getProjectKeyFromIssueKey(keyOrId);
         try {
             await this.getProject(projectKey);
             return true;
@@ -348,7 +373,7 @@ export class Jira {
 
         try {
             const { actors } = await this.request(adminsURL);
-            const admins = actors.map(item => utils.extractName(item));
+            const admins = actors.map(item => this.selectors.extractName(item));
 
             return { ...projectBody, admins };
         } catch (err) {
@@ -447,7 +472,7 @@ export class Jira {
     /**
      * Get status data with color
      */
-    async getStatusData(statusId: string): Promise<object> {
+    async getStatusData(statusId: string): Promise<{ colorName: string | undefined } | undefined> {
         try {
             const statusUrl = this.getUrl('status', statusId);
 
@@ -456,8 +481,6 @@ export class Jira {
             return { colorName: R.path(['statusCategory', 'colorName'], data) };
         } catch (error) {
             logger.error(error);
-
-            return {};
         }
     }
 
@@ -476,7 +499,7 @@ export class Jira {
 
             return R.path(['issues', '0', 'key'], data);
         } catch (error) {
-            const msg = utils.errorTracing(`Not found or not available project ${projectKey}`, error);
+            const msg = errorTracing(`Not found or not available project ${projectKey}`, error);
             logger.error(msg);
         }
     }
@@ -502,5 +525,13 @@ export class Jira {
         const issue = await this.getIssueSafety(keyOrId);
 
         return R.path(['fields', 'status', 'name'], issue);
+    }
+
+    getRestUrl(...args) {
+        return [this.url, this.restVersion, ...args].join('/');
+    }
+
+    getViewUrl(key, type = 'browse') {
+        return [this.url, type, key].join('/');
     }
 }

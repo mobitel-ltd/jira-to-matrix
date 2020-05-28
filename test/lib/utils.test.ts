@@ -1,11 +1,25 @@
-import * as utils from '../../src/lib/utils';
+import * as R from 'ramda';
 import * as assert from 'assert';
 import issueChangedHook from '../fixtures/webhooks/issue/updated/commented-changed.json';
 import body from '../fixtures/webhooks/issue/updated/generic.json';
 import issueUpdatedGenericHook from '../fixtures/webhooks/issue/updated/generic.json';
 import issueBody from '../fixtures/jira-api-requests/issue.json';
 import * as chai from 'chai';
+import { isIgnoreKey } from '../../src/redis-client';
+import {
+    getNewStatus,
+    getHookUserName,
+    getChangelogField,
+    getComment,
+    runMethod,
+    getMembers,
+} from '../../src/task-trackers/jira/selector.jira';
+import { getKeyFromError } from '../../src/lib/utils';
 const { expect } = chai;
+
+const nonEmptyString = R.both(R.is(String), R.complement(R.isEmpty));
+
+const propIn = R.curry((prop, arr, obj) => R.or(arr, []).includes(R.or(obj, {})[prop]));
 
 describe('Utils testing', () => {
     const expectedFuncKeys = ['test-jira-hooks:postEpicUpdates_2018-1-11 13:08:04,225'];
@@ -16,7 +30,7 @@ describe('Utils testing', () => {
             'test-jira-hooks:rooms',
             'test-jira-hooks:newrooms',
         ];
-        const result = keys.filter(utils.isIgnoreKey);
+        const result = keys.filter(isIgnoreKey);
         expect(result).to.be.deep.equal(expectedFuncKeys);
     });
 
@@ -32,7 +46,7 @@ describe('Utils testing', () => {
             ['prop', [1, 2], { prop: null }, false],
         ];
         samples.forEach(sample => {
-            const fn1 = utils.propIn(sample[0]);
+            const fn1 = propIn(sample[0]);
             const fn = fn1(sample[1]);
             const result = fn(sample[2]);
             assert.deepEqual(result, sample[3]);
@@ -49,13 +63,13 @@ describe('Utils testing', () => {
             [[], false],
         ];
         samples.forEach(sample => {
-            const result = utils.nonEmptyString(sample[0]);
+            const result = nonEmptyString(sample[0]);
             assert.deepEqual(result, sample[1]);
         });
     });
 
     it('getNewStatus', () => {
-        const status = utils.getNewStatus(issueChangedHook);
+        const status = getNewStatus(issueChangedHook);
         assert.equal(status, 'Closed');
     });
 
@@ -85,13 +99,13 @@ describe('Utils testing', () => {
             [{}, undefined],
         ];
         samples.forEach(sample => {
-            const result = utils.getHookUserName(sample[0]);
+            const result = getHookUserName(sample[0]);
             expect(result).to.be.equal(sample[1]);
         });
     });
 
     it('Test correct getChangelogField', () => {
-        const changelogField = utils.getChangelogField('status', body);
+        const changelogField = getChangelogField('status', body);
         const expected = {
             field: 'status',
             fieldtype: 'jira',
@@ -105,24 +119,24 @@ describe('Utils testing', () => {
     });
 
     it('Test unexpected getChangelogField', () => {
-        const changelogField = utils.getChangelogField('fake', body);
+        const changelogField = getChangelogField('fake', body);
 
         expect(changelogField).to.be.undefined;
     });
 
     it('Expect getComment return undefined', () => {
-        const body = utils.getComment(issueUpdatedGenericHook);
+        const body = getComment(issueUpdatedGenericHook);
         expect(body).to.be.undefined;
     });
 
     it("Expect runMethod don't throw with unknown type", () => {
-        const res = utils.runMethod({}, 'getCreator');
+        const res = runMethod({}, 'getCreator');
 
         expect(res).to.be.undefined;
     });
 
     it('Expect get roommembers works with issue from request', () => {
-        const data = utils.getMembers(issueBody);
+        const data = getMembers(issueBody);
 
         expect(data).to.be.not.empty;
     });
@@ -133,53 +147,8 @@ describe('Utils testing', () => {
                     Error in Post comment
                     No roomId for ${key} from Matrix
                     M_NOT_FOUND: Room alias #BOPB-19:matrix.bingo-boom.ru not found`;
-        const data = utils.getKeyFromError(str);
+        const data = getKeyFromError(str);
 
         expect(data).to.be.eq(key);
-    });
-
-    describe('command handler test', () => {
-        it('correct command name', () => {
-            const body = '!help';
-            const { commandName, bodyText } = utils.parseEventBody(body);
-            expect(commandName).to.be.equal('help');
-            expect(bodyText).to.be.undefined;
-        });
-
-        it('correct command name', () => {
-            const body = '!help   ';
-            const { commandName, bodyText } = utils.parseEventBody(body);
-            expect(commandName).to.be.equal('help');
-            expect(bodyText).to.be.undefined;
-        });
-
-        it('correct command name', () => {
-            const body = '!op gogogogo';
-            const { commandName, bodyText } = utils.parseEventBody(body);
-            expect(commandName).to.be.equal('op');
-            expect(bodyText).to.be.equal('gogogogo');
-        });
-
-        it('correct command long body args', () => {
-            const command = 'op';
-            const commandOptions = '--option optionParam';
-            const body = `!${command}   ${commandOptions}`;
-            const { commandName, bodyText } = utils.parseEventBody(body);
-            expect(commandName).to.be.equal(command);
-            expect(bodyText).to.be.equal(commandOptions);
-        });
-
-        it('false command name', () => {
-            const body = 'help';
-            const { commandName } = utils.parseEventBody(body);
-            expect(commandName).not.to.be;
-        });
-
-        it('false command name', () => {
-            const body = '!!help';
-            const { commandName, bodyText } = utils.parseEventBody(body);
-            expect(commandName).not.to.be;
-            expect(bodyText).not.to.be;
-        });
     });
 });

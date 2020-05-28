@@ -7,7 +7,7 @@ import { timing } from '../lib/utils';
 import { getLogger } from '../modules/log';
 import { TaskTracker, MessengerApi, Config } from '../types';
 import { QueueHandler } from '../queue';
-import * as botActions from '../bot/actions';
+import { getActionsDict } from '../bot/actions';
 import { HookParser } from '../hook-parser';
 import { getServerType } from '../server';
 
@@ -121,7 +121,8 @@ export class FSM {
 
     constructor(chatApiPool: MessengerApi[], getServer: getServerType, taskTracker: TaskTracker, config: Config) {
         const chatFasade = new ChatFasade(chatApiPool);
-        const queueHandler = new QueueHandler(taskTracker, chatFasade, config, botActions);
+        const botActions = getActionsDict(config, taskTracker, chatFasade);
+        const queueHandler = new QueueHandler(taskTracker, config, botActions);
         const hookParser = new HookParser(taskTracker, config, queueHandler);
         const server = getServer(this.handleHook.bind(this), hookParser);
         this.taskTracker = taskTracker;

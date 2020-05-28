@@ -1,7 +1,9 @@
 import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
 import { fromString } from 'html-to-text';
-import { PostCommentActions, RenderedIssue, Comment } from '../../types';
+import { RenderedIssue, Comment, PostCommentData } from '../../types';
+import { Action } from './base-action';
+import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
 
@@ -15,30 +17,25 @@ export const getCommentBody = (issue: RenderedIssue, comment) => {
     return result;
 };
 
-export const postComment = async ({
-    chatApi,
-    issueID,
-    headerText,
-    comment,
-    author,
-    taskTracker,
-}: PostCommentActions) => {
-    try {
-        if (!issueID) {
-            logger.warn('No IssueId for posting comment. No way to define params for posting comment');
-            return;
+export class PostComment extends Action<ChatFasade> {
+    async run({ issueID, headerText, comment, author }: PostCommentData) {
+        try {
+            if (!issueID) {
+                logger.warn('No IssueId for posting comment. No way to define params for posting comment');
+                return;
+            }
+            const issue = await this.taskTracker.getIssueFormatted(issueID);
+            const roomId = await this.chatApi.getRoomId(issue.key);
+
+            const commentBody = getCommentBody(issue, comment);
+            const htmlBody = getCommentHTMLBody(headerText, commentBody);
+            const body = fromString(htmlBody);
+            await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
+            logger.debug(`Posted comment ${commentBody} to ${issue.key} from ${author}\n`);
+
+            return true;
+        } catch (err) {
+            throw ['Error in Post comment', err].join('\n');
         }
-        const issue = await taskTracker.getIssueFormatted(issueID);
-        const roomId = await chatApi.getRoomId(issue.key);
-
-        const commentBody = getCommentBody(issue, comment);
-        const htmlBody = getCommentHTMLBody(headerText, commentBody);
-        const body = fromString(htmlBody);
-        await chatApi.sendHtmlMessage(roomId, body, htmlBody);
-        logger.debug(`Posted comment ${commentBody} to ${issue.key} from ${author}\n`);
-
-        return true;
-    } catch (err) {
-        throw ['Error in Post comment', err].join('\n');
     }
-};
+}

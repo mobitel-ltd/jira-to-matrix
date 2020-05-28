@@ -13,4 +13,5 @@ export const getTaskTracker = (config: Config): TaskTracker =>
         count: config.ping && config.ping.count,
         interval: config.ping && config.ping.interval,
         inviteIgnoreUsers: config.inviteIgnoreUsers,
+        features: config.features,
     });

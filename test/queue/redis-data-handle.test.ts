@@ -13,7 +13,7 @@ import JSONbody from '../fixtures/webhooks/issue/created.json';
 import issueJson from '../fixtures/jira-api-requests/issue.json';
 import issueBody from '../fixtures/jira-api-requests/issue-rendered.json';
 import searchProject from '../fixtures/jira-api-requests/project-gens/search-project.json';
-import { stateEnum } from '../../src/bot/actions/archive-project';
+import { StateEnum } from '../../src/bot/actions/archive-project';
 import { redis } from '../../src/redis-client';
 import { Jira } from '../../src/task-trackers/jira';
 import * as chai from 'chai';
@@ -439,16 +439,16 @@ describe('Test handle archive project data', () => {
             // set order
             const { [projectKey]: res1, [laterProject]: res2 } = (await queueHandler.handleCommandKeys(keys))!;
 
-            expect(res2[stateEnum.NOT_FOUND]).to.have.length(5);
-            // expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
-            expect(res2[stateEnum.STILL_ACTIVE]).to.have.length(1);
+            expect(res2[StateEnum.NOT_FOUND]).to.have.length(5);
+            // expect(res2[StateEnum.STILL_ACTIVE]).to.have.length(1);
+            expect(res2[StateEnum.STILL_ACTIVE]).to.have.length(1);
 
-            expect(res1[stateEnum.NOT_FOUND]).to.have.length(2);
-            expect(res1[stateEnum.ARCHIVED]).to.have.length(2);
-            expect(res1[stateEnum.ALIAS_REMOVED]).to.have.length(1);
-            expect(res1[stateEnum.ERROR_ARCHIVING]).to.have.length(0);
-            expect(res1[stateEnum.OTHER_ALIAS_CREATOR]).to.have.length(1);
-            expect(res1[stateEnum.STILL_ACTIVE]).to.have.length(0);
+            expect(res1[StateEnum.NOT_FOUND]).to.have.length(2);
+            expect(res1[StateEnum.ARCHIVED]).to.have.length(2);
+            expect(res1[StateEnum.ALIAS_REMOVED]).to.have.length(1);
+            expect(res1[StateEnum.ERROR_ARCHIVING]).to.have.length(0);
+            expect(res1[StateEnum.OTHER_ALIAS_CREATOR]).to.have.length(1);
+            expect(res1[StateEnum.STILL_ACTIVE]).to.have.length(0);
         });
     });
 });

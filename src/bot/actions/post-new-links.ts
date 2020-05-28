@@ -1,44 +1,47 @@
 import * as utils from '../../lib/utils';
 import { getLogger } from '../../modules/log';
 import { redis } from '../../redis-client';
-import { PostNewLinksActions } from '../../types';
-import { getPostLinkMessageBody } from './helper';
+import { PostNewLinksData } from '../../types';
+import { Action, RunAction } from './base-action';
+import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
 
-const postLink = async (key, relations, chatApi, taskTracker): Promise<void> => {
-    const issue = await taskTracker.getIssueSafety(key);
-    if (issue) {
-        const roomID = await chatApi.getRoomId(key);
+export class PostNewLinks extends Action<ChatFasade> implements RunAction {
+    async postLink(key, relations): Promise<void> {
+        const issue = await this.taskTracker.getIssueSafety(key);
+        if (issue) {
+            const roomID = await this.chatApi.getRoomId(key);
 
-        const { body, htmlBody } = getPostLinkMessageBody(relations);
-        await chatApi.sendHtmlMessage(roomID, body, htmlBody);
-    }
-};
-
-const handleLink = (chatApi, taskTracker) => async issueLinkId => {
-    try {
-        if (!(await redis.isNewLink(issueLinkId))) {
-            logger.debug(`link ${issueLinkId} is already been posted to room`);
-            return;
+            const { body, htmlBody } = this.getPostLinkMessageBody(relations);
+            await this.chatApi.sendHtmlMessage(roomID, body, htmlBody);
         }
-
-        const link = await taskTracker.getLinkedIssue(issueLinkId);
-        const { inward, outward } = utils.getRelations(link);
-
-        await postLink(utils.getOutwardLinkKey(link), inward, chatApi, taskTracker);
-        await postLink(utils.getInwardLinkKey(link), outward, chatApi, taskTracker);
-        logger.debug(`Issue link ${issueLinkId} is successfully posted!`);
-    } catch (err) {
-        throw utils.errorTracing('handleLink', err);
     }
-};
 
-export const postNewLinks = async ({ chatApi, links, taskTracker }: PostNewLinksActions): Promise<true> => {
-    try {
-        await Promise.all(links.map(handleLink(chatApi, taskTracker)));
-        return true;
-    } catch (err) {
-        throw utils.errorTracing('post new link', err);
+    async handleLink(issueLinkId) {
+        try {
+            if (!(await redis.isNewLink(issueLinkId))) {
+                logger.debug(`link ${issueLinkId} is already been posted to room`);
+                return;
+            }
+
+            const link = await this.taskTracker.getLinkedIssue(issueLinkId);
+            const { inward, outward } = this.taskTracker.selectors.getRelations(link);
+
+            await this.postLink(this.taskTracker.selectors.getOutwardLinkKey(link), inward);
+            await this.postLink(this.taskTracker.selectors.getInwardLinkKey(link), outward);
+            logger.debug(`Issue link ${issueLinkId} is successfully posted!`);
+        } catch (err) {
+            throw utils.errorTracing('handleLink', err);
+        }
     }
-};
+
+    async run({ links }: PostNewLinksData): Promise<true> {
+        try {
+            await Promise.all(links.map(el => this.handleLink(el)));
+            return true;
+        } catch (err) {
+            throw utils.errorTracing('post new link', err);
+        }
+    }
+}

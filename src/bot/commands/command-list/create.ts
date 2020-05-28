@@ -32,7 +32,7 @@ export class CreateCommand extends Command implements RunCommand {
             }
             const type = issueTypes.find(el => (el.name = issueType))!;
             const issue = await this.taskTracker.getIssue(roomName);
-            const isEpic = utils.isEpic({ issue });
+            const isEpic = this.taskTracker.selectors.isEpic({ issue });
             if (isEpic && type?.subtask) {
                 return translate('epicShouldNotHaveSubtask');
             }
@@ -55,7 +55,7 @@ export class CreateCommand extends Command implements RunCommand {
                 await this.taskTracker.createEpicLinkClassic(newIssueKey, roomName);
                 return;
             }
-            const viewUrl = utils.getViewUrl(newIssueKey);
+            const viewUrl = this.taskTracker.getViewUrl(newIssueKey);
 
             return marked(translate('newTaskWasCreated', { summary, newIssueKey, viewUrl }));
         } catch (err) {

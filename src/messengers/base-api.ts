@@ -9,6 +9,13 @@ export class BaseChatApi {
         return this.config.messenger.admins;
     }
 
+    /**
+     * @example uu_user
+     */
+    isAdmin(userId: string): boolean {
+        return this.getAdmins().includes(userId);
+    }
+
     getMyId(): string {
         return this.config.user;
     }

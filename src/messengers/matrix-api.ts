@@ -1,12 +1,13 @@
 /* eslint-disable no-undefined */
 /* eslint no-empty-function: ["error", { "allow": ["arrowFunctions"] }] */
 import matrixSdk from 'matrix-js-sdk';
-import * as utils from '../lib/utils';
+import { errorTracing } from '../lib/utils';
 import * as R from 'ramda';
 import { BaseChatApi } from './base-api';
 import { MessengerApi, RoomData, ChatConfig } from '../types';
 import { Commands } from '../bot/commands';
 import { LoggerInstance } from 'winston';
+import { NO_ROOM_PATTERN, END_NO_ROOM_PATTERN } from '../lib/consts';
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -78,6 +79,27 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
+    static parseEventBody(body) {
+        try {
+            const trimedBody = body.trim();
+
+            const commandName = trimedBody
+                .split(' ')[0]
+                .match(/^!\w+$/g)[0]
+                .substring(1);
+
+            if (`!${commandName}` === trimedBody) {
+                return { commandName };
+            }
+
+            const bodyText = trimedBody.replace(`!${commandName}`, '').trim();
+
+            return { commandName, bodyText };
+        } catch (err) {
+            return {};
+        }
+    }
+
     /**
      * Matrix events handler
      */
@@ -91,7 +113,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
             const { body } = event.getContent();
 
-            const { commandName, bodyText } = utils.parseEventBody(body);
+            const { commandName, bodyText } = MatrixApi.parseEventBody(body);
 
             if (!commandName) {
                 return;
@@ -110,7 +132,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
                 bodyText,
             });
         } catch (err) {
-            const errMsg = utils.errorTracing(
+            const errMsg = errorTracing(
                 `Error while handling event from Matrix room "${room.name}" ${room.roomId}`,
                 err,
             );
@@ -414,7 +436,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
             const { room_id: roomId } = await this.client.getRoomIdForAlias(this._getMatrixRoomAlias(alias));
             return roomId;
         } catch (err) {
-            throw [`${utils.NO_ROOM_PATTERN}${alias}${utils.END_NO_ROOM_PATTERN}`, err].join('\n');
+            throw [`${NO_ROOM_PATTERN}${alias}${END_NO_ROOM_PATTERN}`, err].join('\n');
         }
     }
 
@@ -674,10 +696,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
             return userId;
         } catch (error) {
-            const msg = utils.errorTracing(
-                `Error in request for kick ${userId} from ${roomId}.`,
-                JSON.stringify(error),
-            );
+            const msg = errorTracing(`Error in request for kick ${userId} from ${roomId}.`, JSON.stringify(error));
             this.logger.error(msg);
         }
     }
@@ -745,7 +764,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
             return alias;
         } catch (err) {
-            const msg = utils.errorTracing(`deleteRoomAlias "${alias}"`, JSON.stringify(err));
+            const msg = errorTracing(`deleteRoomAlias "${alias}"`, JSON.stringify(err));
             this.logger.error(msg);
         }
     }

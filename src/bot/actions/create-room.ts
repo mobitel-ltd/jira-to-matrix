@@ -2,172 +2,167 @@ import { fromString } from 'html-to-text';
 import marked from 'marked';
 import { getLogger } from '../../modules/log';
 import { translate } from '../../locales';
-import * as utils from '../../lib/utils';
-import { getDefaultAvatarLink } from './helper';
 import { getAutoinviteUsers } from '../settings';
 import { infoBody } from '../../lib/messages';
-import { CreateRoomActions, TaskTracker, Issue } from '../../types';
+import { TaskTracker, Issue, CreateRoomData, MessengerApi } from '../../types';
+import { errorTracing } from '../../lib/utils';
+import { LINE_BREAKE_TAG, INDENT } from '../../lib/consts';
+import { Action, RunAction } from './base-action';
 
 const logger = getLogger(module);
 
+export const getOpenedDescriptionBlock = data => [LINE_BREAKE_TAG, INDENT, data].join('');
+
+export const getClosedDescriptionBlock = data => [getOpenedDescriptionBlock(data), LINE_BREAKE_TAG].join('');
+
 // eslint-disable-next-line
-const getEpicInfo = epicLink =>
-    epicLink === translate('miss')
-        ? ''
-        : `            <br>Epic link:
-                ${utils.getOpenedDescriptionBlock(epicLink)}
-                ${utils.getClosedDescriptionBlock(utils.getViewUrl(epicLink))}`;
 
-const getPost = body => {
-    const post = `
+export class CreateRoom extends Action<MessengerApi> implements RunAction {
+    getEpicInfo(epicLink) {
+        epicLink === translate('miss')
+            ? ''
+            : `            <br>Epic link:
+                ${getOpenedDescriptionBlock(epicLink)}
+                ${getClosedDescriptionBlock(this.taskTracker.getViewUrl(epicLink))}`;
+    }
+
+    getPost(body) {
+        const post = `
             Assignee:
-                ${utils.getOpenedDescriptionBlock(body.assigneeName)}
+                ${getOpenedDescriptionBlock(body.assigneeName)}
             <br>Reporter:
-                ${utils.getOpenedDescriptionBlock(body.reporterName)}
+                ${getOpenedDescriptionBlock(body.reporterName)}
             <br>Type:
-                ${utils.getClosedDescriptionBlock(body.typeName)}
+                ${getClosedDescriptionBlock(body.typeName)}
             <br>Estimate time:
-                ${utils.getClosedDescriptionBlock(body.estimateTime)}
+                ${getClosedDescriptionBlock(body.estimateTime)}
             <br>Description:
-                ${utils.getClosedDescriptionBlock(marked(body.description))}
+                ${getClosedDescriptionBlock(marked(body.description))}
             <br>Priority:
-                ${utils.getClosedDescriptionBlock(body.priority)}`;
+                ${getClosedDescriptionBlock(body.priority)}`;
 
-    const epicInfo = getEpicInfo(body.epicLink);
+        const epicInfo = this.getEpicInfo(body.epicLink);
 
-    return [post, epicInfo].join('\n');
-};
-
-export const getDescription = (issue: Issue): { body: string; htmlBody: string } => {
-    try {
-        const descriptionFields = utils.getDescriptionFields(issue);
-        const htmlBody = getPost(descriptionFields);
-        const body = fromString(htmlBody);
-
-        return { body, htmlBody };
-    } catch (err) {
-        throw utils.errorTracing('getDescription', err);
+        return [post, epicInfo].join('\n');
     }
-};
 
-const createIssueRoom = async (chatApi, issue, config, taskTracker: TaskTracker): Promise<void> => {
-    try {
-        const { colors } = config;
-        const {
-            key,
-            summary,
-            projectKey,
-            descriptionFields: { typeName },
-        } = issue;
+    getDescription(issue: Issue, taskTracker: TaskTracker): { body: string; htmlBody: string } {
+        try {
+            const descriptionFields = taskTracker.selectors.getDescriptionFields(issue);
+            const htmlBody = this.getPost(descriptionFields);
+            const body = fromString(htmlBody);
 
-        const autoinviteUsers = await getAutoinviteUsers(projectKey, typeName);
+            return { body, htmlBody };
+        } catch (err) {
+            throw errorTracing('getDescription', err);
+        }
+    }
 
-        const issueWatchers = await taskTracker.getIssueWatchers(issue.key);
-        const issueWatchersChatIds = await Promise.all(
-            issueWatchers.map(displayName => chatApi.getUserIdByDisplayName(displayName)),
-        );
+    async createIssueRoom(issue): Promise<void> {
+        try {
+            const { colors } = this.config;
+            const {
+                key,
+                summary,
+                projectKey,
+                descriptionFields: { typeName },
+            } = issue;
 
-        const invite = [...issueWatchersChatIds, ...autoinviteUsers];
+            const autoinviteUsers = await getAutoinviteUsers(projectKey, typeName);
 
-        const name = chatApi.composeRoomName(key, summary);
-        const topic = utils.getViewUrl(key);
+            const issueWatchers = await this.taskTracker.getIssueWatchers(issue.key);
+            const issueWatchersChatIds = await Promise.all(
+                issueWatchers.map(displayName => this.chatApi.getUserIdByDisplayName(displayName)),
+            );
 
-        const avatarUrl = getDefaultAvatarLink(key, 'issue', colors);
+            const invite = [...issueWatchersChatIds, ...autoinviteUsers];
 
-        const options = {
-            room_alias_name: key,
-            invite,
-            name,
-            topic,
-            purpose: summary,
-            avatarUrl,
+            const name = this.chatApi.composeRoomName(key, summary);
+            const topic = this.taskTracker.getViewUrl(key);
+
+            const avatarUrl = this.getDefaultAvatarLink(key, 'issue', colors);
+
+            const options = {
+                room_alias_name: key,
+                invite,
+                name,
+                topic,
+                purpose: summary,
+                avatarUrl,
+            };
+
+            const roomId = await this.chatApi.createRoom(options);
+
+            logger.info(`Created room for ${key}: ${roomId}`);
+            const { body, htmlBody } = await this.getDescription(issue, this.taskTracker);
+
+            await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
+            await this.chatApi.sendHtmlMessage(roomId, infoBody, infoBody);
+        } catch (err) {
+            throw errorTracing('createIssueRoom', err);
+        }
+    }
+
+    async createProjectRoom(projectKey) {
+        try {
+            const { lead, name: projectName } = await this.taskTracker.getProject(projectKey);
+            const name = this.chatApi.composeRoomName(projectKey, projectName);
+            const leadUserId = await this.chatApi.getUserIdByDisplayName(lead);
+            const topic = this.taskTracker.getViewUrl(projectKey);
+
+            const options = {
+                room_alias_name: projectKey,
+                invite: [leadUserId],
+                name,
+                topic,
+            };
+
+            const roomId = await this.chatApi.createRoom(options);
+            logger.info(`Created room for project ${projectKey}: ${roomId}`);
+        } catch (err) {
+            throw errorTracing('createProjectRoom', err);
+        }
+    }
+
+    async getCheckedIssue(issueData) {
+        const issueBody = await this.taskTracker.getIssueSafety(issueData.key || issueData.id);
+        if (!issueBody) {
+            return issueData;
+        }
+
+        return {
+            ...issueData,
+            key: this.taskTracker.selectors.getKey(issueBody),
+            roomMembers: this.taskTracker.selectors.getMembers(issueBody),
+            summary: this.taskTracker.selectors.getSummary(issueBody),
+            descriptionFields: this.taskTracker.selectors.getDescriptionFields(issueBody),
         };
-
-        const roomId = await chatApi.createRoom(options);
-
-        logger.info(`Created room for ${key}: ${roomId}`);
-        const { body, htmlBody } = await getDescription(issue);
-
-        await chatApi.sendHtmlMessage(roomId, body, htmlBody);
-        await chatApi.sendHtmlMessage(roomId, infoBody, infoBody);
-    } catch (err) {
-        throw utils.errorTracing('createIssueRoom', err);
-    }
-};
-
-const createProjectRoom = async (chatApi, projectKey, taskTracker) => {
-    try {
-        const { lead, name: projectName } = await taskTracker.getProject(projectKey);
-        const name = chatApi.composeRoomName(projectKey, projectName);
-        const leadUserId = await chatApi.getUserIdByDisplayName(lead);
-        const topic = utils.getViewUrl(projectKey);
-
-        const options = {
-            room_alias_name: projectKey,
-            invite: [leadUserId],
-            name,
-            topic,
-        };
-
-        const roomId = await chatApi.createRoom(options);
-        logger.info(`Created room for project ${projectKey}: ${roomId}`);
-    } catch (err) {
-        throw utils.errorTracing('createProjectRoom', err);
-    }
-};
-
-const getCheckedIssue = async (issueData, taskTracker) => {
-    const issueBody = await taskTracker.getIssueSafety(issueData.key || issueData.id);
-    if (!issueBody) {
-        return issueData;
     }
 
-    return {
-        ...issueData,
-        key: utils.getKey(issueBody),
-        roomMembers: utils.getMembers(issueBody),
-        summary: utils.getSummary(issueBody),
-        descriptionFields: utils.getDescriptionFields(issueBody),
-    };
-};
+    hasData(issue) {
+        return issue.key && issue.summary;
+    }
 
-const hasData = issue => issue.key && issue.summary;
+    async run({ issue, projectKey }: CreateRoomData): Promise<boolean> {
+        try {
+            const keyOrId = issue.key || issue.id;
+            if (issue && keyOrId) {
+                if (!(await this.taskTracker.hasIssue(keyOrId))) {
+                    logger.warn(`Issue ${keyOrId} is not exists`);
 
-/**
- * post issue update
- * @param  {object} options options
- * @param  {object} options.chatApi messenger client instance
- * @param  {object?} options.issue parsed webhook issue data
- * @param  {string} options.issue.id issue id
- * @param  {string?} options.issue.key issue key
- * @param  {string[]|undefined} options.issue.roomMembers issue roomMembers incudes author and assignee
- * @param  {string?} options.issue.summary issue summary
- * @param  {object} options.issue.descriptionFields issue descriptionFields
- * @param  {string} options.newKey new key of issue
- * @param  {string} options.newName new name of room
- * @param  {object} options.changelog changes object
- * @param  {string?} options.projectKey changes author
- */
-export const createRoom = async ({ chatApi, issue, projectKey, config, taskTracker }: CreateRoomActions) => {
-    try {
-        const keyOrId = issue.key || issue.id;
-        if (issue && keyOrId) {
-            if (!(await taskTracker.hasIssue(keyOrId))) {
-                logger.warn(`Issue ${keyOrId} is not exists`);
+                    return false;
+                }
+                const checkedIssue = this.hasData(issue) ? issue : await this.getCheckedIssue(issue);
 
-                return false;
+                (await this.chatApi.getRoomIdByName(checkedIssue.key)) || (await this.createIssueRoom(checkedIssue));
             }
-            const checkedIssue = hasData(issue) ? issue : await getCheckedIssue(issue, taskTracker);
+            if (projectKey) {
+                (await this.chatApi.getRoomIdByName(projectKey)) || (await this.createProjectRoom(projectKey));
+            }
 
-            (await chatApi.getRoomIdByName(checkedIssue.key)) ||
-                (await createIssueRoom(chatApi, checkedIssue, config, taskTracker));
+            return true;
+        } catch (err) {
+            throw errorTracing('create room', err);
         }
-        if (projectKey) {
-            (await chatApi.getRoomIdByName(projectKey)) || (await createProjectRoom(chatApi, projectKey, taskTracker));
-        }
-
-        return true;
-    } catch (err) {
-        throw utils.errorTracing('create room', err);
     }
-};
+}

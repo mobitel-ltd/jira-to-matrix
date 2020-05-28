@@ -1,12 +1,11 @@
 import { translate } from '../../../locales';
-import * as utils from '../../../lib/utils';
 import { Command, RunCommand } from './command-base';
 import { CommandOptions } from '../../../types';
 
 export class OpCommand extends Command implements RunCommand {
     async run({ bodyText, sender, roomId, roomName }: CommandOptions) {
         const targetUser = bodyText || sender;
-        if (!utils.isAdmin(sender)) {
+        if (!this.chatApi.isAdmin(sender)) {
             return translate('notAdmin', { sender });
         }
 

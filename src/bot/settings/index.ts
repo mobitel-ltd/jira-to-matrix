@@ -2,14 +2,13 @@ import { getLogger } from '../../modules/log';
 
 import { promises } from 'fs';
 import Ramda from 'ramda';
-import { redis } from '../../redis-client';
-import * as utils from '../../lib/utils';
+import { redis, REDIS_IGNORE_PREFIX, REDIS_INVITE_PREFIX, ARCHIVE_PROJECT, REDIS_ALIASES } from '../../redis-client';
 
 const logger = getLogger(module);
 
 const getPrefix = {
-    ignore: utils.REDIS_IGNORE_PREFIX,
-    autoinvite: utils.REDIS_INVITE_PREFIX,
+    ignore: REDIS_IGNORE_PREFIX,
+    autoinvite: REDIS_INVITE_PREFIX,
 };
 
 export const getAllSettingData = async prefix => {
@@ -18,7 +17,7 @@ export const getAllSettingData = async prefix => {
     return data ? JSON.parse(data) : {};
 };
 
-export const getArchiveProject = () => redis.getList(utils.ARCHIVE_PROJECT);
+export const getArchiveProject = () => redis.getList(ARCHIVE_PROJECT);
 
 export const setArchiveProject = async (projectKey, options = {}) => {
     const existsProjects = await getArchiveProject();
@@ -30,14 +29,14 @@ export const setArchiveProject = async (projectKey, options = {}) => {
     const parsedOptions = Object.entries(options).map(([key, val]) => `${key}=${val}`);
     const value = [projectKey, ...parsedOptions].join('::');
 
-    await redis.addToList(utils.ARCHIVE_PROJECT, value);
+    await redis.addToList(ARCHIVE_PROJECT, value);
 
     return value;
 };
 
-export const getAliases = () => redis.getList(utils.REDIS_ALIASES);
+export const getAliases = () => redis.getList(REDIS_ALIASES);
 
-export const setAlias = alias => redis.addToList(utils.REDIS_ALIASES, alias);
+export const setAlias = alias => redis.addToList(REDIS_ALIASES, alias);
 
 export const setSettingsData = async (projectKey, data, prefix) => {
     try {
