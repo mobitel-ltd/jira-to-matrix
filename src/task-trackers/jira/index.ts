@@ -25,22 +25,14 @@ export class Jira implements TaskTracker {
     user: string;
     password: string;
     inviteIgnoreUsers: string[];
-    restVersion: string;
+    restVersion = 'rest/api/2';
     pingInterval: number;
     pingCount: number;
     expandParams: { expand: string };
     public selectors: Selectors;
     public parser: Parser;
 
-    constructor({
-        url,
-        user,
-        inviteIgnoreUsers,
-        password,
-        interval,
-        count,
-        features,
-    }: {
+    constructor(options: {
         url: string;
         user: string;
         inviteIgnoreUsers: string[];
@@ -49,16 +41,15 @@ export class Jira implements TaskTracker {
         count: number;
         features: Config['features'];
     }) {
-        this.url = url;
-        this.user = user;
-        this.password = password;
-        this.inviteIgnoreUsers = inviteIgnoreUsers || [];
-        this.restVersion = 'rest/api/2';
-        this.pingInterval = interval || 500;
-        this.pingCount = count || 10;
+        this.url = options.url;
+        this.user = options.user;
+        this.password = options.password;
+        this.inviteIgnoreUsers = options.inviteIgnoreUsers || [];
+        this.pingInterval = options.interval || 500;
+        this.pingCount = options.count || 10;
         this.expandParams = { expand: 'renderedFields' };
         this.selectors = selectors;
-        this.parser = new Parser(features, selectors);
+        this.parser = new Parser(options.features, selectors);
     }
 
     static expandParams = { expand: 'renderedFields' };

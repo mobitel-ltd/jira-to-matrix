@@ -1,44 +1,38 @@
+import { stub, createStubInstance, match } from 'sinon';
+import sinonChai from 'sinon-chai';
+import * as chai from 'chai';
 import * as path from 'path';
 import * as tmp from 'tmp-promise';
 import { info } from '../fixtures/archiveRoom/raw-events-data';
-import * as utils from '../../src/lib/utils';
 import nock from 'nock';
 import { config } from '../../src/config';
-import { stub } from 'sinon';
 import { cleanRedis, getChatClass, startGitServer, setRepo, baseMedia, taskTracker } from '../test-utils';
-import { getRestUrl } from '../../src/lib/utils';
 import { setArchiveProject } from '../../src/bot/settings';
-import { getCreateRoomData } from '../../src/hook-parser/parsers/jira/parse-body';
 import JSONbody from '../fixtures/webhooks/issue/created.json';
 import issueJson from '../fixtures/jira-api-requests/issue.json';
 import issueBody from '../fixtures/jira-api-requests/issue-rendered.json';
 import searchProject from '../fixtures/jira-api-requests/project-gens/search-project.json';
 import { StateEnum } from '../../src/bot/actions/archive-project';
-import { redis } from '../../src/redis-client';
+import { redis, ARCHIVE_PROJECT } from '../../src/redis-client';
 import { Jira } from '../../src/task-trackers/jira';
-import * as chai from 'chai';
-import sinonChai from 'sinon-chai';
-import * as botActions from './../../src/bot/actions';
 import { QueueHandler } from '../../src/queue';
 import { HookParser } from '../../src/hook-parser';
-import { Config } from '../../src/types';
+import { Config, ActionNames } from '../../src/types';
+import { NO_ROOM_PATTERN, END_NO_ROOM_PATTERN } from '../../src/lib/consts';
+import { Actions } from '../../src/bot/actions';
 
 const { expect } = chai;
 chai.use(sinonChai);
 
 const createRoomStub = stub();
-const postEpicUpdatesStub = stub();
 const {
     jira: { url: jiraUrl },
     baseRemote,
 } = config;
 
-const actions = { ...botActions, createRoom: createRoomStub, postEpicUpdates: postEpicUpdatesStub };
-
 describe('saveIncoming', () => {
-    const { chatApi } = getChatClass();
-    const actions = { ...botActions, createRoom: createRoomStub, postEpicUpdates: postEpicUpdatesStub };
-    const queueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+    const actions = createStubInstance(Actions);
+    const queueHandler = new QueueHandler(taskTracker, config, (actions as unknown) as Actions);
 
     it('test saveIncoming with no createRoomData args', async () => {
         await queueHandler.saveIncoming({ redisKey: 'newrooms' });
@@ -49,8 +43,8 @@ describe('saveIncoming', () => {
 });
 
 describe('redis-data-handle test', () => {
-    const { chatApi } = getChatClass();
-    const queueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+    const actions = createStubInstance(Actions);
+    const queueHandler = new QueueHandler(taskTracker, config, (actions as unknown) as Actions);
 
     const createRoomData = [
         {
@@ -138,7 +132,7 @@ describe('redis-data-handle test', () => {
             .times(2)
             .reply(200, '<HTML>');
 
-        nock(getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}`)
             .times(2)
             .reply(200, issueJson)
@@ -188,7 +182,7 @@ describe('redis-data-handle test', () => {
         });
 
         it('test correct not saving the same hook', async () => {
-            nock(getRestUrl())
+            nock(taskTracker.getRestUrl())
                 .get(`/issue/${JSONbody.issue.key}`)
                 .times(2)
                 .reply(200, issueJson)
@@ -226,17 +220,19 @@ describe('redis-data-handle test', () => {
 
             expect(dataFromRedisBefore).to.have.deep.members(expectedData);
             expect(dataFromRedisAfter).to.be.null;
-            expect(postEpicUpdatesStub).to.be.called;
+            expect(actions.run).to.be.calledWith('postEpicUpdates');
         });
 
         it('test error in key handleRedisData', async () => {
             nock.cleanAll();
-            nock(getRestUrl())
+            nock(taskTracker.getRestUrl())
                 .get(`/issue/${JSONbody.issue.key}`)
                 .times(3)
                 .reply(200, issueJson);
 
-            postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
+            actions.run
+                .withArgs(ActionNames.PostEpicUpdates, match.any) // https://stackoverflow.com/a/26724459/11147137
+                .throws(`${NO_ROOM_PATTERN}${JSONbody.issue.key}${END_NO_ROOM_PATTERN}`);
 
             const dataFromRedisBefore = await queueHandler.getDataFromRedis();
             await queueHandler.handleRedisData(dataFromRedisBefore);
@@ -246,11 +242,13 @@ describe('redis-data-handle test', () => {
             expect(dataFromRedisBefore).to.have.deep.members(expectedData);
             expect(dataFromRedisAfter).to.have.deep.members(expectedData);
             expect(redisRooms).deep.eq([{ issue: { key: JSONbody.issue.key } }]);
-            expect(postEpicUpdatesStub).to.be.called;
+            expect(actions.run).to.be.calledWith(ActionNames.PostEpicUpdates);
         });
 
         it('test error in key handleRedisData if issue is not exists', async () => {
-            postEpicUpdatesStub.throws(`${utils.NO_ROOM_PATTERN}${JSONbody.issue.key}${utils.END_NO_ROOM_PATTERN}`);
+            actions.run
+                .withArgs(ActionNames.PostEpicUpdates, match.any)
+                .throws(`${NO_ROOM_PATTERN}${JSONbody.issue.key}${END_NO_ROOM_PATTERN}`);
 
             const dataFromRedisBefore = await queueHandler.getDataFromRedis();
             const redisRoomsBefore = await queueHandler.getRedisRooms();
@@ -261,7 +259,7 @@ describe('redis-data-handle test', () => {
             expect(dataFromRedisBefore).to.have.deep.members(expectedData);
             expect(dataFromRedisAfter).to.be.null;
             expect(redisRooms).deep.eq(redisRoomsBefore);
-            expect(postEpicUpdatesStub).to.be.called;
+            expect(actions.run).to.be.calledWith(ActionNames.PostEpicUpdates);
         });
 
         it('test correct roomsData', async () => {
@@ -271,11 +269,12 @@ describe('redis-data-handle test', () => {
 
         it('test handleRedisRooms with error', async () => {
             await queueHandler.saveIncoming({ redisKey: 'newrooms', createRoomData });
-            createRoomStub.callsFake(data => {
-                // logger.debug('data', data);
+            actions.run.callsFake((el, data) => {
                 if (data.issue.key === 'BBCOM-1111') {
-                    throw 'createRoomStub';
+                    return Promise.reject('Error');
                 }
+
+                return Promise.resolve(true);
             });
             const roomsData = await queueHandler.getRedisRooms();
             expect(roomsData).to.have.deep.equal([...expectedRoom, ...createRoomData]);
@@ -288,7 +287,7 @@ describe('redis-data-handle test', () => {
         it('test correct handleRedisRooms', async () => {
             const roomsKeysBefore = await queueHandler.getRedisRooms();
             await queueHandler.handleRedisRooms(roomsKeysBefore);
-            expect(createRoomStub).to.be.called;
+            expect(actions.run).to.be.calledWith(ActionNames.CreateRoom);
             const roomsKeysAfter = await queueHandler.getRedisRooms();
             expect(roomsKeysAfter).to.be.null;
         });
@@ -302,36 +301,27 @@ describe('redis-data-handle test', () => {
 });
 
 describe('handle queue for only new task newrooms', () => {
-    const { chatApi } = getChatClass();
-    const actions = { ...botActions, createRoom: createRoomStub };
-    const queueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+    const actions = createStubInstance(Actions);
+    const queueHandler = new QueueHandler(taskTracker, config, (actions as unknown) as Actions);
 
     it('test createRoomDataOnlyNew shoul be return array only new tasks', () => {
-        const createRoomDataBase = getCreateRoomData(JSONbody);
+        const createRoomDataBase = taskTracker.parser.getCreateRoomData(JSONbody);
         const createRoomDataIssueKeyOnly = { issue: { key: createRoomDataBase.issue.key } };
         const createRoomDataIssueProjectOnly = { projectKey: createRoomDataBase.projectKey };
 
-        const createRoomDataBase2 = getCreateRoomData(JSONbody);
+        const createRoomDataBase2 = taskTracker.parser.getCreateRoomData(JSONbody);
         createRoomDataBase2.issue.key = 'another';
-        const createRoomDataBase2changeDescription = {
-            issue: {
-                ...createRoomDataBase2.issue,
-                descriptionFields: { ...createRoomDataBase2.issue.descriptionFields, description: 'change info' },
-            },
-            projectKey: createRoomDataBase2.projectKey,
-        };
 
         const result = queueHandler.createRoomDataOnlyNew([
             createRoomDataBase,
             createRoomDataIssueProjectOnly,
             createRoomDataIssueKeyOnly,
             createRoomDataBase2,
-            createRoomDataBase2changeDescription,
         ]);
         expect(result).to.be.deep.equal([
             createRoomDataIssueKeyOnly,
             createRoomDataIssueProjectOnly,
-            createRoomDataBase2changeDescription,
+            createRoomDataBase2,
         ]);
     });
 });
@@ -365,7 +355,8 @@ describe('Test handle archive project data', () => {
     });
 
     describe('Base operations', () => {
-        const queueHandler: QueueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+        const actions: Actions = ({ run: stub() } as unknown) as Actions;
+        const queueHandler: QueueHandler = new QueueHandler(taskTracker, config, actions);
 
         it('Expect nothing handles if redis key is empty', async () => {
             const keys = await queueHandler.getCommandKeys();
@@ -375,7 +366,7 @@ describe('Test handle archive project data', () => {
 
         it('expect setArchiveProject work correct', async () => {
             await setArchiveProject(projectKey);
-            const [data] = await redis.getList(utils.ARCHIVE_PROJECT);
+            const [data] = await redis.getList(ARCHIVE_PROJECT);
             expect(data).to.include(projectKey);
         });
     });
@@ -389,7 +380,7 @@ describe('Test handle archive project data', () => {
         const expectedRemote = `${baseRemote}/${projectKey.toLowerCase()}.git`;
 
         beforeEach(async () => {
-            nock(utils.getRestUrl())
+            nock(taskTracker.getRestUrl())
                 .get(`/issue/${lastKey}`)
                 .reply(200, issueBody)
                 .get(`/search?jql=project=${projectKey}`)
@@ -415,7 +406,8 @@ describe('Test handle archive project data', () => {
             await setArchiveProject(laterProject, { keepTimestamp: info.maxTs - 5 });
             tmpDir = await tmp.dir({ unsafeCleanup: true });
             configWithTmpPath = { ...config, gitReposPath: tmpDir.path };
-            queueHandler = new QueueHandler(taskTracker, chatApi, configWithTmpPath, actions);
+            const actions = new Actions(configWithTmpPath, taskTracker, chatApi);
+            queueHandler = new QueueHandler(taskTracker, configWithTmpPath, actions);
             gitServer = startGitServer(path.resolve(tmpDir.path, 'git-server'));
             const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
             await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: lastKey });

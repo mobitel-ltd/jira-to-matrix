@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
 import { fromString } from 'html-to-text';
 import { RenderedIssue, Comment, PostCommentData } from '../../types';
-import { Action } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
@@ -17,7 +17,7 @@ export const getCommentBody = (issue: RenderedIssue, comment) => {
     return result;
 };
 
-export class PostComment extends Action<ChatFasade> {
+export class PostComment extends BaseAction<ChatFasade> {
     async run({ issueID, headerText, comment, author }: PostCommentData) {
         try {
             if (!issueID) {

@@ -10,7 +10,6 @@ import { getArchiveProject } from '../../src/bot/settings';
 import { LAST_ACTIVE_OPTION, DEFAULT_MONTH, STATUS_OPTION } from '../../src/bot/commands/command-list/archive-project';
 import transitionsJSON from '../fixtures/jira-api-requests/transitions.json';
 import searchProject from '../fixtures/jira-api-requests/project-gens/search-project.json';
-import * as utils from '../../src/lib/utils';
 import { Config, CommandNames } from '../../src/types';
 
 chai.use(sinonChai);
@@ -42,7 +41,7 @@ describe('command project archive test', () => {
 
         baseOptions = { roomId, roomData, sender, chatApi, bodyText };
         const lastIssueKey = searchProject.issues[0].key;
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/search?jql=project=${bodyText}`)
             .reply(200, searchProject)
             .get(`/issue/${lastIssueKey}/transitions`)

@@ -135,7 +135,19 @@ export const getIssueName = body => runMethod(body, 'getIssueName');
 
 export const getCreatorDisplayName = body => runMethod(body, 'getCreatorDisplayName');
 
-export const getProjectKey = body => runMethod(body, 'getProjectKey') || handlers.issue.getProjectKey(body);
+export const getProjectKey: Selectors['getProjectKey'] = (body: Issue | any, type?: 'issue') => {
+    if (type) {
+        switch (type) {
+            case 'issue':
+                return body?.fields?.project?.key;
+
+            default:
+                break;
+        }
+    }
+
+    return runMethod(body, 'getProjectKey') || handlers.issue.getProjectKey(body);
+};
 
 export const getLinks = body => runMethod(body, 'getLinks');
 
@@ -239,7 +251,7 @@ export const getHeaderText = body => {
     return translate(eventName, { name });
 };
 
-export const getLinkKeys = body => {
+export const getLinkKeys = (body): string[] => {
     const links = getLinks(body);
 
     return links.reduce((acc, link) => {
@@ -258,6 +270,11 @@ export const getLinkKeys = body => {
 export const getInwardLinkKey = (body): string | undefined => R.path(['inwardIssue', 'key'], body);
 
 export const getOutwardLinkKey = (body): string | undefined => R.path(['outwardIssue', 'key'], body);
+
+export interface GetFieldOptions {
+    type: 'issue';
+    name: 'key';
+}
 
 export const selectors: Selectors = {
     extractName,

@@ -30,7 +30,7 @@ describe('Prio command test', () => {
         chatApi = getChatClass().chatApiSingle;
         baseOptions = { roomId, roomName, chatApi };
 
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${roomName}/editmeta`)
             .reply(200, edimetaJSON)
             .put(`/issue/${roomName}`, schemas.fields(priority.id))

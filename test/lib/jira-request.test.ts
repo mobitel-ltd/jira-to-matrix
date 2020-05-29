@@ -1,7 +1,6 @@
 import * as assert from 'assert';
 import * as Ramda from 'ramda';
 import nock from 'nock';
-import * as utils from '../../src/lib/utils';
 import renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json';
 import watchersJSON from '../fixtures/jira-api-requests/watchers.json';
 import issueJSON from '../fixtures/jira-api-requests/issue.json';
@@ -15,6 +14,7 @@ import { getRequestErrorLog } from '../../src/lib/messages';
 import { stub } from 'sinon';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
+import { taskTracker } from '../test-utils';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -22,7 +22,7 @@ chai.use(sinonChai);
 // ii_ivanov pp_petrov bb_borisov
 const watchers = watchersJSON.watchers
     .map(({ displayName }) => displayName !== 'jira_bot' && displayName)
-    .filter(Boolean);
+    .filter(Boolean) as string[];
 
 // ii_ivanov ao_fedorov oo_orlov
 const members = [
@@ -40,6 +40,7 @@ describe('Jira request test', () => {
         count: config.ping && config.ping.count,
         interval: config.ping && config.ping.interval,
         inviteIgnoreUsers: config.usersToIgnore,
+        features: config.features,
     });
 
     const users = [
@@ -62,7 +63,7 @@ describe('Jira request test', () => {
     ];
 
     const issue = {
-        id: 26313,
+        id: '26313',
         key: 'ABC',
     };
     const [COMMON_NAME] = config.messenger.domain.split('.').slice(1, 2);
@@ -76,7 +77,7 @@ describe('Jira request test', () => {
     const errorStatus = 400;
 
     before(() => {
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/project/INDEV`)
             .reply(200, newgenProject)
             .get(`/issue/${issue.key}`)
@@ -116,10 +117,10 @@ describe('Jira request test', () => {
     });
 
     it('getViewUrl test', () => {
-        const projectResult = utils.getViewUrl(issue.id, 'projects');
+        const projectResult = taskTracker.getViewUrl(issue.id, 'projects');
         expect(projectResult).to.be.deep.equal(`${config.jira.url}/projects/${issue.id}`);
 
-        const issueResult = utils.getViewUrl(issue.id);
+        const issueResult = taskTracker.getViewUrl(issue.id);
         expect(issueResult).to.be.deep.equal(`${config.jira.url}/browse/${issue.id}`);
     });
 
@@ -141,6 +142,7 @@ describe('Jira request test', () => {
             count: config.ping && config.ping.count,
             interval: config.ping && config.ping.interval,
             inviteIgnoreUsers: watchers,
+            features: config.features,
         });
 
         const result = await jiraApi_.getIssueWatchers(issue.key);
@@ -159,6 +161,7 @@ describe('Jira request test', () => {
             count: config.ping && config.ping.count,
             interval: config.ping && config.ping.interval,
             inviteIgnoreUsers: usersToIgnore,
+            features: config.features,
         });
 
         const result = await jiraApi_.getIssueWatchers(issue.key);
@@ -238,7 +241,7 @@ describe('Jira request test', () => {
         };
 
         before(() => {
-            nock(utils.getRestUrl())
+            nock(taskTracker.getRestUrl())
                 .get(`/project/${classicProject.id}`)
                 .times(2)
                 .reply(200, classicProject)
@@ -295,6 +298,7 @@ describe('request testing', () => {
         count: config.ping && config.ping.count,
         interval: config.ping && config.ping.interval,
         inviteIgnoreUsers: config.usersToIgnore,
+        features: config.features,
     });
 
     const urlPath = '12345';
@@ -302,7 +306,7 @@ describe('request testing', () => {
     const body = { result: true };
 
     before(() => {
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/${urlPath}`)
             .reply(200, body)
             .get(`/${fakePath}`)
@@ -314,14 +318,14 @@ describe('request testing', () => {
     });
 
     it('Expect request works', async () => {
-        const testUrl = utils.getRestUrl(urlPath);
+        const testUrl = taskTracker.getRestUrl(urlPath);
         const result = await jiraApi.request(testUrl);
 
         assert.deepEqual(result, body);
     });
 
     it('test request with error url', async () => {
-        const testUrl = utils.getRestUrl(fakePath);
+        const testUrl = taskTracker.getRestUrl(fakePath);
         let res;
         const expected = getRequestErrorLog(testUrl, 400);
 

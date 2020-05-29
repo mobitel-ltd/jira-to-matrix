@@ -3,15 +3,14 @@ import deletedLinkBody from '../fixtures/webhooks/issuelink/deleted.json';
 import nock from 'nock';
 import { stub, SinonStub } from 'sinon';
 import sinonChai from 'sinon-chai';
-import * as utils from '../../src/lib/utils';
 import * as chai from 'chai';
 import projectData from '../fixtures/jira-api-requests/project.json';
 import JSONbody from '../fixtures/webhooks/issue/created.json';
 import { cleanRedis, taskTracker, getChatClass } from '../test-utils';
 import { config } from '../../src/config';
 import { QueueHandler } from '../../src/queue';
-import * as botActions from './../../src/bot/actions';
 import { HookParser } from '../../src/hook-parser';
+import { Actions } from '../../src/bot/actions';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -27,8 +26,9 @@ describe('Queue handler test', () => {
         createRoomStub = stub();
         const { chatApi, chatApiSingle } = getChatClass();
         chatApiSingle.getRoomId = stub();
-        const actions = { ...botActions, createRoom: createRoomStub };
-        queueHandler = new QueueHandler(taskTracker, chatApi, config, actions);
+        const action = new Actions(config, taskTracker, chatApi);
+        action.commandsDict.createRoom = { run: createRoomStub as any };
+        queueHandler = new QueueHandler(taskTracker, config, action);
         hookParser = new HookParser(taskTracker, config, queueHandler);
         stub(hookParser, 'isIgnore');
 
@@ -36,7 +36,7 @@ describe('Queue handler test', () => {
             .get('')
             .reply(200, '<HTML>');
 
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/project/${projectData.id}`)
             .reply(200, projectData)
             .get(`/issue/${sourceIssueId}`)

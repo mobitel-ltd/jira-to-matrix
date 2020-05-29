@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import commentCreatedHook from '../fixtures/webhooks/comment/created.json';
 import issueCommentedHook from '../fixtures/webhooks/issue/updated/commented.json';
 import { redis } from '../../src/redis-client';
-import * as utils from '../../src/lib/utils';
 import notIgnoreIssueBody from '../fixtures/jira-api-requests/issue.json';
 import { cleanRedis, taskTracker, getChatClass } from '../test-utils';
 import { translate } from '../../src/locales';
@@ -12,6 +11,7 @@ import { config } from '../../src/config';
 import { HookParser } from '../../src/hook-parser';
 import { QueueHandler } from '../../src/queue';
 import { Config } from '../../src/types';
+import { Actions } from '../../src/bot/actions';
 
 const issueId = commentCreatedHook.comment.self.split('/').reverse()[2];
 
@@ -34,11 +34,12 @@ describe('get-parsed-save to redis', () => {
 
     const configProdMode: Config = pipe(clone, set('testMode.on', false))(config) as Config;
 
-    const queueHandler = new QueueHandler(taskTracker, getChatClass().chatApi, configProdMode, {});
+    const actions = new Actions(configProdMode, taskTracker, getChatClass().chatApi);
+    const queueHandler = new QueueHandler(taskTracker, configProdMode, actions);
     const hookParser = new HookParser(taskTracker, configProdMode, queueHandler);
 
     before(() => {
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/project/${issueCommentedHook.issue.fields.project.id}`)
             .times(5)
             .reply(200, { isPrivate: false })
@@ -61,9 +62,9 @@ describe('get-parsed-save to redis', () => {
     });
 
     it('isCommentEvent', () => {
-        const result1 = utils.isCommentEvent(commentCreatedHook);
+        const result1 = taskTracker.selectors.isCommentEvent(commentCreatedHook);
         expect(result1).to.be.true;
-        const result2 = utils.isCommentEvent(issueCommentedHook);
+        const result2 = taskTracker.selectors.isCommentEvent(issueCommentedHook);
         expect(result2).to.be.equal(false);
     });
 

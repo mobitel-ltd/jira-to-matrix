@@ -6,14 +6,14 @@ import { PostIssueUpdatesData } from '../../types';
 import { isRepoExists, getRepoLink, exportEvents } from '../../lib/git-lib';
 import { kick } from '../commands/command-list/common-actions';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { Action } from './base-action';
+import { BaseAction } from './base-action';
 import { LAST_STATUS_COLOR } from '../../redis-client';
 
 const logger = getLogger(module);
 
 // usingPojects: 'all' | [string] | undefined
 
-export class PostIssueUpdates extends Action<ChatFasade> {
+export class PostIssueUpdates extends BaseAction<ChatFasade> {
     async getNewAvatarUrl(issueKey, { statusId, colors, usingPojects }) {
         if (!colors) {
             logger.warn(`No color links is passed to update avatar for room ${issueKey}`);
@@ -58,7 +58,7 @@ export class PostIssueUpdates extends Action<ChatFasade> {
         return { htmlBody, body };
     }
 
-    async isArchiveStatus(projectKey, statusId) {
+    async isArchiveStatus(projectKey: string, statusId?: string) {
         if (!statusId) {
             logger.debug('Status is not changed');
 

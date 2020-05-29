@@ -1,14 +1,19 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import marked from 'marked';
 import { translate } from '../../locales';
-import { Action, RunAction } from './base-action';
+import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 
-export class PostProjectUpdates extends Action<ChatFasade> implements RunAction {
-    getMsg = {
-        issue_created: this.getNewEpicMessageBody,
-        issue_generic: this.getEpicChangedMessageBody,
-    };
+export class PostProjectUpdates extends BaseAction<ChatFasade> implements RunAction {
+    getMsg(type, data) {
+        const dict = {
+            issue_created: this.getNewEpicMessageBody.bind(this),
+            issue_generic: this.getEpicChangedMessageBody.bind(this),
+        };
+        const runner = dict[type];
+
+        return runner(data);
+    }
 
     getNewEpicMessageBody({ key, summary }) {
         const viewUrl = this.taskTracker.getViewUrl(key);
@@ -32,12 +37,12 @@ export class PostProjectUpdates extends Action<ChatFasade> implements RunAction 
         return { body, htmlBody };
     }
 
-    async run({ chatApi, typeEvent, projectKey, data }) {
+    async run({ typeEvent, projectKey, data }) {
         try {
-            const roomId = await chatApi.getRoomId(projectKey);
+            const roomId = await this.chatApi.getRoomId(projectKey);
 
-            const { body, htmlBody } = this.getMsg[typeEvent](data);
-            await chatApi.sendHtmlMessage(roomId, body, htmlBody);
+            const { body, htmlBody } = this.getMsg(typeEvent, data);
+            await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
 
             return true;
         } catch (err) {

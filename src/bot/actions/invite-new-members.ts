@@ -2,14 +2,14 @@ import * as Ramda from 'ramda';
 import { getLogger } from '../../modules/log';
 import { errorTracing } from '../../lib/utils';
 import { getAutoinviteUsers } from '../settings';
-import { Action, RunAction } from './base-action';
+import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { InviteMemberData } from '../../types';
+import { InviteNewMembersData } from '../../types';
 
 const logger = getLogger(module);
 
-export class InviteNewMembers extends Action<ChatFasade> implements RunAction {
-    async run({ issue }: InviteMemberData): Promise<string[] | false> {
+export class InviteNewMembers extends BaseAction<ChatFasade> implements RunAction {
+    async run({ issue }: InviteNewMembersData): Promise<string[] | false> {
         const {
             messenger: { bots },
         } = this.config;

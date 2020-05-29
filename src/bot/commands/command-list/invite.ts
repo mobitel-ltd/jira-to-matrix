@@ -8,7 +8,7 @@ export class InviteCommand extends Command implements RunCommand {
             throw new Error('Not issue room');
         }
 
-        if (!this.chatApi.isAdmin(sender)) {
+        if (!this.config.messenger.admins.includes(sender)) {
             return translate('notAdmin', { sender });
         }
 

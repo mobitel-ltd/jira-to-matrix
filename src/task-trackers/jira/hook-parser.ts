@@ -6,6 +6,10 @@ import {
     PostEpicUpdatesData,
     PostIssueUpdatesData,
     Issue,
+    InviteNewMembersData,
+    PostLinkedChangesData,
+    PostNewLinksData,
+    PostProjectUpdatesData,
 } from '../../types';
 
 export class Parser {
@@ -27,20 +31,20 @@ export class Parser {
         const id = this.selectors.getIssueId(body);
         const descriptionFields = this.selectors.getDescriptionFields(body);
 
-        const parsedIssue = { key, id, summary, descriptionFields, projectKey };
+        const parsedIssue = { key, id, summary, projectKey, descriptionFields };
 
         return { issue: parsedIssue, projectKey };
     }
 
-    getInviteNewMembersData(body) {
-        const key = this.selectors.getKey(body);
-        const projectKey = this.selectors.getProjectKey(body);
+    getInviteNewMembersData(body): InviteNewMembersData {
+        const key = this.selectors.getKey(body)!;
+        const projectKey = this.selectors.getProjectKey(body)!;
         const { typeName } = this.selectors.getDescriptionFields(body);
 
         return { issue: { key, typeName, projectKey } };
     }
 
-    getPostNewLinksData(body) {
+    getPostNewLinksData(body): PostNewLinksData {
         const allLinks = this.selectors.getLinks(body);
         const links = allLinks.map(link => (link ? link.id : link));
 
@@ -60,27 +64,26 @@ export class Parser {
         return { epicKey, data };
     }
 
-    getPostLinkedChangesData(body) {
-        const changelog = this.selectors.getChangelog(body);
-        const id = this.selectors.getIssueId(body);
-        const key = this.selectors.getKey(body);
+    getPostLinkedChangesData(body): PostLinkedChangesData {
+        const changelog = this.selectors.getChangelog(body)!;
+        const key = this.selectors.getKey(body)!;
         const status = this.selectors.getNewStatus(body);
-        const summary = this.selectors.getSummary(body);
-        const name = this.selectors.getDisplayName(body);
+        const summary = this.selectors.getSummary(body)!;
+        const name = this.selectors.getDisplayName(body)!;
         const linksKeys = this.selectors.getLinkKeys(body);
 
-        const data = { status, key, summary, id, changelog, name };
+        const data = { status, key, summary, changelog, name };
 
         return { linksKeys, data };
     }
 
-    getPostProjectUpdatesData(body) {
-        const typeEvent = this.selectors.getTypeEvent(body);
-        const projectKey = this.selectors.getProjectKey(body);
+    getPostProjectUpdatesData(body): PostProjectUpdatesData {
+        const typeEvent = this.selectors.getTypeEvent(body) as PostProjectUpdatesData['typeEvent'];
+        const projectKey = this.selectors.getProjectKey(body)!;
         const name = this.selectors.getDisplayName(body);
-        const summary = this.selectors.getSummary(body);
+        const summary = this.selectors.getSummary(body)!;
         const status = this.selectors.getNewStatus(body);
-        const key = this.selectors.getKey(body);
+        const key = this.selectors.getKey(body)!;
 
         const data = { key, summary, name, status };
 

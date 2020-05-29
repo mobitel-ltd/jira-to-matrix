@@ -4,10 +4,10 @@ import { getLogger } from '../../modules/log';
 import { translate } from '../../locales';
 import { getAutoinviteUsers } from '../settings';
 import { infoBody } from '../../lib/messages';
-import { TaskTracker, Issue, CreateRoomData, MessengerApi } from '../../types';
+import { CreateRoomData, MessengerApi } from '../../types';
 import { errorTracing } from '../../lib/utils';
 import { LINE_BREAKE_TAG, INDENT } from '../../lib/consts';
-import { Action, RunAction } from './base-action';
+import { BaseAction, RunAction } from './base-action';
 
 const logger = getLogger(module);
 
@@ -17,7 +17,7 @@ export const getClosedDescriptionBlock = data => [getOpenedDescriptionBlock(data
 
 // eslint-disable-next-line
 
-export class CreateRoom extends Action<MessengerApi> implements RunAction {
+export class CreateRoom extends BaseAction<MessengerApi> implements RunAction {
     getEpicInfo(epicLink) {
         epicLink === translate('miss')
             ? ''
@@ -46,9 +46,9 @@ export class CreateRoom extends Action<MessengerApi> implements RunAction {
         return [post, epicInfo].join('\n');
     }
 
-    getDescription(issue: Issue, taskTracker: TaskTracker): { body: string; htmlBody: string } {
+    getDescription(issue): { body: string; htmlBody: string } {
         try {
-            const descriptionFields = taskTracker.selectors.getDescriptionFields(issue);
+            const descriptionFields = this.taskTracker.selectors.getDescriptionFields(issue);
             const htmlBody = this.getPost(descriptionFields);
             const body = fromString(htmlBody);
 
@@ -94,7 +94,7 @@ export class CreateRoom extends Action<MessengerApi> implements RunAction {
             const roomId = await this.chatApi.createRoom(options);
 
             logger.info(`Created room for ${key}: ${roomId}`);
-            const { body, htmlBody } = await this.getDescription(issue, this.taskTracker);
+            const { body, htmlBody } = await this.getDescription(issue);
 
             await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
             await this.chatApi.sendHtmlMessage(roomId, infoBody, infoBody);

@@ -1,15 +1,12 @@
 import { fromString } from 'html-to-text';
 import nock from 'nock';
-import * as utils from '../../src/lib/utils';
 import commentCreatedHook from '../fixtures/webhooks/comment/created.json';
 import commentUpdatedHook from '../fixtures/webhooks/comment/updated.json';
 import issueRenderedBody from '../fixtures/jira-api-requests/issue-rendered.json';
-import { postComment } from '../../src/bot/actions';
 import { getChatClass, taskTracker } from '../test-utils';
 
 import { Jira } from '../../src/task-trackers/jira';
-import { getPostCommentData } from '../../src/hook-parser/parsers/jira/parse-body';
-import { getCommentBody, getCommentHTMLBody } from '../../src/bot/actions/post-comment';
+import { getCommentBody, getCommentHTMLBody, PostComment } from '../../src/bot/actions/post-comment';
 import { config } from '../../src/config';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
@@ -20,14 +17,15 @@ chai.use(sinonChai);
 describe('Post comments test', () => {
     let chatApi;
     let chatSingle;
+    let postComment: PostComment;
 
     const someError = 'Error!!!';
     const roomId = 'roomId';
-    const postCommentData = getPostCommentData(commentCreatedHook);
-    const postCommentUpdatedData = getPostCommentData(commentUpdatedHook);
+    const postCommentData = taskTracker.parser.getPostCommentData(commentCreatedHook);
+    const postCommentUpdatedData = taskTracker.parser.getPostCommentData(commentUpdatedHook);
 
     before(() => {
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${postCommentData.issueID}`)
             .query(Jira.expandParams)
             .times(2)
@@ -42,6 +40,8 @@ describe('Post comments test', () => {
         chatSingle = chatClass.chatApiSingle;
         chatApi = chatClass.chatApi;
         chatSingle.getRoomId.withArgs(issueRenderedBody.key).resolves(roomId);
+
+        postComment = new PostComment(config, taskTracker, chatApi);
     });
 
     after(() => {
@@ -53,7 +53,7 @@ describe('Post comments test', () => {
         const commentBody = getCommentBody(issueRenderedBody as any, postCommentData.comment);
         const htmlBody = getCommentHTMLBody(headerText, commentBody);
 
-        const result = await postComment({ chatApi, ...postCommentData, config, taskTracker });
+        const result = await postComment.run(postCommentData);
 
         expect(result).to.be.true;
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomId, fromString(htmlBody), htmlBody);
@@ -63,21 +63,21 @@ describe('Post comments test', () => {
         const { headerText } = postCommentUpdatedData;
         const commentBody = getCommentBody(issueRenderedBody as any, postCommentUpdatedData.comment);
         const htmlBody = getCommentHTMLBody(headerText, commentBody);
-        const result = await postComment({ chatApi, ...postCommentUpdatedData, config, taskTracker });
+        const result = await postComment.run(postCommentUpdatedData);
 
         expect(result).to.be.true;
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomId, fromString(htmlBody), htmlBody);
     });
 
     it('Expect return with empty issueID. No way to handle issue', async () => {
-        const res = await postComment({ chatApi, ...postCommentData, issueID: null as any, config, taskTracker });
+        const res = await postComment.run({ ...postCommentData, issueID: null as any });
         expect(res).to.be.undefined;
     });
 
     it('Expect postComment throw error if room is not exists', async () => {
         chatSingle.getRoomId.withArgs(issueRenderedBody.key).throws(someError);
         try {
-            await postComment({ chatApi, ...postCommentData, config, taskTracker });
+            await postComment.run(postCommentData);
         } catch (err) {
             expect(err).to.include(someError);
         }

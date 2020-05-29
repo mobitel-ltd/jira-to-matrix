@@ -1,7 +1,6 @@
 import * as faker from 'faker';
 import { config } from '../../src/config';
 import { Commands } from '../../src/bot/commands';
-import * as utils from '../../src/lib/utils';
 import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
@@ -83,7 +82,7 @@ describe('Kick command', () => {
             chatApi,
             roomData,
         };
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${issueJSON.key}`)
             .reply(200, issueJSON)
             .get(`/issue/${issueKey}`)

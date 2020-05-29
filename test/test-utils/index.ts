@@ -10,7 +10,7 @@ import Server = require('node-git-server');
 import { redis } from '../../src/redis-client';
 import * as baseConfig from '../../src/config';
 import * as getApi from '../../src/messengers';
-import Sinon, { stub, createStubInstance } from 'sinon';
+import Sinon, { stub, createStubInstance, SinonStubbedInstance, StubbableType, SinonStubbedMember } from 'sinon';
 import allMessagesFromRoom from '../fixtures/archiveRoom/allMessagesFromRoom.json';
 import { settings } from '../fixtures/settings';
 import { rawEvents } from '../fixtures/archiveRoom/raw-events';
@@ -19,8 +19,19 @@ import { ChatFasade } from '../../src/messengers/chat-fasade';
 import gitP, { SimpleGit } from 'simple-git/promise';
 import { getTaskTracker } from '../../src/task-trackers';
 import { Commands } from '../../src/bot/commands';
+import { Actions } from '../../src/bot/actions';
 
 export const taskTracker = getTaskTracker(baseConfig.config);
+
+export type StubbedClass<T> = SinonStubbedInstance<T> & T;
+
+export function createSinonStubInstance<T>(
+    constructor: StubbableType<T>,
+    overrides?: { [K in keyof T]?: SinonStubbedMember<T[K]> },
+): StubbedClass<T> {
+    const stub = createStubInstance<T>(constructor, overrides);
+    return (stub as unknown) as StubbedClass<T>;
+}
 
 const { prefix } = baseConfig.config.redis;
 
@@ -74,6 +85,8 @@ export const cleanRedis = async () => {
 };
 
 export const getRoomId = () => defaultRoomId;
+
+export const stubAction = createSinonStubInstance(Actions);
 
 export const getAlias = () => defaultAlias;
 

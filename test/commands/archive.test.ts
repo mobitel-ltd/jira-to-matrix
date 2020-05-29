@@ -26,7 +26,6 @@ import { deleteAlias, KICK_ALL_OPTION, PERSONAL_REPO_OPTION } from '../../src/bo
 import { rawEvents } from '../fixtures/archiveRoom/raw-events';
 import { info } from '../fixtures/archiveRoom/raw-events-data';
 import { Commands } from '../../src/bot/commands';
-import * as utils from '../../src/lib/utils';
 import {
     DEFAULT_REMOTE_NAME,
     DEFAULT_EXT,
@@ -122,7 +121,7 @@ describe('Archive command', () => {
             .get(`/${info.avatarId}`)
             .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
 
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${issueJSON.key}`)
             .reply(200, issueJSON)
             .get(`/issue/${issueKey}`)

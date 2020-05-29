@@ -1,10 +1,8 @@
-import * as botActions from './../../src/bot/actions';
 import * as Ramda from 'ramda';
 import { pipe, set, clone } from 'lodash/fp';
 import nock from 'nock';
 import * as faker from 'faker';
-import { redis } from '../../src/redis-client';
-import * as utils from '../../src/lib/utils';
+import { redis, REDIS_IGNORE_PREFIX } from '../../src/redis-client';
 import { WebClient } from '@slack/web-api';
 import supertest from 'supertest';
 import { config } from '../../src/config';
@@ -43,6 +41,7 @@ import { Config, ChatConfig } from '../../src/types';
 import { slack } from '../fixtures/messenger-settings';
 import { QueueHandler } from '../../src/queue';
 import { Commands } from '../../src/bot/commands';
+import { Actions } from '../../src/bot/actions';
 const { expect } = chai;
 chai.use(sinonChai);
 
@@ -80,7 +79,7 @@ const slackChannels = {
         // Add epic key of isuue_created hook to cahnnels list, it's made to handle posyEpicUpdates
         {
             ...expectedChannel,
-            name: utils.getEpicKey(jiraIssueCreatedJSON)!.toLowerCase(),
+            name: taskTracker.selectors.getEpicKey(jiraIssueCreatedJSON)!.toLowerCase(),
             id: slackExpectedChannelId,
         },
         {
@@ -91,7 +90,7 @@ const slackChannels = {
     ],
 };
 
-const [linkKey] = utils.getLinkKeys(jiraIssueCreatedJSON);
+const [linkKey] = taskTracker.selectors.getLinkKeys(jiraIssueCreatedJSON);
 
 const slackChannelsAfterRoomCreating = {
     ...usersConversationsJSON.correct,
@@ -170,8 +169,6 @@ const ignoreData = {
     },
 };
 
-const { httpStatus } = utils;
-
 const testUserId = faker.random.arrayElement(config.testMode.users);
 const ignoredBody = pipe(clone, set('fields.creator.displayName', testUserId))(notIgnoreCreatorIssueBody) as any;
 
@@ -181,7 +178,8 @@ describe('Integ tests', () => {
 
     const commands = new Commands(config, taskTracker);
     const slackApi = new SlackApi(commands, testConfig, logger, sdk as any);
-    const queueHandler = new QueueHandler(taskTracker, slackApi as any, config, botActions);
+    const actions = new Actions(config, taskTracker, slackApi as any);
+    const queueHandler = new QueueHandler(taskTracker, config, actions);
     slackApi.getUserIdByDisplayName = getUserIdByDisplayName;
 
     const fsm = new FSM([slackApi as any], getServer, taskTracker, config);
@@ -190,14 +188,14 @@ describe('Integ tests', () => {
         fsm.start();
 
         const bodyToJSON = JSON.stringify(ignoreData);
-        await redis.setAsync(utils.REDIS_IGNORE_PREFIX, bodyToJSON);
+        await redis.setAsync(REDIS_IGNORE_PREFIX, bodyToJSON);
 
         nock(config.jira.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');
 
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${linkKey}`)
             .reply(200, issueBody)
             .get(`/issue/${jiraIssueCreatedJSON.issue.key}`)
@@ -207,21 +205,21 @@ describe('Integ tests', () => {
             .get(`/issue/${jiraIssueCreatedJSON.issue.key}`)
             .times(4)
             .reply(200, issueBody)
-            .get(`/issue/${utils.getOldKey(jiraIssueCreatedJSON)}`)
+            .get(`/issue/${taskTracker.selectors.getOldKey(jiraIssueCreatedJSON)}`)
             .query(Jira.expandParams)
             .reply(200, jiraRenderedIssueJSON)
             .get(`/issue/${jiraIssueCreatedJSON.issue.key}/watchers`)
             .times(2)
             .reply(200, jiraWatchersBody)
-            .get(`/issue/${utils.getIssueId(jiraCommentCreatedJSON)}`)
+            .get(`/issue/${taskTracker.selectors.getIssueId(jiraCommentCreatedJSON)}`)
             .times(2)
             .reply(200, issueBody)
-            .get(`/issue/${utils.getEpicKey(jiraIssueCreatedJSON)}`)
+            .get(`/issue/${taskTracker.selectors.getEpicKey(jiraIssueCreatedJSON)}`)
             .reply(200, issueBody)
             .get(`/project/${jiraIssueCreatedJSON.issue.fields.project.key}`)
             .times(3)
             .reply(200, jiraProjectData)
-            .get(`/issue/${utils.getIssueId(jiraCommentCreatedJSON)}`)
+            .get(`/issue/${taskTracker.selectors.getIssueId(jiraCommentCreatedJSON)}`)
             .times(2)
             .query(Jira.expandParams)
             .reply(200, issueBody)
@@ -251,7 +249,7 @@ describe('Integ tests', () => {
             .get('')
             .times(2)
             .reply(200, '<HTML>');
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${issueId}`)
             .times(2)
             .reply(200, ignoredBody)
@@ -267,7 +265,9 @@ describe('Integ tests', () => {
             channel: slackExpectedChannelId,
             attachments: [
                 {
-                    text: `${utils.getHeaderText(jiraCommentCreatedJSON)}: \n${jiraCommentCreatedJSON.comment.body}`,
+                    text: `${taskTracker.selectors.getHeaderText(jiraCommentCreatedJSON)}: \n${
+                        jiraCommentCreatedJSON.comment.body
+                    }`,
                     mrkdwn_in: ['text'],
                 },
             ],
@@ -283,7 +283,7 @@ describe('Integ tests', () => {
             .get('')
             .times(2)
             .reply(200, '<HTML>');
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/BBCOM-1233`)
             .times(15)
             .reply(200, ignoredBody)
@@ -334,7 +334,7 @@ describe('Integ tests', () => {
     });
 
     it('GET /ignore return all ignore projects', async () => {
-        const { body } = await request.get('/ignore').expect(httpStatus.OK);
+        const { body } = await request.get('/ignore').expect(200);
         expect(body).to.be.deep.eq(ignoreData);
     });
 
@@ -343,7 +343,7 @@ describe('Integ tests', () => {
         await request
             .post('/ignore')
             .send(newIgnoreKey)
-            .expect(httpStatus.OK);
+            .expect(200);
 
         const { body } = await request.get('/ignore');
         expect(body).to.be.deep.eq({ ...ignoreData, ...newIgnoreKey });
@@ -353,25 +353,25 @@ describe('Integ tests', () => {
         await request
             .post('/ignore')
             .send(newIgnoreKey)
-            .expect(httpStatus.BAD_REQUEST);
+            .expect(404);
 
         await request
             .post('/ignore')
             .send()
-            .expect(httpStatus.BAD_REQUEST);
+            .expect(404);
     });
     it('PUT /ignore update ignore project on key', async () => {
         const newData = { taskType: ['test'], autor: ['Doncova'] };
         await request
             .put('/ignore/INDEV')
             .send(newData)
-            .expect(httpStatus.OK);
+            .expect(200);
 
         const { body } = await request.get('/ignore');
         expect(body).to.be.deep.eq({ ...ignoreData, INDEV: newData });
     });
     it('DELETE /ignore delete ignore projects', async () => {
-        await request.delete('/ignore/INDEV').expect(httpStatus.OK);
+        await request.delete('/ignore/INDEV').expect(200);
 
         const { body } = await request.get('/ignore');
         expect(body).to.be.deep.eq(Ramda.omit(['INDEV'], ignoreData));

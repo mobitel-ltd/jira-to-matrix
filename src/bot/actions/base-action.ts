@@ -5,7 +5,7 @@ import { getLogger } from '../../modules/log';
 
 const logger = getLogger(module);
 
-export class Action<T> {
+export class BaseAction<T> {
     constructor(public config: Config, public taskTracker: TaskTracker, public chatApi: T) {}
 
     getPostStatusData = (data): { body: string; htmlBody: string } | undefined => {

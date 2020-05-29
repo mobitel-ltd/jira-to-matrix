@@ -4,9 +4,9 @@ import { getLogger } from '../../modules/log';
 import * as utils from '../../lib/utils';
 import { kick } from '../commands/command-list/common-actions';
 import { exportEvents } from '../../lib/git-lib';
-import { Config, TaskTracker, ArchiveProjectData, MessengerApi, RoomData } from '../../types';
+import { ArchiveProjectData, MessengerApi, RoomData } from '../../types';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { Action, RunAction } from './base-action';
+import { BaseAction, RunAction } from './base-action';
 
 const logger = getLogger(module);
 
@@ -52,12 +52,10 @@ export interface ArchiveOptions {
     alias: string;
     keepTimestamp: number;
     status?: string;
-    config: Config;
-    taskTracker: TaskTracker;
 }
 
-export class ArchiveProject extends Action<ChatFasade> implements RunAction {
-    getLastMessageTimestamp = events =>
+export class ArchiveProject extends BaseAction<ChatFasade> implements RunAction {
+    static getLastMessageTimestamp = events =>
         events
             .filter(isMessage)
             .map(item => item.origin_server_ts)
@@ -77,7 +75,7 @@ export class ArchiveProject extends Action<ChatFasade> implements RunAction {
             if (!allEvents) {
                 return StateEnum.FORBIDDEN_EVENTS;
             }
-            const lastMessageTimestamp = this.getLastMessageTimestamp(allEvents);
+            const lastMessageTimestamp = ArchiveProject.getLastMessageTimestamp(allEvents);
             logger.debug(
                 `Last message was made -- ${new Date(lastMessageTimestamp)}, keeping date --${new Date(keepTimestamp)}`,
             );
@@ -167,7 +165,7 @@ export class ArchiveProject extends Action<ChatFasade> implements RunAction {
         return state;
     }
 
-    async getRoomArchiveState({ alias, keepTimestamp, status }) {
+    async getRoomArchiveState({ alias, keepTimestamp, status }: ArchiveOptions) {
         const roomId = await this.chatApi.getRoomIdByName(alias);
 
         return roomId ? this.handleKnownRoom({ keepTimestamp, roomId, alias, status }) : StateEnum.NOT_FOUND;

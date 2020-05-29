@@ -1,9 +1,9 @@
 import * as utils from '../../lib/utils';
 import { PostLinkedChangesData } from '../../types';
-import { Action, RunAction } from './base-action';
+import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 
-export class PostLinkedChanges extends Action<ChatFasade> implements RunAction {
+export class PostLinkedChanges extends BaseAction<ChatFasade> implements RunAction {
     async handler(data, roomID) {
         const { body, htmlBody } = this.getPostStatusData(data)!;
 

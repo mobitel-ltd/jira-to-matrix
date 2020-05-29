@@ -4,7 +4,7 @@ import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { translate } from '../../src/locales';
-import { redis } from '../../src/redis-client';
+import { redis, REDIS_INVITE_PREFIX } from '../../src/redis-client';
 import { getChatClass, taskTracker, getUserIdByDisplayName, cleanRedis, getRoomId } from '../test-utils';
 import jiraProject from '../fixtures/jira-api-requests/project-gens/classic/correct.json';
 import jiraProjectNewGen from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json';
@@ -38,12 +38,12 @@ describe('Invite setting for projects', () => {
     const anotherCorrectUser = 'myCorrectUser2';
 
     beforeEach(() => {
-        // await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
+        // await redis.setAsync(REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
         chatApi = getChatClass({ existedUsers: [correctUser, anotherCorrectUser] }).chatApiSingle;
         baseOptions = { roomId, roomName, sender, chatApi, bodyText };
         issueType = random.arrayElement(projectIssueTypes);
         anotherTaskName = projectIssueTypes.find(item => item !== issueType);
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/project/${projectKey}`)
             .reply(200, jiraProject)
             .get(`/project/${projectId}/role/10002`)
@@ -101,7 +101,7 @@ describe('Invite setting for projects', () => {
         const result = await commands.run(commandName, { ...baseOptions, bodyText: `add ${issueType} ${correctUser}` });
         expect(result).to.be.eq(post);
 
-        const res = await redis.getAsync(utils.REDIS_INVITE_PREFIX);
+        const res = await redis.getAsync(REDIS_INVITE_PREFIX);
         expect(res).include(correctUser);
     });
 
@@ -130,10 +130,7 @@ describe('Invite setting for projects', () => {
 
     describe('With already exists key in redis', () => {
         beforeEach(async () => {
-            await redis.setAsync(
-                utils.REDIS_INVITE_PREFIX,
-                JSON.stringify({ [projectKey]: { [issueType]: [correctUser] } }),
-            );
+            await redis.setAsync(REDIS_INVITE_PREFIX, JSON.stringify({ [projectKey]: { [issueType]: [correctUser] } }));
         });
 
         it('Delete key, not in ignore list', async () => {
@@ -192,11 +189,11 @@ describe('Ignore setting for projects, check admins for next-gen projects', () =
     let issueType;
 
     beforeEach(() => {
-        // await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
+        // await redis.setAsync(REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
         chatApi = getChatClass().chatApiSingle;
         baseOptions = { roomId, roomName, sender, chatApi, bodyText };
         issueType = random.arrayElement(projectIssueTypes);
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/project/${projectKey}`)
             .reply(200, jiraProjectNewGen)
             .get(`/project/${projectId}/role/10618`)

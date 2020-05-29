@@ -4,7 +4,6 @@ import sinonChai from 'sinon-chai';
 import { translate } from '../../src/locales';
 import { getChatClass, taskTracker, getRoomId } from '../test-utils';
 import { Commands } from '../../src/bot/commands';
-import * as utils from '../../src/lib/utils';
 import { schemas } from '../../src/task-trackers/jira/schemas';
 import { CommandNames } from '../../src/types';
 import { config } from '../../src/config';
@@ -27,7 +26,7 @@ describe('comment test', () => {
         chatApi = getChatClass().chatApiSingle;
 
         baseOptions = { roomId, roomName, sender, chatApi, bodyText };
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
             .reply(201);
     });

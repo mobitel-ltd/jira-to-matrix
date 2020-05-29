@@ -1,11 +1,6 @@
 import nock from 'nock';
-import * as utils from '../../src/lib/utils';
 import postNewLinksbody from '../fixtures/webhooks/issuelink/created.json';
 import issueLinkBody from '../fixtures/jira-api-requests/issuelink.json';
-import { getPostNewLinksData } from '../../src/hook-parser/parsers/jira/parse-body';
-import { postNewLinks } from '../../src/bot/actions/post-new-links';
-import { isPostNewLinks } from '../../src/hook-parser/parsers/jira';
-import { getPostLinkMessageBody } from '../../src/bot/actions/helper';
 import { redis } from '../../src/redis-client';
 import { cleanRedis, getChatClass, taskTracker } from '../test-utils';
 import { config } from '../../src/config';
@@ -14,19 +9,21 @@ import issueBody from '../fixtures/jira-api-requests/issue.json';
 
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
+import { PostNewLinks } from '../../src/bot/actions/post-new-links';
+import { errorTracing } from '../../src/lib/utils';
 const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Test postNewLinks', () => {
     let chatSingle;
-    let options;
+    let postNewLinks: PostNewLinks;
 
     const issueLinkId = postNewLinksbody.issueLink.id;
     const roomIDIn = 'inId';
     const roomIDOut = 'outId';
 
     before(() => {
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issueLink/${issueLinkId}`)
             .reply(200, issueLinkBody)
             .get(`/issueLink/${30137}`)
@@ -46,10 +43,10 @@ describe('Test postNewLinks', () => {
         chatSingle = chatClass.chatApiSingle;
         const chatApi = chatClass.chatApi;
 
-        options = { taskTracker, config, chatApi };
+        postNewLinks = new PostNewLinks(config, taskTracker, chatApi);
 
-        chatSingle.getRoomId.withArgs(utils.getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
-        chatSingle.getRoomId.withArgs(utils.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
+        chatSingle.getRoomId.withArgs(taskTracker.selectors.getInwardLinkKey(issueLinkBody)).resolves(roomIDIn);
+        chatSingle.getRoomId.withArgs(taskTracker.selectors.getOutwardLinkKey(issueLinkBody)).resolves(roomIDOut);
     });
 
     afterEach(async () => {
@@ -61,28 +58,28 @@ describe('Test postNewLinks', () => {
     });
 
     it('Expect return true after isPostNewLinks', () => {
-        const res = isPostNewLinks(postNewLinksbody);
+        const res = taskTracker.parser.isPostNewLinks(postNewLinksbody);
         expect(res).to.be.true;
     });
 
     it('Expect result to be correct after handling parser', () => {
         const expected = { links: [issueLinkId] };
-        const res = getPostNewLinksData(postNewLinksbody);
+        const res = taskTracker.parser.getPostNewLinksData(postNewLinksbody);
         expect(res).to.be.deep.eq(expected);
     });
 
     it('Expect data to be handled by postNewLinks', async () => {
-        const bodyIn = getPostLinkMessageBody({
+        const bodyIn = postNewLinks.getPostLinkMessageBody({
             relation: issueLinkBody.type.outward,
             related: issueLinkBody.outwardIssue,
         });
-        const bodyOut = getPostLinkMessageBody({
+        const bodyOut = postNewLinks.getPostLinkMessageBody({
             relation: issueLinkBody.type.inward,
             related: issueLinkBody.inwardIssue,
         });
 
-        const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({ ...data, ...options });
+        const data = taskTracker.parser.getPostNewLinksData(postNewLinksbody);
+        const res = await postNewLinks.run(data);
 
         expect(res).to.be.true;
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
@@ -92,25 +89,25 @@ describe('Test postNewLinks', () => {
     it('Expect link not to be posted if it is already saved', async () => {
         await redis.isNewLink(issueLinkId);
 
-        const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({ ...data, ...options });
+        const data = taskTracker.parser.getPostNewLinksData(postNewLinksbody);
+        const res = await postNewLinks.run(data);
 
         expect(res).to.be.true;
         expect(chatSingle.sendHtmlMessage).not.to.be.called;
     });
 
     it('Expect postnewlinks work correct with issue JSONBody', async () => {
-        const bodyIn = getPostLinkMessageBody({
+        const bodyIn = postNewLinks.getPostLinkMessageBody({
             relation: issueLinkBody.type.outward,
             related: issueLinkBody.outwardIssue,
         });
-        const bodyOut = getPostLinkMessageBody({
+        const bodyOut = postNewLinks.getPostLinkMessageBody({
             relation: issueLinkBody.type.inward,
             related: issueLinkBody.inwardIssue,
         });
 
-        const data = getPostNewLinksData(JSONBody);
-        const res = await postNewLinks({ ...data, ...options });
+        const data = taskTracker.parser.getPostNewLinksData(JSONBody);
+        const res = await postNewLinks.run(data);
         expect(res).to.be.true;
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomIDOut, bodyOut.body, bodyOut.htmlBody);
@@ -118,33 +115,33 @@ describe('Test postNewLinks', () => {
 
     it('Expect postlink throws error with expected data if smth wrong', async () => {
         let res;
-        const data = getPostNewLinksData(JSONBody);
+        const data = taskTracker.parser.getPostNewLinksData(JSONBody);
 
         try {
-            res = await postNewLinks({ ...data, ...options });
+            res = await postNewLinks.run(data);
         } catch (err) {
             res = err;
         }
 
-        expect(res).includes(utils.errorTracing('post new link'));
+        expect(res).includes(errorTracing('post new link'));
     });
 
     it('Expect data to be handled by postNewLinks if one of room is not available', async () => {
         nock.cleanAll();
 
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issueLink/${issueLinkId}`)
             .reply(200, issueLinkBody)
             .get(`/issue/${issueLinkBody.inwardIssue.key}`)
             .reply(200, issueBody);
 
-        const bodyIn = getPostLinkMessageBody({
+        const bodyIn = postNewLinks.getPostLinkMessageBody({
             relation: issueLinkBody.type.outward,
             related: issueLinkBody.outwardIssue,
         });
 
-        const data = getPostNewLinksData(postNewLinksbody);
-        const res = await postNewLinks({ ...data, ...options });
+        const data = taskTracker.parser.getPostNewLinksData(postNewLinksbody);
+        const res = await postNewLinks.run(data);
 
         expect(res).to.be.true;
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);

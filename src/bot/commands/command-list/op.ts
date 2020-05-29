@@ -5,7 +5,8 @@ import { CommandOptions } from '../../../types';
 export class OpCommand extends Command implements RunCommand {
     async run({ bodyText, sender, roomId, roomName }: CommandOptions) {
         const targetUser = bodyText || sender;
-        if (!this.chatApi.isAdmin(sender)) {
+        // TODO add decorator
+        if (!this.config.messenger.admins.includes(sender)) {
             return translate('notAdmin', { sender });
         }
 

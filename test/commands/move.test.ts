@@ -31,7 +31,7 @@ describe('move test', () => {
     beforeEach(() => {
         chatApi = getChatClass().chatApiSingle;
 
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${roomName}/transitions`)
             .reply(200, transitionsJSON)
             .post(`/issue/${roomName}/transitions`, schemas.move(newStatus!.id))

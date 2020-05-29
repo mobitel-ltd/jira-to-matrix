@@ -3,7 +3,7 @@ import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { translate } from '../../src/locales';
-import { redis } from '../../src/redis-client';
+import { redis, REDIS_IGNORE_PREFIX } from '../../src/redis-client';
 import { getChatClass, taskTracker, getUserIdByDisplayName, cleanRedis, getRoomId } from '../test-utils';
 import jiraProject from '../fixtures/jira-api-requests/project-gens/classic/correct.json';
 import jiraProjectNewGen from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json';
@@ -36,13 +36,13 @@ describe('Ignore setting for projects', () => {
     const notExistedCommand = random.word();
 
     beforeEach(() => {
-        // await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
+        // await redis.setAsync(REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
         chatApi = getChatClass().chatApiSingle;
         commands = new Commands(config, taskTracker);
         baseOptions = { roomId, roomName, sender, chatApi, bodyText };
         issueType = random.arrayElement(projectIssueTypes);
         anotherTaskName = projectIssueTypes.find(item => item !== issueType);
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/project/${projectKey}`)
             .reply(200, jiraProject)
             .get(`/project/${projectId}/role/10002`)
@@ -106,10 +106,7 @@ describe('Ignore setting for projects', () => {
 
     describe('test', () => {
         beforeEach(async () => {
-            await redis.setAsync(
-                utils.REDIS_IGNORE_PREFIX,
-                JSON.stringify({ [projectKey]: { taskType: [issueType] } }),
-            );
+            await redis.setAsync(REDIS_IGNORE_PREFIX, JSON.stringify({ [projectKey]: { taskType: [issueType] } }));
         });
         it('Delete key, not in ignore list', async () => {
             const post = translate('keyNotFoundForDelete', { projectKey });
@@ -154,12 +151,12 @@ describe('Ignore setting for projects, check admins for next-gen projects', () =
     let issueType;
 
     beforeEach(() => {
-        // await redis.setAsync(utils.REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
+        // await redis.setAsync(REDIS_IGNORE_PREFIX, JSON.stringify({[projectKey]: {}}));
         chatApi = getChatClass().chatApiSingle;
         commands = new Commands(config, taskTracker);
         baseOptions = { roomId, roomName, sender, chatApi, bodyText };
         issueType = random.arrayElement(projectIssueTypes);
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/project/${projectKey}`)
             .reply(200, jiraProjectNewGen)
             .get(`/project/${projectId}/role/10618`)

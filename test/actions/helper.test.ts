@@ -137,12 +137,12 @@
 //                 <br>${utils.INDENT}${descriptionFields.priority}<br>`;
 //         const epicInfo = `            <br>Epic link:
 //                 <br>${utils.INDENT}${epicKey}
-//                 <br>${utils.INDENT}${utils.getViewUrl(epicKey)}<br>`;
+//                 <br>${utils.INDENT}${taskTracker.getViewUrl(epicKey)}<br>`;
 //         const expectedHTMLBody = [post, epicInfo].join('\n');
 //         const expectedBody = htmlToText(expectedHTMLBody);
 
 //         before(() => {
-//             nock(utils.getRestUrl())
+//             nock(taskTracker.getRestUrl())
 //                 .get(`/issue/${issueCreatedJSON.issue.key}`)
 //                 .query(Jira.expandParams)
 //                 .reply(200, renderedIssueJSON);
@@ -162,7 +162,7 @@
 //                 .get('')
 //                 .reply(200, '<HTML>');
 
-//             nock(utils.getRestUrl())
+//             nock(taskTracker.getRestUrl())
 //                 .get(`/issue/${ignoredCreatorHook.issue.key}`)
 //                 .reply(200, ignoredBody)
 //                 .get(`/issue/${ignoreIssueKey}`)
@@ -313,7 +313,7 @@
 //                 .get('')
 //                 .reply(200, '<HTML>');
 
-//             nock(utils.getRestUrl())
+//             nock(taskTracker.getRestUrl())
 //                 .get(`/issue/${body.issueLink.sourceIssueId}`)
 //                 .times(3)
 //                 .reply(status1, notIgnoreCreatorIssueBody)
@@ -386,7 +386,7 @@
 //         };
 
 //         beforeEach(() => {
-//             nock(utils.getRestUrl())
+//             nock(taskTracker.getRestUrl())
 //                 .get(`/status/${newStatusData.to}`)
 //                 .reply(200, statusJSON)
 //                 .get(`/status/${errStatusId}`)

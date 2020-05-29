@@ -1,12 +1,13 @@
 import { expect } from 'chai';
 import { cleanRedis, getChatClass, taskTracker } from '../test-utils';
-import * as botActions from './../../src/bot/actions';
 import { config } from '../../src/config';
 import { QueueHandler } from '../../src/queue';
+import { Actions } from '../../src/bot/actions';
 
 describe('Test save data to redis', () => {
     const { chatApi } = getChatClass();
-    const queueHandler = new QueueHandler(taskTracker, chatApi, config, botActions);
+    const actions = new Actions(config, taskTracker, chatApi);
+    const queueHandler = new QueueHandler(taskTracker, config, actions);
 
     const expectedFuncKeys1 = [
         {

@@ -3,16 +3,12 @@ import { TaskTracker, Config, ActionNames, CreateRoomData } from '../types';
 import { redis, isIgnoreKey, ARCHIVE_PROJECT, REDIS_ROOM_KEY, HANDLED_KEY } from '../redis-client';
 import { errorTracing, isNoRoomError, getKeyFromError } from '../lib/utils';
 import { union } from 'ramda';
-import { RunAction } from '../bot/actions/base-action';
+import { Actions } from '../bot/actions';
 
 const logger = getLogger(module);
 
 export class QueueHandler {
-    constructor(
-        private taskTracker: TaskTracker,
-        private config: Config,
-        private actions: Record<ActionNames, RunAction>,
-    ) {}
+    constructor(private taskTracker: TaskTracker, private config: Config, private actions: Actions) {}
 
     async queueHandler() {
         try {
@@ -173,7 +169,7 @@ export class QueueHandler {
                 dataFromRedis.map(
                     async ({ redisKey, funcName, data }: { redisKey: string; funcName: ActionNames; data: any }) => {
                         try {
-                            await this.actions[funcName].run(data);
+                            await this.actions.run(funcName, data);
                             await redis.delAsync(redisKey);
 
                             return { redisKey, success: true };
@@ -219,7 +215,7 @@ export class QueueHandler {
     async handleRedisRooms(roomsData) {
         const roomHandle = async (data: CreateRoomData) => {
             try {
-                await this.actions.createRoom.run(data);
+                await this.actions.run(ActionNames.CreateRoom, data);
 
                 return null;
             } catch (err) {
@@ -292,10 +288,10 @@ export class QueueHandler {
             const result = {};
             for await (const key of keys) {
                 const { operationName, projectKey, value, ...options } = key;
-                const res = await this.actions[operationName].run({ projectKey, ...options });
+                const res = await this.actions.run(operationName, { projectKey, ...options });
                 await redis.srem(operationName, value);
 
-                logger.info(`Result of handling project ${value}`, JSON.stringify(res));
+                logger.info(`Result of handling project ${value}: ${JSON.stringify(res)}`);
 
                 result[projectKey] = res;
             }

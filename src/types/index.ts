@@ -544,13 +544,14 @@ export interface Selectors {
     getIssueId<Issue>(body): string;
     getIssueId<T>(body: T): string | undefined;
 
-    getIssueKey(body): string | undefined;
+    getIssueKey(body): string;
 
     getIssueName(body): string | undefined;
 
     getCreatorDisplayName(body): string | undefined;
 
-    getProjectKey(body): string | undefined;
+    getProjectKey(body, type: 'issue'): string;
+    getProjectKey(body, type?: 'issue'): string | undefined;
 
     getLinks(body): IssueLink[];
 
@@ -614,7 +615,7 @@ export interface Selectors {
 
     getHeaderText(body): string | undefined;
 
-    getLinkKeys(body): string | undefined;
+    getLinkKeys(body): string[];
 
     getInwardLinkKey(body): string | undefined;
 
@@ -961,11 +962,17 @@ export interface RoomData {
 }
 
 export interface CreateRoomData {
-    issue: { key: string; id?: string } | { key?: string; id: string };
+    issue: {
+        key: string;
+        id?: string;
+        summary?: string;
+        projectKey?: string;
+        descriptionFields?: DescriptionFields;
+    };
     projectKey?: string;
 }
 
-export interface InviteMemberData {
+export interface InviteNewMembersData {
     issue: { key: string; typeName: string; projectKey: string };
     projectKey?: string;
 }
@@ -983,6 +990,17 @@ export interface PostIssueUpdatesData {
 export interface PostEpicUpdatesData {
     epicKey: string;
     data: { key: string; summary: string; id: string; name: string; status?: string };
+}
+
+export interface PostProjectUpdatesData {
+    typeEvent: 'issue_created' | 'issue_generic';
+    projectKey: string;
+    data: {
+        summary: string;
+        key: string;
+        status?: string;
+        name?: string;
+    };
 }
 
 export interface ArchiveProjectData {
@@ -1008,11 +1026,10 @@ export interface PostCommentData {
 export interface PostLinkedChangesData {
     linksKeys: string[];
     data: {
-        status: string;
+        status?: string;
         key: string;
         summary: string;
-        id: string;
-        changelog: object;
+        changelog: Changelog;
         name: string;
     };
 }

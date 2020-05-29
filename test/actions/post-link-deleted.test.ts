@@ -1,18 +1,14 @@
 import * as faker from 'faker';
 import nock from 'nock';
-import * as utils from '../../src/lib/utils';
 import linkDeletedHook from '../fixtures/webhooks/issuelink/deleted.json';
 import issueBody from '../fixtures/jira-api-requests/issue.json';
-import { getPostLinksDeletedData } from '../../src/hook-parser/parsers/jira/parse-body';
-import { postLinksDeleted } from '../../src/bot/actions/post-link-deleted';
-import { isDeleteLinks } from '../../src/hook-parser/parsers/jira';
-import { getPostLinkMessageBody } from '../../src/bot/actions/helper';
 import { translate } from '../../src/locales';
 import marked from 'marked';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { cleanRedis, getChatClass, taskTracker } from '../test-utils';
 import { config } from '../../src/config';
+import { PostLinkDeleted } from '../../src/bot/actions/post-link-deleted';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -20,6 +16,7 @@ chai.use(sinonChai);
 describe('Test postLinksDeleted', () => {
     let chatSingle;
     let options;
+    let postLinksDeleted: PostLinkDeleted;
 
     const { sourceIssueId } = linkDeletedHook.issueLink;
     const { destinationIssueId } = linkDeletedHook.issueLink;
@@ -33,17 +30,17 @@ describe('Test postLinksDeleted', () => {
         const chatApi = chatClass.chatApi;
 
         chatSingle.getRoomId
-            .withArgs(utils.getKey(issueBody))
+            .withArgs(issueBody.key)
             .onFirstCall()
             .resolves(roomIDIn);
-        chatSingle.getRoomId.onSecondCall(utils.getKey(issueBody)).resolves(roomIDOut);
-        nock(utils.getRestUrl())
+        chatSingle.getRoomId.onSecondCall(issueBody.key).resolves(roomIDOut);
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${sourceIssueId}`)
             .reply(200, issueBody)
             .get(`/issue/${destinationIssueId}`)
             .reply(200, issueBody);
 
-        options = { taskTracker, config, chatApi };
+        postLinksDeleted = new PostLinkDeleted(config, taskTracker, chatApi);
     });
 
     afterEach(async () => {
@@ -52,7 +49,7 @@ describe('Test postLinksDeleted', () => {
     });
 
     it('Expect return true after isDeleteLinks', () => {
-        const res = isDeleteLinks(linkDeletedHook);
+        const res = taskTracker.parser.isDeleteLinks(linkDeletedHook);
         expect(res).to.be.true;
     });
 
@@ -63,19 +60,19 @@ describe('Test postLinksDeleted', () => {
             sourceRelation: linkDeletedHook.issueLink.issueLinkType.outwardName,
             destinationRelation: linkDeletedHook.issueLink.issueLinkType.inwardName,
         };
-        const res = getPostLinksDeletedData(linkDeletedHook);
+        const res = taskTracker.parser.getPostLinksDeletedData(linkDeletedHook);
         expect(res).to.be.deep.eq(expected);
     });
 
     it('Expect data to be handled by postLinksDeleted', async () => {
-        const bodyIn = getPostLinkMessageBody(
+        const bodyIn = postLinksDeleted.getPostLinkMessageBody(
             {
                 relation: linkDeletedHook.issueLink.issueLinkType.outwardName,
                 related: issueBody,
             },
             'deleteLink',
         );
-        const bodyOut = getPostLinkMessageBody(
+        const bodyOut = postLinksDeleted.getPostLinkMessageBody(
             {
                 relation: linkDeletedHook.issueLink.issueLinkType.inwardName,
                 related: issueBody,
@@ -83,8 +80,8 @@ describe('Test postLinksDeleted', () => {
             'deleteLink',
         );
 
-        const data = getPostLinksDeletedData(linkDeletedHook);
-        const res = await postLinksDeleted({ ...data, ...options });
+        const data = taskTracker.parser.getPostLinksDeletedData(linkDeletedHook);
+        const res = await postLinksDeleted.run({ ...data, ...options });
 
         expect(res).to.be.true;
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, bodyIn.body, bodyIn.htmlBody);
@@ -94,13 +91,13 @@ describe('Test postLinksDeleted', () => {
     it('Expect postlink correct works if one of issue id in link is not available', async () => {
         nock.cleanAll();
         const issueId = faker.random.arrayElement([sourceIssueId, destinationIssueId]);
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${issueId}`)
             .reply(200, issueBody);
 
         const expectedPost = translate('deleteLink');
-        const data = getPostLinksDeletedData(linkDeletedHook);
-        const res = await postLinksDeleted({ ...data, ...options });
+        const data = taskTracker.parser.getPostLinksDeletedData(linkDeletedHook);
+        const res = await postLinksDeleted.run({ ...data, ...options });
 
         expect(res).to.be.true;
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomIDIn, expectedPost, marked(expectedPost));
@@ -108,10 +105,10 @@ describe('Test postLinksDeleted', () => {
 
     it('Expect send status not to be sent if at least one of room is not found', async () => {
         chatSingle.getRoomId.onSecondCall().rejects();
-        const data = getPostLinksDeletedData(linkDeletedHook);
+        const data = taskTracker.parser.getPostLinksDeletedData(linkDeletedHook);
         let res;
         try {
-            res = await postLinksDeleted({ ...data, ...options });
+            res = await postLinksDeleted.run({ ...data, ...options });
         } catch (err) {
             res = err;
         }

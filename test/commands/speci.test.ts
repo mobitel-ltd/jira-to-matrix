@@ -38,7 +38,7 @@ describe('spec test', () => {
     const roomId = getRoomId();
 
     before(() => {
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .post(`/issue/${roomName}/watchers`, schemas.watcher(userB.accountId))
             .times(2)
             .reply(204)
@@ -118,7 +118,7 @@ describe('spec test', () => {
 
     it('should be sent msg about adding admin status if 403 error got in request', async () => {
         const projectKey = utils.getProjectKeyFromIssueKey(roomName);
-        const viewUrl = utils.getViewUrl(projectKey);
+        const viewUrl = taskTracker.getViewUrl(projectKey);
         const post = translate('setBotToAdmin', { projectKey, viewUrl });
         const result = await commands.run(commandName, { bodyText: noPermissionUser.displayName, ...baseOptions });
 

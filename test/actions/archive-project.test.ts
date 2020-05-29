@@ -8,10 +8,9 @@ import { stub } from 'sinon';
 import { cleanRedis, getChatClass, startGitServer, setRepo, baseMedia } from '../test-utils';
 import { rawEvents } from '../fixtures/archiveRoom/raw-events';
 import { load } from 'proxyquire';
-import { getLastMessageTimestamp, StateEnum, ArchiveOptions } from '../../src/bot/actions/archive-project';
+import { StateEnum, ArchiveProject, ArchiveOptions } from '../../src/bot/actions/archive-project';
 import { info } from '../fixtures/archiveRoom/raw-events-data';
 import { exportEvents } from '../../src/lib/git-lib';
-import * as utils from '../../src/lib/utils';
 import issueJSON from '../fixtures/jira-api-requests/issue.json';
 import { config } from '../../src/config';
 import { getTaskTracker } from '../../src/task-trackers';
@@ -19,11 +18,12 @@ import { getTaskTracker } from '../../src/task-trackers';
 chai.use(sinonChai);
 
 const gitPullToRepoStub = stub();
-const { getRoomArchiveState } = load('../../src/bot/actions/archive-project', {
+const moduleData = load('../../src/bot/actions/archive-project', {
     '../../lib/git-lib': {
         exportEvents: gitPullToRepoStub,
     },
 });
+const ArchiveProject_ = moduleData.ArchiveProject as typeof ArchiveProject;
 const { expect } = chai;
 
 describe('Test handle archive project data', () => {
@@ -35,10 +35,11 @@ describe('Test handle archive project data', () => {
     const alias = `${projectKey}-${123}`;
     let configWithTmpPath;
     const taskTracker = getTaskTracker(config);
+    let options: ArchiveOptions;
+    let archiveProject: ArchiveProject;
 
     // const notFoundId = 'lalalal';
     const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
-    let options: ArchiveOptions;
 
     beforeEach(async () => {
         messengerApi = getChatClass({ alias }).chatApiSingle;
@@ -59,7 +60,8 @@ describe('Test handle archive project data', () => {
         const pathToExistFixtures = path.resolve(__dirname, '../fixtures/archiveRoom/already-exisits-git');
         await setRepo(tmpDir.path, expectedRemote, { pathToExistFixtures, roomName: alias });
         gitPullToRepoStub.callsFake(exportEvents);
-        options = { alias, keepTimestamp: Date.now(), config: configWithTmpPath, taskTracker };
+        options = { keepTimestamp: Date.now(), alias };
+        archiveProject = new ArchiveProject_(configWithTmpPath, taskTracker, chatApi);
     });
 
     afterEach(async () => {
@@ -70,7 +72,7 @@ describe('Test handle archive project data', () => {
     });
 
     it('Expect return ARCHIVED if all is ok', async () => {
-        const res = await getRoomArchiveState(chatApi, options);
+        const res = await archiveProject.getRoomArchiveState(options);
 
         expect(res).to.eq(StateEnum.ARCHIVED);
         expect(messengerApi.kickUserByRoom).to.be.called;
@@ -81,7 +83,7 @@ describe('Test handle archive project data', () => {
     it('Expect return ROOM_NOT_RETURN_ALIAS if alias in room data is NULL', async () => {
         messengerApi.getRoomDataById.reset();
         messengerApi.getRoomDataById.resolves({ alias: null });
-        const res = await getRoomArchiveState(chatApi, options);
+        const res = await archiveProject.getRoomArchiveState(options);
 
         expect(res).to.eq(StateEnum.ROOM_NOT_RETURN_ALIAS);
         expect(messengerApi.kickUserByRoom).not.to.be.called;
@@ -92,7 +94,7 @@ describe('Test handle archive project data', () => {
     it('Expect return MOVED if alias in room data not equals using alias', async () => {
         messengerApi.getRoomDataById.reset();
         messengerApi.getRoomDataById.resolves({ alias: 'some-other-name' });
-        const res = await getRoomArchiveState(chatApi, options);
+        const res = await archiveProject.getRoomArchiveState(options);
 
         expect(res).to.eq(StateEnum.MOVED);
         expect(messengerApi.kickUserByRoom).not.to.be.called;
@@ -102,7 +104,7 @@ describe('Test handle archive project data', () => {
 
     it('Expect FORBIDDEN_EVENTS if git request return false, kick and alias is not calls', async () => {
         messengerApi.getAllEventsFromRoom.resolves(false);
-        const res = await getRoomArchiveState(chatApi, options);
+        const res = await archiveProject.getRoomArchiveState(options);
 
         expect(res).to.eq(StateEnum.FORBIDDEN_EVENTS);
         expect(messengerApi.kickUserByRoom).not.to.called;
@@ -112,7 +114,7 @@ describe('Test handle archive project data', () => {
 
     it('Expect ERROR_ARCHIVING if git request return false, kick and alias is not calls', async () => {
         gitPullToRepoStub.resolves(false);
-        const res = await getRoomArchiveState(chatApi, options);
+        const res = await archiveProject.getRoomArchiveState(options);
 
         expect(res).to.eq(StateEnum.ERROR_ARCHIVING);
         expect(messengerApi.kickUserByRoom).not.to.called;
@@ -121,7 +123,7 @@ describe('Test handle archive project data', () => {
     });
 
     it('Expect STILL_ACTIVE return and no kick, delete alias and leave is called if timestamp is less than keep time', async () => {
-        const res = await getRoomArchiveState(chatApi, { ...options, keepTimestamp: info.maxTs - 10 });
+        const res = await archiveProject.getRoomArchiveState({ ...options, keepTimestamp: info.maxTs - 10 });
 
         expect(res).to.eq(StateEnum.STILL_ACTIVE);
         expect(messengerApi.kickUserByRoom).not.to.called;
@@ -136,7 +138,7 @@ describe('Test handle archive project data', () => {
 
         it('Expect return ALIAS_REMOVED if one of bot alias creator', async () => {
             messengerApi.deleteRoomAlias.withArgs(alias).resolves('ok');
-            const res = await getRoomArchiveState(chatApi, options);
+            const res = await archiveProject.getRoomArchiveState(options);
 
             expect(res).to.eq(StateEnum.ALIAS_REMOVED);
             expect(messengerApi.kickUserByRoom).not.to.called;
@@ -145,7 +147,7 @@ describe('Test handle archive project data', () => {
         });
 
         it('Expect return OTHER_ALIAS_CREATOR if not exist alias creator in bot list', async () => {
-            const res = await getRoomArchiveState(chatApi, options);
+            const res = await archiveProject.getRoomArchiveState(options);
 
             expect(res).to.eq(StateEnum.OTHER_ALIAS_CREATOR);
             expect(messengerApi.kickUserByRoom).not.to.called;
@@ -155,7 +157,7 @@ describe('Test handle archive project data', () => {
     });
 
     it('Expect issue is not found and archive wiil be running', async () => {
-        const state = await getRoomArchiveState(chatApi, {
+        const state = await archiveProject.getRoomArchiveState({
             ...options,
             status: 'some other status',
         });
@@ -168,13 +170,13 @@ describe('Test handle archive project data', () => {
 
     describe('Status exists', () => {
         beforeEach(() => {
-            nock(utils.getRestUrl())
+            nock(taskTracker.getRestUrl())
                 .get(`/issue/${alias}`)
                 .reply(200, issueJSON);
         });
 
-        it('Expect issue is in another status and archive not run', async () => {
-            const state = await getRoomArchiveState(chatApi, { ...options, status: 'some other status' });
+        it('Expect issue is in another status and archive not getRoomArchiveState', async () => {
+            const state = await archiveProject.getRoomArchiveState({ ...options, status: 'some other status' });
 
             expect(state).to.eq(StateEnum.ANOTHER_STATUS);
             expect(messengerApi.kickUserByRoom).not.to.be.called;
@@ -182,8 +184,11 @@ describe('Test handle archive project data', () => {
             expect(messengerApi.leaveRoom).not.to.be.called;
         });
 
-        it('Expect issue is in correct status and archiving run', async () => {
-            const state = await getRoomArchiveState(chatApi, { ...options, status: issueJSON.fields.status.name });
+        it('Expect issue is in correct status and archiving getRoomArchiveState', async () => {
+            const state = await archiveProject.getRoomArchiveState({
+                ...options,
+                status: issueJSON.fields.status.name,
+            });
 
             expect(state).to.eq(StateEnum.ARCHIVED);
             expect(messengerApi.kickUserByRoom).to.be.called;
@@ -195,7 +200,7 @@ describe('Test handle archive project data', () => {
 
 describe('Archive project', () => {
     it('Expect getLastMessageTimestamp return last message timestamp', () => {
-        const res = getLastMessageTimestamp(rawEvents);
+        const res = ArchiveProject_.getLastMessageTimestamp(rawEvents);
         expect(res).to.eq(info.maxTs);
     });
 });

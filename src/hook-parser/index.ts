@@ -22,32 +22,36 @@ export class HookParser {
     ignoredUsers: string[];
     selectors: Selectors;
     parser: Parser;
+    actionFuncs: Record<string, Function>;
 
     constructor(private taskTracker: TaskTracker, private config: Config, private queueHandler: QueueHandler) {
         this.testMode = this.config.testMode.on;
         this.ignoredUsers = [...this.config.usersToIgnore, ...this.config.testMode.users];
         this.selectors = taskTracker.selectors;
         this.parser = taskTracker.parser;
+        this.actionFuncs = {
+            postIssueUpdates: this.parser.isPostIssueUpdates,
+            inviteNewMembers: this.parser.isMemberInvite,
+            postComment: this.parser.isPostComment,
+            postEpicUpdates: this.parser.isPostEpicUpdates,
+            postProjectUpdates: this.parser.isPostProjectUpdates,
+            postNewLinks: this.parser.isPostNewLinks,
+            postLinkedChanges: this.parser.isPostLinkedChanges,
+            postLinksDeleted: this.parser.isDeleteLinks,
+        };
     }
 
-    actionFuncs = {
-        postIssueUpdates: this.parser.isPostIssueUpdates,
-        inviteNewMembers: this.parser.isMemberInvite,
-        postComment: this.parser.isPostComment,
-        postEpicUpdates: this.parser.isPostEpicUpdates,
-        postProjectUpdates: this.parser.isPostProjectUpdates,
-        postNewLinks: this.parser.isPostNewLinks,
-        postLinkedChanges: this.parser.isPostLinkedChanges,
-        postLinksDeleted: this.parser.isDeleteLinks,
-    };
+    getBotActions(body) {
+        return Object.keys(this.actionFuncs).filter(key => this.actionFuncs[key].bind(this.parser)(body));
+    }
 
-    getBotActions = body => Object.keys(this.actionFuncs).filter(key => this.actionFuncs[key](body));
+    getParserName(func) {
+        return `get${func[0].toUpperCase()}${func.slice(1)}Data`;
+    }
 
-    getParserName = func => `get${func[0].toUpperCase()}${func.slice(1)}Data`;
-
-    getFuncRedisData = body => funcName => {
+    getFuncRedisData = (funcName, body) => {
         const parserName = this.getParserName(funcName);
-        const data = this[parserName](body);
+        const data = this.parser[parserName](body);
         const redisKey = getRedisKey(funcName, body);
 
         return { redisKey, funcName, data };
@@ -57,7 +61,7 @@ export class HookParser {
         const botFunc = this.getBotActions(body);
         const createRoomData = this.parser.isCreateRoom(body) && this.parser.getCreateRoomData(body);
         const roomsData = { redisKey: REDIS_ROOM_KEY, createRoomData };
-        const funcsData = botFunc.map(this.getFuncRedisData(body));
+        const funcsData = botFunc.map(funcName => this.getFuncRedisData(funcName, body));
 
         return [roomsData, ...funcsData];
     };
@@ -111,7 +115,7 @@ export class HookParser {
                     this.selectors.getIssueLinkSourceId(body),
                     this.selectors.getIssueLinkDestinationId(body),
                 ];
-                const issues = await Promise.all(allId.map(this.taskTracker.getIssueSafety));
+                const issues = await Promise.all(allId.map(id => this.taskTracker.getIssueSafety(id as string)));
 
                 return !issues.some(Boolean);
             },

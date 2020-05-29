@@ -1,10 +1,10 @@
 import * as utils from '../../lib/utils';
 import { DeletedLinksData } from '../../types';
 import { getNoIssueLinkLog } from '../../lib/messages';
-import { Action } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 
-export class PostLinkDeleted extends Action<ChatFasade> {
+export class PostLinkDeleted extends BaseAction<ChatFasade> {
     async postLink(roomId, related, relation): Promise<void> {
         if (roomId) {
             const { body, htmlBody } = this.getPostLinkMessageBody({ relation, related }, 'deleteLink');

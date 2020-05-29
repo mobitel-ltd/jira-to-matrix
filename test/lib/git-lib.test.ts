@@ -20,12 +20,11 @@ import {
 import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
-import { getChatClass, getRoomId, baseMedia, cleanRedis, startGitServer, setRepo } from '../test-utils';
+import { getChatClass, getRoomId, baseMedia, cleanRedis, startGitServer, setRepo, taskTracker } from '../test-utils';
 import issueJSON from '../fixtures/jira-api-requests/issue.json';
 import projectJSON from '../fixtures/jira-api-requests/project.json';
 import { rawEvents } from '../fixtures/archiveRoom/raw-events';
 import { info } from '../fixtures/archiveRoom/raw-events-data';
-import * as utils from '../../src/lib/utils';
 import eventBefore from '../fixtures/archiveRoom/already-exisits-git/res/$yQ0EVRodM3N5B2Id1M-XOvBlxAhFLy_Ex8fYqmrx5iA.json';
 
 const { expect } = chai;
@@ -96,7 +95,7 @@ describe('Archive command', () => {
             .get(`/${info.avatarId}`)
             .replyWithFile(200, path.resolve(__dirname, '../fixtures/archiveRoom/media.jpg'));
 
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${issueJSON.key}`)
             .reply(200, issueJSON)
             .get(`/issue/${issueKey}`)

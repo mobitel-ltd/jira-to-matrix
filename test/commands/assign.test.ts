@@ -55,7 +55,7 @@ describe('assign test', () => {
         const roomData = chatClass.getRoomData({ alias: roomName, roomId });
 
         baseOptions = { sender: existingSenderId, chatApi, roomData, roomId, roomName };
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .put(`/issue/${roomName}/assignee`, schemas.assignee(userSender.accountId))
             .reply(204)
             .put(`/issue/${roomName}/assignee`, schemas.assignee(userB.accountId))

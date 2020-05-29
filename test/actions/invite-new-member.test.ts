@@ -4,8 +4,7 @@ import * as utils from '../../src/lib/utils';
 import JSONbody from '../fixtures/webhooks/issue/updated/generic.json';
 import watchersBody from '../fixtures/jira-api-requests/watchers.json';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
-import { getInviteNewMembersData } from '../../src/hook-parser/parsers/jira/parse-body';
-import { inviteNewMembers } from '../../src/bot/actions/invite-new-members';
+import { InviteNewMembers } from '../../src/bot/actions/invite-new-members';
 import { getChatClass, taskTracker, getUserIdByDisplayName } from '../test-utils';
 import { config } from '../../src/config';
 
@@ -16,7 +15,7 @@ chai.use(sinonChai);
 
 describe('inviteNewMembers test', () => {
     let chatSingle;
-    let options;
+    let inviteNewMembers: InviteNewMembers;
 
     const members = [
         getUserIdByDisplayName(issueBodyJSON.fields.reporter.displayName),
@@ -48,7 +47,7 @@ describe('inviteNewMembers test', () => {
     //         ({ ...item, name: item.name.toUpperCase() })),
     // };
 
-    const inviteNewMembersData = getInviteNewMembersData(JSONbody);
+    const inviteNewMembersData = taskTracker.parser.getInviteNewMembersData(JSONbody);
     const inviteUpperCase = {
         issue: {
             key: 'someKey',
@@ -57,7 +56,7 @@ describe('inviteNewMembers test', () => {
     };
 
     beforeEach(() => {
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}`)
             .times(2)
             .reply(200, issueBodyJSON)
@@ -75,7 +74,7 @@ describe('inviteNewMembers test', () => {
         chatSingle.getRoomMembers.resolves([chatSingle.getChatUserId('jira_test')]);
 
         const chatApi = chatClass.chatApi;
-        options = { taskTracker, config, chatApi };
+        inviteNewMembers = new InviteNewMembers(config, taskTracker, chatApi);
     });
 
     afterEach(() => {
@@ -87,7 +86,7 @@ describe('inviteNewMembers test', () => {
 
         let result;
         try {
-            result = await inviteNewMembers({ ...options, ...inviteNewMembersData });
+            result = await inviteNewMembers.run(inviteNewMembersData);
         } catch (error) {
             result = error;
         }
@@ -95,7 +94,7 @@ describe('inviteNewMembers test', () => {
     });
 
     it('Expect inviteNewMembers work correct', async () => {
-        const result = await inviteNewMembers({ ...options, ...inviteNewMembersData });
+        const result = await inviteNewMembers.run(inviteNewMembersData);
 
         expect(result).to.deep.equal(expectedWatchers);
     });
@@ -106,7 +105,7 @@ describe('inviteNewMembers test', () => {
         const expected = ['Error in inviteNewMembers', 'Error in inviteStub!!!'].join('\n');
 
         try {
-            await inviteNewMembers({ ...options, ...inviteNewMembersData });
+            await inviteNewMembers.run(inviteNewMembersData);
         } catch (err) {
             result = err;
         }
@@ -118,12 +117,12 @@ describe('inviteNewMembers test', () => {
 
         chatSingle.getRoomMembers.resolves([chatSingle.getChatUserId('jira_test'), userToadd]);
 
-        const result = await inviteNewMembers({ ...options, ...inviteNewMembersData });
+        const result = await inviteNewMembers.run(inviteNewMembersData);
         expect(result).to.deep.equal(otherUsers);
     });
 
     it.skip('Expect inviteNewMembers works correct if some Jira users in upperCase', async () => {
-        const result = await inviteNewMembers({ ...options, ...inviteUpperCase });
+        const result = await inviteNewMembers.run(inviteUpperCase as any);
         expect(result).to.deep.equal(expectedWatchers);
     });
 
@@ -135,21 +134,21 @@ describe('inviteNewMembers test', () => {
         );
 
         nock.cleanAll();
-        nock(utils.getRestUrl())
+        nock(taskTracker.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}`)
             .times(2)
             .reply(200, issueBodyJSONbot as any)
             .get(`/issue/${JSONbody.issue.key}/watchers`)
             .reply(200, watchersBody);
 
-        const result = await inviteNewMembers({ ...options, ...inviteNewMembersData });
+        const result = await inviteNewMembers.run(inviteNewMembersData);
 
         expect(result && result.sort()).to.deep.equal(expectedWatcherWithoutCreator.sort());
     });
 
     it('Should return false if issue is not exists', async () => {
         nock.cleanAll();
-        const result = await inviteNewMembers({ ...options, ...inviteNewMembersData });
+        const result = await inviteNewMembers.run(inviteNewMembersData);
 
         expect(result).to.be.false;
     });
