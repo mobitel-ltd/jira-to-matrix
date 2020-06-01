@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { config } from '../../config';
 import { Issue, ChangelogItem, Selectors, Relation, DescriptionFields, IssueLink } from '../../types';
 import { translate } from '../../locales';
-import { Comment, Changelog } from './types';
+import { Comment, Changelog, JiraSelectors } from './types';
 
 const { features } = config;
 
@@ -276,7 +276,7 @@ export interface GetFieldOptions {
     name: 'key';
 }
 
-export const selectors: Selectors = {
+export const selectors: JiraSelectors = {
     extractName,
     getBodyWebhookEvent,
     getResponcedSummary,

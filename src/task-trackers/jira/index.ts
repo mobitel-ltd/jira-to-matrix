@@ -5,12 +5,13 @@ import { getLogger } from '../../modules/log';
 import * as messages from '../../lib/messages';
 import { schemas } from './schemas';
 import delay from 'delay';
-import { Issue, RenderedIssue, Transition, Project, Selectors, Config } from '../../types/index';
+import { Issue, RenderedIssue, Transition, Project, Config, Parser } from '../../types/index';
 import { TIMEOUT } from '../../lib/consts';
 import * as selectors from './selector.jira';
 import { TaskTracker } from '../../types';
 import { getProjectKeyFromIssueKey, errorTracing } from '../../lib/utils';
-import { Parser } from './hook-parser';
+import { JiraSelectors } from './types';
+import { JiraParser } from './parser.jira';
 
 const logger = getLogger(module);
 
@@ -29,7 +30,7 @@ export class Jira implements TaskTracker {
     pingInterval: number;
     pingCount: number;
     expandParams: { expand: string };
-    public selectors: Selectors;
+    public selectors: JiraSelectors;
     public parser: Parser;
 
     constructor(options: {
@@ -49,7 +50,7 @@ export class Jira implements TaskTracker {
         this.pingCount = options.count || 10;
         this.expandParams = { expand: 'renderedFields' };
         this.selectors = selectors;
-        this.parser = new Parser(options.features, selectors);
+        this.parser = new JiraParser(options.features, selectors);
     }
 
     static expandParams = { expand: 'renderedFields' };

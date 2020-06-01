@@ -1,6 +1,5 @@
 import { BaseChatApi } from '../messengers/base-api';
 import { Changelog } from '../task-trackers/jira/types';
-import { Parser } from '../task-trackers/jira/hook-parser';
 
 export interface ChangelogItem {
     field: string;
@@ -517,8 +516,6 @@ export interface DescriptionFields {
 }
 
 export interface Selectors {
-    extractName(body, path?: string[]): string | undefined;
-
     getBodyWebhookEvent(body): string | undefined;
 
     getResponcedSummary(body): string | undefined;
@@ -1083,4 +1080,41 @@ export enum ActionNames {
     PostLinkedChanges = 'postLinkedChanges',
     PostLinksDeleted = 'postLinksDeleted',
     ArchiveProject = 'archiveProject',
+}
+
+export interface Parser {
+    getPostCommentData(body): PostCommentData;
+
+    getCreateRoomData(body): CreateRoomData;
+
+    getInviteNewMembersData(body): InviteNewMembersData;
+    getPostNewLinksData(body): PostNewLinksData;
+
+    getPostEpicUpdatesData(body): PostEpicUpdatesData;
+
+    getPostLinkedChangesData(body): PostLinkedChangesData;
+
+    getPostProjectUpdatesData(body): PostProjectUpdatesData;
+
+    getPostIssueUpdatesData(body): PostIssueUpdatesData;
+
+    getPostLinksDeletedData(body);
+
+    isPostComment(body): boolean;
+
+    isPostIssueUpdates(body): boolean;
+
+    isCreateRoom(body): boolean;
+
+    isMemberInvite(body): boolean;
+
+    isPostEpicUpdates(body): boolean;
+
+    isPostProjectUpdates(body): boolean;
+
+    isPostNewLinks(body): boolean;
+
+    isPostLinkedChanges(body): boolean;
+
+    isDeleteLinks(body): boolean;
 }

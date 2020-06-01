@@ -10,9 +10,10 @@ import {
     PostLinkedChangesData,
     PostNewLinksData,
     PostProjectUpdatesData,
+    Parser,
 } from '../../types';
 
-export class Parser {
+export class JiraParser implements Parser {
     constructor(private features: Config['features'], private selectors: Selectors) {}
 
     getPostCommentData(body): PostCommentData {
@@ -116,22 +117,24 @@ export class Parser {
     }
 
     isPostComment(body) {
-        return this.features.postComments && this.selectors.isCommentEvent(body) && this.selectors.getComment(body);
+        return Boolean(
+            this.features.postComments && this.selectors.isCommentEvent(body) && this.selectors.getComment(body),
+        );
     }
 
     isPostIssueUpdates(body) {
-        return (
+        return Boolean(
             this.features.postIssueUpdates &&
-            this.selectors.isCorrectWebhook(body, 'jira:issue_updated') &&
-            this.selectors.getChangelog(body)
+                this.selectors.isCorrectWebhook(body, 'jira:issue_updated') &&
+                this.selectors.getChangelog(body),
         );
     }
 
     isCreateRoom(body) {
-        return (
+        return Boolean(
             this.features.createRoom &&
-            this.selectors.getKey(body) &&
-            this.selectors.getTypeEvent(body) !== 'issue_moved'
+                this.selectors.getKey(body) &&
+                this.selectors.getTypeEvent(body) !== 'issue_moved',
         );
     }
 
@@ -144,11 +147,12 @@ export class Parser {
     }
 
     isPostEpicUpdates(body) {
-        return (
+        return Boolean(
             this.features.epicUpdates.on() &&
-            (this.selectors.isCorrectWebhook(body, 'jira:issue_updated') ||
-                (this.selectors.isCorrectWebhook(body, 'jira:issue_created') && this.selectors.getChangelog(body))) &&
-            this.selectors.getEpicKey(body)
+                (this.selectors.isCorrectWebhook(body, 'jira:issue_updated') ||
+                    (this.selectors.isCorrectWebhook(body, 'jira:issue_created') &&
+                        this.selectors.getChangelog(body))) &&
+                this.selectors.getEpicKey(body),
         );
     }
 
@@ -174,12 +178,12 @@ export class Parser {
     }
 
     isPostLinkedChanges(body) {
-        return (
+        return Boolean(
             this.features.postChangesToLinks.on &&
-            this.selectors.isCorrectWebhook(body, 'jira:issue_updated') &&
-            this.selectors.getChangelog(body) &&
-            this.selectors.getLinks(body).length > 0 &&
-            typeof this.selectors.getNewStatus(body) === 'string'
+                this.selectors.isCorrectWebhook(body, 'jira:issue_updated') &&
+                this.selectors.getChangelog(body) &&
+                this.selectors.getLinks(body).length > 0 &&
+                typeof this.selectors.getNewStatus(body) === 'string',
         );
     }
 

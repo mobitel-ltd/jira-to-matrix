@@ -1,4 +1,4 @@
-import { Selectors } from '../types';
+import { Selectors, Parser } from '../types';
 import { getLogger } from '../modules/log';
 import * as messages from '../lib/messages';
 import { redis, REDIS_IGNORE_PREFIX, REDIS_ROOM_KEY } from '../redis-client';
@@ -6,7 +6,6 @@ import { redis, REDIS_IGNORE_PREFIX, REDIS_ROOM_KEY } from '../redis-client';
 import { QueueHandler } from '../queue';
 import { TaskTracker, Config } from '../types';
 import { getRedisKey } from '../task-trackers/jira/selector.jira';
-import { Parser } from '../task-trackers/jira/hook-parser';
 
 const logger = getLogger(module);
 

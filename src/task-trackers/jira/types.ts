@@ -1,3 +1,5 @@
+import { Selectors } from '../../types';
+
 interface UserData {
     self: string;
     avatarUrls: {
@@ -37,4 +39,8 @@ export interface ChangelogItems {
 export interface Changelog {
     id: string;
     items: ChangelogItems[];
+}
+
+export interface JiraSelectors extends Selectors {
+    extractName(body, path?: string[]): string | undefined;
 }
