@@ -236,12 +236,10 @@ export class Jira implements TaskTracker {
     /**
      * Make GET request to jira by issueID and params
      */
-    async getIssue(keyOrId: string): Promise<Issue>;
-    async getIssue(keyOrId: string, params: object): Promise<RenderedIssue>;
-    async getIssue(keyOrId: string, params?: any): Promise<Issue | RenderedIssue> {
+    async getIssue(keyOrId: string): Promise<Issue> {
         try {
             const url = this.getUrl('issue', keyOrId);
-            const issue = await this.request(url, { qs: params });
+            const issue = await this.request(url);
 
             return issue;
         } catch (err) {
@@ -378,11 +376,12 @@ export class Jira implements TaskTracker {
     /**
      * Make request to jira by issueID adding renderedFields
      */
-    async getIssueFormatted(issueID: string): Promise<RenderedIssue> {
+    async getIssueFormatted(keyOrId: string): Promise<RenderedIssue> {
         try {
-            const result = await this.getIssue(issueID, this.expandParams);
+            const url = this.getUrl('issue', keyOrId);
+            const issue = await this.request(url, { qs: this.expandParams });
 
-            return result;
+            return issue;
         } catch (err) {
             throw ['getIssueFormatted Error', err].join('\n');
         }

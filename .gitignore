@@ -95,3 +95,5 @@ ignore-list*
 autoinvite-list*
 
 dist
+
+tmp

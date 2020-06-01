@@ -1,5 +1,3 @@
-import requestPromise from 'request-promise-native';
-
 const getMessage = obj =>
     Object.entries(obj)
         .map(([key, val]) => `${key}: ${val}`)
@@ -12,11 +10,8 @@ export const infoBody = `
 
 export const noJiraConnection = 'No connection with Jira!!!';
 
-export const getRequestErrorLog = (
-    url: string,
-    status: number,
-    { method, body }: requestPromise.RequestPromiseOptions = { method: 'GET' },
-) => `Error in ${method} request ${url}, status is ${status}, body is ${body}`;
+export const getRequestErrorLog = (url: string, status: number, options) =>
+    `Error in ${options.method} request ${url}, status is ${status}, body is ${JSON.stringify(options)}`;
 
 export const getNoIssueLinkLog = (id1, id2) =>
     `Cannot get no one issue to info about deleting link with issues: ${id1} ${id2}`;
