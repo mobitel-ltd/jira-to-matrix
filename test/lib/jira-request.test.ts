@@ -34,9 +34,9 @@ const members = [
 const expectedWatchersUsers = [...new Set([...watchers, ...members])].sort();
 describe('Jira request test', () => {
     const jiraApi = new Jira({
-        url: config.jira.url,
-        password: config.jira.password,
-        user: config.jira.user,
+        url: config.taskTracker.url,
+        password: config.taskTracker.password,
+        user: config.taskTracker.user,
         count: config.ping && config.ping.count,
         interval: config.ping && config.ping.interval,
         inviteIgnoreUsers: config.usersToIgnore,
@@ -118,10 +118,10 @@ describe('Jira request test', () => {
 
     it('getViewUrl test', () => {
         const projectResult = taskTracker.getViewUrl(issue.id, 'projects');
-        expect(projectResult).to.be.deep.equal(`${config.jira.url}/projects/${issue.id}`);
+        expect(projectResult).to.be.deep.equal(`${config.taskTracker.url}/projects/${issue.id}`);
 
         const issueResult = taskTracker.getViewUrl(issue.id);
-        expect(issueResult).to.be.deep.equal(`${config.jira.url}/browse/${issue.id}`);
+        expect(issueResult).to.be.deep.equal(`${config.taskTracker.url}/browse/${issue.id}`);
     });
 
     it('expect getIssueWatchers works correct', async () => {
@@ -136,9 +136,9 @@ describe('Jira request test', () => {
 
     it('expect getIssueWatchers avoid users from ignore invite list', async () => {
         const jiraApi_ = new Jira({
-            url: config.jira.url,
-            password: config.jira.password,
-            user: config.jira.user,
+            url: config.taskTracker.url,
+            password: config.taskTracker.password,
+            user: config.taskTracker.user,
             count: config.ping && config.ping.count,
             interval: config.ping && config.ping.interval,
             inviteIgnoreUsers: watchers,
@@ -155,9 +155,9 @@ describe('Jira request test', () => {
         const [addUser, ...usersToIgnore] = members;
         const expected = Ramda.difference([...watchers, addUser], usersToIgnore);
         const jiraApi_ = new Jira({
-            url: config.jira.url,
-            password: config.jira.password,
-            user: config.jira.user,
+            url: config.taskTracker.url,
+            password: config.taskTracker.password,
+            user: config.taskTracker.user,
             count: config.ping && config.ping.count,
             interval: config.ping && config.ping.interval,
             inviteIgnoreUsers: usersToIgnore,
@@ -292,9 +292,9 @@ describe('Jira request test', () => {
 
 describe('request testing', () => {
     const jiraApi = new Jira({
-        url: config.jira.url,
-        password: config.jira.password,
-        user: config.jira.user,
+        url: config.taskTracker.url,
+        password: config.taskTracker.password,
+        user: config.taskTracker.user,
         count: config.ping && config.ping.count,
         interval: config.ping && config.ping.interval,
         inviteIgnoreUsers: config.usersToIgnore,

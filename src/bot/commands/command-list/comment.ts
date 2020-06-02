@@ -1,8 +1,8 @@
 import { translate } from '../../../locales';
 import { Command, RunCommand } from './command-base';
-import { CommandOptions } from '../../../types';
+import { CommandOptions, TaskTracker } from '../../../types';
 
-export class CommentCommand extends Command implements RunCommand {
+export class CommentCommand extends Command<TaskTracker> implements RunCommand {
     async run({ bodyText, sender, roomName }: CommandOptions) {
         if (bodyText && roomName) {
             await this.taskTracker.postComment(roomName, sender, bodyText);
@@ -10,6 +10,6 @@ export class CommentCommand extends Command implements RunCommand {
             return;
         }
 
-        return translate('emptyMatrixComment');
+        return translate('emptyBodyText');
     }
 }

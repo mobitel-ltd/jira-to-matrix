@@ -8,12 +8,13 @@ import { kick } from '../commands/command-list/common-actions';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { BaseAction } from './base-action';
 import { LAST_STATUS_COLOR } from '../../redis-client';
+import { Jira } from '../../task-trackers/jira';
 
 const logger = getLogger(module);
 
 // usingPojects: 'all' | [string] | undefined
 
-export class PostIssueUpdates extends BaseAction<ChatFasade> {
+export class PostIssueUpdates extends BaseAction<ChatFasade, Jira> {
     async getNewAvatarUrl(issueKey, { statusId, colors, usingPojects }) {
         if (!colors) {
             logger.warn(`No color links is passed to update avatar for room ${issueKey}`);

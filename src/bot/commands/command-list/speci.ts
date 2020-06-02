@@ -2,11 +2,15 @@ import { translate } from '../../../locales';
 import * as utils from '../../../lib/utils';
 import { Command, RunCommand } from './command-base';
 import { CommandOptions } from '../../../types';
+import { Jira } from '../../../task-trackers/jira';
 
-export class SpecCommand extends Command implements RunCommand {
+export class SpecCommand extends Command<Jira> implements RunCommand {
     async run({ bodyText, roomId, roomName }: CommandOptions) {
         if (!roomName) {
             throw new Error('Not issue room');
+        }
+        if (!bodyText) {
+            return translate('emptyBodyText');
         }
 
         try {

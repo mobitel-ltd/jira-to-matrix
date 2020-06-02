@@ -5,7 +5,8 @@ import { settings } from './settings';
 export const config = {
     port: 4300,
     lang: faker.random.arrayElement(['ru', 'en']),
-    jira: {
+    taskTracker: {
+        type: 'jira',
         url: 'https://jira.test-example.ru/jira',
         user: 'jira_bot',
         password: 'fakepasswprd',

@@ -3,8 +3,9 @@ import { DeletedLinksData } from '../../types';
 import { getNoIssueLinkLog } from '../../lib/messages';
 import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
+import { Jira } from '../../task-trackers/jira';
 
-export class PostLinkDeleted extends BaseAction<ChatFasade> {
+export class PostLinkDeleted extends BaseAction<ChatFasade, Jira> {
     async postLink(roomId, related, relation): Promise<void> {
         if (roomId) {
             const { body, htmlBody } = this.getPostLinkMessageBody({ relation, related }, 'deleteLink');

@@ -3,10 +3,11 @@ import * as utils from '../../../lib/utils';
 import { getAllSettingData, setSettingsData } from '../../settings';
 import { Command, RunCommand } from './command-base';
 import { CommandOptions } from '../../../types';
+import { Jira } from '../../../task-trackers/jira';
 
-export class AutoInviteCommand extends Command implements RunCommand {
+export class AutoInviteCommand extends Command<Jira> implements RunCommand {
     async run({ bodyText, roomName, sender }: CommandOptions) {
-        const jiraBotUser = this.config.jira.user;
+        const jiraBotUser = this.config.taskTracker.user;
         const projectKey = utils.getProjectKeyFromIssueKey(roomName);
         const { lead, issueTypes, admins } = await this.taskTracker.getProjectWithAdmins(projectKey);
 

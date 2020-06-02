@@ -31,7 +31,7 @@ export const dict = Object.freeze({
     errorMatrixAssign: 'The observer %{userToFind} not added! Check your username and try again',
     successMatrixInvite: 'User %{sender} invited in room %{roomName}',
     successMatrixAssign: 'User "%{displayName}" assigned as issue performer',
-    emptyMatrixComment: 'Add comment body',
+    emptyBodyText: 'Add comment body',
     listUsers: 'List users',
     successMatrixComment: 'Comment published',
     listJiraCommand: 'List of available commands',

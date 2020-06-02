@@ -4,11 +4,11 @@ import { errorTracing } from '../../lib/utils';
 import { getAutoinviteUsers } from '../settings';
 import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { InviteNewMembersData } from '../../types';
+import { InviteNewMembersData, TaskTracker } from '../../types';
 
 const logger = getLogger(module);
 
-export class InviteNewMembers extends BaseAction<ChatFasade> implements RunAction {
+export class InviteNewMembers extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
     async run({ issue }: InviteNewMembersData): Promise<string[] | false> {
         const {
             messenger: { bots },

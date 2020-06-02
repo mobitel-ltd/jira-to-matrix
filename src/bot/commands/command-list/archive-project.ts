@@ -6,6 +6,7 @@ import { getLogger } from '../../../modules/log';
 import { parseBodyText } from './common-actions';
 import { Command, RunCommand } from './command-base';
 import { CommandOptions } from '../../../types';
+import { Jira } from '../../../task-trackers/jira';
 
 const logger = getLogger(module);
 
@@ -23,7 +24,7 @@ const getValidateMonth = data => {
     return Number.isInteger(numeric) && numeric;
 };
 
-export class ProjectArchiveCommand extends Command implements RunCommand {
+export class ProjectArchiveCommand extends Command<Jira> implements RunCommand {
     async run({ bodyText, roomData }: CommandOptions) {
         if (!this.chatApi.isMaster()) {
             logger.warn('Skip operation for not master bot');

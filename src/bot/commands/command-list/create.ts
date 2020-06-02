@@ -4,10 +4,11 @@ import * as utils from '../../../lib/utils';
 import { getLogger } from '../../../modules/log';
 import { CommandOptions } from '../../../types';
 import { Command, RunCommand } from './command-base';
+import { Jira } from '../../../task-trackers/jira';
 
 const logger = getLogger(module);
 
-export class CreateCommand extends Command implements RunCommand {
+export class CreateCommand extends Command<Jira> implements RunCommand {
     async run({ bodyText = '', roomName }: CommandOptions) {
         if (!roomName) {
             throw new Error('Not issue room');

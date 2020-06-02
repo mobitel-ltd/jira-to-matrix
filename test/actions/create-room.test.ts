@@ -10,7 +10,7 @@ import commentCreatedJSON from '../fixtures/webhooks/comment/created.json';
 import renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json';
 import epicJSON from '../fixtures/webhooks/epic/created.json';
 import projectJSON from '../fixtures/webhooks/project/created.json';
-import JSONbody from '../fixtures/webhooks/issue/created.json';
+import issueCreatedHook from '../fixtures/webhooks/issue/created.json';
 import watchersBody from '../fixtures/jira-api-requests/watchers.json';
 import projectData from '../fixtures/jira-api-requests/project.json';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
@@ -51,7 +51,7 @@ describe('Create room test', () => {
         .map(getChatClass().chatApiSingle.getChatUserId);
     const errorMsg = 'some error';
 
-    const createRoomData = taskTracker.parser.getCreateRoomData(JSONbody);
+    const createRoomData = taskTracker.parser.getCreateRoomData(issueCreatedHook);
 
     const projectKey = epicJSON.issue.fields.project.key;
 
@@ -152,7 +152,7 @@ describe('Create room test', () => {
             .reply(200, watchersBody)
             .get(`/project/${projectKey}`)
             .reply(200, projectData)
-            .get(`/project/${JSONbody.issue.fields.project.key}`)
+            .get(`/project/${issueCreatedHook.issue.fields.project.key}`)
             .reply(200, projectData)
             .get(`/project/${projectJSON.project.key}`)
             .reply(200, projectData)
@@ -310,3 +310,26 @@ describe('Create room test', () => {
         expect(chatApi.createRoom).to.be.called;
     });
 });
+
+// describe('Create room test with gitlab as task tracker', () => {
+//     let gitlabTracker: Gitlab;
+//     const gitlabConfig: Config = {
+//         ...config,
+//         taskTracker: {
+//             type: 'gitlab',
+//             url: 'https://gitlab.test-example.ru',
+//             user: 'gitlab_bot',
+//             password: 'fakepasswprd',
+//         },
+//     };
+
+//     beforeEach(() => {
+//         gitlabTracker = new Gitlab(gitlabConfig);
+//     });
+
+//     describe('Issue room is already exists', () => {});
+
+//     describe('Issue room is NOT exists', () => {});
+
+//     it("should create room if it's not exists", async () => {});
+// });

@@ -1,8 +1,8 @@
 import { translate } from '../../../locales';
 import { Command, RunCommand } from './command-base';
-import { CommandOptions } from '../../../types';
+import { CommandOptions, TaskTracker } from '../../../types';
 
-export class OpCommand extends Command implements RunCommand {
+export class OpCommand extends Command<TaskTracker> implements RunCommand {
     async run({ bodyText, sender, roomId, roomName }: CommandOptions) {
         const targetUser = bodyText || sender;
         // TODO add decorator

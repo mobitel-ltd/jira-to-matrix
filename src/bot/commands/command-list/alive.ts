@@ -1,8 +1,8 @@
 import { translate } from '../../../locales';
 import { Command, RunCommand } from './command-base';
-import { CommandOptions } from '../../../types';
+import { CommandOptions, TaskTracker } from '../../../types';
 
-export class AliveCommand extends Command implements RunCommand {
+export class AliveCommand extends Command<TaskTracker> implements RunCommand {
     run(data: CommandOptions) {
         if (this.chatApi.getCommandRoomName() !== data.roomData.alias) {
             return translate('notCommandRoom');

@@ -2,13 +2,14 @@ import * as utils from '../../../lib/utils';
 import { translate } from '../../../locales';
 import { Command, RunCommand } from './command-base';
 import { CommandOptions } from '../../../types';
+import { Jira } from '../../../task-trackers/jira';
 
-export class AssignCommand extends Command implements RunCommand {
-    async getSenderDisplayName(senderId: string): Promise<string | undefined> {
+export class AssignCommand extends Command<Jira> implements RunCommand {
+    async getSenderDisplayName(senderId: string): Promise<string> {
         const chatId = this.chatApi.getChatUserId(senderId);
         const userData = await this.chatApi.getUser(chatId);
 
-        return userData && userData.displayName;
+        return userData!.displayName;
     }
 
     async run({ bodyText, sender, roomData }: CommandOptions) {

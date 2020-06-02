@@ -20,8 +20,9 @@ import gitP, { SimpleGit } from 'simple-git/promise';
 import { getTaskTracker } from '../../src/task-trackers';
 import { Commands } from '../../src/bot/commands';
 import { Actions } from '../../src/bot/actions';
+import { Jira } from '../../src/task-trackers/jira';
 
-export const taskTracker = getTaskTracker(baseConfig.config);
+export const taskTracker = getTaskTracker(baseConfig.config) as Jira;
 
 export type StubbedClass<T> = SinonStubbedInstance<T> & T;
 

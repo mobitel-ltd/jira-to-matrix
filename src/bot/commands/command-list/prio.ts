@@ -2,6 +2,7 @@ import { translate } from '../../../locales';
 import * as utils from '../../../lib/utils';
 import { Command, RunCommand } from './command-base';
 import { CommandOptions } from '../../../types';
+import { Jira } from '../../../task-trackers/jira';
 
 const getCommandAction = (val, collection) => {
     const numberVal = Number(val);
@@ -12,7 +13,7 @@ const getCommandAction = (val, collection) => {
     return collection.find(el => el.name.toLowerCase() === val.toLowerCase());
 };
 
-export class PrioCommand extends Command implements RunCommand {
+export class PrioCommand extends Command<Jira> implements RunCommand {
     async run({ bodyText, roomName }: CommandOptions) {
         if (!roomName) {
             throw new Error('Not issue room');

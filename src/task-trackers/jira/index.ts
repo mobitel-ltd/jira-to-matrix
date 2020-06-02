@@ -5,12 +5,12 @@ import { getLogger } from '../../modules/log';
 import * as messages from '../../lib/messages';
 import { schemas } from './schemas';
 import delay from 'delay';
-import { Issue, RenderedIssue, Transition, Project, Config, Parser } from '../../types/index';
+import { Issue, Transition, Config, IssueWithComments } from '../../types/index';
 import { TIMEOUT } from '../../lib/consts';
 import * as selectors from './selector.jira';
 import { TaskTracker } from '../../types';
 import { getProjectKeyFromIssueKey, errorTracing } from '../../lib/utils';
-import { JiraSelectors } from './types';
+import { JiraSelectors, JiraProject, RenderedIssue } from './types';
 import { JiraParser } from './parser.jira';
 
 const logger = getLogger(module);
@@ -31,7 +31,7 @@ export class Jira implements TaskTracker {
     pingCount: number;
     expandParams: { expand: string };
     public selectors: JiraSelectors;
-    public parser: Parser;
+    public parser: JiraParser;
 
     constructor(options: {
         url: string;
@@ -357,7 +357,7 @@ export class Jira implements TaskTracker {
     /**
      * Make GET request to jira by projectID
      */
-    async getProjectWithAdmins(projectKey: string): Promise<Project> {
+    async getProjectWithAdmins(projectKey: string): Promise<JiraProject> {
         const projectBody = await this.getProject(projectKey);
         const { adminsURL } = projectBody;
 
@@ -371,6 +371,14 @@ export class Jira implements TaskTracker {
 
             return projectBody;
         }
+    }
+
+    async getIssueComments(issueKeyOrId): Promise<IssueWithComments> {
+        const issue = await this.getIssueFormatted(issueKeyOrId);
+
+        const comments = issue.renderedFields.comment.comments.map(el => ({ id: el.id, body: el.body }));
+
+        return { comments, key: issue.key };
     }
 
     /**

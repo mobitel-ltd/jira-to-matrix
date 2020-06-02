@@ -1,6 +1,5 @@
 import {
     Config,
-    Selectors,
     PostCommentData,
     CreateRoomData,
     PostEpicUpdatesData,
@@ -12,9 +11,27 @@ import {
     PostProjectUpdatesData,
     Parser,
 } from '../../types';
+import { JiraSelectors } from './types';
 
 export class JiraParser implements Parser {
-    constructor(private features: Config['features'], private selectors: Selectors) {}
+    issueMovedType = 'issue_moved';
+
+    constructor(private features: Config['features'], private selectors: JiraSelectors) {}
+
+    getBotActions(body) {
+        return Object.keys(this.actionFuncs).filter(key => this.actionFuncs[key].bind(this)(body));
+    }
+
+    actionFuncs = {
+        postIssueUpdates: this.isPostIssueUpdates,
+        inviteNewMembers: this.isMemberInvite,
+        postComment: this.isPostComment,
+        postEpicUpdates: this.isPostEpicUpdates,
+        postProjectUpdates: this.isPostProjectUpdates,
+        postNewLinks: this.isPostNewLinks,
+        postLinkedChanges: this.isPostLinkedChanges,
+        postLinksDeleted: this.isDeleteLinks,
+    };
 
     getPostCommentData(body): PostCommentData {
         const headerText = this.selectors.getHeaderText(body)!;
@@ -134,7 +151,7 @@ export class JiraParser implements Parser {
         return Boolean(
             this.features.createRoom &&
                 this.selectors.getKey(body) &&
-                this.selectors.getTypeEvent(body) !== 'issue_moved',
+                this.selectors.getTypeEvent(body) !== this.issueMovedType,
         );
     }
 
@@ -142,7 +159,7 @@ export class JiraParser implements Parser {
         return (
             this.features.inviteNewMembers &&
             this.selectors.isCorrectWebhook(body, 'jira:issue_updated') &&
-            this.selectors.getTypeEvent(body) !== 'issue_moved'
+            this.selectors.getTypeEvent(body) !== this.issueMovedType
         );
     }
 

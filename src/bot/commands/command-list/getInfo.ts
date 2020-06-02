@@ -1,6 +1,6 @@
 import { translate } from '../../../locales';
 import { Command, RunCommand } from './command-base';
-import { CommandOptions } from '../../../types';
+import { CommandOptions, TaskTracker } from '../../../types';
 
 const getParsedRooms = room => {
     const [issueName] = room.name.split(' ');
@@ -12,7 +12,7 @@ const getParsedRooms = room => {
     };
 };
 
-export class GetInfoCommand extends Command implements RunCommand {
+export class GetInfoCommand extends Command<TaskTracker> implements RunCommand {
     async run({ roomName, bodyText }: CommandOptions) {
         if (this.chatApi.getCommandRoomName() !== roomName) {
             return translate('notCommandRoom');

@@ -4,7 +4,7 @@ import { getLogger } from '../../modules/log';
 import { translate } from '../../locales';
 import { getAutoinviteUsers } from '../settings';
 import { infoBody } from '../../lib/messages';
-import { CreateRoomData, MessengerApi } from '../../types';
+import { CreateRoomData, MessengerApi, TaskTracker } from '../../types';
 import { errorTracing } from '../../lib/utils';
 import { LINE_BREAKE_TAG, INDENT } from '../../lib/consts';
 import { BaseAction, RunAction } from './base-action';
@@ -17,7 +17,7 @@ export const getClosedDescriptionBlock = data => [getOpenedDescriptionBlock(data
 
 // eslint-disable-next-line
 
-export class CreateRoom extends BaseAction<MessengerApi> implements RunAction {
+export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements RunAction {
     getEpicInfo(epicLink) {
         epicLink === translate('miss')
             ? ''

@@ -32,7 +32,7 @@ describe('Queue handler test', () => {
         hookParser = new HookParser(taskTracker, config, queueHandler);
         stub(hookParser, 'isIgnore');
 
-        nock(config.jira.url)
+        nock(config.taskTracker.url)
             .get('')
             .reply(200, '<HTML>');
 

@@ -190,7 +190,7 @@ describe('Integ tests', () => {
         const bodyToJSON = JSON.stringify(ignoreData);
         await redis.setAsync(REDIS_IGNORE_PREFIX, bodyToJSON);
 
-        nock(config.jira.url)
+        nock(config.taskTracker.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');
@@ -245,7 +245,7 @@ describe('Integ tests', () => {
 
     it('Expect comment created hook to be handled', async () => {
         nock.cleanAll();
-        nock(config.jira.url)
+        nock(config.taskTracker.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');
@@ -279,7 +279,7 @@ describe('Integ tests', () => {
 
     it.skip('Expect issue_generic hook to be handled and all keys should be handled', async () => {
         nock.cleanAll();
-        nock(config.jira.url)
+        nock(config.taskTracker.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');

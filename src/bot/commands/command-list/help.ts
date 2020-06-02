@@ -3,12 +3,12 @@ import * as path from 'path';
 import marked from 'marked';
 import { translate } from '../../../locales';
 import { getLogger } from '../../../modules/log';
-import { CommandOptions } from '../../../types';
+import { CommandOptions, TaskTracker } from '../../../types';
 import { Command, RunCommand } from './command-base';
 
 const logger = getLogger(module);
 
-export class HelpCommand extends Command implements RunCommand {
+export class HelpCommand extends Command<TaskTracker> implements RunCommand {
     async run({ bodyText, roomData }: CommandOptions) {
         if (this.chatApi.getCommandRoomName() === roomData.alias) {
             if (!this.chatApi.isMaster()) {

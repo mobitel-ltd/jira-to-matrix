@@ -1,14 +1,18 @@
 import * as assert from 'assert';
 import firstJSON from '../../fixtures/webhooks/comment/created.json';
 import secondJSON from '../../fixtures/webhooks/issue/updated/commented.json';
-import { getBotActions, getParserName, getFuncAndBody } from '../../../src/hook-parser/parsers/jira';
 import { translate } from '../../../src/locales';
 import issueMovedJSON from '../../fixtures/webhooks/issue/updated/move-issue.json';
-import * as utils from '../../../src/lib/utils';
+import { config } from '../../../src/config';
+import { getTaskTracker } from '../../../src/task-trackers';
+import { HookParser } from '../../../src/hook-parser';
 
-describe('get-bot-data', () => {
-    const firstBodyArr = getBotActions(firstJSON);
-    const secondBodyArr = getBotActions(secondJSON);
+describe('get-bot-data for jira', () => {
+    const jiraApi = getTaskTracker(config);
+    const firstBodyArr = jiraApi.parser.getBotActions(firstJSON);
+    const secondBodyArr = jiraApi.parser.getBotActions(secondJSON);
+
+    const hookParser = new HookParser(jiraApi, config, {} as any);
 
     it('test correct getBotActions', () => {
         const firstBodyArrExpected = ['postComment'];
@@ -19,8 +23,8 @@ describe('get-bot-data', () => {
     });
 
     it('test correct getParserName', () => {
-        const getParserNameFirst = firstBodyArr.map(getParserName);
-        const getParserNameSecond = secondBodyArr.map(getParserName);
+        const getParserNameFirst = firstBodyArr.map(el => hookParser.getParserName(el));
+        const getParserNameSecond = secondBodyArr.map(el => hookParser.getParserName(el));
 
         const firstBodyArrExpected = ['getPostCommentData'];
         assert.deepEqual(getParserNameFirst, firstBodyArrExpected);
@@ -30,7 +34,7 @@ describe('get-bot-data', () => {
     });
 
     it('Expect correct issue_moved data', () => {
-        const res = getFuncAndBody(issueMovedJSON);
+        const res = hookParser.getFuncAndBody(issueMovedJSON);
         const expected = [
             {
                 createRoomData: false,
@@ -47,7 +51,7 @@ describe('get-bot-data', () => {
                         key: 'INDEV-130',
                         summary: 'test Task 2',
                     },
-                    changelog: utils.getChangelog(issueMovedJSON),
+                    changelog: jiraApi.selectors.getChangelog(issueMovedJSON),
                     author: 'jira_test',
                 },
             },
@@ -57,13 +61,13 @@ describe('get-bot-data', () => {
     });
 
     it('test correct getFuncAndBody', () => {
-        const funcAndBodyFirst = getFuncAndBody(firstJSON);
-        const funcAndBodySecond = getFuncAndBody(secondJSON);
+        const funcAndBodyFirst = hookParser.getFuncAndBody(firstJSON);
+        const funcAndBodySecond = hookParser.getFuncAndBody(secondJSON);
 
         const firstBodyArrExpected = [
             {
                 redisKey: 'newrooms',
-                createRoomData: undefined,
+                createRoomData: false,
             },
             {
                 redisKey: 'postComment_1512034084304',

@@ -12,6 +12,7 @@ import { PostNewLinks } from './post-new-links';
 import { PostLinkedChanges } from './post-linked-changes';
 import { PostLinkDeleted } from './post-link-deleted';
 import { ArchiveProject } from './archive-project';
+import { Jira } from '../../task-trackers/jira';
 
 export class Actions {
     commandsDict: Record<ActionNames, RunAction>;
@@ -19,15 +20,16 @@ export class Actions {
     constructor(private config: Config, private taskTracker: TaskTracker, private chatApi: ChatFasade) {
         this.commandsDict = {
             [ActionNames.CreateRoom]: new CreateRoom(config, taskTracker, chatApi.worker),
-            [ActionNames.ArchiveProject]: new ArchiveProject(config, taskTracker, chatApi),
             [ActionNames.InviteNewMembers]: new InviteNewMembers(config, taskTracker, chatApi),
             [ActionNames.PostComment]: new PostComment(config, taskTracker, chatApi),
-            [ActionNames.PostEpicUpdates]: new PostEpicUpdates(config, taskTracker, chatApi),
-            [ActionNames.PostIssueUpdates]: new PostIssueUpdates(config, taskTracker, chatApi),
-            [ActionNames.PostLinkedChanges]: new PostLinkedChanges(config, taskTracker, chatApi),
-            [ActionNames.PostLinksDeleted]: new PostLinkDeleted(config, taskTracker, chatApi),
-            [ActionNames.PostNewLinks]: new PostNewLinks(config, taskTracker, chatApi),
             [ActionNames.PostProjectUpdates]: new PostProjectUpdates(config, taskTracker, chatApi),
+            // JIRA ONLY
+            [ActionNames.PostEpicUpdates]: new PostEpicUpdates(config, taskTracker as Jira, chatApi),
+            [ActionNames.ArchiveProject]: new ArchiveProject(config, taskTracker as Jira, chatApi),
+            [ActionNames.PostIssueUpdates]: new PostIssueUpdates(config, taskTracker as Jira, chatApi),
+            [ActionNames.PostLinkedChanges]: new PostLinkedChanges(config, taskTracker as Jira, chatApi),
+            [ActionNames.PostLinksDeleted]: new PostLinkDeleted(config, taskTracker as Jira, chatApi),
+            [ActionNames.PostNewLinks]: new PostNewLinks(config, taskTracker as Jira, chatApi),
         };
     }
 

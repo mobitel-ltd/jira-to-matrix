@@ -5,17 +5,13 @@ import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
+import { config } from '../../src/config';
 
 const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Gitlab api testing', () => {
     let gitlab: Gitlab;
-    const gitlabConfig = {
-        url: 'https://gitlab.test-example.ru',
-        user: 'gitlab_bot',
-        password: 'fakepasswprd',
-    };
 
     const projectNamespace = 'indev';
     const projectKey = 'gitlabtomatrix';
@@ -25,8 +21,10 @@ describe('Gitlab api testing', () => {
 
     beforeEach(() => {
         gitlab = new Gitlab({
-            ...gitlabConfig,
-            inviteIgnoreUsers: [],
+            url: 'https://gitlab.test-example.ru',
+            user: 'gitlab_bot',
+            password: 'fakepasswprd',
+            features: config.features,
         });
     });
 
@@ -97,7 +95,7 @@ describe('Gitlab api testing', () => {
 
         it('should return issue author and watchers', async () => {
             const res = await gitlab.getIssueWatchers(issueKey);
-            const expected = [issueJson.assignee.name, issueJson.author.name];
+            const expected = [(issueJson.assignee as any).name as string, issueJson.author.name];
             expect(res).to.be.deep.eq(expected);
         });
     });

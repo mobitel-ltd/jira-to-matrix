@@ -42,7 +42,7 @@ describe('comment test', () => {
     });
 
     it('Expect comment not to be sent with empty body and warn message will be sent', async () => {
-        const post = translate('emptyMatrixComment');
+        const post = translate('emptyBodyText');
         const result = await commands.run(commandName, { ...baseOptions, bodyText: '' });
 
         expect(result).to.be.eq(post);

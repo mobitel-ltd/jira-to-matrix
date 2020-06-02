@@ -5,7 +5,6 @@ import { redis, REDIS_IGNORE_PREFIX, REDIS_ROOM_KEY } from '../redis-client';
 
 import { QueueHandler } from '../queue';
 import { TaskTracker, Config } from '../types';
-import { getRedisKey } from '../task-trackers/jira/selector.jira';
 
 const logger = getLogger(module);
 
@@ -21,27 +20,12 @@ export class HookParser {
     ignoredUsers: string[];
     selectors: Selectors;
     parser: Parser;
-    actionFuncs: Record<string, Function>;
 
     constructor(private taskTracker: TaskTracker, private config: Config, private queueHandler: QueueHandler) {
         this.testMode = this.config.testMode.on;
         this.ignoredUsers = [...this.config.usersToIgnore, ...this.config.testMode.users];
         this.selectors = taskTracker.selectors;
         this.parser = taskTracker.parser;
-        this.actionFuncs = {
-            postIssueUpdates: this.parser.isPostIssueUpdates,
-            inviteNewMembers: this.parser.isMemberInvite,
-            postComment: this.parser.isPostComment,
-            postEpicUpdates: this.parser.isPostEpicUpdates,
-            postProjectUpdates: this.parser.isPostProjectUpdates,
-            postNewLinks: this.parser.isPostNewLinks,
-            postLinkedChanges: this.parser.isPostLinkedChanges,
-            postLinksDeleted: this.parser.isDeleteLinks,
-        };
-    }
-
-    getBotActions(body) {
-        return Object.keys(this.actionFuncs).filter(key => this.actionFuncs[key].bind(this.parser)(body));
     }
 
     getParserName(func) {
@@ -51,13 +35,13 @@ export class HookParser {
     getFuncRedisData = (funcName, body) => {
         const parserName = this.getParserName(funcName);
         const data = this.parser[parserName](body);
-        const redisKey = getRedisKey(funcName, body);
+        const redisKey = this.selectors.getRedisKey(funcName, body);
 
         return { redisKey, funcName, data };
     };
 
     getFuncAndBody = body => {
-        const botFunc = this.getBotActions(body);
+        const botFunc = this.parser.getBotActions(body);
         const createRoomData = this.parser.isCreateRoom(body) && this.parser.getCreateRoomData(body);
         const roomsData = { redisKey: REDIS_ROOM_KEY, createRoomData };
         const funcsData = botFunc.map(funcName => this.getFuncRedisData(funcName, body));

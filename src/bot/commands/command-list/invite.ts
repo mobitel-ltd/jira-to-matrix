@@ -1,8 +1,8 @@
 import { translate } from '../../../locales';
 import { Command, RunCommand } from './command-base';
-import { CommandOptions } from '../../../types';
+import { CommandOptions, TaskTracker } from '../../../types';
 
-export class InviteCommand extends Command implements RunCommand {
+export class InviteCommand extends Command<TaskTracker> implements RunCommand {
     async run({ bodyText: roomName, sender }: CommandOptions) {
         if (!roomName) {
             throw new Error('Not issue room');

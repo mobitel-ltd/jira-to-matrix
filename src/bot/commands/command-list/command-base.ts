@@ -1,7 +1,7 @@
 import { Config, TaskTracker, MessengerApi, CommandOptions } from '../../../types';
 
-export class Command {
-    constructor(public config: Config, public taskTracker: TaskTracker, public chatApi: MessengerApi) {}
+export class Command<T extends TaskTracker> {
+    constructor(public config: Config, public taskTracker: T, public chatApi: MessengerApi) {}
 }
 
 export interface RunCommand {

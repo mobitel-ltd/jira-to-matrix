@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { getBotActions } from '../../../src/hook-parser/parsers/jira';
 import commentCreatedHook from '../../fixtures/webhooks/comment/created.json';
 import commentDeletedHook from '../../fixtures/webhooks/comment/deleted.json';
 import commentUpdatedHook from '../../fixtures/webhooks/comment/updated.json';
@@ -9,34 +8,38 @@ import issueUpdatedGenericHook from '../../fixtures/webhooks/issue/updated/gener
 import issueCreatedHook from '../../fixtures/webhooks/issue/created.json';
 import issueLinkCreatedHook from '../../fixtures/webhooks/issuelink/created.json';
 import issueLinkDeletedHook from '../../fixtures/webhooks/issuelink/deleted.json';
+import { taskTracker } from '../../test-utils';
+import { Gitlab } from '../../../src/task-trackers/gitlab';
+import gitlabCommentHook from '../../fixtures/webhooks/gitlab/commented.json';
+import { config } from '../../../src/config';
 
-describe('bot func', () => {
+describe('bot func with jira config data', () => {
     it('Expect commentCreatedHook have only postComment func', () => {
-        const result = getBotActions(commentCreatedHook);
+        const result = taskTracker.parser.getBotActions(commentCreatedHook);
         const expected = ['postComment'];
         assert.deepEqual(result, expected);
     });
 
     it('Expect commentUpdatedHook have only postComment func', () => {
-        const result = getBotActions(commentUpdatedHook);
+        const result = taskTracker.parser.getBotActions(commentUpdatedHook);
         const expected = ['postComment'];
         assert.deepEqual(result, expected);
     });
 
     it('Expect commentDeletedHook have no func to handle', () => {
-        const result = getBotActions(commentDeletedHook);
+        const result = taskTracker.parser.getBotActions(commentDeletedHook);
         const expected = [];
         assert.deepEqual(result, expected);
     });
 
     it('Expect issueCommentedHook return correct funcs list', () => {
-        const result = getBotActions(issueCommentedHook);
+        const result = taskTracker.parser.getBotActions(issueCommentedHook);
         const expected = ['inviteNewMembers', 'postEpicUpdates'];
         assert.deepEqual(result, expected);
     });
 
     it('Expect issueUpdatedGenericHook return correct funcs list', () => {
-        const funcsForBot = getBotActions(issueUpdatedGenericHook);
+        const funcsForBot = taskTracker.parser.getBotActions(issueUpdatedGenericHook);
         assert.deepEqual(funcsForBot, [
             'postIssueUpdates',
             'inviteNewMembers',
@@ -48,26 +51,41 @@ describe('bot func', () => {
     });
 
     it('Expect issueLinkCreatedHook return correct funcs list', () => {
-        const result = getBotActions(issueLinkCreatedHook);
+        const result = taskTracker.parser.getBotActions(issueLinkCreatedHook);
         const expected = ['postNewLinks'];
         assert.deepEqual(result, expected);
     });
 
     it('Expect issueLinkDeletedHook return correct funcs list', () => {
-        const result = getBotActions(issueLinkDeletedHook);
+        const result = taskTracker.parser.getBotActions(issueLinkDeletedHook);
         const expected = ['postLinksDeleted'];
         assert.deepEqual(result, expected);
     });
 
     it('Expect issueCreatedHook return correct funcs list', () => {
-        const result = getBotActions(issueCreatedHook);
+        const result = taskTracker.parser.getBotActions(issueCreatedHook);
         const expected = ['postEpicUpdates'];
         assert.deepEqual(result, expected);
     });
 
     it('Expect issueCommentedChangedHook return correct funcs list', () => {
-        const result = getBotActions(issueCommentedChangedHook);
+        const result = taskTracker.parser.getBotActions(issueCommentedChangedHook);
         const expected = ['postIssueUpdates', 'inviteNewMembers', 'postEpicUpdates'];
+        assert.deepEqual(result, expected);
+    });
+});
+
+describe('Gitlab actions', () => {
+    const gitlab = new Gitlab({
+        url: 'https://gitlab.test-example.ru',
+        user: 'gitlab_bot',
+        password: 'fakepasswprd',
+        features: config.features,
+    });
+
+    it('should return CreateRoom and PostComment for note webhook', () => {
+        const result = gitlab.parser.getBotActions(gitlabCommentHook);
+        const expected = ['postComment', 'PostComment'];
         assert.deepEqual(result, expected);
     });
 });

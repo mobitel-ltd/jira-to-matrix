@@ -1,4 +1,4 @@
-import { Selectors, Issue, Project } from '../../types';
+import { Selectors, Issue, Project, DescriptionFields, ChangelogItem } from '../../types';
 
 interface UserData {
     self: string;
@@ -14,16 +14,86 @@ interface UserData {
 }
 
 export interface Comment {
-    timestamp: number;
-    webhookEvent: 'comment_created';
-    comment: {
+    self: string;
+    id: string;
+    author: {
         self: string;
+        accountId: string;
+        avatarUrls: {
+            '48x48': string;
+            '24x24': string;
+            '16x16': string;
+            '32x32': string;
+        };
+        displayName: string;
+        active: boolean;
+        timeZone: string;
+    };
+    body: string;
+    updateAuthor: {
+        self: string;
+        accountId: string;
+        avatarUrls: {
+            '48x48': string;
+            '24x24': string;
+            '16x16': string;
+            '32x32': string;
+        };
+        displayName: string;
+        active: boolean;
+        timeZone: string;
+    };
+    created: string;
+    updated: string;
+    jsdPublic: boolean;
+}
+
+export interface IssueLink {
+    id: string;
+    self: string;
+    type: {
         id: string;
-        author: UserData;
-        body: string;
-        updateAuthor: UserData;
-        created: string;
-        updated: string;
+        name: string;
+        inward: string;
+        outward: string;
+        self: string;
+    };
+    outwardIssue: {
+        id: string;
+        key: string;
+        self: string;
+        fields: {
+            summary: string;
+            status: {
+                self: string;
+                description: string;
+                iconUrl: string;
+                name: string;
+                id: string;
+                statusCategory: {
+                    self: string;
+                    id: 2;
+                    key: string;
+                    colorName: string;
+                    name: string;
+                };
+            };
+            priority: {
+                self: string;
+                iconUrl: string;
+                name: string;
+                id: string;
+            };
+            issuetype: {
+                self: string;
+                id: string;
+                description: string;
+                iconUrl: string;
+                name: string;
+                subtask: false;
+                avatarId: number;
+            };
+        };
     };
 }
 
@@ -43,6 +113,28 @@ export interface Changelog {
 
 export interface JiraSelectors extends Selectors {
     extractName(body, path?: string[]): string | undefined;
+    getIssueMembers(body): string[];
+    getChangelog(body): Changelog | undefined;
+    getComment(body): string | undefined;
+    getEpicKey(body): string | undefined;
+    getLinks(body): IssueLink[];
+    getNameIssueLinkType(body): string | undefined;
+    getIssueLinkDestinationId(body): string | undefined;
+    getIssueLinkSourceId(body): string | undefined;
+    getSourceRelation(body): string | undefined;
+    getDestinationRelation(body): string | undefined;
+    getDescriptionFields(body): DescriptionFields;
+    isEpic(body): boolean;
+    getChangelogField(field: string, body): ChangelogItem | undefined;
+    getNewSummary(body): string | undefined;
+    getNewStatus(body): string | undefined;
+    getNewStatusId(body): string | undefined;
+    getNewKey(body): string | undefined;
+    getOldKey(body): string | undefined;
+    getRelations(body): any;
+    getLinkKeys(body): string[];
+    getInwardLinkKey(body): string | undefined;
+    getOutwardLinkKey(body): string | undefined;
 }
 
 export interface JiraIssue extends Issue {
@@ -291,17 +383,16 @@ export interface RenderedIssue extends JiraIssue {
         duedate: string | null;
         progress: string | null;
         votes: string | null;
+        comment: {
+            comments: Comment[];
+        };
     };
 }
 
 export interface JiraProject extends Project {
-    key: string;
     id: string;
-    name: string;
-    lead: string;
     issueTypes: Array<{ id: string; name: string; description: string; subtask: any }>;
     adminsURL: string;
-    isIgnore: boolean;
     style: string;
     admins?: string[];
 }

@@ -1,8 +1,155 @@
-import { Project, Issue } from '../../types';
+import { Project, Selectors } from '../../types';
 
 export interface GitlabUserData extends GitlabUserDataShort {
     access_level: number;
     expires_at: string | null;
+}
+
+export interface HookUser {
+    name: string;
+    username: string;
+    avatar_url: string;
+}
+
+export interface GitlabLabel {
+    id: number;
+    title: string;
+    color: string;
+    project_id: number;
+    created_at: string;
+    updated_at: string;
+    template: boolean;
+    description: string;
+    type: string;
+    group_id: number;
+}
+
+export enum HookTypes {
+    Comment = 'note',
+    Issue = 'issue',
+}
+
+export interface GitlabCommentHook extends GitlabHook {
+    object_kind: HookTypes.Comment;
+    project_id: number;
+    object_attributes: {
+        id: number;
+        note: string;
+        noteable_type: string;
+        author_id: number;
+        created_at: string;
+        updated_at: string;
+        project_id: number;
+        attachment: null;
+        line_code: null;
+        commit_id: string;
+        noteable_id: number;
+        system: false;
+        st_diff: null;
+        url: string;
+    };
+    issue: {
+        id: number;
+        title: string;
+        assignee_ids: number[];
+        assignee_id: null;
+        author_id: number;
+        project_id: number;
+        created_at: string;
+        updated_at: string;
+        position: number;
+        branch_name: null;
+        description: string;
+        milestone_id: null;
+        state: string;
+        iid: number;
+        labels: GitlabLabel[];
+    };
+}
+
+export interface GitlabIssueHook extends GitlabHook {
+    object_kind: string;
+    event_type: string;
+    object_attributes: {
+        id: number;
+        title: string;
+        assignee_ids: number[];
+        assignee_id: number;
+        author_id: number;
+        project_id: number;
+        created_at: string;
+        updated_at: string;
+        updated_by_id: number;
+        last_edited_at: null | string;
+        last_edited_by_id: null | string;
+        relative_position: number;
+        description: string;
+        milestone_id: null | string;
+        state_id: number;
+        confidential: boolean;
+        discussion_locked: true;
+        due_date: null | string;
+        moved_to_id: null | string;
+        duplicated_to_id: null | string;
+        time_estimate: number;
+        total_time_spent: number;
+        human_total_time_spent: null | string;
+        human_time_estimate: null | string;
+        weight: null | string;
+        iid: number;
+        url: string;
+        state: string;
+        action: string;
+        labels: GitlabLabel[];
+    };
+    assignees: HookUser[];
+    assignee: HookUser;
+    labels: GitlabLabel[];
+    changes: {
+        updated_by_id: {
+            previous: null | string;
+            current: number;
+        };
+        updated_at: {
+            previous: string;
+            current: string;
+        };
+        labels: {
+            previous: GitlabLabel[];
+            current: GitlabLabel[];
+        };
+    };
+}
+
+export interface GitlabHook {
+    object_kind: string;
+    event_type?: string;
+    user: HookUser;
+    project: {
+        id: number;
+        name: string;
+        description: string;
+        web_url: string;
+        avatar_url: null | string | string;
+        git_ssh_url: string;
+        git_http_url: string;
+        namespace: string;
+        visibility_level: number;
+        path_with_namespace: string;
+        default_branch: string;
+        ci_config_path: null | string | string;
+        homepage: string;
+        url: string;
+        ssh_url: string;
+        http_url: string;
+    };
+    repository: {
+        name: string;
+        url: string;
+        description: string;
+        homepage: string;
+    };
+    object_attributes: any;
 }
 
 export interface GitlabUserDataShort {
@@ -14,7 +161,7 @@ export interface GitlabUserDataShort {
     name: string;
 }
 
-export interface GitlabIssue extends Issue {
+export interface GitlabIssue {
     project_id: number;
     milestone: {
         due_date: string | null;
@@ -29,12 +176,12 @@ export interface GitlabIssue extends Issue {
         start_date?: string;
         closed_at?: string;
     };
-    author: UserData;
+    author: GitlabUserDataShort;
     description: string;
     state: string;
     iid: number;
-    assignees: UserData[];
-    assignee: UserData;
+    assignees: GitlabUserDataShort[];
+    assignee: GitlabUserDataShort;
     labels: [];
     upvotes: number;
     downvotes: number;
@@ -164,4 +311,30 @@ export interface GitlabProject extends Project {
         };
         group_access: string | null;
     };
+}
+
+export interface Notes {
+    id: number;
+    body: string;
+    attachment: null | string | string | string;
+    author: {
+        id: number;
+        username: string;
+        email: string;
+        name: string;
+        state: string;
+        created_at: string;
+    };
+    created_at: string;
+    updated_at: string;
+    system: true;
+    noteable_id: number;
+    noteable_type: string;
+    noteable_iid: number;
+    resolvable: boolean;
+    confidential: boolean;
+}
+
+export interface GitlabSelectors extends Selectors {
+    transformToKey(namespaceWithProject: string, issueId: number): string;
 }

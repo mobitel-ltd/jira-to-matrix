@@ -67,6 +67,8 @@ export const getIgnoreTips = (projectKey, currentSettingsList, command) => {
     }
 };
 
+export const getNameFromMail = mail => mail && mail.split('@')[0];
+
 export const ignoreKeysInProject = (projectKey, namesIssueTypeInProject) => `${translate('notKeyInProject', {
     projectKey,
 })}

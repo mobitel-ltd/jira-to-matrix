@@ -17,6 +17,7 @@ import { ProjectArchiveCommand } from './archive-project';
 
 import { Config, TaskTracker, MessengerApi, CommandNames } from '../../../types';
 import { RunCommand } from './command-base';
+import { Jira } from '../../../task-trackers/jira';
 
 export const getCommandDict = (
     config: Config,
@@ -24,19 +25,19 @@ export const getCommandDict = (
     chatApi: MessengerApi,
 ): Record<CommandNames, RunCommand> => ({
     [CommandNames.Comment]: new CommentCommand(config, taskTracker, chatApi),
-    [CommandNames.Assign]: new AssignCommand(config, taskTracker, chatApi),
-    [CommandNames.Move]: new MoveCommand(config, taskTracker, chatApi),
-    [CommandNames.Spec]: new SpecCommand(config, taskTracker, chatApi),
-    [CommandNames.Prio]: new PrioCommand(config, taskTracker, chatApi),
+    [CommandNames.Assign]: new AssignCommand(config, taskTracker as Jira, chatApi),
+    [CommandNames.Move]: new MoveCommand(config, taskTracker as Jira, chatApi),
+    [CommandNames.Spec]: new SpecCommand(config, taskTracker as Jira, chatApi),
+    [CommandNames.Prio]: new PrioCommand(config, taskTracker as Jira, chatApi),
     [CommandNames.Op]: new OpCommand(config, taskTracker, chatApi),
     [CommandNames.Invite]: new InviteCommand(config, taskTracker, chatApi),
     [CommandNames.Help]: new HelpCommand(config, taskTracker, chatApi),
-    [CommandNames.Ignore]: new IgnoreCommand(config, taskTracker, chatApi),
-    [CommandNames.Create]: new CreateCommand(config, taskTracker, chatApi),
-    [CommandNames.Autoinvite]: new AutoInviteCommand(config, taskTracker, chatApi),
+    [CommandNames.Ignore]: new IgnoreCommand(config, taskTracker as Jira, chatApi),
+    [CommandNames.Create]: new CreateCommand(config, taskTracker as Jira, chatApi),
+    [CommandNames.Autoinvite]: new AutoInviteCommand(config, taskTracker as Jira, chatApi),
     [CommandNames.Alive]: new AliveCommand(config, taskTracker, chatApi),
     [CommandNames.GetInfo]: new GetInfoCommand(config, taskTracker, chatApi),
-    [CommandNames.Kick]: new KickCommand(config, taskTracker, chatApi),
-    [CommandNames.Archive]: new ArchiveCommand(config, taskTracker, chatApi),
-    [CommandNames.Projectarchive]: new ProjectArchiveCommand(config, taskTracker, chatApi),
+    [CommandNames.Kick]: new KickCommand(config, taskTracker as Jira, chatApi),
+    [CommandNames.Archive]: new ArchiveCommand(config, taskTracker as Jira, chatApi),
+    [CommandNames.Projectarchive]: new ProjectArchiveCommand(config, taskTracker as Jira, chatApi),
 });

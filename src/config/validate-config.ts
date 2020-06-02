@@ -17,7 +17,8 @@ const schema = obj({
     port: int,
     lang: ['en', 'ru'],
     pathToDocs: string.optional(),
-    jira: obj({
+    taskTracker: obj({
+        type: ['jira', 'gitlab'],
         url: address,
         user: string,
         password: string,

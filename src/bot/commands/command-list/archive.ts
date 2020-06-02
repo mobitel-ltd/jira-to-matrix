@@ -7,6 +7,7 @@ import { exportEvents, isRepoExists, getRepoLink } from '../../../lib/git-lib';
 import { EXPECTED_POWER, kickStates, kick, parseBodyText } from './common-actions';
 import { Command, RunCommand } from './command-base';
 import { CommandOptions } from '../../../types';
+import { Jira } from '../../../task-trackers/jira';
 
 const logger = getLogger(module);
 export const KICK_ALL_OPTION = 'kickall';
@@ -21,7 +22,7 @@ export const deleteAlias = async (api, alias) => {
     }
 };
 
-export class ArchiveCommand extends Command implements RunCommand {
+export class ArchiveCommand extends Command<Jira> implements RunCommand {
     async run({ bodyText = '', sender, roomData }: CommandOptions) {
         const { alias, id } = roomData;
         if (!alias) {

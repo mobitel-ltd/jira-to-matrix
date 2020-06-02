@@ -1,15 +1,17 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
-import { TaskTracker, Selectors, Parser, Issue, Project } from '../../types';
+import { TaskTracker, Selectors, Parser, Issue, Project, Config, IssueWithComments } from '../../types';
 import { TIMEOUT } from '../../lib/consts';
 import * as messages from '../../lib/messages';
 import { getLogger } from '../../modules/log';
-import { GitlabIssue, GitlabProject, GitlabUserData } from './types';
+import { GitlabIssue, GitlabProject, GitlabUserData, Notes } from './types';
+import { GitlabParser } from './hook-parser.gtilab';
+import { selectors } from '../jira/selector.jira';
 
 const logger = getLogger(module);
 
-// export class Gitlab implements TaskTracker {
-export class Gitlab {
+export class Gitlab implements TaskTracker {
+    // export class Gitlab {
     url: string;
     user: string;
     password: string;
@@ -26,6 +28,7 @@ export class Gitlab {
         user: string;
         inviteIgnoreUsers?: string[];
         password: string;
+        features: Config['features'];
         interval?: number;
         count?: number;
     }) {
@@ -35,6 +38,8 @@ export class Gitlab {
         this.inviteIgnoreUsers = options.inviteIgnoreUsers || [];
         this.pingInterval = options.interval || 500;
         this.pingCount = options.count || 10;
+        this.selectors = selectors;
+        this.parser = new GitlabParser(options.features, selectors);
     }
 
     async request(url: string, newOptions?: AxiosRequestConfig): Promise<any> {
@@ -84,7 +89,7 @@ export class Gitlab {
     }
 
     // key is like namespace/project-123
-    async getIssue(key: string): Promise<GitlabIssue> {
+    async getIssue(key: string): Promise<Issue & GitlabIssue> {
         const { namespaceWithProject, issueId } = this.transformFromKey(key);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
@@ -92,7 +97,7 @@ export class Gitlab {
         const issue: GitlabIssue = await this.request(url);
 
         // TODO rewrite it!
-        return issue as any;
+        return { ...issue, key };
     }
 
     getRestUrl(...args: (string | number)[]) {
@@ -168,5 +173,36 @@ export class Gitlab {
         const members = [issue.assignee, issue.author];
 
         return members.map(el => el.name);
+    }
+
+    getViewUrl(key: string) {
+        const keyData = this.transformFromKey(key);
+
+        return [this.url, keyData.namespaceWithProject, 'issues', keyData.issueId].join('/');
+    }
+
+    async getIssueComments(key): Promise<IssueWithComments> {
+        const { namespaceWithProject, issueId } = this.transformFromKey(key);
+        const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
+
+        const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes');
+
+        const commentsBody: Notes[] = await this.request(url);
+        const comments = commentsBody.map(el => ({ id: el.id, body: el.body }));
+
+        return {
+            key,
+            comments,
+        };
+    }
+
+    testJiraRequest() {
+        return Promise.resolve();
+    }
+
+    async hasIssue(key) {
+        const res = await this.getIssueSafety(key);
+
+        return Boolean(res);
     }
 }

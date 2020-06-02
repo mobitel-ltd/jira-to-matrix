@@ -30,7 +30,7 @@ export const dict = Object.freeze({
     errorMatrixAssign: 'Наблюдатель %{userToFind} не добавлен! Проверьте имя пользователя и попробуйте еще раз',
     successMatrixInvite: 'Пользователь %{sender} приглашен в комнату %{roomName}',
     successMatrixAssign: 'Пользователь "%{displayName}" назначен исполнителем задачи',
-    emptyMatrixComment: 'Добавьте текст комментария',
+    emptyBodyText: 'Добавьте текст комментария',
     emptyProject: 'Добавьте имя проекта',
     successProjectAddToArchive:
         'Проект "%{projectKey}" добавлен для архивирования с ограничением по активности "%{activeTime}" месяца',

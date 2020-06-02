@@ -127,7 +127,7 @@ describe('inviteNewMembers test', () => {
     });
 
     it('Do not add member-bot, if room alredy have bot ', async () => {
-        const botName = `${config.jira.user}_cloud`;
+        const botName = `${config.taskTracker.user}_cloud`;
         const issueBodyJSONbot = pipe(clone, set('fields.creator.displayName', botName))(issueBodyJSON);
         const expectedWatcherWithoutCreator = expectedWatchers.filter(
             user => user !== getUserIdByDisplayName(issueBodyJSON.fields.creator.displayName),

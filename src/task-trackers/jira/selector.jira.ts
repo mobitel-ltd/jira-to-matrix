@@ -1,8 +1,8 @@
 import * as R from 'ramda';
 import { config } from '../../config';
-import { Issue, ChangelogItem, Selectors, Relation, DescriptionFields, IssueLink } from '../../types';
+import { Issue, ChangelogItem, Selectors, Relation, DescriptionFields } from '../../types';
 import { translate } from '../../locales';
-import { Comment, Changelog, JiraSelectors } from './types';
+import { Comment, Changelog, JiraSelectors, IssueLink } from './types';
 
 const { features } = config;
 
@@ -18,14 +18,11 @@ const getIdFromUrl = url => {
     return res;
 };
 
-const getNameFromMail = mail => mail && mail.split('@')[0];
-
 export const extractName = (body, path: string[] = []): string | undefined => R.path([...path, 'displayName'], body);
 
 const handlers = {
     project: {
         getProjectKey: body => R.path(['project', 'key'], body),
-        getCreatorDisplayName: body => getNameFromMail(R.path(['project', 'projectLead', 'emailAddress'], body)),
         getCreator: body => R.path(['project', 'projectLead', 'name'], body),
         getIssueName: body => handlers.project.getProjectKey(body),
         getMembers: body => [handlers.project.getCreator(body)],
@@ -38,8 +35,6 @@ const handlers = {
         getType: (body): string | undefined => R.path(['issue', 'fields', 'issuetype', 'name'], body),
         getIssueId: (body): string | undefined => R.path(['issue', 'id'], body),
         getIssueKey: (body): string => R.path(['issue', 'key'], body) as string,
-        getCreatorDisplayName: (body): string | undefined =>
-            getNameFromMail(R.path(['issue', 'fields', 'creator', 'emailAddress'], body)),
         getCreator: (body): string | undefined => extractName(body, ['issue', 'fields', 'creator']),
         getReporter: (body): string | undefined => extractName(body, ['issue', 'fields', 'reporter']),
         getAssignee: (body): string | undefined => extractName(body, ['issue', 'fields', 'assignee']),
@@ -62,9 +57,6 @@ const handlers = {
         getDisplayName: (body: Comment): string | undefined => R.path(['comment', 'author', 'displayName'], body),
         getAuthor: (body: Comment): string | undefined => R.path(['comment', 'author', 'name'], body),
         getUpdateAuthor: (body: Comment): string | undefined => R.path(['comment', 'updateAuthor', 'name'], body),
-        getCreatorDisplayName: (body: Comment): string | undefined =>
-            getNameFromMail(R.path(['comment', 'updateAuthor', 'emailAddress'], body)) ||
-            getNameFromMail(R.path(['comment', 'author', 'emailAddress'], body)),
         getCreator: (body: Comment): string | undefined =>
             handlers.comment.getUpdateAuthor(body) || handlers.comment.getAuthor(body),
         getUrl: (body: Comment): string | undefined => R.path(['comment', 'self'], body),
@@ -87,17 +79,13 @@ const handlers = {
     },
 };
 
-export const getBodyWebhookEvent = (body): string => R.path(['webhookEvent'], body) as string;
+export const getBodyWebhookEvent = (body): string | undefined => R.path(['webhookEvent'], body);
 
 // * ----------------------- Webhook selectors ------------------------- *
-
-export const getResponcedSummary = (body: Issue): string | undefined => R.path(['fields', 'summary'], body);
 
 export const getTypeEvent = (body: Issue): string | undefined => R.path(['issue_event_type_name'], body);
 
 export const getIssueCreator = (issue: Issue): string | undefined => handlers.issue.getCreator({ issue });
-
-export const getIssueAssignee = (issue: Issue): string | undefined => handlers.issue.getAssignee({ issue });
 
 export const getIssueMembers = (issue: Issue): string[] => handlers.issue.getMembers({ issue });
 
@@ -133,8 +121,6 @@ export const getIssueKey = body => runMethod(body, 'getIssueKey');
 
 export const getIssueName = body => runMethod(body, 'getIssueName');
 
-export const getCreatorDisplayName = body => runMethod(body, 'getCreatorDisplayName');
-
 export const getProjectKey: Selectors['getProjectKey'] = (body: Issue | any, type?: 'issue') => {
     if (type) {
         switch (type) {
@@ -163,7 +149,7 @@ export const getComment = body => handlers.comment.getComment(body);
 
 export const getCommentBody = (body: Comment): { body: string; id: string } => handlers.comment.getCommentBody(body);
 
-export const getUserName = (body): string | undefined => handlers.issue.getUserName(body);
+const getUserName = (body): string | undefined => handlers.issue.getUserName(body);
 
 export const getEpicKey = (body): string | undefined => handlers.issue.getEpicKey(body);
 
@@ -180,6 +166,8 @@ export const getSourceRelation = body => handlers.issuelink.getSourceRelation(bo
 
 export const getDestinationRelation = body => handlers.issuelink.getDestinationRelation(body);
 
+export const getResponcedSummary = (body: Issue): string | undefined => R.path(['fields', 'summary'], body);
+
 export const getSummary = (body): string => runMethod(body, 'getSummary') || getResponcedSummary(body);
 
 export const getBodyTimestamp = (body): number | undefined => R.path(['timestamp'], body);
@@ -195,7 +183,7 @@ export const isCorrectWebhook = (body: any, hookName: any): boolean => getBodyWe
 export const isEpic = (body): boolean => handlers.issue.getType(body) === 'Epic';
 
 export const isCommentEvent = (body): boolean =>
-    getHookType(body) === 'comment' && !getBodyWebhookEvent(body).includes('deleted');
+    getHookType(body) === 'comment' && !getBodyWebhookEvent(body)?.includes('deleted');
 
 /**
  * Get changelog field body from webhook from jira
@@ -203,7 +191,7 @@ export const isCommentEvent = (body): boolean =>
  * @param {object} body webhook body
  * @returns {object} changelog field
  */
-export const getChangelogField = (fieldName, body) =>
+export const getChangelogField = (fieldName, body): ChangelogItem | undefined =>
     getChangelogItems(body).find((item: ChangelogItem) => item.field === fieldName);
 
 export const getNewSummary = (body): string | undefined => R.path(['toString'], getChangelogField('summary', body));
@@ -248,7 +236,7 @@ export const getHeaderText = body => {
     const name = handlers.comment.getDisplayName(body);
     const eventName = getBodyWebhookEvent(body);
 
-    return translate(eventName, { name });
+    return translate(eventName!, { name });
 };
 
 export const getLinkKeys = (body): string[] => {
@@ -279,27 +267,20 @@ export interface GetFieldOptions {
 export const selectors: JiraSelectors = {
     extractName,
     getBodyWebhookEvent,
-    getResponcedSummary,
     getTypeEvent,
     getIssueCreator,
-    getIssueAssignee,
     getIssueMembers,
     getHookType,
-    getHandler,
-    runMethod,
     getDisplayName,
     getMembers,
     getIssueId,
     getIssueKey,
     getIssueName,
-    getCreatorDisplayName,
     getProjectKey,
     getLinks,
     getChangelog,
-    getCommentAuthor,
     getComment,
     getCommentBody,
-    getUserName,
     getEpicKey,
     getKey,
     getIssueLinkSourceId,
@@ -310,8 +291,6 @@ export const selectors: JiraSelectors = {
     getSummary,
     getBodyTimestamp,
     getRedisKey,
-    getHookUserName,
-    getChangelogItems,
     isCorrectWebhook,
     isEpic,
     isCommentEvent,
@@ -322,7 +301,6 @@ export const selectors: JiraSelectors = {
     getNewKey,
     getOldKey,
     getRelations,
-    getTextIssue,
     getDescriptionFields,
     getHeaderText,
     getLinkKeys,

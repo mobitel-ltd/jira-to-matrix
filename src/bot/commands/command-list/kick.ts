@@ -3,11 +3,12 @@ import { translate } from '../../../locales';
 import * as actions from './common-actions';
 import { Command, RunCommand } from './command-base';
 import { CommandOptions } from '../../../types';
+import { Jira } from '../../../task-trackers/jira';
 
 export const ALL_OPTION = 'all';
 export const USER_OPTION = 'user';
 
-export class KickCommand extends Command implements RunCommand {
+export class KickCommand extends Command<Jira> implements RunCommand {
     async run({ bodyText, sender, roomData }: CommandOptions) {
         if (!roomData.alias) {
             throw new Error('Not issue room');

@@ -14,6 +14,7 @@ import { exportEvents } from '../../src/lib/git-lib';
 import issueJSON from '../fixtures/jira-api-requests/issue.json';
 import { config } from '../../src/config';
 import { getTaskTracker } from '../../src/task-trackers';
+import { Jira } from '../../src/task-trackers/jira';
 
 chai.use(sinonChai);
 
@@ -34,7 +35,7 @@ describe('Test handle archive project data', () => {
     const projectKey = 'INDEV';
     const alias = `${projectKey}-${123}`;
     let configWithTmpPath;
-    const taskTracker = getTaskTracker(config);
+    const taskTracker = getTaskTracker(config) as Jira;
     let options: ArchiveOptions;
     let archiveProject: ArchiveProject;
 

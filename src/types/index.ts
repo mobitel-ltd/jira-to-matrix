@@ -15,7 +15,8 @@ export interface Config {
     port: string;
     lang: 'en' | 'ru';
     pathToDocs: string;
-    jira: {
+    taskTracker: {
+        type: 'jira' | 'gitlab';
         url: string;
         user: string;
         password: string;
@@ -113,90 +114,6 @@ export interface ChatConfig extends Config {
     isMaster?: true;
 }
 
-export interface Comment {
-    self: string;
-    id: string;
-    author: {
-        self: string;
-        accountId: string;
-        avatarUrls: {
-            '48x48': string;
-            '24x24': string;
-            '16x16': string;
-            '32x32': string;
-        };
-        displayName: string;
-        active: boolean;
-        timeZone: string;
-    };
-    body: string;
-    updateAuthor: {
-        self: string;
-        accountId: string;
-        avatarUrls: {
-            '48x48': string;
-            '24x24': string;
-            '16x16': string;
-            '32x32': string;
-        };
-        displayName: string;
-        active: boolean;
-        timeZone: string;
-    };
-    created: string;
-    updated: string;
-    jsdPublic: boolean;
-}
-
-export interface IssueLink {
-    id: string;
-    self: string;
-    type: {
-        id: string;
-        name: string;
-        inward: string;
-        outward: string;
-        self: string;
-    };
-    outwardIssue: {
-        id: string;
-        key: string;
-        self: string;
-        fields: {
-            summary: string;
-            status: {
-                self: string;
-                description: string;
-                iconUrl: string;
-                name: string;
-                id: string;
-                statusCategory: {
-                    self: string;
-                    id: 2;
-                    key: string;
-                    colorName: string;
-                    name: string;
-                };
-            };
-            priority: {
-                self: string;
-                iconUrl: string;
-                name: string;
-                id: string;
-            };
-            issuetype: {
-                self: string;
-                id: string;
-                description: string;
-                iconUrl: string;
-                name: string;
-                subtask: false;
-                avatarId: number;
-            };
-        };
-    };
-}
-
 export interface Issue {
     id: string | number;
     key: string;
@@ -247,6 +164,7 @@ export interface Project {
     id: string | number;
     name: string;
     lead: string;
+    isIgnore: boolean;
 }
 
 export interface Relation {
@@ -267,21 +185,13 @@ export interface DescriptionFields {
 export interface Selectors {
     getBodyWebhookEvent(body): string | undefined;
 
-    getResponcedSummary(body): string | undefined;
-
     getTypeEvent(body): string | undefined;
 
     getIssueCreator(body): string | undefined;
 
-    getIssueAssignee(body): string | undefined;
-
-    getIssueMembers(body): string[];
-
     getHookType(body): string | undefined;
 
-    getHandler(body): string | undefined;
-
-    runMethod(body: any, method: string): string | undefined;
+    getIssueMembers(body): string[];
 
     getDisplayName(body): string | undefined;
 
@@ -294,36 +204,28 @@ export interface Selectors {
 
     getIssueName(body): string | undefined;
 
-    getCreatorDisplayName(body): string | undefined;
-
     getProjectKey(body, type: 'issue'): string;
     getProjectKey(body, type?: 'issue'): string | undefined;
 
-    getLinks(body): IssueLink[];
-
-    getChangelog(body): Changelog | undefined;
-
-    getCommentAuthor(body): string | undefined;
-
-    getComment(body): string | undefined;
-
-    getCommentBody(body): { body: string; id: string };
-
-    getUserName(body): string | undefined;
-
-    getEpicKey(body): string | undefined;
+    getCommentBody(body): { body: string; id: string | number };
 
     getKey(body): string | undefined;
 
-    getIssueLinkSourceId(body): string | undefined;
+    // getLinks(body): IssueLink[];
 
-    getIssueLinkDestinationId(body): string | undefined;
+    // getChangelog(body): Changelog | undefined;
 
-    getNameIssueLinkType(body): string | undefined;
+    // getEpicKey(body): string | undefined;
 
-    getSourceRelation(body): string | undefined;
+    // getIssueLinkSourceId(body): string | undefined;
 
-    getDestinationRelation(body): string | undefined;
+    // getIssueLinkDestinationId(body): string | undefined;
+
+    // getNameIssueLinkType(body): string | undefined;
+
+    // getSourceRelation(body): string | undefined;
+
+    // getDestinationRelation(body): string | undefined;
 
     getSummary(body): string | undefined;
 
@@ -331,41 +233,16 @@ export interface Selectors {
 
     getRedisKey(funcName: string, body: any): string;
 
-    getHookUserName(body): string | undefined;
-
-    getChangelogItems(body): ChangelogItem[];
-
     isCorrectWebhook(body: any, hookName: any): boolean;
-
-    isEpic(body): boolean;
 
     isCommentEvent(body): boolean;
 
-    getChangelogField(fieldName: string, body: any);
-
-    getNewSummary(body): string | undefined;
-
-    getNewStatus(body): string | undefined;
-
-    getNewStatusId(body): string | undefined;
-
-    getNewKey(body): string | undefined;
-
-    getOldKey(body): string | undefined;
-
-    getRelations(body): { inward: Relation; outward: Relation };
-
-    getTextIssue(body: any, path: string): string;
-
-    getDescriptionFields(body): DescriptionFields;
-
     getHeaderText(body): string | undefined;
+}
 
-    getLinkKeys(body): string[];
-
-    getInwardLinkKey(body): string | undefined;
-
-    getOutwardLinkKey(body): string | undefined;
+export interface IssueWithComments {
+    key: string;
+    comments: { id: string | number; body: string }[];
 }
 
 export interface TaskTracker {
@@ -375,25 +252,25 @@ export interface TaskTracker {
 
     postComment(keyOrId: string, sender: string, bodyText: string): Promise<any>;
 
-    /**
-     * Set issue to special transition
-     */
-    postIssueStatus(keyOrId: string, id: string): Promise<void>;
+    // /**
+    //  * Set issue to special transition
+    //  */
+    // postIssueStatus(keyOrId: string, id: string): Promise<void>;
 
-    /**
-     * Get all issue transitions
-     */
-    getPossibleIssueStatuses(keyOrId: string): Promise<object[]>;
+    // /**
+    //  * Get all issue transitions
+    //  */
+    // getPossibleIssueStatuses(keyOrId: string): Promise<object[]>;
 
-    /**
-     * Get all issue priorities
-     */
-    getIssuePriorities(keyOrId: string): Promise<object[] | undefined>;
+    // /**
+    //  * Get all issue priorities
+    //  */
+    // getIssuePriorities(keyOrId: string): Promise<object[] | undefined>;
 
-    /**
-     * Update issue priorities
-     */
-    updateIssuePriority(keyOrId: string, priorityId: string): Promise<void>;
+    // /**
+    //  * Update issue priorities
+    //  */
+    // updateIssuePriority(keyOrId: string, priorityId: string): Promise<void>;
 
     /**
      * Ping tasktracker
@@ -405,78 +282,70 @@ export interface TaskTracker {
      */
     getIssueWatchers(keyOrId: string): Promise<string[]>;
 
-    /**
-     * Make GET request to jira by ID to get linked issues
-     */
-    getLinkedIssue(id: string): Promise<Issue>;
+    // /**
+    //  * Make GET request to jira by ID to get linked issues
+    //  */
+    // getLinkedIssue(id: string): Promise<Issue>;
 
     /**
      * Make GET request to jira by key or id
      */
     getIssue(keyOrId): Promise<Issue>;
 
-    /**
-     * Create issue
-     */
-    createIssue(data: {
-        summary: string;
-        issueTypeId: string;
-        projectId: string;
-        parentId: string;
-        isEpic: boolean;
-        isSubtask: boolean;
-        styleProject: string;
-    }): Promise<Issue>;
+    // /**
+    //  * Create link with issue
+    //  */
+    // createEpicLinkClassic(issueKey: string, parentId: string): Promise<void>;
 
-    /**
-     * Create link with issue
-     */
-    createEpicLinkClassic(issueKey: string, parentId: string): Promise<void>;
-
-    /**
-     * Create issue link
-     */
-    createIssueLink(issueKey1: string, issueKey2: string): Promise<void>;
+    // /**
+    //  * Create issue link
+    //  */
+    // createIssueLink(issueKey1: string, issueKey2: string): Promise<void>;
 
     /**
      * Make GET request to jira by project id or key
      */
     getProject(keyOrId: string): Promise<Project>;
 
-    /**
-     * Check if project with such key or id exists
-     */
-    isJiraPartExists(keyOrId: string): Promise<boolean>;
+    // /**
+    //  * Check if project with such key or id exists
+    //  */
+    // isJiraPartExists(keyOrId: string): Promise<boolean>;
+
+    // /**
+    //  * Make GET request to jira by projectID
+    //  */
+    // getProjectWithAdmins(projectKey: string): Promise<Project>;
 
     /**
-     * Make GET request to jira by projectID
+     * Get issue comments collection
      */
-    getProjectWithAdmins(projectKey: string): Promise<Project>;
+    getIssueComments(issueId: string): Promise<IssueWithComments>;
 
-    /**
-     * Make request to jira by issueID adding renderedFields
-     */
-    getIssueFormatted(issueID: string): Promise<RenderedIssue>;
+    // /**
+    //  * Make request to jira by issueID adding renderedFields
+    //  */
+    // getIssueFormatted(issueID: string): Promise<RenderedIssue>;
 
-    /**
-     * Make request to jira by issueID adding renderedFields and filter by fields
-     */
-    getRenderedValues(key: string, fields: string[]): Promise<any>;
+    // /**
+    //  * Make request to jira by issueID adding renderedFields and filter by fields
+    //  */
+    // getRenderedValues(key: string, fields: string[]): Promise<any>;
 
-    /**
-     * Get user list by part of the name
-     */
-    searchUser(partName?: string): Promise<{ displayName: string; accountId: string }[]>;
+    // /**
+    //  * Get user list by part of the name
+    //  */
+    // searchUser(partName?: string): Promise<{ displayName: string; accountId: string }[]>;
 
-    /**
-     * Add watcher to issue
-     */
-    addWatcher(accountId: string, keyOrId: string): Promise<void>;
+    // /**
+    //  * Add watcher to issue
+    //  */
+    // addWatcher(accountId: string, keyOrId: string): Promise<void>;
 
-    /**
-     * Add assign to issue
-     */
-    addAssignee(accountId: string, keyOrId: string): Promise<void>;
+    // /**
+    //  * Add assign to issue
+    //  */
+    // addAssignee(accountId: string, keyOrId: string): Promise<void>;
 
     /**
      * Get issue without throw on error
@@ -488,25 +357,25 @@ export interface TaskTracker {
      */
     hasIssue(keyOrId: string): Promise<boolean>;
 
-    /**
-     * Get status data with color
-     */
-    getStatusData(statusId: string): Promise<{ colorName: string | undefined } | undefined>;
+    // /**
+    //  * Get status data with color
+    //  */
+    // getStatusData(statusId: string): Promise<{ colorName: string | undefined } | undefined>;
 
-    /**
-     * Get last created issue key in project
-     */
-    getLastIssueKey(projectKey: string): Promise<string | undefined>;
+    // /**
+    //  * Get last created issue key in project
+    //  */
+    // getLastIssueKey(projectKey: string): Promise<string | undefined>;
 
-    /**
-     * Check if status exists in project
-     */
-    hasStatusInProject(projectKey: string, status: string): Promise<boolean>;
+    // /**
+    //  * Check if status exists in project
+    //  */
+    // hasStatusInProject(projectKey: string, status: string): Promise<boolean>;
 
-    /**
-     * Get issue current status
-     */
-    getCurrentStatus(keyOrId: string): Promise<string | undefined>;
+    // /**
+    //  * Get issue current status
+    //  */
+    // getCurrentStatus(keyOrId: string): Promise<string | undefined>;
 
     /**
      * Get url for rest api
@@ -746,7 +615,7 @@ export interface PostCommentData {
     issueID: string;
     headerText: string;
     comment: {
-        id: string;
+        id: string | number;
         body: string;
     };
     author: string;
@@ -815,38 +684,15 @@ export enum ActionNames {
 }
 
 export interface Parser {
-    getPostCommentData(body): PostCommentData;
+    issueMovedType: string;
 
     getCreateRoomData(body): CreateRoomData;
 
-    getInviteNewMembersData(body): InviteNewMembersData;
-    getPostNewLinksData(body): PostNewLinksData;
-
-    getPostEpicUpdatesData(body): PostEpicUpdatesData;
-
-    getPostLinkedChangesData(body): PostLinkedChangesData;
-
-    getPostProjectUpdatesData(body): PostProjectUpdatesData;
-
-    getPostIssueUpdatesData(body): PostIssueUpdatesData;
-
-    getPostLinksDeletedData(body);
-
-    isPostComment(body): boolean;
-
-    isPostIssueUpdates(body): boolean;
-
     isCreateRoom(body): boolean;
 
-    isMemberInvite(body): boolean;
+    getBotActions(body): string[];
 
-    isPostEpicUpdates(body): boolean;
+    getPostCommentData(body): PostCommentData;
 
-    isPostProjectUpdates(body): boolean;
-
-    isPostNewLinks(body): boolean;
-
-    isPostLinkedChanges(body): boolean;
-
-    isDeleteLinks(body): boolean;
+    isPostComment(body): boolean;
 }

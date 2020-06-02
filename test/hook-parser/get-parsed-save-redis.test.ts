@@ -47,7 +47,7 @@ describe('get-parsed-save to redis', () => {
             .times(2)
             .reply(200, notIgnoreIssueBody);
 
-        nock(config.jira.url)
+        nock(config.taskTracker.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');
