@@ -73,8 +73,8 @@ describe('redis-data-handle test', () => {
             data: {
                 epicKey: 'BBCOM-801',
                 data: {
-                    key: 'BBCOM-1398',
-                    summary: 'Test',
+                    key: JSONbody.issue.key,
+                    summary: JSONbody.issue.fields.summary,
                     id: '30369',
                     name: 'jira_test',
                 },
@@ -85,9 +85,9 @@ describe('redis-data-handle test', () => {
     const expectedRoom = [
         {
             issue: {
-                key: 'BBCOM-1398',
+                key: JSONbody.issue.key,
                 id: '30369',
-                summary: 'Test',
+                summary: JSONbody.issue.fields.summary,
                 descriptionFields: {
                     assigneeName: JSONbody.issue.fields.assignee.displayName,
                     reporterName: JSONbody.issue.fields.reporter.displayName,
@@ -150,7 +150,8 @@ describe('redis-data-handle test', () => {
     });
 
     describe('Test mode ON', () => {
-        const hookParser = new HookParser(taskTracker, config, queueHandler);
+        const configWithActiveTestMode: Config = { ...config, testMode: { ...config.testMode, on: true } };
+        const hookParser = new HookParser(taskTracker, configWithActiveTestMode, queueHandler);
 
         beforeEach(async () => {
             const notIgnoreCreatorHook = JSONbody;

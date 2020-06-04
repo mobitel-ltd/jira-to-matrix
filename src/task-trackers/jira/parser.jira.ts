@@ -57,9 +57,9 @@ export class JiraParser implements Parser {
     getInviteNewMembersData(body): InviteNewMembersData {
         const key = this.selectors.getKey(body)!;
         const projectKey = this.selectors.getProjectKey(body)!;
-        const { typeName } = this.selectors.getDescriptionFields(body);
+        const descriptionFields = this.selectors.getDescriptionFields(body);
 
-        return { issue: { key, typeName, projectKey } };
+        return { issue: { key, typeName: descriptionFields?.typeName, projectKey } };
     }
 
     getPostNewLinksData(body): PostNewLinksData {

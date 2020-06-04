@@ -66,9 +66,14 @@ export class HookParser {
     }
 
     isTestCreator(creator: string): boolean {
-        const ignoreStatus = this.testMode ? !this.ignoredUsers.includes(creator) : this.ignoredUsers.includes(creator);
+        const status = this.testMode ? !this.ignoredUsers.includes(creator) : this.ignoredUsers.includes(creator);
+        if (status) {
+            logger.warn(
+                `Hook should be ignored because issue creator is ${creator} in test mode state: ${this.testMode}`,
+            );
+        }
 
-        return ignoreStatus;
+        return status;
     }
 
     async isManuallyIgnore(project, taskType, type, body) {
@@ -89,19 +94,21 @@ export class HookParser {
 
     async getManuallyIgnore(body) {
         const type = this.selectors.getHookType(body);
-        if (this.taskTracker.isIgnoreHookType(type)) {
+        if (this.taskTracker.isAvoidHookType(type)) {
             return false;
         }
-        const { typeName } = this.selectors.getDescriptionFields(body);
-        if (!typeName) {
-            return false;
-        }
+        const descriptionFields = this.selectors.getDescriptionFields(body);
 
         const keyOrId = await this.taskTracker.getKeyOrIdForCheckIgnore(body);
         const issue = await this.taskTracker.getIssue(keyOrId!);
-        const projectKey = this.selectors.getProjectKey({ issue });
+        const projectKey = this.selectors.getProjectKey(issue);
 
-        return await this.isManuallyIgnore(projectKey, typeName, type, body);
+        const status = await this.isManuallyIgnore(projectKey, descriptionFields?.typeName, type, body);
+        if (status) {
+            logger.warn('Hook is ignored by user manually');
+        }
+
+        return status;
     }
 
     async isIgnoreCreator(body) {
@@ -113,6 +120,15 @@ export class HookParser {
         return this.isTestCreator(issueCreator);
     }
 
+    async isIgnoreHook(body): Promise<boolean> {
+        const status = await this.taskTracker.isIgnoreHook(body);
+        if (status) {
+            logger.warn('Hook should be ignored because its type is cannot be handle');
+        }
+
+        return status;
+    }
+
     async getIgnoreProject(body) {
         await this.taskTracker.testJiraRequest();
         const webhookEvent = this.selectors.getBodyWebhookEvent(body);
@@ -120,7 +136,7 @@ export class HookParser {
         const issueName = this.selectors.getIssueName(body);
 
         const ignoreStatus =
-            (await this.taskTracker.isIgnoreHook(body)) ||
+            (await this.isIgnoreHook(body)) ||
             (await this.getManuallyIgnore(body)) ||
             (await this.isIgnoreCreator(body));
 

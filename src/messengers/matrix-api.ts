@@ -144,7 +144,9 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
      * Convert string with alias to matrix form
      */
     _getMatrixRoomAlias(alias: string): string {
-        return `#${alias}:${this.config.messenger.domain}`;
+        const upperAlias = alias.toUpperCase();
+
+        return `#${upperAlias}:${this.config.messenger.domain}`;
     }
 
     /**

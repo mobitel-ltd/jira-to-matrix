@@ -183,7 +183,7 @@ export interface DescriptionFields {
 }
 
 export interface Selectors {
-    getDescriptionFields(body): DescriptionFields;
+    getDescriptionFields(body): DescriptionFields | undefined;
 
     getBodyWebhookEvent(body): string | undefined;
 
@@ -256,7 +256,7 @@ export interface TaskTracker {
 
     getKeyOrIdForCheckIgnore(body): Promise<string> | string;
 
-    isIgnoreHookType(type?: string): boolean;
+    isAvoidHookType(type?: string): boolean;
 
     postComment(keyOrId: string, sender: string, bodyText: string): Promise<any>;
 
@@ -473,6 +473,15 @@ interface CommonMessengerApi {
     getRoomDataById(roomId: string): Promise<RoomData | undefined>;
 }
 
+export interface CreateRoomOpions {
+    room_alias_name: string;
+    invite: string[];
+    name: string;
+    topic?: string;
+    purpose?: string;
+    avatarUrl?: string;
+}
+
 export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
     /**
      * Get link to download media
@@ -534,14 +543,7 @@ export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
     /**
      * Create chat room
      */
-    createRoom(options: {
-        room_alias_name: string;
-        invite: string[];
-        name: string;
-        topic?: string;
-        purpose?: string;
-        avatarUrl?: string;
-    }): Promise<string>;
+    createRoom(options: CreateRoomOpions): Promise<string>;
 
     /**
      * Check if user is in room
@@ -581,7 +583,7 @@ export interface CreateRoomData {
 }
 
 export interface InviteNewMembersData {
-    issue: { key: string; typeName: string; projectKey: string };
+    issue: { key: string; typeName?: string; projectKey: string };
     projectKey?: string;
 }
 

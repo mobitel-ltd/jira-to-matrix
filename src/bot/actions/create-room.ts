@@ -4,7 +4,7 @@ import { getLogger } from '../../modules/log';
 import { translate } from '../../locales';
 import { getAutoinviteUsers } from '../settings';
 import { infoBody } from '../../lib/messages';
-import { CreateRoomData, MessengerApi, TaskTracker } from '../../types';
+import { CreateRoomData, MessengerApi, TaskTracker, DescriptionFields } from '../../types';
 import { errorTracing } from '../../lib/utils';
 import { LINE_BREAKE_TAG, INDENT } from '../../lib/consts';
 import { BaseAction, RunAction } from './base-action';
@@ -16,6 +16,13 @@ export const getOpenedDescriptionBlock = data => [LINE_BREAKE_TAG, INDENT, data]
 export const getClosedDescriptionBlock = data => [getOpenedDescriptionBlock(data), LINE_BREAKE_TAG].join('');
 
 // eslint-disable-next-line
+
+interface CreateIssueRoomOptions {
+    key: string;
+    summary: string;
+    projectKey: string;
+    descriptionFields: DescriptionFields;
+}
 
 export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements RunAction {
     getEpicInfo(epicLink) {
@@ -46,9 +53,8 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
         return [post, epicInfo].join('\n');
     }
 
-    getDescription(issue): { body: string; htmlBody: string } {
+    getDescription(descriptionFields: DescriptionFields): { body: string; htmlBody: string } {
         try {
-            const descriptionFields = this.taskTracker.selectors.getDescriptionFields(issue);
             const htmlBody = this.getPost(descriptionFields);
             const body = fromString(htmlBody);
 
@@ -58,17 +64,12 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
         }
     }
 
-    async createIssueRoom(issue): Promise<void> {
+    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<void> {
         try {
             const { colors } = this.config;
-            const {
-                key,
-                summary,
-                projectKey,
-                descriptionFields: { typeName },
-            } = issue;
+            const { key, summary, projectKey, descriptionFields } = issue;
 
-            const autoinviteUsers = await getAutoinviteUsers(projectKey, typeName);
+            const autoinviteUsers = await getAutoinviteUsers(projectKey, descriptionFields.typeName);
 
             const issueWatchers = await this.taskTracker.getIssueWatchers(issue.key);
             const issueWatchersChatIds = await Promise.all(
@@ -94,11 +95,12 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
             const roomId = await this.chatApi.createRoom(options);
 
             logger.info(`Created room for ${key}: ${roomId}`);
-            const { body, htmlBody } = this.getDescription(issue);
+            const { body, htmlBody } = this.getDescription(descriptionFields);
 
             await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
             await this.chatApi.sendHtmlMessage(roomId, infoBody, infoBody);
         } catch (err) {
+            console.log('err', err);
             throw errorTracing('createIssueRoom', err);
         }
     }
@@ -124,37 +126,37 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
         }
     }
 
-    async getCheckedIssue(issueData) {
-        const issueBody = await this.taskTracker.getIssueSafety(issueData.key || issueData.id);
+    async getCheckedIssue(keyOrId): Promise<CreateIssueRoomOptions | false> {
+        const issueBody = await this.taskTracker.getIssueSafety(keyOrId);
         if (!issueBody) {
-            return issueData;
+            return false;
         }
 
         return {
-            ...issueData,
-            key: this.taskTracker.selectors.getKey(issueBody),
-            roomMembers: this.taskTracker.selectors.getMembers(issueBody),
-            summary: this.taskTracker.selectors.getSummary(issueBody),
-            descriptionFields: this.taskTracker.selectors.getDescriptionFields(issueBody),
+            key: this.taskTracker.selectors.getIssueKey(issueBody)!,
+            summary: this.taskTracker.selectors.getSummary(issueBody)!,
+            descriptionFields: this.taskTracker.selectors.getDescriptionFields(issueBody)!,
+            projectKey: this.taskTracker.selectors.getProjectKey(issueBody)!,
         };
     }
 
-    hasData(issue) {
-        return issue.key && issue.summary;
+    hasEmptyPorperty(issue: CreateRoomData['issue']): boolean {
+        return !Object.values(issue).find(el => !el);
     }
 
     async run({ issue, projectKey }: CreateRoomData): Promise<boolean> {
         try {
             const keyOrId = issue.key || issue.id;
             if (issue && keyOrId) {
-                if (!(await this.taskTracker.hasIssue(keyOrId))) {
+                const checkedIssue = await this.getCheckedIssue(keyOrId);
+                if (!checkedIssue) {
                     logger.warn(`Issue ${keyOrId} is not exists`);
 
                     return false;
                 }
-                const checkedIssue = this.hasData(issue) ? issue : await this.getCheckedIssue(issue);
-
-                (await this.chatApi.getRoomIdByName(checkedIssue.key)) || (await this.createIssueRoom(checkedIssue));
+                if (!(await this.chatApi.getRoomIdByName(checkedIssue.key))) {
+                    await this.createIssueRoom(checkedIssue);
+                }
             }
             if (projectKey) {
                 (await this.chatApi.getRoomIdByName(projectKey)) || (await this.createProjectRoom(projectKey));

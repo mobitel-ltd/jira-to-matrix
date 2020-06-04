@@ -106,7 +106,7 @@ describe('Post comments test', () => {
                 .get(`/projects`)
                 .query({ search: gitlabCommentCreated.project.path_with_namespace })
                 .reply(200, projectsJson)
-                .get(`/projects/${projectsJson[0].id}/issues/${gitlabCommentCreated.issue.id}/notes`)
+                .get(`/projects/${projectsJson[0].id}/issues/${gitlabCommentCreated.issue.iid}/notes`)
                 .reply(200, gitlabIssueComments);
 
             const chatClass = getChatClass({ alias: postCommentData.issueId });
@@ -128,7 +128,7 @@ describe('Post comments test', () => {
                     id: gitlabCommentCreated.object_attributes.id,
                 },
                 headerText: translate('comment_created', { name: gitlabCommentCreated.user.name }),
-                issueId: gitlabCommentCreated.project.path_with_namespace + '-' + gitlabCommentCreated.issue.id,
+                issueId: gitlabCommentCreated.project.path_with_namespace + '-' + gitlabCommentCreated.issue.iid,
             };
 
             expect(postCommentData).to.be.deep.eq(expectedPostCommentData);

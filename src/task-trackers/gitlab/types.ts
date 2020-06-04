@@ -181,7 +181,7 @@ export interface GitlabIssue {
     state: string;
     iid: number;
     assignees: GitlabUserDataShort[];
-    assignee: GitlabUserDataShort;
+    assignee: GitlabUserDataShort | null;
     labels: [];
     upvotes: number;
     downvotes: number;

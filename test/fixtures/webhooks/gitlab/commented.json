@@ -10,18 +10,18 @@
         "id": 5,
         "name": "Gitlab Test",
         "description": "Aut reprehenderit ut est.",
-        "web_url": "http://example.com/gitlab-org/gitlab-test",
+        "web_url": "http://example.com/indev/gitlabtomatrix",
         "avatar_url": null,
-        "git_ssh_url": "git@example.com:gitlab-org/gitlab-test.git",
-        "git_http_url": "http://example.com/gitlab-org/gitlab-test.git",
+        "git_ssh_url": "git@example.com:indev/gitlabtomatrix.git",
+        "git_http_url": "http://example.com/indev/gitlabtomatrix.git",
         "namespace": "Gitlab Org",
         "visibility_level": 10,
-        "path_with_namespace": "gitlab-org/gitlab-test",
+        "path_with_namespace": "indev/gitlabtomatrix",
         "default_branch": "master",
-        "homepage": "http://example.com/gitlab-org/gitlab-test",
-        "url": "http://example.com/gitlab-org/gitlab-test.git",
-        "ssh_url": "git@example.com:gitlab-org/gitlab-test.git",
-        "http_url": "http://example.com/gitlab-org/gitlab-test.git"
+        "homepage": "http://example.com/indev/gitlabtomatrix",
+        "url": "http://example.com/indev/gitlabtomatrix.git",
+        "ssh_url": "git@example.com:indev/gitlabtomatrix.git",
+        "http_url": "http://example.com/indev/gitlabtomatrix.git"
     },
     "repository": {
         "name": "diaspora",
@@ -43,7 +43,7 @@
         "noteable_id": 92,
         "system": false,
         "st_diff": null,
-        "url": "http://example.com/gitlab-org/gitlab-test/issues/17#note_1241"
+        "url": "http://example.com/indev/gitlabtomatrix/issues/17#note_1241"
     },
     "issue": {
         "id": 92,

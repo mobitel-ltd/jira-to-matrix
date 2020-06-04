@@ -29,9 +29,9 @@ const missField = translate('miss');
 const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<GitlabCommentHook> } = {
     issue: {
         getProjectKey: body => body.project.path_with_namespace,
-        getFullKey: body => transformToKey(body.project.path_with_namespace, body.object_attributes.id),
+        getFullKey: body => transformToKey(body.project.path_with_namespace, body.object_attributes.iid),
         getDisplayName: body => body.user.name,
-        getIssueId: body => body.object_attributes.id,
+        getIssueId: body => body.object_attributes.iid,
         getIssueName: body => body.object_attributes.title,
         getSummary: body => body.object_attributes.description,
         getMembers: body => [body.assignee.name, body.user.name],
@@ -46,14 +46,14 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         }),
     },
     note: {
-        getFullKey: body => transformToKey(body.project.path_with_namespace, body.issue.id),
+        getFullKey: body => transformToKey(body.project.path_with_namespace, body.issue.iid),
         getProjectKey: body => body.project.path_with_namespace,
         getDisplayName: body => body.user.name,
         getCommentBody: body => ({
             id: body.object_attributes.id,
             body: body.object_attributes.note,
         }),
-        getIssueId: body => body.issue.id,
+        getIssueId: body => body.issue.iid,
         getIssueName: body => body.issue.title,
         getSummary: body => body.issue.description,
         // Return undefined because there is no way to get expected issue fields by comment hook
@@ -63,17 +63,17 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
 };
 
 const issueRequestHandlers: BodyGetters<GitlabIssue> = {
-    getMembers: body => [body.author.username, body.assignee.username],
+    getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
     getDisplayName: body => body.author.name,
-    getIssueId: body => body.id,
+    getIssueId: body => body.iid,
     getProjectKey: body => {
         const [projectKey] = body.references.full.split('#');
 
         return projectKey;
     },
-    getFullKey: body => transformToKey(issueRequestHandlers.getProjectKey(body), body.id),
+    getFullKey: body => transformToKey(issueRequestHandlers.getProjectKey(body), body.iid),
     getIssueName: body => body.title,
-    getSummary: body => body.description,
+    getSummary: body => body.title,
     getDescriptionFields: body => ({
         assigneeName: issueRequestHandlers.getDisplayName(body),
         description: issueRequestHandlers.getSummary(body),
@@ -119,7 +119,7 @@ const isCommentEvent = body => getBodyWebhookEvent(body) === HookTypes.Comment;
 
 const getTypeEvent = body => body?.event_type;
 
-const getIssueCreator = (body: GitlabIssue) => body?.author?.name;
+const getIssueCreator = (body: GitlabIssue) => body?.author?.username;
 
 const getDisplayName = body => runMethod(body, 'getDisplayName');
 

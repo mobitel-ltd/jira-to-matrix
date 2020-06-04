@@ -56,7 +56,7 @@ export class Gitlab implements TaskTracker {
 
             return response.data;
         } catch (err) {
-            throw messages.getRequestErrorLog(url, err.response.status, options.method, err.response.statusText);
+            throw messages.getRequestErrorLog(url, err?.response?.status, options.method, err?.response?.statusText);
         }
     }
 
@@ -130,6 +130,8 @@ export class Gitlab implements TaskTracker {
 
             return issue;
         } catch (error) {
+            logger.warn(error);
+
             return false;
         }
     }
@@ -173,7 +175,7 @@ export class Gitlab implements TaskTracker {
         const issue = await this.getIssue(key);
         const members = [issue.assignee, issue.author];
 
-        return members.map(el => el.name);
+        return members.filter(Boolean).map(el => el!.name);
     }
 
     getViewUrl(key: string) {
@@ -219,7 +221,7 @@ export class Gitlab implements TaskTracker {
         return this.selectors.isIgnoreHookType(body);
     }
 
-    isIgnoreHookType() {
+    isAvoidHookType() {
         return false;
     }
 }

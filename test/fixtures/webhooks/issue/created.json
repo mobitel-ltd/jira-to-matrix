@@ -137,7 +137,7 @@
             "customfield_10807": null,
             "customfield_10808": null,
             "customfield_10809": null,
-            "summary": "Test",
+            "summary": "Prueba de creación de tareas en un proyecto público",
             "creator": {
                 "self": "https://jira.test-example.ru/rest/api/2/user?accountId=5b912f5c8a96e82b9549361c",
                 "accountId": "5b912f5c8a96e82b9549361c",

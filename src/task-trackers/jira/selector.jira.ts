@@ -117,23 +117,11 @@ export const getMembers = body => runMethod(body, 'getMembers') || handlers.issu
 
 export const getIssueId = (body): string => runMethod(body, 'getIssueId');
 
-export const getIssueKey = body => runMethod(body, 'getIssueKey');
+export const getIssueKey = body => runMethod(body, 'getIssueKey') || handlers.issue.getIssueKey({ issue: body });
 
 export const getIssueName = body => runMethod(body, 'getIssueName');
 
-export const getProjectKey: Selectors['getProjectKey'] = (body: Issue | any, type?: 'issue') => {
-    if (type) {
-        switch (type) {
-            case 'issue':
-                return body?.fields?.project?.key;
-
-            default:
-                break;
-        }
-    }
-
-    return runMethod(body, 'getProjectKey') || handlers.issue.getProjectKey(body);
-};
+export const getProjectKey = body => runMethod(body, 'getProjectKey') || handlers.issue.getProjectKey({ issue: body });
 
 export const getLinks = body => runMethod(body, 'getLinks');
 
@@ -217,7 +205,8 @@ export const getRelations = (issueLinkBody): { inward: Relation; outward: Relati
 
 export const getTextIssue = (body, path): string => {
     const params = path.split('.');
-    const text = String(R.path(['issue', 'fields', ...params], body) || translate('miss')).trim();
+    const baseParams = body.issue ? ['issue', 'fields'] : ['fields'];
+    const text = String(R.path([...baseParams, ...params], body) || translate('miss')).trim();
 
     return text;
 };

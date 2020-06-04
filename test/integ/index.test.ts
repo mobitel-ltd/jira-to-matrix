@@ -1,4 +1,4 @@
-import * as Ramda from 'ramda';
+import * as R from 'ramda';
 import { pipe, set, clone } from 'lodash/fp';
 import nock from 'nock';
 import * as faker from 'faker';
@@ -173,16 +173,16 @@ const testUserId = faker.random.arrayElement(config.testMode.users);
 const ignoredBody = pipe(clone, set('fields.creator.displayName', testUserId))(notIgnoreCreatorIssueBody) as any;
 
 describe('Integ tests', () => {
-    const slackConfig: Config = { ...config, messenger: slack };
+    const slackConfig: Config = { ...config, messenger: slack, testMode: { ...config.testMode, on: true } };
     const testConfig: ChatConfig = { ...slackConfig, ...slackConfig.messenger.bots[0] };
 
-    const commands = new Commands(config, taskTracker);
+    const commands = new Commands(slackConfig, taskTracker);
     const slackApi = new SlackApi(commands, testConfig, logger, sdk as any);
-    const actions = new Actions(config, taskTracker, slackApi as any);
-    const queueHandler = new QueueHandler(taskTracker, config, actions);
+    const actions = new Actions(slackConfig, taskTracker, slackApi as any);
+    const queueHandler = new QueueHandler(taskTracker, slackConfig, actions);
     slackApi.getUserIdByDisplayName = getUserIdByDisplayName;
 
-    const fsm = new FSM([slackApi as any], getServer, taskTracker, config);
+    const fsm = new FSM([slackApi as any], getServer, taskTracker, slackConfig);
 
     beforeEach(async () => {
         fsm.start();
@@ -243,7 +243,7 @@ describe('Integ tests', () => {
         expect(res.text).to.be.eq(`Version ${process.env.npm_package_version}`);
     });
 
-    it.only('Expect comment created hook to be handled', async () => {
+    it('Expect comment created hook to be handled', async () => {
         nock.cleanAll();
         nock(config.taskTracker.url)
             .get('')
@@ -374,6 +374,6 @@ describe('Integ tests', () => {
         await request.delete('/ignore/INDEV').expect(200);
 
         const { body } = await request.get('/ignore');
-        expect(body).to.be.deep.eq(Ramda.omit(['INDEV'], ignoreData));
+        expect(body).to.be.deep.eq(R.omit(['INDEV'], ignoreData));
     });
 });

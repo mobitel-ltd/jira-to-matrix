@@ -33,7 +33,7 @@ export const config = {
     // useful for testing, add a test user into production config
     usersToIgnore: ['ivan_prod'],
     testMode: {
-        on: true,
+        on: false,
         users: ['ivan', 'jira_test'],
     },
     redis: {

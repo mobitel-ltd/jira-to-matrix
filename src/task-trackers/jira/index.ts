@@ -580,7 +580,7 @@ export class Jira implements TaskTracker {
         return status;
     }
 
-    isIgnoreHookType(type: string) {
+    isAvoidHookType(type: string) {
         return type === 'project';
     }
 
