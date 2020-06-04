@@ -11,8 +11,8 @@ import { config } from '../../src/config';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { Gitlab } from '../../src/task-trackers/gitlab';
-import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import gitlabIssueComments from '../fixtures/gitlab-api-requests/comments.json';
 import { PostCommentData } from '../../src/types';
 import { translate } from '../../src/locales';
 
@@ -32,11 +32,11 @@ describe('Post comments test', () => {
 
         before(() => {
             nock(taskTracker.getRestUrl())
-                .get(`/issue/${postCommentData.issueID}`)
+                .get(`/issue/${postCommentData.issueId}`)
                 .query(Jira.expandParams)
                 .times(2)
                 .reply(200, issueRenderedBody)
-                .get(`/issue/${postCommentUpdatedData.issueID}`)
+                .get(`/issue/${postCommentUpdatedData.issueId}`)
                 .query(Jira.expandParams)
                 .reply(200, issueRenderedBody);
         });
@@ -77,8 +77,8 @@ describe('Post comments test', () => {
             expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomId, fromString(htmlBody), htmlBody);
         });
 
-        it('Expect return with empty issueID. No way to handle issue', async () => {
-            const res = await postComment.run({ ...postCommentData, issueID: null as any });
+        it('Expect return with empty issueId. No way to handle issue', async () => {
+            const res = await postComment.run({ ...postCommentData, issueId: null as any });
             expect(res).to.be.undefined;
         });
 
@@ -101,20 +101,17 @@ describe('Post comments test', () => {
         const roomId = 'roomId';
         const postCommentData = gitlabTracker.parser.getPostCommentData(gitlabCommentCreated);
 
-        before(() => {
+        beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
                 .get(`/projects`)
                 .query({ search: gitlabCommentCreated.project.path_with_namespace })
                 .reply(200, projectsJson)
-                .get(`/projects/${projectsJson[0].id}/issues/${gitlabCommentCreated.issue.id}`)
-                .reply(200, gitlabIssueJson);
-        });
+                .get(`/projects/${projectsJson[0].id}/issues/${gitlabCommentCreated.issue.id}/notes`)
+                .reply(200, gitlabIssueComments);
 
-        beforeEach(() => {
-            const chatClass = getChatClass();
+            const chatClass = getChatClass({ alias: postCommentData.issueId });
             chatSingle = chatClass.chatApiSingle;
             chatApi = chatClass.chatApi;
-            chatSingle.getRoomId.withArgs(issueRenderedBody.key).resolves(roomId);
 
             postComment = new PostComment(config, gitlabTracker, chatApi);
         });
@@ -131,7 +128,7 @@ describe('Post comments test', () => {
                     id: gitlabCommentCreated.object_attributes.id,
                 },
                 headerText: translate('comment_created', { name: gitlabCommentCreated.user.name }),
-                issueID: gitlabCommentCreated.project.path_with_namespace + '-' + gitlabCommentCreated.issue.id,
+                issueId: gitlabCommentCreated.project.path_with_namespace + '-' + gitlabCommentCreated.issue.id,
             };
 
             expect(postCommentData).to.be.deep.eq(expectedPostCommentData);

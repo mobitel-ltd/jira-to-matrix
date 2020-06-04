@@ -36,10 +36,10 @@ export class JiraParser implements Parser {
     getPostCommentData(body): PostCommentData {
         const headerText = this.selectors.getHeaderText(body)!;
         const author = this.selectors.getDisplayName(body)!;
-        const issueID = this.selectors.getIssueId<Issue>(body)!;
+        const issueId = this.selectors.getIssueId<Issue>(body)!;
         const comment = this.selectors.getCommentBody(body);
 
-        return { issueID, headerText, comment, author };
+        return { issueId, headerText, comment, author };
     }
 
     getCreateRoomData(body): CreateRoomData {
@@ -134,9 +134,7 @@ export class JiraParser implements Parser {
     }
 
     isPostComment(body) {
-        return Boolean(
-            this.features.postComments && this.selectors.isCommentEvent(body) && this.selectors.getComment(body),
-        );
+        return Boolean(this.features.postComments && this.selectors.isCommentEvent(body));
     }
 
     isPostIssueUpdates(body) {

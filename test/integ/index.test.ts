@@ -243,7 +243,7 @@ describe('Integ tests', () => {
         expect(res.text).to.be.eq(`Version ${process.env.npm_package_version}`);
     });
 
-    it('Expect comment created hook to be handled', async () => {
+    it.only('Expect comment created hook to be handled', async () => {
         nock.cleanAll();
         nock(config.taskTracker.url)
             .get('')
@@ -251,7 +251,7 @@ describe('Integ tests', () => {
             .reply(200, '<HTML>');
         nock(taskTracker.getRestUrl())
             .get(`/issue/${issueId}`)
-            .times(2)
+            .times(3)
             .reply(200, ignoredBody)
             .get(`/issue/${issueId}`)
             .query(Jira.expandParams)

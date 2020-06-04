@@ -18,6 +18,6 @@ export const fileRequest = async (url, newOptions?: requestPromise.RequestPromis
 
         return response;
     } catch (err) {
-        throw getRequestErrorLog(url, err.statusCode, options);
+        throw getRequestErrorLog(url, err.statusCode, 'GET');
     }
 };

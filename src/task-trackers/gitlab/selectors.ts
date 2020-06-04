@@ -1,53 +1,102 @@
 import { GitlabIssueHook, GitlabCommentHook, HookTypes, GitlabSelectors, GitlabIssue } from './types';
 import { translate } from '../../locales';
+import { DescriptionFields } from '../../types';
 
 const transformToKey = (namespaceWithProject: string, issueId: number) => [namespaceWithProject, issueId].join('-');
 
-const handlers = {
+interface BodyGetters<T> {
+    getProjectKey(body: T): string;
+    getFullKey(body: T): string;
+    getDisplayName(body: T): string;
+    getIssueId(body: T): number;
+    getIssueName(body: T): string;
+    getSummary(body: T): string;
+    getMembers(body: T): string[];
+    getDescriptionFields(body: T): DescriptionFields | undefined;
+}
+
+interface CommentGetters<T> extends BodyGetters<T> {
+    getCommentBody(
+        body: T,
+    ): {
+        id: number;
+        body: string;
+    };
+}
+
+const missField = translate('miss');
+
+const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<GitlabCommentHook> } = {
     issue: {
-        getProjectKey: (body: GitlabIssueHook) => body.project.path_with_namespace,
-        getFullKey: (body: GitlabIssueHook) =>
-            transformToKey(body.project.path_with_namespace, body.object_attributes.id),
-        getDisplayName: (body: GitlabIssueHook) => body.user.name,
-        getIssueId: (body: GitlabIssueHook) => body.object_attributes.id,
-        getIssueName: (body: GitlabIssueHook) => body.object_attributes.title,
-        getSummary: (body: GitlabIssueHook) => body.object_attributes.description,
+        getProjectKey: body => body.project.path_with_namespace,
+        getFullKey: body => transformToKey(body.project.path_with_namespace, body.object_attributes.id),
+        getDisplayName: body => body.user.name,
+        getIssueId: body => body.object_attributes.id,
+        getIssueName: body => body.object_attributes.title,
+        getSummary: body => body.object_attributes.description,
+        getMembers: body => [body.assignee.name, body.user.name],
+        getDescriptionFields: body => ({
+            assigneeName: handlers.issue.getDisplayName(body),
+            description: handlers.issue.getSummary(body),
+            epicLink: missField,
+            estimateTime: missField,
+            priority: missField,
+            reporterName: missField,
+            typeName: missField,
+        }),
     },
     note: {
-        getFullKey: (body: GitlabCommentHook) =>
-            transformToKey(body.project.path_with_namespace, body.object_attributes.id),
-        getProjectKey: (body: GitlabCommentHook) => body.project.path_with_namespace,
-        getDisplayName: (body: GitlabCommentHook) => body.user.name,
-        getCommentBody: (body: GitlabCommentHook) => ({
+        getFullKey: body => transformToKey(body.project.path_with_namespace, body.issue.id),
+        getProjectKey: body => body.project.path_with_namespace,
+        getDisplayName: body => body.user.name,
+        getCommentBody: body => ({
             id: body.object_attributes.id,
             body: body.object_attributes.note,
         }),
-        getIssueId: (body: GitlabCommentHook) => body.issue.id,
-        getIssueName: (body: GitlabCommentHook) => body.issue.title,
-        getSummary: (body: GitlabCommentHook) => body.issue.description,
+        getIssueId: body => body.issue.id,
+        getIssueName: body => body.issue.title,
+        getSummary: body => body.issue.description,
+        // Return undefined because there is no way to get expected issue fields by comment hook
+        getDescriptionFields: () => undefined,
+        getMembers: body => [body.user.name],
     },
 };
 
-const issueRequestHandlers = {
-    getMembers: (body: GitlabIssue) => [body.author.username, body.assignee.username],
-    getDisplayName: (body: GitlabIssue) => body.author.name,
-    getIssueId: (body: GitlabIssue) => body.id,
-    getProjectKey: (body: GitlabIssue): string => {
+const issueRequestHandlers: BodyGetters<GitlabIssue> = {
+    getMembers: body => [body.author.username, body.assignee.username],
+    getDisplayName: body => body.author.name,
+    getIssueId: body => body.id,
+    getProjectKey: body => {
         const [projectKey] = body.references.full.split('#');
 
         return projectKey;
     },
-    getFullKey: (body: GitlabIssue) => transformToKey(issueRequestHandlers.getProjectKey(body), body.id),
-    getIssueName: (body: GitlabIssue) => body.title,
-    getSummary: (body: GitlabIssue) => body.description,
+    getFullKey: body => transformToKey(issueRequestHandlers.getProjectKey(body), body.id),
+    getIssueName: body => body.title,
+    getSummary: body => body.description,
+    getDescriptionFields: body => ({
+        assigneeName: issueRequestHandlers.getDisplayName(body),
+        description: issueRequestHandlers.getSummary(body),
+        epicLink: missField,
+        estimateTime: missField,
+        priority: missField,
+        reporterName: missField,
+        typeName: missField,
+    }),
 };
 
 const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind;
 
-const getHandler = body => {
+const getHandler = (body): typeof issueRequestHandlers | typeof handlers.issue | typeof handlers.note | undefined => {
     const type = getBodyWebhookEvent(body);
 
-    return type && handlers[type];
+    return (type && handlers[type]) || issueRequestHandlers;
+};
+
+const isIgnoreHookType = (body): boolean => {
+    const type = getBodyWebhookEvent(body);
+
+    return !Boolean(type && handlers[type]);
 };
 
 const runMethod = (body: any, method: string): any => {
@@ -94,6 +143,8 @@ const getIssueName = body => runMethod(body, 'getIssueName') || issueRequestHand
 
 const getSummary = body => runMethod(body, 'getSummary') || issueRequestHandlers.getSummary(body);
 
+const getDescriptionFields = (body): DescriptionFields => runMethod(body, 'getDescriptionFields');
+
 export const selectors: GitlabSelectors = {
     transformToKey,
     getBodyTimestamp,
@@ -115,4 +166,6 @@ export const selectors: GitlabSelectors = {
     getKey: getIssueKey,
     getIssueName,
     getSummary,
+    getDescriptionFields,
+    isIgnoreHookType,
 };

@@ -163,7 +163,7 @@ const loadAndSaveMedia = async ({ url, fileName }, dir) => {
             return fileName;
         }
 
-        const data = await fileRequest(url);
+        const data: any = await fileRequest(url);
         const pathToFile = path.resolve(dir, fileName);
         await fs.writeFile(pathToFile, data);
         logger.debug(`Media file with name ${fileName} is saved!!!`);

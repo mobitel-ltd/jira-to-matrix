@@ -119,7 +119,7 @@ describe('Post issue updates test', () => {
         expect(result).to.be.ok;
     });
 
-    it('Get error with empty issueID', async () => {
+    it('Get error with empty issueId', async () => {
         const newBody = set('oldKey', undefined, postIssueUpdatesData);
         let result;
         try {

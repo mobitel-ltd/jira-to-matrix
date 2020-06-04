@@ -327,7 +327,7 @@ describe('request testing', () => {
     it('test request with error url', async () => {
         const testUrl = taskTracker.getRestUrl(fakePath);
         let res;
-        const expected = getRequestErrorLog(testUrl, 400);
+        const expected = getRequestErrorLog(testUrl, 400, 'GET', null);
 
         try {
             await jiraApi.request(testUrl);

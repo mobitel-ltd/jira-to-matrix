@@ -58,7 +58,7 @@ export const redis = {
     setAsync: promisify(client.set).bind(client),
     delAsync: promisify(client.del).bind(client),
     keysAsync: promisify(client.keys).bind(client),
-    isInEpic: (redisEpicKey, issueID) => sismemberAsync(redisEpicKey, issueID),
+    isInEpic: (redisEpicKey, issueId) => sismemberAsync(redisEpicKey, issueId),
     addToList: (list, id) => saddAsync(list, id),
     getList: promisify(client.smembers).bind(client),
     isNewLink: id => setnxAsync(getRedisLinkKey(id), '1'),

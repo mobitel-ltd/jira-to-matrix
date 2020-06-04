@@ -20,7 +20,7 @@ describe('get-parsed-save to redis', () => {
     const expected = {
         funcName: 'postComment',
         data: {
-            issueID: commentCreatedHook.comment.self.split('/').reverse()[2],
+            issueId: commentCreatedHook.comment.self.split('/').reverse()[2],
             headerText: translate(commentCreatedHook.webhookEvent, {
                 name: commentCreatedHook.comment.author.displayName,
             }),
@@ -38,13 +38,13 @@ describe('get-parsed-save to redis', () => {
     const queueHandler = new QueueHandler(taskTracker, configProdMode, actions);
     const hookParser = new HookParser(taskTracker, configProdMode, queueHandler);
 
-    before(() => {
+    beforeEach(() => {
         nock(taskTracker.getRestUrl())
             .get(`/project/${issueCommentedHook.issue.fields.project.id}`)
             .times(5)
             .reply(200, { isPrivate: false })
             .get(`/issue/${issueId}`)
-            .times(2)
+            .times(3)
             .reply(200, notIgnoreIssueBody);
 
         nock(config.taskTracker.url)
@@ -54,11 +54,8 @@ describe('get-parsed-save to redis', () => {
     });
 
     afterEach(async () => {
-        await cleanRedis();
-    });
-
-    after(() => {
         nock.cleanAll();
+        await cleanRedis();
     });
 
     it('isCommentEvent', () => {

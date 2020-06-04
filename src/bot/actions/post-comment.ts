@@ -9,20 +9,20 @@ const logger = getLogger(module);
 export const getCommentHTMLBody = (headerText, commentBody) => `${headerText}: <br>${commentBody}`;
 
 export class PostComment extends BaseAction<ChatFasade, TaskTracker> {
-    async run({ issueID, headerText, comment, author }: PostCommentData) {
+    async run({ issueId, headerText, comment, author }: PostCommentData) {
         try {
-            if (!issueID) {
+            if (!issueId) {
                 logger.warn('No IssueId for posting comment. No way to define params for posting comment');
                 return;
             }
-            const issue = await this.taskTracker.getIssueComments(issueID);
-            const roomId = await this.chatApi.getRoomId(issue.key);
-            const commentBody = issue.comments.find(el => el.id === comment.id)?.body || comment.body;
+            const { key, comments } = await this.taskTracker.getIssueComments(issueId);
+            const roomId = await this.chatApi.getRoomId(key);
+            const commentBody = comments.find(el => el.id === comment.id)?.body || comment.body;
 
             const htmlBody = getCommentHTMLBody(headerText, commentBody);
             const body = fromString(htmlBody);
             await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
-            logger.debug(`Posted comment ${commentBody} to ${issue.key} from ${author}\n`);
+            logger.debug(`Posted comment ${commentBody} to ${key} from ${author}\n`);
 
             return true;
         } catch (err) {

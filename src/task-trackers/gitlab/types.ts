@@ -173,8 +173,8 @@ export interface GitlabIssue {
         title: string;
         created_at: string;
         updated_at: string;
-        start_date?: string;
-        closed_at?: string;
+        start_date?: string | null;
+        closed_at?: string | null;
     };
     author: GitlabUserDataShort;
     description: string;
@@ -316,7 +316,7 @@ export interface GitlabProject extends Project {
 export interface Notes {
     id: number;
     body: string;
-    attachment: null | string | string | string;
+    attachment: null | string;
     author: {
         id: number;
         username: string;
@@ -337,4 +337,6 @@ export interface Notes {
 
 export interface GitlabSelectors extends Selectors {
     transformToKey(namespaceWithProject: string, issueId: number): string;
+    // true if hook should be ignored
+    isIgnoreHookType(body): boolean;
 }

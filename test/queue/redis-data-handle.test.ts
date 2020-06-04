@@ -25,10 +25,6 @@ const { expect } = chai;
 chai.use(sinonChai);
 
 const createRoomStub = stub();
-const {
-    jira: { url: jiraUrl },
-    baseRemote,
-} = config;
 
 describe('saveIncoming', () => {
     const actions = createStubInstance(Actions);
@@ -127,14 +123,14 @@ describe('redis-data-handle test', () => {
     };
 
     beforeEach(() => {
-        nock(jiraUrl)
+        nock(config.taskTracker.url)
             .get('')
             .times(2)
             .reply(200, '<HTML>');
 
         nock(taskTracker.getRestUrl())
             .get(`/issue/${JSONbody.issue.key}`)
-            .times(2)
+            .times(3)
             .reply(200, issueJson)
             .get(`/issue/BBCOM-1398/watchers`)
             .reply(200, { ...responce, id: 28516 })
@@ -377,7 +373,7 @@ describe('Test handle archive project data', () => {
         let configWithTmpPath: Config;
         let queueHandler: QueueHandler;
 
-        const expectedRemote = `${baseRemote}/${projectKey.toLowerCase()}.git`;
+        const expectedRemote = `${config.baseRemote}/${projectKey.toLowerCase()}.git`;
 
         beforeEach(async () => {
             nock(taskTracker.getRestUrl())

@@ -1,4 +1,4 @@
-import { Selectors, Issue, Project, DescriptionFields, ChangelogItem } from '../../types';
+import { Selectors, Issue, Project, ChangelogItem } from '../../types';
 
 interface UserData {
     self: string;
@@ -123,7 +123,6 @@ export interface JiraSelectors extends Selectors {
     getIssueLinkSourceId(body): string | undefined;
     getSourceRelation(body): string | undefined;
     getDestinationRelation(body): string | undefined;
-    getDescriptionFields(body): DescriptionFields;
     isEpic(body): boolean;
     getChangelogField(field: string, body): ChangelogItem | undefined;
     getNewSummary(body): string | undefined;

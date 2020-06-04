@@ -8,13 +8,6 @@ import { TaskTracker, Config } from '../types';
 
 const logger = getLogger(module);
 
-enum IssueType {
-    issue = 'issue',
-    comment = 'comment',
-    project = 'project',
-    issuelink = 'issuelink',
-}
-
 export class HookParser {
     testMode: boolean;
     ignoredUsers: string[];
@@ -72,66 +65,10 @@ export class HookParser {
         }
     }
 
-    isTestCreater(creator: string): boolean {
+    isTestCreator(creator: string): boolean {
         const ignoreStatus = this.testMode ? !this.ignoredUsers.includes(creator) : this.ignoredUsers.includes(creator);
 
         return ignoreStatus;
-    }
-
-    async getAvailableIssueId(body) {
-        const sourceId = this.selectors.getIssueLinkSourceId(body);
-        const issue = sourceId && (await this.taskTracker.getIssueSafety(sourceId));
-
-        return issue ? sourceId : this.selectors.getIssueLinkDestinationId(body);
-    }
-
-    getHookHandler(type: IssueType) {
-        const handlers = {
-            issue: async body => {
-                const key = this.selectors.getIssueKey(body)!;
-                const status = await this.taskTracker.getIssueSafety(key);
-
-                return !status || !!this.selectors.getChangelogField('Rank', body);
-            },
-            issuelink: async body => {
-                const allId = [
-                    this.selectors.getIssueLinkSourceId(body),
-                    this.selectors.getIssueLinkDestinationId(body),
-                ];
-                const issues = await Promise.all(allId.map(id => this.taskTracker.getIssueSafety(id as string)));
-
-                return !issues.some(Boolean);
-            },
-            project: async body => {
-                const key = this.selectors.getProjectKey(body)!;
-                const { isIgnore } = await this.taskTracker.getProject(key);
-                return isIgnore;
-            },
-            comment: async body => {
-                const id = this.selectors.getIssueId(body)!;
-                const status = await this.taskTracker.getIssueSafety(id);
-
-                return !status;
-            },
-        };
-
-        return handlers[type];
-    }
-
-    async isHookTypeIgnore(body) {
-        const type = this.selectors.getHookType(body);
-        const handler = this.getHookHandler(type as IssueType);
-        if (!handler) {
-            logger.warn('Unknown hook type, should be ignored!');
-            return true;
-        }
-        const status = await handler(body);
-
-        if (status) {
-            logger.warn('Project should be ignore');
-        }
-
-        return status;
     }
 
     async isManuallyIgnore(project, taskType, type, body) {
@@ -146,18 +83,13 @@ export class HookParser {
         if (!ignoreList) {
             return false;
         }
-        if (type === 'issuelink' && ignoreList.taskType.includes('Sub-task')) {
-            const nameTypeIssueLink = this.selectors.getNameIssueLinkType(body);
-            return nameTypeIssueLink === 'jira_subtask_link';
-        }
 
-        return ignoreList.taskType.includes(taskType);
-        // return ignoreList.taskType.includes(taskType) || ignoreList.issues.includes(issueKey);
+        return this.taskTracker.checkIgnoreList(ignoreList.taskType, taskType, type, body);
     }
 
     async getManuallyIgnore(body) {
         const type = this.selectors.getHookType(body);
-        if (type === 'project') {
+        if (this.taskTracker.isIgnoreHookType(type)) {
             return false;
         }
         const { typeName } = this.selectors.getDescriptionFields(body);
@@ -165,16 +97,20 @@ export class HookParser {
             return false;
         }
 
-        const keyOrId =
-            type === 'issuelink'
-                ? await this.getAvailableIssueId(body)
-                : this.selectors.getIssueKey(body) || this.selectors.getIssueId(body);
-
+        const keyOrId = await this.taskTracker.getKeyOrIdForCheckIgnore(body);
         const issue = await this.taskTracker.getIssue(keyOrId!);
         const projectKey = this.selectors.getProjectKey({ issue });
+
+        return await this.isManuallyIgnore(projectKey, typeName, type, body);
+    }
+
+    async isIgnoreCreator(body) {
+        const keyOrId = await this.taskTracker.getKeyOrIdForCheckIgnore(body);
+
+        const issue = await this.taskTracker.getIssue(keyOrId!);
         const issueCreator = this.selectors.getIssueCreator(issue) as string;
 
-        return (await this.isManuallyIgnore(projectKey, typeName, type, body)) || this.isTestCreater(issueCreator);
+        return this.isTestCreator(issueCreator);
     }
 
     async getIgnoreProject(body) {
@@ -183,7 +119,10 @@ export class HookParser {
         const timestamp = this.selectors.getBodyTimestamp(body);
         const issueName = this.selectors.getIssueName(body);
 
-        const ignoreStatus = (await this.isHookTypeIgnore(body)) || (await this.getManuallyIgnore(body));
+        const ignoreStatus =
+            (await this.taskTracker.isIgnoreHook(body)) ||
+            (await this.getManuallyIgnore(body)) ||
+            (await this.isIgnoreCreator(body));
 
         return { timestamp, webhookEvent, ignoreStatus, issueName };
     }

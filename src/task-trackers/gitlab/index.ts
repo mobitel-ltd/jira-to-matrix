@@ -1,12 +1,12 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
-import { TaskTracker, Selectors, Parser, Issue, Project, Config, IssueWithComments } from '../../types';
+import { TaskTracker, Parser, Issue, Project, Config, IssueWithComments } from '../../types';
 import { TIMEOUT } from '../../lib/consts';
 import * as messages from '../../lib/messages';
 import { getLogger } from '../../modules/log';
-import { GitlabIssue, GitlabProject, GitlabUserData, Notes } from './types';
-import { GitlabParser } from './hook-parser.gtilab';
-import { selectors } from '../jira/selector.jira';
+import { GitlabIssue, GitlabProject, GitlabUserData, Notes, GitlabSelectors } from './types';
+import { GitlabParser } from './parser.gtilab';
+import { selectors } from './selectors';
 
 const logger = getLogger(module);
 
@@ -20,7 +20,7 @@ export class Gitlab implements TaskTracker {
     pingInterval: number;
     pingCount: number;
     expandParams: { expand: string };
-    public selectors: Selectors;
+    public selectors: GitlabSelectors;
     public parser: Parser;
 
     constructor(options: {
@@ -56,7 +56,7 @@ export class Gitlab implements TaskTracker {
 
             return response.data;
         } catch (err) {
-            throw messages.getRequestErrorLog(url, err.statusCode, options);
+            throw messages.getRequestErrorLog(url, err.response.status, options.method, err.response.statusText);
         }
     }
 
@@ -73,7 +73,8 @@ export class Gitlab implements TaskTracker {
      * @example namespace/project-123
      */
     transformFromKey(key: string): { namespaceWithProject: string; issueId: number } {
-        const [namespaceWithProject, issueId] = key.split('-');
+        const [issueId, ...keyReversedParts] = key.split('-').reverse();
+        const namespaceWithProject = keyReversedParts.reverse().join('-');
 
         return { namespaceWithProject, issueId: Number(issueId) };
     }
@@ -204,5 +205,21 @@ export class Gitlab implements TaskTracker {
         const res = await this.getIssueSafety(key);
 
         return Boolean(res);
+    }
+
+    checkIgnoreList(ignoreList, taskType): boolean {
+        return ignoreList.includes(taskType);
+    }
+
+    getKeyOrIdForCheckIgnore(body): string {
+        return this.selectors.getIssueKey(body) || this.selectors.getIssueId(body);
+    }
+
+    isIgnoreHook(body) {
+        return this.selectors.isIgnoreHookType(body);
+    }
+
+    isIgnoreHookType() {
+        return false;
     }
 }

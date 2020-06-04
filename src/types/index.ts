@@ -183,6 +183,8 @@ export interface DescriptionFields {
 }
 
 export interface Selectors {
+    getDescriptionFields(body): DescriptionFields;
+
     getBodyWebhookEvent(body): string | undefined;
 
     getTypeEvent(body): string | undefined;
@@ -249,6 +251,12 @@ export interface TaskTracker {
     selectors: Selectors;
 
     parser: Parser;
+
+    checkIgnoreList(ignoreList, hookType, taskType, body): boolean;
+
+    getKeyOrIdForCheckIgnore(body): Promise<string> | string;
+
+    isIgnoreHookType(type?: string): boolean;
 
     postComment(keyOrId: string, sender: string, bodyText: string): Promise<any>;
 
@@ -323,12 +331,12 @@ export interface TaskTracker {
     getIssueComments(issueId: string): Promise<IssueWithComments>;
 
     // /**
-    //  * Make request to jira by issueID adding renderedFields
+    //  * Make request to jira by issueId adding renderedFields
     //  */
-    // getIssueFormatted(issueID: string): Promise<RenderedIssue>;
+    // getIssueFormatted(issueId: string): Promise<RenderedIssue>;
 
     // /**
-    //  * Make request to jira by issueID adding renderedFields and filter by fields
+    //  * Make request to jira by issueId adding renderedFields and filter by fields
     //  */
     // getRenderedValues(key: string, fields: string[]): Promise<any>;
 
@@ -386,6 +394,8 @@ export interface TaskTracker {
      * Get link to view in browser
      */
     getViewUrl(key: string, type?: string): string;
+
+    isIgnoreHook(body): Promise<boolean> | boolean;
 }
 
 interface CommonMessengerApi {
@@ -612,7 +622,7 @@ export interface PostNewLinksData {
 }
 
 export interface PostCommentData {
-    issueID: string;
+    issueId: string;
     headerText: string;
     comment: {
         id: string | number;

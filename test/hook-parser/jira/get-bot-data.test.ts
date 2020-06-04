@@ -6,9 +6,10 @@ import issueMovedJSON from '../../fixtures/webhooks/issue/updated/move-issue.jso
 import { config } from '../../../src/config';
 import { getTaskTracker } from '../../../src/task-trackers';
 import { HookParser } from '../../../src/hook-parser';
+import { Jira } from '../../../src/task-trackers/jira';
 
 describe('get-bot-data for jira', () => {
-    const jiraApi = getTaskTracker(config);
+    const jiraApi = getTaskTracker(config) as Jira;
     const firstBodyArr = jiraApi.parser.getBotActions(firstJSON);
     const secondBodyArr = jiraApi.parser.getBotActions(secondJSON);
 
@@ -73,7 +74,7 @@ describe('get-bot-data for jira', () => {
                 redisKey: 'postComment_1512034084304',
                 funcName: 'postComment',
                 data: {
-                    issueID: '26313',
+                    issueId: '26313',
                     headerText: translate('comment_created', { name: 'jira_test' }),
                     comment: {
                         body: '12345',

@@ -1,4 +1,4 @@
-import { Parser, Selectors, Config, CreateRoomData, PostCommentData, Issue } from '../../types';
+import { Parser, Selectors, Config, CreateRoomData, PostCommentData } from '../../types';
 
 export class GitlabParser implements Parser {
     issueMovedType = 'issueMovedType';
@@ -28,16 +28,14 @@ export class GitlabParser implements Parser {
     getPostCommentData(body): PostCommentData {
         const headerText = this.selectors.getHeaderText(body)!;
         const author = this.selectors.getDisplayName(body)!;
-        const issueID = this.selectors.getIssueId<Issue>(body)!;
+        const issueId = this.selectors.getIssueKey(body);
         const comment = this.selectors.getCommentBody(body);
 
-        return { issueID, headerText, comment, author };
+        return { issueId, headerText, comment, author };
     }
 
     isPostComment(body) {
-        return Boolean(
-            this.features.postComments && this.selectors.isCommentEvent(body) && this.selectors.getComment(body),
-        );
+        return Boolean(this.features.postComments && this.selectors.isCommentEvent(body));
     }
 
     actionFuncs = {

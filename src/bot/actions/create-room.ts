@@ -94,7 +94,7 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
             const roomId = await this.chatApi.createRoom(options);
 
             logger.info(`Created room for ${key}: ${roomId}`);
-            const { body, htmlBody } = await this.getDescription(issue);
+            const { body, htmlBody } = this.getDescription(issue);
 
             await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
             await this.chatApi.sendHtmlMessage(roomId, infoBody, infoBody);

@@ -40,8 +40,8 @@ describe('Gitlab api testing', () => {
 
         it('should return Issue body if correct key pass', async () => {
             const issue = await gitlab.getIssue(issueKey);
-
-            expect(issue).to.be.deep.eq(issueJson);
+            const expected = { ...issueJson, key: `${projectNamespace}/${projectKey}-${issueId}` };
+            expect(issue).to.be.deep.eq(expected);
         });
     });
 

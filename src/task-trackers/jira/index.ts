@@ -1,4 +1,4 @@
-import requestPromise from 'request-promise-native';
+import axios, { AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
 import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
@@ -20,6 +20,13 @@ const logger = getLogger(module);
  * @property {string} id issue id
  * @property {string} key issue key
  */
+
+enum IssueType {
+    issue = 'issue',
+    comment = 'comment',
+    project = 'project',
+    issuelink = 'issuelink',
+}
 
 export class Jira implements TaskTracker {
     url: string;
@@ -68,46 +75,36 @@ export class Jira implements TaskTracker {
         return `Basic ${encoded}`;
     }
 
-    async request(url: string, newOptions?: requestPromise.RequestPromiseOptions): Promise<any> {
-        const options = {
+    async request(url: string, newOptions?: AxiosRequestConfig): Promise<any> {
+        const options: AxiosRequestConfig = {
             method: 'GET',
             headers: { Authorization: this.token, 'content-type': 'application/json' },
             timeout: TIMEOUT,
             ...newOptions,
+            url,
         };
         try {
-            const response = await requestPromise(url, options);
+            const response = await axios(options);
             logger.debug(`${options.method} request to jira with Url ${url} suceeded`);
-            if (['GET', 'POST', 'PUT'].includes(options.method) && url !== this.url && response) {
-                return JSON.parse(response);
-            }
+
+            return response.data;
         } catch (err) {
-            throw messages.getRequestErrorLog(url, err.statusCode, options);
+            throw messages.getRequestErrorLog(url, err?.response?.status, options.method, err?.response?.statusText);
         }
     }
 
     /**
      * POST request
      */
-    requestPost(url: string, body: string): Promise<any> {
-        const options = {
-            method: 'POST',
-            body,
-        };
-
-        return this.request(url, options);
+    requestPost(url: string, data: string): Promise<any> {
+        return this.request(url, { method: 'POST', data });
     }
 
     /**
      * PUT request
      */
-    requestPut(url: string, body: string): Promise<any> {
-        const options = {
-            method: 'PUT',
-            body,
-        };
-
-        return this.request(url, options);
+    requestPut(url: string, data: string): Promise<any> {
+        return this.request(url, { method: 'PUT', data });
     }
 
     /**
@@ -234,7 +231,7 @@ export class Jira implements TaskTracker {
     }
 
     /**
-     * Make GET request to jira by issueID and params
+     * Make GET request to jira by issueId and params
      */
     async getIssue(keyOrId: string): Promise<Issue> {
         try {
@@ -382,12 +379,12 @@ export class Jira implements TaskTracker {
     }
 
     /**
-     * Make request to jira by issueID adding renderedFields
+     * Make request to jira by issueId adding renderedFields
      */
     async getIssueFormatted(keyOrId: string): Promise<RenderedIssue> {
         try {
             const url = this.getUrl('issue', keyOrId);
-            const issue = await this.request(url, { qs: this.expandParams });
+            const issue = await this.request(url, { params: this.expandParams });
 
             return issue;
         } catch (err) {
@@ -396,7 +393,7 @@ export class Jira implements TaskTracker {
     }
 
     /**
-     * Make request to jira by issueID adding renderedFields and filter by fields
+     * Make request to jira by issueId adding renderedFields and filter by fields
      */
     async getRenderedValues(key: string, fields: string[]): Promise<any> {
         try {
@@ -491,7 +488,7 @@ export class Jira implements TaskTracker {
             const searchUrl = this.getUrl('search');
 
             const data = await this.request(searchUrl, {
-                qs: {
+                params: {
                     jql: `project=${projectKey}`,
                 },
             });
@@ -532,5 +529,82 @@ export class Jira implements TaskTracker {
 
     getViewUrl(key, type = 'browse') {
         return [this.url, type, key].join('/');
+    }
+
+    getHookHandler(type: IssueType) {
+        const handlers = {
+            issue: async body => {
+                const key = this.selectors.getIssueKey(body)!;
+                const status = await this.getIssueSafety(key);
+
+                return !status || !!this.selectors.getChangelogField('Rank', body);
+            },
+            issuelink: async body => {
+                const allId = [
+                    this.selectors.getIssueLinkSourceId(body),
+                    this.selectors.getIssueLinkDestinationId(body),
+                ];
+                const issues = await Promise.all(allId.map(id => this.getIssueSafety(id as string)));
+
+                return !issues.some(Boolean);
+            },
+            project: async body => {
+                const key = this.selectors.getProjectKey(body)!;
+                const { isIgnore } = await this.getProject(key);
+                return isIgnore;
+            },
+            comment: async body => {
+                const id = this.selectors.getIssueId(body)!;
+                const status = await this.getIssueSafety(id);
+
+                return !status;
+            },
+        };
+
+        return handlers[type];
+    }
+
+    async isIgnoreHook(body) {
+        const type = this.selectors.getHookType(body);
+        const handler = this.getHookHandler(type as IssueType);
+        if (!handler) {
+            logger.warn('Unknown hook type, should be ignored!');
+            return true;
+        }
+        const status = await handler(body);
+
+        if (status) {
+            logger.warn('Project should be ignore');
+        }
+
+        return status;
+    }
+
+    isIgnoreHookType(type: string) {
+        return type === 'project';
+    }
+
+    async getAvailableIssueId(body): Promise<string> {
+        const sourceId = this.selectors.getIssueLinkSourceId(body);
+        const issue = sourceId && (await this.getIssueSafety(sourceId));
+
+        return (issue ? sourceId : this.selectors.getIssueLinkDestinationId(body)) as string;
+    }
+
+    checkIgnoreList(ignoreList, taskType, hookType, body): boolean {
+        if (hookType === 'issuelink' && ignoreList.includes('Sub-task')) {
+            const nameTypeIssueLink = this.selectors.getNameIssueLinkType(body);
+            return nameTypeIssueLink === 'jira_subtask_link';
+        }
+
+        return ignoreList.includes(taskType);
+    }
+
+    async getKeyOrIdForCheckIgnore(body): Promise<string> {
+        const type = this.selectors.getHookType(body);
+
+        return type === 'issuelink'
+            ? await this.getAvailableIssueId(body)
+            : this.selectors.getIssueKey(body) || this.selectors.getIssueId(body);
     }
 }
