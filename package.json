@@ -18,7 +18,7 @@
     "start-dev": "ts-node src/app.ts",
     "debug": "nodemon --inspect src/app.js",
     "test-single": "NODE_ENV=test nyc mocha --watch $1",
-    "test": "NODE_ENV=test nyc mocha test/**/*.test.ts",
+    "test": "NODE_ENV=test nyc mocha",
     "test-all": "TEST_WATCH=1 npm run test",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },

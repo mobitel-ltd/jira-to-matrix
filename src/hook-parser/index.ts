@@ -25,22 +25,22 @@ export class HookParser {
         return `get${func[0].toUpperCase()}${func.slice(1)}Data`;
     }
 
-    getFuncRedisData = (funcName, body) => {
+    getFuncRedisData(funcName, body) {
         const parserName = this.getParserName(funcName);
         const data = this.parser[parserName](body);
         const redisKey = this.selectors.getRedisKey(funcName, body);
 
         return { redisKey, funcName, data };
-    };
+    }
 
-    getFuncAndBody = body => {
+    getFuncAndBody(body) {
         const botFunc = this.parser.getBotActions(body);
         const createRoomData = this.parser.isCreateRoom(body) && this.parser.getCreateRoomData(body);
         const roomsData = { redisKey: REDIS_ROOM_KEY, createRoomData };
         const funcsData = botFunc.map(funcName => this.getFuncRedisData(funcName, body));
 
         return [roomsData, ...funcsData];
-    };
+    }
 
     /**
      * Is ignore data

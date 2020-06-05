@@ -33,7 +33,7 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         getDisplayName: body => body.user.name,
         getIssueId: body => body.object_attributes.iid,
         getIssueName: body => body.object_attributes.title,
-        getSummary: body => body.object_attributes.description,
+        getSummary: body => body.object_attributes.title,
         getMembers: body => [...body.assignees.map(el => el.name), body.user.name],
         getDescriptionFields: () => undefined,
     },
@@ -47,7 +47,7 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         }),
         getIssueId: body => body.issue.iid,
         getIssueName: body => body.issue.title,
-        getSummary: body => body.issue.description,
+        getSummary: body => body.issue.title,
         // Return undefined because there is no way to get expected issue fields by comment hook
         getDescriptionFields: () => undefined,
         getMembers: body => [body.user.name],

@@ -7,6 +7,7 @@ import { config } from '../../../src/config';
 import { getTaskTracker } from '../../../src/task-trackers';
 import { HookParser } from '../../../src/hook-parser';
 import { Jira } from '../../../src/task-trackers/jira';
+import { REDIS_ROOM_KEY } from '../../../src/redis-client';
 
 describe('get-bot-data for jira', () => {
     const jiraApi = getTaskTracker(config) as Jira;
@@ -67,7 +68,7 @@ describe('get-bot-data for jira', () => {
 
         const firstBodyArrExpected = [
             {
-                redisKey: 'newrooms',
+                redisKey: REDIS_ROOM_KEY,
                 createRoomData: false,
             },
             {
@@ -87,7 +88,7 @@ describe('get-bot-data for jira', () => {
 
         const secondBodyArrExpected = [
             {
-                redisKey: 'newrooms',
+                redisKey: REDIS_ROOM_KEY,
                 createRoomData: {
                     issue: {
                         descriptionFields: {

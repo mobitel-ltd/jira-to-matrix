@@ -444,7 +444,7 @@ describe('Create room test with gitlab as task tracker', () => {
                         gitlabIssueCreatedJson.object_attributes.iid,
                     descriptionFields: undefined,
                     projectKey: gitlabIssueCreatedJson.project.path_with_namespace,
-                    summary: gitlabIssueCreatedJson.object_attributes.description,
+                    summary: gitlabIssueCreatedJson.object_attributes.title,
                 },
                 projectKey: gitlabIssueCreatedJson.project.path_with_namespace,
             };

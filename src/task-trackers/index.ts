@@ -27,8 +27,7 @@ export const getTaskTracker = (config: Config): TaskTracker => {
                 count: config.ping && config.ping.count,
                 interval: config.ping && config.ping.interval,
                 features: config.features,
-                // inviteIgnoreUsers: config.inviteIgnoreUsers,
-                //! TODO not work
-            }) as any;
+                inviteIgnoreUsers: config.inviteIgnoreUsers,
+            });
     }
 };

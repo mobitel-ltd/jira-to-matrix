@@ -9,9 +9,6 @@ import issueCreatedHook from '../../fixtures/webhooks/issue/created.json';
 import issueLinkCreatedHook from '../../fixtures/webhooks/issuelink/created.json';
 import issueLinkDeletedHook from '../../fixtures/webhooks/issuelink/deleted.json';
 import { taskTracker } from '../../test-utils';
-import { Gitlab } from '../../../src/task-trackers/gitlab';
-import gitlabCommentHook from '../../fixtures/webhooks/gitlab/commented.json';
-import { config } from '../../../src/config';
 
 describe('bot func with jira config data', () => {
     it('Expect commentCreatedHook have only postComment func', () => {
@@ -71,21 +68,6 @@ describe('bot func with jira config data', () => {
     it('Expect issueCommentedChangedHook return correct funcs list', () => {
         const result = taskTracker.parser.getBotActions(issueCommentedChangedHook);
         const expected = ['postIssueUpdates', 'inviteNewMembers', 'postEpicUpdates'];
-        assert.deepEqual(result, expected);
-    });
-});
-
-describe('Gitlab actions', () => {
-    const gitlab = new Gitlab({
-        url: 'https://gitlab.test-example.ru',
-        user: 'gitlab_bot',
-        password: 'fakepasswprd',
-        features: config.features,
-    });
-
-    it('should return CreateRoom and PostComment for note webhook', () => {
-        const result = gitlab.parser.getBotActions(gitlabCommentHook);
-        const expected = ['postComment', 'PostComment'];
         assert.deepEqual(result, expected);
     });
 });
