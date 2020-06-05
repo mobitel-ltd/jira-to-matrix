@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { config } from '../../config';
-import { Issue, ChangelogItem, Selectors, Relation, DescriptionFields } from '../../types';
+import { Issue, ChangelogItem, Relation, DescriptionFields } from '../../types';
 import { translate } from '../../locales';
 import { Comment, Changelog, JiraSelectors, IssueLink } from './types';
 

@@ -18,7 +18,7 @@ export class JiraParser implements Parser {
 
     constructor(private features: Config['features'], private selectors: JiraSelectors) {}
 
-    getBotActions(body) {
+    getBotActions(body: any): string[] {
         return Object.keys(this.actionFuncs).filter(key => this.actionFuncs[key].bind(this)(body));
     }
 

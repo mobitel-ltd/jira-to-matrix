@@ -22,6 +22,7 @@ import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json
 import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
+import gitlabIssueCreatedJson from '../fixtures/webhooks/gitlab/issue/created.json';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -334,6 +335,10 @@ describe('Create room test with gitlab as task tracker', () => {
         });
     });
 
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
     describe('Comment hook', () => {
         let createRoomData: CreateRoomData;
         beforeEach(() => {
@@ -364,14 +369,10 @@ describe('Create room test with gitlab as task tracker', () => {
             beforeEach(() => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects`)
-                    .times(3)
                     .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
                     .reply(200, gitlabProjectsJson)
                     .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
-                    .times(2)
-                    .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/members/all`)
-                    .reply(200, projectMembersJson);
+                    .reply(200, gitlabIssueJson);
             });
 
             it('should not call create room if they are alredy exists', async () => {
@@ -403,9 +404,103 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects`)
                     .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
+                    .times(3)
                     .reply(200, gitlabProjectsJson)
                     .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+                    .times(3)
+                    .reply(200, gitlabIssueJson)
+                    .get(`/projects/${gitlabProjectsJson[0].id}/members/all`)
+                    .reply(200, projectMembersJson);
+            });
+
+            it('should call room creation', async () => {
+                chatApi.getRoomIdByName.reset();
+                chatApi.getRoomIdByName.resolves(false);
+                const result = await createRoom.run(createRoomData);
+                expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptions);
+                expect(result).to.be.true;
+            });
+        });
+    });
+
+    describe('Issue created hook', () => {
+        let createRoomData: CreateRoomData;
+        beforeEach(() => {
+            createRoomData = gitlabTracker.parser.getCreateRoomData(gitlabIssueCreatedJson);
+            const chatClass = getChatClass({
+                alias: [createRoomData.issue.key, createRoomData.projectKey!],
+                roomId: [createRoomData.issue.key, createRoomData.projectKey!],
+            });
+            chatApi = chatClass.chatApiSingle;
+            createRoom = new CreateRoom(config, gitlabTracker, chatApi);
+        });
+
+        it('should return correct createRoomData', async () => {
+            const expected: CreateRoomData = {
+                issue: {
+                    key:
+                        gitlabIssueCreatedJson.project.path_with_namespace +
+                        '-' +
+                        gitlabIssueCreatedJson.object_attributes.iid,
+                    descriptionFields: undefined,
+                    projectKey: gitlabIssueCreatedJson.project.path_with_namespace,
+                    summary: gitlabIssueCreatedJson.object_attributes.description,
+                },
+                projectKey: gitlabIssueCreatedJson.project.path_with_namespace,
+            };
+            expect(createRoomData).to.be.deep.eq(expected);
+        });
+
+        describe('Room is exists', () => {
+            beforeEach(() => {
+                nock(gitlabTracker.getRestUrl())
+                    .get(`/projects`)
+                    .query({ search: gitlabIssueCreatedJson.project.path_with_namespace })
+                    .reply(200, gitlabProjectsJson)
+                    .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
                     .reply(200, gitlabIssueJson);
+            });
+
+            it('should not call create room if they are alredy exists', async () => {
+                const result = await createRoom.run(createRoomData);
+                expect(result).to.be.true;
+                expect(chatApi.createRoom).not.to.be.called;
+            });
+        });
+
+        describe('Room is not exists', () => {
+            let expectedIssueRoomOptions: CreateRoomOpions;
+            beforeEach(() => {
+                const issueKey =
+                    gitlabIssueCreatedJson.project.path_with_namespace +
+                    '-' +
+                    gitlabIssueCreatedJson.object_attributes.iid;
+                const members = [
+                    getUserIdByDisplayName(gitlabIssueJson.assignee.name),
+                    getUserIdByDisplayName(gitlabIssueJson.author.name),
+                ].map(name => getChatClass().chatApiSingle.getChatUserId(name));
+
+                expectedIssueRoomOptions = {
+                    invite: members,
+                    name: getChatClass().chatApiSingle.composeRoomName(issueKey, gitlabIssueJson.title),
+                    room_alias_name:
+                        gitlabIssueCreatedJson.project.path_with_namespace +
+                        '-' +
+                        gitlabIssueCreatedJson.object_attributes.iid,
+                    avatarUrl: undefined,
+                    topic: gitlabTracker.getViewUrl(issueKey),
+                    purpose: gitlabIssueJson.title,
+                };
+                nock(gitlabTracker.getRestUrl())
+                    .get(`/projects`)
+                    .query({ search: gitlabIssueCreatedJson.project.path_with_namespace })
+                    .times(3)
+                    .reply(200, gitlabProjectsJson)
+                    .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
+                    .times(3)
+                    .reply(200, gitlabIssueJson)
+                    .get(`/projects/${gitlabProjectsJson[0].id}/members/all`)
+                    .reply(200, projectMembersJson);
             });
 
             it('should call room creation', async () => {

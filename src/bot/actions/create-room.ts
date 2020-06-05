@@ -100,7 +100,6 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
             await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
             await this.chatApi.sendHtmlMessage(roomId, infoBody, infoBody);
         } catch (err) {
-            console.log('err', err);
             throw errorTracing('createIssueRoom', err);
         }
     }

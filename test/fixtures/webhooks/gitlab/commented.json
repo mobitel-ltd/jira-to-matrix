@@ -24,10 +24,10 @@
         "http_url": "http://example.com/indev/gitlabtomatrix.git"
     },
     "repository": {
-        "name": "diaspora",
-        "url": "git@example.com:mike/diaspora.git",
+        "name": "GitlabToMatrix",
+        "url": "git@gitlab.test-example.ru:indev/gitlabtomatrix.git",
         "description": "",
-        "homepage": "http://example.com/mike/diaspora"
+        "homepage": "https://gitlab.test-example.ru/indev/gitlabtomatrix"
     },
     "object_attributes": {
         "id": 1241,
