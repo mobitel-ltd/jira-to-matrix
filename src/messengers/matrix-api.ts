@@ -4,7 +4,7 @@ import matrixSdk from 'matrix-js-sdk';
 import { errorTracing } from '../lib/utils';
 import * as R from 'ramda';
 import { BaseChatApi } from './base-api';
-import { MessengerApi, RoomData, ChatConfig } from '../types';
+import { MessengerApi, RoomData, ChatConfig, CommandNames } from '../types';
 import { Commands } from '../bot/commands';
 import { LoggerInstance } from 'winston';
 import { NO_ROOM_PATTERN, END_NO_ROOM_PATTERN } from '../lib/consts';
@@ -79,23 +79,41 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
-    static parseEventBody(body) {
+    createCommand(commandPart?: string): string;
+    createCommand(): undefined;
+    createCommand(commandPart?: string): string | undefined {
+        return commandPart && `!${commandPart}`;
+    }
+
+    parseEventBody(body: string): { commandName?: CommandNames; bodyText?: string } {
         try {
             const trimedBody = body.trim();
 
-            const commandName = trimedBody
-                .split(' ')[0]
-                .match(/^!\w+$/g)[0]
-                .substring(1);
+            const commandNameFromUser = R.pipe(
+                R.split(' '),
+                R.head,
+                R.match(/^!\w+$/g),
+                R.head,
+                R.ifElse(R.isNil, R.always(''), R.drop(1)),
+            )(body);
 
-            if (`!${commandName}` === trimedBody) {
+            if (this.config.features.postEachComments) {
+                if (!Object.values(CommandNames).some(el => el === commandNameFromUser)) {
+                    return { commandName: CommandNames.Comment, bodyText: trimedBody };
+                }
+            }
+
+            const commandName = commandNameFromUser;
+
+            if (this.createCommand(commandName) === trimedBody) {
                 return { commandName };
             }
 
-            const bodyText = trimedBody.replace(`!${commandName}`, '').trim();
+            const bodyText = trimedBody.replace(this.createCommand(commandNameFromUser), '').trim();
 
             return { commandName, bodyText };
         } catch (err) {
+            this.logger.error(`Error in parsing comment from matrix: ${err}`);
             return {};
         }
     }
@@ -111,16 +129,23 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
             const sender = this._getNameFromMatrixId(event.getSender())!;
 
+            if (sender === this.getMyId()) {
+                return;
+            }
+
             const { body } = event.getContent();
 
-            const { commandName, bodyText } = MatrixApi.parseEventBody(body);
+            const { commandName, bodyText } = this.parseEventBody(body);
 
             if (!commandName) {
                 return;
             }
-
             const roomData = this.getRoomData(room);
             const roomName = roomData.alias;
+
+            if (commandName === CommandNames.Comment && roomData.alias === this.getNotifyData()?.name) {
+                return;
+            }
 
             // TODO add class to commandsHandler
             await this.commands.run(commandName, {
@@ -292,7 +317,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
     isConnected(): boolean {
         if (this.client) {
-            return !!this.client.clientRunning && this.connection;
+            return Boolean(this.client.clientRunning && this.connection);
         }
 
         return false;

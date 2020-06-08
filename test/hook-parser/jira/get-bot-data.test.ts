@@ -76,12 +76,12 @@ describe('get-bot-data for jira', () => {
                 funcName: 'postComment',
                 data: {
                     issueId: '26313',
-                    headerText: translate('comment_created', { name: 'jira_test' }),
+                    headerText: translate('comment_created', { name: firstJSON.comment.updateAuthor.displayName }),
                     comment: {
                         body: '12345',
                         id: '31039',
                     },
-                    author: 'jira_test',
+                    author: firstJSON.comment.updateAuthor.displayName,
                 },
             },
         ];

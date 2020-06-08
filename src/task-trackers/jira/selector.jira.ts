@@ -53,16 +53,16 @@ const handlers = {
         getLinks: (body): IssueLink[] => R.pathOr([], ['issue', 'fields', 'issuelinks'], body),
     },
     comment: {
-        getComment: (body: Comment): string | undefined => R.path(['comment'], body),
-        getDisplayName: (body: Comment): string | undefined => R.path(['comment', 'author', 'displayName'], body),
-        getAuthor: (body: Comment): string | undefined => R.path(['comment', 'author', 'name'], body),
-        getUpdateAuthor: (body: Comment): string | undefined => R.path(['comment', 'updateAuthor', 'name'], body),
-        getCreator: (body: Comment): string | undefined =>
+        getComment: (body): string | undefined => R.path(['comment'], body),
+        getDisplayName: (body): string | undefined => R.path(['comment', 'author', 'displayName'], body),
+        getAuthor: (body): string | undefined => R.path(['comment', 'author', 'displayName'], body),
+        getUpdateAuthor: (body): string | undefined => R.path(['comment', 'updateAuthor', 'displayName'], body),
+        getCreator: (body): string | undefined =>
             handlers.comment.getUpdateAuthor(body) || handlers.comment.getAuthor(body),
-        getUrl: (body: Comment): string | undefined => R.path(['comment', 'self'], body),
-        getIssueId: (body: Comment): string | undefined => getIdFromUrl(handlers.comment.getUrl(body)),
-        getIssueName: (body: Comment): string | undefined => handlers.comment.getIssueId(body),
-        getCommentBody: (body: Comment) => ({
+        getUrl: (body): string | undefined => R.path(['comment', 'self'], body),
+        getIssueId: (body): string | undefined => getIdFromUrl(handlers.comment.getUrl(body)),
+        getIssueName: (body): string | undefined => handlers.comment.getIssueId(body),
+        getCommentBody: body => ({
             body: R.path(['comment', 'body'], body) as string,
             id: R.path(['comment', 'id'], body) as string,
         }),
@@ -137,8 +137,6 @@ export const getComment = body => handlers.comment.getComment(body);
 
 export const getCommentBody = (body: Comment): { body: string; id: string } => handlers.comment.getCommentBody(body);
 
-const getUserName = (body): string | undefined => handlers.issue.getUserName(body);
-
 export const getEpicKey = (body): string | undefined => handlers.issue.getEpicKey(body);
 
 export const getKey = (body: Issue | any): string | undefined =>
@@ -161,8 +159,6 @@ export const getSummary = (body): string => runMethod(body, 'getSummary') || get
 export const getBodyTimestamp = (body): number | undefined => R.path(['timestamp'], body);
 
 export const getRedisKey = (funcName: string, body: any): string => [funcName, getBodyTimestamp(body)].join('_');
-
-export const getHookUserName = body => getCommentAuthor(body) || getUserName(body) || getDisplayName(body);
 
 export const getChangelogItems = (body): ChangelogItem[] => R.pathOr([], ['items'], getChangelog(body));
 
@@ -248,12 +244,15 @@ export const getInwardLinkKey = (body): string | undefined => R.path(['inwardIss
 
 export const getOutwardLinkKey = (body): string | undefined => R.path(['outwardIssue', 'key'], body);
 
+export const getCreator = hook => runMethod(hook, 'getCreator');
+
 export interface GetFieldOptions {
     type: 'issue';
     name: 'key';
 }
 
 export const selectors: JiraSelectors = {
+    getCreator,
     extractName,
     getBodyWebhookEvent,
     getTypeEvent,

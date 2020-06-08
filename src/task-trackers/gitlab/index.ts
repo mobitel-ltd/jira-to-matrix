@@ -73,7 +73,10 @@ export class Gitlab implements TaskTracker {
      * @example namespace/project-123
      */
     transformFromKey(key: string): { namespaceWithProject: string; issueId: number } {
-        const [issueId, ...keyReversedParts] = key.split('-').reverse();
+        const [issueId, ...keyReversedParts] = key
+            .toLowerCase()
+            .split('-')
+            .reverse();
         const namespaceWithProject = keyReversedParts.reverse().join('-');
 
         return { namespaceWithProject, issueId: Number(issueId) };
@@ -97,7 +100,6 @@ export class Gitlab implements TaskTracker {
         const url = this.getRestUrl('projects', projectId, 'issues', issueId);
         const issue: GitlabIssue = await this.request(url);
 
-        // TODO rewrite it!
         return { ...issue, key };
     }
 
@@ -107,7 +109,7 @@ export class Gitlab implements TaskTracker {
 
     getPostCommentBody(sender: string, bodyText: string): string {
         // TODO fix bug in view
-        return `[~${sender}]:\n${bodyText}`;
+        return `@${sender}:<br>${bodyText}`;
     }
 
     async postComment(gitlabIssueKey: string, sender: string, bodyText: string): Promise<string> {
@@ -124,7 +126,7 @@ export class Gitlab implements TaskTracker {
         return body;
     }
 
-    async getIssueSafety(key): Promise<Issue | boolean> {
+    async getIssueSafety(key: string): Promise<Issue | boolean> {
         try {
             const issue = await this.getIssue(key);
 

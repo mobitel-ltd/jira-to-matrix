@@ -25,6 +25,7 @@ export interface Config {
         createRoom: boolean;
         inviteNewMembers: boolean;
         postComments: boolean;
+        postEachComments?: boolean;
         postIssueUpdates: boolean;
         epicUpdates: {
             newIssuesInEpic: 'on' | 'off';
@@ -183,6 +184,8 @@ export interface DescriptionFields {
 }
 
 export interface Selectors {
+    getCreator(body): string | undefined;
+
     getDescriptionFields(body): DescriptionFields | undefined;
 
     getBodyWebhookEvent(body): string | undefined;

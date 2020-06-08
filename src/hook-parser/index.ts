@@ -45,10 +45,10 @@ export class HookParser {
     /**
      * Is ignore data
      */
-    async getParsedAndSaveToRedis(body: any) {
+    async getParsedAndSaveToRedis(body: any): Promise<boolean> {
         try {
             if (await this.isIgnore(body)) {
-                return;
+                return false;
             }
             const parsedBody = this.getFuncAndBody(body);
             const handledKeys = (await Promise.all(parsedBody.map(el => this.queueHandler.saveIncoming(el)))).filter(
@@ -112,10 +112,24 @@ export class HookParser {
     }
 
     async isIgnoreCreator(body) {
+        if (this.selectors.isCommentEvent(body)) {
+            const creator = this.selectors.getCreator(body);
+            if (creator && this.ignoredUsers.includes(creator)) {
+                logger.warn(`Comment author is ignore user "${creator}", skip hook`);
+
+                return true;
+            }
+
+            if (creator === this.config.taskTracker.user) {
+                logger.warn(`Comment author is task tracker user "${creator}", skip hook`);
+
+                return true;
+            }
+        }
         const keyOrId = await this.taskTracker.getKeyOrIdForCheckIgnore(body);
 
         const issue = await this.taskTracker.getIssue(keyOrId!);
-        const issueCreator = this.selectors.getIssueCreator(issue) as string;
+        const issueCreator = this.selectors.getIssueCreator(issue)!;
 
         return this.isTestCreator(issueCreator);
     }

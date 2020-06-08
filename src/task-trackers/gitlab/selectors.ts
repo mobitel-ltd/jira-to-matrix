@@ -7,7 +7,14 @@ const transformToKey = (namespaceWithProject: string, issueId: number) => [names
 interface BodyGetters<T> {
     getProjectKey(body: T): string;
     getFullKey(body: T): string;
+    /**
+     * Иванов Иван Иванович
+     */
     getDisplayName(body: T): string;
+    /**
+     * ii_ivanov
+     */
+    getUserId(body: T): string;
     getIssueId(body: T): number;
     getIssueName(body: T): string;
     getSummary(body: T): string;
@@ -31,6 +38,7 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         getProjectKey: body => body.project.path_with_namespace,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.object_attributes.iid),
         getDisplayName: body => body.user.name,
+        getUserId: body => body.user.username,
         getIssueId: body => body.object_attributes.iid,
         getIssueName: body => body.object_attributes.title,
         getSummary: body => body.object_attributes.title,
@@ -41,6 +49,7 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.issue.iid),
         getProjectKey: body => body.project.path_with_namespace,
         getDisplayName: body => body.user.name,
+        getUserId: body => body.user.username,
         getCommentBody: body => ({
             id: body.object_attributes.id,
             body: body.object_attributes.note,
@@ -56,6 +65,7 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
 
 const issueRequestHandlers: BodyGetters<GitlabIssue> = {
     getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
+    getUserId: body => body.author.username,
     getDisplayName: body => body.author.name,
     getIssueId: body => body.iid,
     getProjectKey: body => {
@@ -137,7 +147,10 @@ const getSummary = body => runMethod(body, 'getSummary') || issueRequestHandlers
 
 const getDescriptionFields = (body): DescriptionFields => runMethod(body, 'getDescriptionFields');
 
+const getCreator = body => runMethod(body, 'getUserId');
+
 export const selectors: GitlabSelectors = {
+    getCreator,
     transformToKey,
     getBodyTimestamp,
     getHeaderText,

@@ -8,7 +8,6 @@ import * as chai from 'chai';
 import { isIgnoreKey } from '../../src/redis-client';
 import {
     getNewStatus,
-    getHookUserName,
     getChangelogField,
     getComment,
     runMethod,
@@ -71,37 +70,6 @@ describe('Utils testing', () => {
     it('getNewStatus', () => {
         const status = getNewStatus(issueChangedHook);
         assert.equal(status, 'Closed');
-    });
-
-    it('Extract username from JIRA webhook', () => {
-        const samples = [
-            [
-                {
-                    comment: { author: { name: 'user1' } },
-                    user: { name: 'user2' },
-                },
-                'user1',
-            ],
-            [
-                {
-                    user: { name: 'user2' },
-                },
-                'user2',
-            ],
-            [
-                {
-                    comment: { author1: { name: 'user1' } },
-                    user: { name1: 'user2' },
-                },
-                undefined,
-            ],
-            [{ comment: {} }, undefined],
-            [{}, undefined],
-        ];
-        samples.forEach(sample => {
-            const result = getHookUserName(sample[0]);
-            expect(result).to.be.equal(sample[1]);
-        });
     });
 
     it('Test correct getChangelogField', () => {

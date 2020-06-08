@@ -1,9 +1,9 @@
 {
     "object_kind": "note",
     "user": {
-        "name": "Administrator",
-        "username": "root",
-        "avatar_url": "http://www.gravatar.com/avatar/e64c7d89f26bd1972efa854d13d7dd61?s=40\u0026d=identicon"
+        "name": "Иванов Иван Иванович",
+        "username": "ii_ivanov",
+        "avatar_url": "http://www.gravatar.com/avatar/url"
     },
     "project_id": 5,
     "project": {

@@ -5,27 +5,27 @@
         "self": "https://jira.test-example.ru/jira/rest/api/2/issue/26313/comment/31039",
         "id": "31039",
         "author": {
-            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
+            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=ii_ivanov",
             "avatarUrls": {
                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                 "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                 "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
             },
-            "displayName": "jira_test",
+            "displayName": "ii_ivanov",
             "active": true,
             "timeZone": "Europe/Moscow"
         },
         "body": "12345",
         "updateAuthor": {
-            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=jira_test",
+            "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=ii_ivanov",
             "avatarUrls": {
                 "48x48": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=48",
                 "24x24": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=24",
                 "16x16": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=16",
                 "32x32": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?d=mm&s=32"
             },
-            "displayName": "jira_test",
+            "displayName": "ii_ivanov",
             "active": true,
             "timeZone": "Europe/Moscow"
         },

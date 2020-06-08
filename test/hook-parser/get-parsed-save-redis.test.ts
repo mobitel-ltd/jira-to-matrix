@@ -1,4 +1,6 @@
+import * as R from 'ramda';
 import { pipe, set, clone } from 'lodash/fp';
+import { stub } from 'sinon';
 import nock from 'nock';
 import { expect } from 'chai';
 import commentCreatedHook from '../fixtures/webhooks/comment/created.json';
@@ -12,6 +14,10 @@ import { HookParser } from '../../src/hook-parser';
 import { QueueHandler } from '../../src/queue';
 import { Config } from '../../src/types';
 import { Actions } from '../../src/bot/actions';
+import { Gitlab } from '../../src/task-trackers/gitlab';
+import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
+import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 
 const issueId = commentCreatedHook.comment.self.split('/').reverse()[2];
 
@@ -72,5 +78,75 @@ describe('get-parsed-save to redis', () => {
         const result = JSON.parse(redisValue);
 
         expect(result).to.be.deep.equal(expected);
+    });
+
+    it('Expect comment_created hood created by bot should be ignored', async () => {
+        const commentFromBotHook = R.set(
+            R.lensPath(['comment', 'updateAuthor', 'displayName']),
+            config.taskTracker.user,
+            commentCreatedHook,
+        );
+        const res = await hookParser.getParsedAndSaveToRedis(commentFromBotHook);
+        expect(res).to.be.false;
+
+        const redisValue = await redis.getAsync(redisKey);
+        expect(redisValue).to.be.null;
+    });
+});
+
+describe('Queue handler test with gitlab', () => {
+    let queueHandler: QueueHandler;
+    let hookParser: HookParser;
+
+    beforeEach(() => {
+        const { chatApi, chatApiSingle } = getChatClass();
+        chatApiSingle.getRoomId = stub();
+        const gitlabTracker = new Gitlab({
+            url: 'https://gitlab.test-example.ru',
+            user: 'gitlab_bot',
+            password: 'fakepasswprd',
+            features: config.features,
+        });
+        const action = new Actions(config, gitlabTracker, chatApi);
+        queueHandler = new QueueHandler(gitlabTracker, config, action);
+        hookParser = new HookParser(gitlabTracker, config, queueHandler);
+
+        nock(gitlabTracker.getRestUrl())
+            .get(`/projects`)
+            .times(2)
+            .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
+            .reply(200, gitlabProjectsJson)
+            .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+            .times(2)
+            .reply(200, gitlabIssueJson);
+    });
+
+    afterEach(async () => {
+        await cleanRedis();
+        nock.cleanAll();
+    });
+
+    it('Room data should be in redis', async () => {
+        await hookParser.getParsedAndSaveToRedis(gitlabCommentCreatedHook);
+        const roomsKeys = await queueHandler.getRedisRooms();
+        expect(roomsKeys)
+            .to.be.an('array')
+            .that.has.length(1);
+    });
+
+    it('Comment from bot should be ignored', async () => {
+        const commentFromBotHook = R.set(
+            R.lensPath(['user']),
+            {
+                name: 'Some User Name',
+                username: config.taskTracker.user,
+                avatar_url: 'http://www.gravatar.com/avatar/url',
+            },
+            gitlabCommentCreatedHook,
+        );
+        const status = await hookParser.getParsedAndSaveToRedis(commentFromBotHook);
+        expect(status).to.be.false;
+        const roomsKeys = await queueHandler.getRedisRooms();
+        expect(roomsKeys).to.be.null;
     });
 });
