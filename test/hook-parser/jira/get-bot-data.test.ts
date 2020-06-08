@@ -112,11 +112,9 @@ describe('get-bot-data for jira', () => {
                 redisKey: 'inviteNewMembers_1511973439683',
                 funcName: 'inviteNewMembers',
                 data: {
-                    issue: {
-                        key: 'BBCOM-956',
-                        projectKey: 'BBCOM',
-                        typeName: 'Task',
-                    },
+                    key: 'BBCOM-956',
+                    projectKey: 'BBCOM',
+                    typeName: 'Task',
                 },
             },
             {

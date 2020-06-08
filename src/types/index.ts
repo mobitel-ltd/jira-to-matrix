@@ -586,7 +586,8 @@ export interface CreateRoomData {
 }
 
 export interface InviteNewMembersData {
-    issue: { key: string; typeName?: string; projectKey: string };
+    key: string;
+    typeName?: string;
     projectKey?: string;
 }
 
@@ -710,4 +711,8 @@ export interface Parser {
     getPostCommentData(body): PostCommentData;
 
     isPostComment(body): boolean;
+
+    isMemberInvite(body): boolean;
+
+    getInviteNewMembersData(body): InviteNewMembersData;
 }

@@ -59,7 +59,7 @@ export class JiraParser implements Parser {
         const projectKey = this.selectors.getProjectKey(body)!;
         const descriptionFields = this.selectors.getDescriptionFields(body);
 
-        return { issue: { key, typeName: descriptionFields?.typeName, projectKey } };
+        return { key, typeName: descriptionFields?.typeName, projectKey };
     }
 
     getPostNewLinksData(body): PostNewLinksData {

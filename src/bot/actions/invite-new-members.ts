@@ -9,22 +9,21 @@ import { InviteNewMembersData, TaskTracker } from '../../types';
 const logger = getLogger(module);
 
 export class InviteNewMembers extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
-    async run({ issue }: InviteNewMembersData): Promise<string[] | false> {
+    async run({ key, typeName, projectKey }: InviteNewMembersData): Promise<string[] | false> {
         const {
             messenger: { bots },
         } = this.config;
         try {
-            if (!(await this.taskTracker.hasIssue(issue.key))) {
-                logger.warn(`Issue by key ${issue.key} is not exists`);
+            if (!(await this.taskTracker.hasIssue(key))) {
+                logger.warn(`Issue by key ${key} is not exists`);
 
                 return false;
             }
 
-            const { key, typeName, projectKey } = issue;
             const roomId = await this.chatApi.getRoomId(key);
             const chatRoomMembers = await this.chatApi.getRoomMembers({ name: key });
 
-            const issueWatchers = await this.taskTracker.getIssueWatchers(issue.key);
+            const issueWatchers = await this.taskTracker.getIssueWatchers(key);
             const issueWatchersChatIds = await Promise.all(
                 issueWatchers.map(displayName => this.chatApi.getUserIdByDisplayName(displayName)),
             );

@@ -119,20 +119,21 @@ const getMembers = body => runMethod(body, 'getMembers') || getIssueMembers(body
 
 const isCommentEvent = body => getBodyWebhookEvent(body) === HookTypes.Comment;
 
-const getTypeEvent = body => body?.event_type;
+const getTypeEvent = body => body?.object_attributes?.action;
 
 const getIssueCreator = (body: GitlabIssue) => body?.author?.username;
 
 const getDisplayName = body => runMethod(body, 'getDisplayName');
 
-const isCorrectWebhook = (body: any, hookName: any): boolean => getBodyWebhookEvent(body) === hookName;
+const isCorrectWebhook = (body: any, hookName: any): boolean =>
+    getBodyWebhookEvent(body) === hookName || getTypeEvent(body) === hookName;
 
 const getProjectKey = body => runMethod(body, 'getProjectKey') || issueRequestHandlers.getProjectKey(body);
 
 const getBodyTimestamp = body => {
-    const createdAt = body?.object_attributes?.created_at;
+    const time = body?.object_attributes?.updated_at || body?.object_attributes?.created_at;
 
-    return new Date(createdAt).getTime();
+    return new Date(time).getTime();
 };
 
 const getRedisKey = (funcName: string, body: any): string => [funcName, getBodyTimestamp(body)].join('_');

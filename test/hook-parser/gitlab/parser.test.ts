@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import * as assert from 'assert';
 import commentHook from '../../fixtures/webhooks/gitlab/commented.json';
 import issueCreated from '../../fixtures/webhooks/gitlab/issue/created.json';
+import issueUpdated from '../../fixtures/webhooks/gitlab/issue/updated.json';
 import { config } from '../../../src/config';
 import { Config, CreateRoomData } from '../../../src/types';
 import { HookParser } from '../../../src/hook-parser';
@@ -19,6 +20,12 @@ describe('Gitlab actions', () => {
     it('should return postComment for note webhook', () => {
         const result = gitlabApi.parser.getBotActions(commentHook);
         const expected = ['postComment'];
+        assert.deepEqual(result, expected);
+    });
+
+    it('should return inviteNewMebers for issue update webhook', () => {
+        const result = gitlabApi.parser.getBotActions(issueUpdated);
+        const expected = ['inviteNewMembers'];
         assert.deepEqual(result, expected);
     });
 
@@ -52,6 +59,36 @@ describe('Gitlab actions', () => {
         ];
 
         const res = hookParser.getFuncAndBody(commentHook);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('should return create room and inviteNewMembers for issue update hook', () => {
+        const expected: {} = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData: {
+                    issue: {
+                        key: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
+                        descriptionFields: undefined,
+                        projectKey: issueUpdated.project.path_with_namespace,
+                        summary: issueUpdated.object_attributes.title,
+                    },
+                    projectKey: issueUpdated.project.path_with_namespace,
+                },
+            },
+            {
+                redisKey: 'inviteNewMembers_' + new Date(issueUpdated.object_attributes.updated_at).getTime(),
+                funcName: 'inviteNewMembers',
+                data: {
+                    key: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
+                    projectKey: issueUpdated.project.path_with_namespace,
+                    typeName: undefined,
+                },
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(issueUpdated);
 
         assert.deepEqual(res, expected);
     });

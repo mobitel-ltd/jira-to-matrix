@@ -68,7 +68,7 @@ describe('inviteNewMembers test', () => {
             .reply(200, issueBodyJSON);
 
         const chatClass = getChatClass({
-            alias: [inviteNewMembersData.issue.key as string, inviteUpperCase.issue.key],
+            alias: [inviteNewMembersData.key, inviteUpperCase.issue.key],
         });
         chatSingle = chatClass.chatApiSingle;
         chatSingle.getRoomMembers.resolves([chatSingle.getChatUserId('jira_test')]);

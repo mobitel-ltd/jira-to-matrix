@@ -1,0 +1,125 @@
+{
+    "object_kind": "issue",
+    "event_type": "issue",
+    "user": {
+        "name": "Иванов Иван Иванович",
+        "username": "ii_ivanov",
+        "avatar_url": "https://gitlab.test-example.ru/uploads/-/system/user/avatar/221/avatar.png"
+    },
+    "project": {
+        "id": 5,
+        "name": "GitlabToMatrix",
+        "description": "Aut reprehenderit ut est.",
+        "web_url": "http://example.com/indev/gitlabtomatrix",
+        "avatar_url": null,
+        "git_ssh_url": "git@example.com:indev/gitlabtomatrix.git",
+        "git_http_url": "http://example.com/indev/gitlabtomatrix.git",
+        "namespace": "Gitlab Org",
+        "visibility_level": 10,
+        "path_with_namespace": "indev/gitlabtomatrix",
+        "default_branch": "master",
+        "homepage": "http://example.com/indev/gitlabtomatrix",
+        "url": "http://example.com/indev/gitlabtomatrix.git",
+        "ssh_url": "git@example.com:indev/gitlabtomatrix.git",
+        "http_url": "http://example.com/indev/gitlabtomatrix.git"
+    },
+    "object_attributes": {
+        "author_id": 221,
+        "closed_at": null,
+        "confidential": false,
+        "created_at": "2020-06-08 12:15:10 UTC",
+        "description": "Description",
+        "due_date": null,
+        "id": 92,
+        "iid": 17,
+        "last_edited_at": null,
+        "last_edited_by_id": null,
+        "milestone_id": null,
+        "moved_to_id": null,
+        "duplicated_to_id": null,
+        "project_id": 3032,
+        "relative_position": 1073746323,
+        "state_id": 1,
+        "time_estimate": 0,
+        "title": "Test issue with new bot",
+        "updated_at": "2020-06-08 15:06:28 UTC",
+        "updated_by_id": 221,
+        "url": "https://gitlab.test-example.ru/indev/gitlabtomatrix/issues/18",
+        "total_time_spent": 0,
+        "human_total_time_spent": null,
+        "human_time_estimate": null,
+        "assignee_ids": [
+            396
+        ],
+        "assignee_id": 396,
+        "labels": [
+            {
+                "id": 232,
+                "title": "ToDo",
+                "color": "#FF0000",
+                "project_id": 3032,
+                "created_at": "2020-05-13 09:10:31 UTC",
+                "updated_at": "2020-05-13 09:10:31 UTC",
+                "template": false,
+                "description": "Задачи, которые нужно брать в работу ",
+                "type": "ProjectLabel",
+                "group_id": null
+            }
+        ],
+        "state": "opened",
+        "action": "update"
+    },
+    "labels": [
+        {
+            "id": 232,
+            "title": "ToDo",
+            "color": "#FF0000",
+            "project_id": 3032,
+            "created_at": "2020-05-13 09:10:31 UTC",
+            "updated_at": "2020-05-13 09:10:31 UTC",
+            "template": false,
+            "description": "Задачи, которые нужно брать в работу ",
+            "type": "ProjectLabel",
+            "group_id": null
+        }
+    ],
+    "changes": {
+        "updated_at": {
+            "previous": "2020-06-08 12:18:09 UTC",
+            "current": "2020-06-08 15:06:28 UTC"
+        },
+        "updated_by_id": {
+            "previous": null,
+            "current": 221
+        },
+        "assignees": {
+            "previous": [
+                {
+                    "name": "Петров Петр Петрович",
+                    "username": "pp_petrov",
+                    "avatar_url": "https://avatar/lalalalal"
+                }
+            ],
+            "current": [
+                {
+                    "name": "Федоров Федор Федорович",
+                    "username": "ff_fedorov",
+                    "avatar_url": "https://avatar/lalalalal"
+                }
+            ]
+        }
+    },
+    "repository": {
+        "name": "GitlabToMatrix",
+        "url": "git@gitlab.test-example.ru:indev/gitlabtomatrix.git",
+        "description": "",
+        "homepage": "https://gitlab.test-example.ru/indev/gitlabtomatrix"
+    },
+    "assignees": [
+        {
+            "name": "Федоров Федор Федорович",
+            "username": "ff_fedorov",
+            "avatar_url": "https://avatar/lalalalal"
+        }
+    ]
+}

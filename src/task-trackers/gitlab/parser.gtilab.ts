@@ -1,4 +1,4 @@
-import { Parser, Selectors, Config, CreateRoomData, PostCommentData } from '../../types';
+import { Parser, Selectors, Config, CreateRoomData, PostCommentData, InviteNewMembersData } from '../../types';
 
 export class GitlabParser implements Parser {
     issueMovedType = 'issueMovedType';
@@ -37,8 +37,21 @@ export class GitlabParser implements Parser {
         return Boolean(this.features.postComments && this.selectors.isCommentEvent(body));
     }
 
+    getInviteNewMembersData(body): InviteNewMembersData {
+        const key = this.selectors.getIssueKey(body);
+        const descriptionFields = this.selectors.getDescriptionFields(body);
+        const projectKey = this.selectors.getProjectKey(body);
+
+        return { key, typeName: descriptionFields?.typeName, projectKey };
+    }
+
+    isMemberInvite(body) {
+        return this.features.inviteNewMembers && this.selectors.isCorrectWebhook(body, 'update');
+    }
+
     actionFuncs = {
         postComment: this.isPostComment,
+        inviteNewMembers: this.isMemberInvite,
     };
 
     getBotActions(body) {
