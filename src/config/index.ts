@@ -10,16 +10,17 @@ const defaultRepoName = 'git-repo';
 const env = process.env.NODE_ENV || 'development';
 
 const pathDict = {
-    test: './test/fixtures/',
-    development: './',
-    production: './dist',
+    test: './test/fixtures/config.ts',
+    development: './config.json',
+    production: './config.json',
 };
 
 const configPath = pathDict[env];
 
-const configFilepath = resolve(configPath, 'config');
+const configFilepath = resolve(configPath);
 
-const configData = proxyquire(configFilepath, {});
+const loadedConfig = proxyquire(configFilepath, {});
+const configData = loadedConfig.config ? loadedConfig.config : loadedConfig;
 
 const defaultConfigData = {
     delayInterval: 500,
@@ -69,4 +70,4 @@ const composeConfig = (baseConfig: any): Config => {
     return { ...config, messenger };
 };
 
-export const config: Config = composeConfig(configData.config);
+export const config: Config = composeConfig(configData);
