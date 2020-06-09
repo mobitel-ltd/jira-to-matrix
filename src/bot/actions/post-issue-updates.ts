@@ -2,19 +2,18 @@ import { getLogger } from '../../modules/log';
 import * as utils from '../../lib/utils';
 import * as R from 'ramda';
 import { translate } from '../../locales';
-import { PostIssueUpdatesData } from '../../types';
+import { PostIssueUpdatesData, IssueChanges, TaskTracker } from '../../types';
 import { isRepoExists, getRepoLink, exportEvents } from '../../lib/git-lib';
 import { kick } from '../commands/command-list/common-actions';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { BaseAction } from './base-action';
 import { LAST_STATUS_COLOR } from '../../redis-client';
-import { Jira } from '../../task-trackers/jira';
 
 const logger = getLogger(module);
 
 // usingPojects: 'all' | [string] | undefined
 
-export class PostIssueUpdates extends BaseAction<ChatFasade, Jira> {
+export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> {
     async getNewAvatarUrl(issueKey, { statusId, colors, usingPojects }) {
         if (!colors) {
             logger.warn(`No color links is passed to update avatar for room ${issueKey}`);
@@ -28,16 +27,14 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, Jira> {
         }
 
         if (this.isAvatarIssueKey(issueKey, usingPojects)) {
-            const data = await this.taskTracker.getStatusData(statusId);
+            const colorName = await this.taskTracker.getStatusColor(statusId);
 
-            return data?.colorName && colors[data.colorName];
+            return colorName && colors[colorName];
         }
     }
 
-    fieldNames = items => items.reduce((acc, { field }) => (field ? [...acc, field] : acc), []);
-
-    itemsToString = items =>
-        items.reduce((acc, { field, toString }) => (field ? { ...acc, [field]: toString } : acc), {});
+    itemsToString = (items: IssueChanges[]) =>
+        items.reduce((acc, { field, newValue }) => (field ? { ...acc, [field]: newValue } : acc), {});
 
     composeText = ({ author, fields, formattedValues }) => {
         const message = translate('issue_updated', { name: author });
@@ -46,11 +43,11 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, Jira> {
         return [message, ...changesDescription].join('<br>');
     };
 
-    async getIssueUpdateInfoMessageBody({ changelog, oldKey, author }) {
-        const fields = this.fieldNames(changelog.items);
-        const renderedValues = await this.taskTracker.getRenderedValues(oldKey, fields);
+    async getIssueUpdateInfoMessageBody(changes: IssueChanges[], oldKey, author) {
+        const fields = changes.map(el => el.field);
+        const renderedValues = await this.taskTracker.getIssueFieldsValues(oldKey, fields);
+        const changelogItemsTostring = this.itemsToString(changes);
 
-        const changelogItemsTostring = this.itemsToString(changelog.items);
         const formattedValues = { ...changelogItemsTostring, ...renderedValues };
 
         const htmlBody = this.composeText({ author, fields, formattedValues });
@@ -59,7 +56,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, Jira> {
         return { htmlBody, body };
     }
 
-    async isArchiveStatus(projectKey: string, statusId?: string) {
+    async isArchiveStatus(projectKey: string, statusId?: number | string) {
         if (!statusId) {
             logger.debug('Status is not changed');
 
@@ -73,40 +70,48 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, Jira> {
         )(exportConfigParams);
 
         if (isInConfigArchiveList) {
-            const data = await this.taskTracker.getStatusData(statusId);
+            const colorName = await this.taskTracker.getStatusColor(statusId);
 
-            return data?.colorName === LAST_STATUS_COLOR;
+            return colorName === LAST_STATUS_COLOR;
         }
 
         return false;
     }
 
-    async run({ newStatusId, ...body }: PostIssueUpdatesData): Promise<boolean> {
+    async run({
+        newStatusId,
+        author,
+        changes,
+        oldKey,
+        newKey,
+        newNameData,
+        projectKey,
+    }: PostIssueUpdatesData): Promise<boolean> {
         try {
-            if (!(await this.taskTracker.hasIssue(body.oldKey))) {
-                logger.warn(`Issue by key ${body.oldKey} is not exists`);
+            if (!(await this.taskTracker.hasIssue(oldKey))) {
+                logger.warn(`Issue by key ${oldKey} is not exists`);
 
                 return false;
             }
 
-            const roomId = await this.chatApi.getRoomId(body.oldKey);
+            const roomId = await this.chatApi.getRoomId(oldKey);
 
-            if (body.newKey) {
-                const topic = this.taskTracker.getViewUrl(body.newKey);
-                await this.chatApi.updateRoomData(roomId, topic, body.newKey);
-                logger.debug(`Added new topic ${body.newKey} for room ${body.oldKey}`);
+            if (newKey) {
+                const topic = this.taskTracker.getViewUrl(newKey);
+                await this.chatApi.updateRoomData(roomId, topic, newKey);
+                logger.debug(`Added new topic ${newKey} for room ${oldKey}`);
             }
 
-            if (body.newNameData) {
-                await this.chatApi.updateRoomName(roomId, body.newNameData);
-                logger.debug(`Room ${body.oldKey} name updated with ${body.newNameData.summary}`);
+            if (newNameData) {
+                await this.chatApi.updateRoomName(roomId, newNameData);
+                logger.debug(`Room ${oldKey} name updated with ${newNameData.summary}`);
             }
 
-            const info = await this.getIssueUpdateInfoMessageBody(body);
+            const info = await this.getIssueUpdateInfoMessageBody(changes, oldKey, author);
             await this.chatApi.sendHtmlMessage(roomId, info.body, info.htmlBody);
             logger.debug(`Posted updates to ${roomId}`);
 
-            const newAvatarUrl = await this.getNewAvatarUrl(body.oldKey, {
+            const newAvatarUrl = await this.getNewAvatarUrl(oldKey, {
                 statusId: newStatusId,
                 colors: R.path(['colors', 'links'], this.config),
                 usingPojects: R.path(['colors', 'projects'], this.config),
@@ -118,7 +123,6 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, Jira> {
                 logger.debug(`Room ${roomId} have got new avatar ${newAvatarUrl}`);
             }
 
-            const projectKey = utils.getProjectKeyFromIssueKey(body.oldKey);
             if (await this.isArchiveStatus(projectKey, newStatusId)) {
                 const { baseRemote, baseLink, sshLink, gitReposPath } = this.config;
 

@@ -1,10 +1,20 @@
+import * as R from 'ramda';
 import axios, { AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
 import { TaskTracker, Parser, Issue, Project, Config, IssueWithComments } from '../../types';
 import { TIMEOUT } from '../../lib/consts';
 import * as messages from '../../lib/messages';
 import { getLogger } from '../../modules/log';
-import { GitlabIssue, GitlabProject, GitlabUserData, Notes, GitlabSelectors } from './types';
+import {
+    GitlabIssue,
+    GitlabProject,
+    GitlabUserData,
+    Notes,
+    GitlabSelectors,
+    GitlabIssueHook,
+    HookUser,
+    GitlabLabel,
+} from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
 
@@ -60,6 +70,14 @@ export class Gitlab implements TaskTracker {
         }
     }
 
+    // async getLabels();
+
+    async getStatusColor(statusId: string | number, projectId: string): Promise<string | undefined> {
+        await this.getProject(projectId);
+
+        return undefined;
+    }
+
     requestPost(url: string, options: AxiosRequestConfig): Promise<any> {
         const _options: AxiosRequestConfig = {
             ...options,
@@ -110,6 +128,32 @@ export class Gitlab implements TaskTracker {
     getPostCommentBody(sender: string, bodyText: string): string {
         // TODO fix bug in view
         return `@${sender}:<br>${bodyText}`;
+    }
+
+    async getIssueFieldsValues(key: string, fields: (keyof GitlabIssueHook['changes'])[]): Promise<any> {
+        try {
+            const issue = await this.getIssue(key);
+
+            const renderedValues = R.pipe(
+                R.pick(fields),
+                R.filter(value => !!value),
+                R.toPairs,
+                R.map(([key, value]) => {
+                    switch (key) {
+                        case 'assignees':
+                            return { [key]: (value as HookUser)[0].name };
+                        case 'labels':
+                            return { [key]: (value as GitlabLabel)[0].title };
+                        default:
+                            return { [key]: value };
+                    }
+                }),
+            )(issue);
+
+            return renderedValues;
+        } catch (err) {
+            throw ['getIssueFieldsValues error', err].join('\n');
+        }
     }
 
     async postComment(gitlabIssueKey: string, sender: string, bodyText: string): Promise<string> {

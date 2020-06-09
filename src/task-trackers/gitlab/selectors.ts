@@ -1,6 +1,6 @@
 import { GitlabIssueHook, GitlabCommentHook, HookTypes, GitlabSelectors, GitlabIssue } from './types';
 import { translate } from '../../locales';
-import { DescriptionFields } from '../../types';
+import { DescriptionFields, IssueChanges } from '../../types';
 
 const transformToKey = (namespaceWithProject: string, issueId: number) => [namespaceWithProject, issueId].join('-');
 
@@ -20,6 +20,7 @@ interface BodyGetters<T> {
     getSummary(body: T): string;
     getMembers(body: T): string[];
     getDescriptionFields(body: T): DescriptionFields | undefined;
+    getIssueChanges(body: T): IssueChanges[] | undefined;
 }
 
 interface CommentGetters<T> extends BodyGetters<T> {
@@ -44,8 +45,24 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         getSummary: body => body.object_attributes.title,
         getMembers: body => [...body.assignees.map(el => el.name), body.user.name],
         getDescriptionFields: () => undefined,
+        getIssueChanges: (body): any => {
+            return Object.entries(body.changes)
+
+                .filter(([el]) => !el.includes('_'))
+                .map(([field, value]) => {
+                    switch (field) {
+                        case 'assignees':
+                            return { field, newValue: value.current[0]?.name };
+                        case 'labels':
+                            return { field, newValue: value.current[0]?.title };
+                        default:
+                            return { field, newValue: value.current };
+                    }
+                });
+        },
     },
     note: {
+        getIssueChanges: () => undefined,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.issue.iid),
         getProjectKey: body => body.project.path_with_namespace,
         getDisplayName: body => body.user.name,
@@ -64,6 +81,7 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
 };
 
 const issueRequestHandlers: BodyGetters<GitlabIssue> = {
+    getIssueChanges: () => undefined,
     getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
     getUserId: body => body.author.username,
     getDisplayName: body => body.author.name,
@@ -150,7 +168,10 @@ const getDescriptionFields = (body): DescriptionFields => runMethod(body, 'getDe
 
 const getCreator = body => runMethod(body, 'getUserId');
 
+const getIssueChanges = body => runMethod(body, 'getIssueChanges');
+
 export const selectors: GitlabSelectors = {
+    getIssueChanges,
     getCreator,
     transformToKey,
     getBodyTimestamp,

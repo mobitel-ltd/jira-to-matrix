@@ -16,7 +16,13 @@ import { pipe, set, clone } from 'lodash/fp';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
 import { Jira } from '../../src/task-trackers/jira';
 import { LAST_STATUS_COLOR } from '../../src/redis-client';
-import { Config } from '../../src/types';
+import { Config, PostIssueUpdatesData } from '../../src/types';
+import { Gitlab } from '../../src/task-trackers/gitlab';
+import gitlabIssueUpdated from '../fixtures/webhooks/gitlab/issue/updated.json';
+import gitlabIssueNewAssign from '../fixtures/webhooks/gitlab/issue/new-assign.json';
+import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
+
 const { expect } = chai;
 
 chai.use(sinonChai);
@@ -285,5 +291,99 @@ describe('Post issue updates test', () => {
 
         const result = await postIssueUpdates.run(postIssueUpdatesData);
         expect(result).to.be.false;
+    });
+});
+
+describe('PostIssueUpdates in Gitlab', () => {
+    let gitlabTracker: Gitlab;
+    let chatApi;
+    let chatSingle;
+    let postIssueUpdates: PostIssueUpdates;
+    let postIssueUpdatesData: PostIssueUpdatesData;
+    const roomId = '!abcdefg:matrix';
+
+    beforeEach(() => {
+        gitlabTracker = new Gitlab({
+            url: 'https://gitlab.test-example.ru',
+            user: 'gitlab_bot',
+            password: 'fakepasswprd',
+            features: config.features,
+        });
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    describe('Title updated', () => {
+        const changes = `<br>title: ${gitlabIssueUpdated.changes.title.current}`;
+        const expectedData = [
+            roomId,
+            translate('issueHasChanged'),
+            `${translate('issue_updated', { name: gitlabIssueUpdated.user.name })}${changes}`,
+        ];
+
+        beforeEach(() => {
+            nock(gitlabTracker.getRestUrl())
+                .get(`/projects`)
+                .times(2)
+                .query({ search: gitlabIssueUpdated.project.path_with_namespace })
+                .reply(200, gitlabProjectsJson)
+                .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueUpdated.object_attributes.iid}`)
+                .times(2)
+                .reply(200, gitlabIssueJson);
+            postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabIssueUpdated);
+            const chatClass = getChatClass({ roomId });
+            chatApi = chatClass.chatApi;
+            chatSingle = chatClass.chatApiSingle;
+            chatSingle.getRoomId
+                .resolves(roomId)
+                .withArgs(null)
+                .throws('Error');
+
+            postIssueUpdates = new PostIssueUpdates(config, gitlabTracker, chatApi);
+        });
+
+        it('Is correct postIssueUpdatesData', async () => {
+            const result = await postIssueUpdates.run(postIssueUpdatesData);
+            expect(chatSingle.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+            expect(result).to.be.true;
+        });
+    });
+
+    describe('New user assigned', () => {
+        const changes = `<br>assignees: ${gitlabIssueNewAssign.changes.assignees.current[0].name}`;
+        const expectedData = [
+            roomId,
+            translate('issueHasChanged'),
+            `${translate('issue_updated', { name: gitlabIssueNewAssign.user.name })}${changes}`,
+        ];
+
+        beforeEach(() => {
+            nock(gitlabTracker.getRestUrl())
+                .get(`/projects`)
+                .times(2)
+                .query({ search: gitlabIssueNewAssign.project.path_with_namespace })
+                .reply(200, gitlabProjectsJson)
+                .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueNewAssign.object_attributes.iid}`)
+                .times(2)
+                .reply(200, gitlabIssueJson);
+            postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabIssueNewAssign);
+            const chatClass = getChatClass({ roomId });
+            chatApi = chatClass.chatApi;
+            chatSingle = chatClass.chatApiSingle;
+            chatSingle.getRoomId
+                .resolves(roomId)
+                .withArgs(null)
+                .throws('Error');
+
+            postIssueUpdates = new PostIssueUpdates(config, gitlabTracker, chatApi);
+        });
+
+        it('Is correct postIssueUpdatesData', async () => {
+            const result = await postIssueUpdates.run(postIssueUpdatesData);
+            expect(chatSingle.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+            expect(result).to.be.true;
+        });
     });
 });

@@ -1,15 +1,4 @@
 import { BaseChatApi } from '../messengers/base-api';
-import { Changelog } from '../task-trackers/jira/types';
-
-export interface ChangelogItem {
-    field: string;
-    fieldtype: string;
-    fieldId: string;
-    from: null | string;
-    fromString: null | string;
-    to: null | string;
-    toString: string;
-}
 
 export interface Config {
     port: string;
@@ -184,6 +173,8 @@ export interface DescriptionFields {
 }
 
 export interface Selectors {
+    getIssueChanges(body): IssueChanges[] | undefined;
+
     getCreator(body): string | undefined;
 
     getDescriptionFields(body): DescriptionFields | undefined;
@@ -254,6 +245,10 @@ export interface TaskTracker {
     selectors: Selectors;
 
     parser: Parser;
+
+    getIssueFieldsValues(key: string, fields: string[]): Promise<any>;
+
+    getStatusColor(statusId: string | number, projectId?: string): Promise<string | undefined>;
 
     checkIgnoreList(ignoreList, hookType, taskType, body): boolean;
 
@@ -341,7 +336,7 @@ export interface TaskTracker {
     // /**
     //  * Make request to jira by issueId adding renderedFields and filter by fields
     //  */
-    // getRenderedValues(key: string, fields: string[]): Promise<any>;
+    // getIssueFieldsValues(key: string, fields: string[]): Promise<any>;
 
     // /**
     //  * Get user list by part of the name
@@ -591,14 +586,19 @@ export interface InviteNewMembersData {
     projectKey?: string;
 }
 
+export interface IssueChanges {
+    field: string;
+    newValue: string;
+}
+
 export interface PostIssueUpdatesData {
-    newStatusId?: string;
+    newStatusId?: number | string;
     oldKey: string;
     newKey?: string;
     newNameData?: { key: string; summary: string };
-    changelog: Changelog;
+    changes: IssueChanges[];
     author: string;
-    projectKey?: string;
+    projectKey: string;
 }
 
 export interface PostEpicUpdatesData {
@@ -643,7 +643,7 @@ export interface PostLinkedChangesData {
         status?: string;
         key: string;
         summary: string;
-        changelog: Changelog;
+        changes: IssueChanges[];
         name: string;
     };
 }
@@ -715,4 +715,8 @@ export interface Parser {
     isMemberInvite(body): boolean;
 
     getInviteNewMembersData(body): InviteNewMembersData;
+
+    getPostIssueUpdatesData(body): PostIssueUpdatesData;
+
+    isPostIssueUpdates(body): boolean;
 }

@@ -8,6 +8,7 @@ import { getTaskTracker } from '../../../src/task-trackers';
 import { HookParser } from '../../../src/hook-parser';
 import { Jira } from '../../../src/task-trackers/jira';
 import { REDIS_ROOM_KEY } from '../../../src/redis-client';
+import { PostIssueUpdatesData } from '../../../src/types';
 
 describe('get-bot-data for jira', () => {
     const jiraApi = getTaskTracker(config) as Jira;
@@ -37,7 +38,10 @@ describe('get-bot-data for jira', () => {
 
     it('Expect correct issue_moved data', () => {
         const res = hookParser.getFuncAndBody(issueMovedJSON);
-        const expected = [
+        const expected: (
+            | { redisKey: string; createRoomData: false }
+            | { redisKey: string; funcName: string; data: PostIssueUpdatesData }
+        )[] = [
             {
                 createRoomData: false,
                 redisKey: 'newrooms',
@@ -53,8 +57,9 @@ describe('get-bot-data for jira', () => {
                         key: 'INDEV-130',
                         summary: 'test Task 2',
                     },
-                    changelog: jiraApi.selectors.getChangelog(issueMovedJSON),
+                    changes: jiraApi.selectors.getIssueChanges(issueMovedJSON)!,
                     author: 'jira_test',
+                    projectKey: issueMovedJSON.issue.fields.project.key,
                 },
             },
         ];

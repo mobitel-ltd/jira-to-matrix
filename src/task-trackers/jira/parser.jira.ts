@@ -83,14 +83,14 @@ export class JiraParser implements Parser {
     }
 
     getPostLinkedChangesData(body): PostLinkedChangesData {
-        const changelog = this.selectors.getChangelog(body)!;
+        const changes = this.selectors.getIssueChanges(body)!;
         const key = this.selectors.getKey(body)!;
         const status = this.selectors.getNewStatus(body);
         const summary = this.selectors.getSummary(body)!;
         const name = this.selectors.getDisplayName(body)!;
         const linksKeys = this.selectors.getLinkKeys(body);
 
-        const data = { status, key, summary, changelog, name };
+        const data = { status, key, summary, changes, name };
 
         return { linksKeys, data };
     }
@@ -110,7 +110,7 @@ export class JiraParser implements Parser {
 
     getPostIssueUpdatesData(body): PostIssueUpdatesData {
         const author = this.selectors.getDisplayName(body)!;
-        const changelog = this.selectors.getChangelog(body)!;
+        const changes = this.selectors.getIssueChanges(body)!;
         const newKey = this.selectors.getNewKey(body);
         const oldKey = (this.selectors.getOldKey(body) || this.selectors.getKey(body))!;
         const newNameData = newKey
@@ -120,8 +120,9 @@ export class JiraParser implements Parser {
             : undefined;
 
         const newStatusId = this.selectors.getNewStatusId(body);
+        const projectKey = this.selectors.getProjectKey(body)!;
 
-        return { oldKey, newKey, newNameData, changelog, author, newStatusId };
+        return { oldKey, newKey, newNameData, changes, author, newStatusId, projectKey };
     }
 
     getPostLinksDeletedData(body) {
@@ -141,7 +142,7 @@ export class JiraParser implements Parser {
         return Boolean(
             this.features.postIssueUpdates &&
                 this.selectors.isCorrectWebhook(body, 'jira:issue_updated') &&
-                this.selectors.getChangelog(body),
+                this.selectors.getIssueChanges(body),
         );
     }
 
@@ -166,7 +167,7 @@ export class JiraParser implements Parser {
             this.features.epicUpdates.on() &&
                 (this.selectors.isCorrectWebhook(body, 'jira:issue_updated') ||
                     (this.selectors.isCorrectWebhook(body, 'jira:issue_created') &&
-                        this.selectors.getChangelog(body))) &&
+                        this.selectors.getIssueChanges(body))) &&
                 this.selectors.getEpicKey(body),
         );
     }
@@ -196,7 +197,7 @@ export class JiraParser implements Parser {
         return Boolean(
             this.features.postChangesToLinks.on &&
                 this.selectors.isCorrectWebhook(body, 'jira:issue_updated') &&
-                this.selectors.getChangelog(body) &&
+                this.selectors.getIssueChanges(body) &&
                 this.selectors.getLinks(body).length > 0 &&
                 typeof this.selectors.getNewStatus(body) === 'string',
         );

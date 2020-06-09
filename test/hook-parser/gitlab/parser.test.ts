@@ -4,7 +4,7 @@ import commentHook from '../../fixtures/webhooks/gitlab/commented.json';
 import issueCreated from '../../fixtures/webhooks/gitlab/issue/created.json';
 import issueUpdated from '../../fixtures/webhooks/gitlab/issue/updated.json';
 import { config } from '../../../src/config';
-import { Config, CreateRoomData } from '../../../src/types';
+import { Config, CreateRoomData, PostIssueUpdatesData, InviteNewMembersData } from '../../../src/types';
 import { HookParser } from '../../../src/hook-parser';
 import { getTaskTracker } from '../../../src/task-trackers';
 import { REDIS_ROOM_KEY } from '../../../src/redis-client';
@@ -25,7 +25,7 @@ describe('Gitlab actions', () => {
 
     it('should return inviteNewMebers for issue update webhook', () => {
         const result = gitlabApi.parser.getBotActions(issueUpdated);
-        const expected = ['inviteNewMembers'];
+        const expected = ['inviteNewMembers', 'postIssueUpdates'];
         assert.deepEqual(result, expected);
     });
 
@@ -64,27 +64,41 @@ describe('Gitlab actions', () => {
     });
 
     it('should return create room and inviteNewMembers for issue update hook', () => {
+        const postIssueUpdateData: PostIssueUpdatesData = {
+            oldKey: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
+            projectKey: issueUpdated.project.path_with_namespace,
+            author: issueUpdated.user.name,
+            changes: [{ field: 'title', newValue: issueUpdated.changes.title.current }],
+        };
+        const inviteNewMembersData: InviteNewMembersData = {
+            key: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
+            projectKey: issueUpdated.project.path_with_namespace,
+            typeName: undefined,
+        };
+
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
+                descriptionFields: undefined,
+                projectKey: issueUpdated.project.path_with_namespace,
+                summary: issueUpdated.object_attributes.title,
+            },
+            projectKey: issueUpdated.project.path_with_namespace,
+        };
         const expected: {} = [
             {
                 redisKey: REDIS_ROOM_KEY,
-                createRoomData: {
-                    issue: {
-                        key: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
-                        descriptionFields: undefined,
-                        projectKey: issueUpdated.project.path_with_namespace,
-                        summary: issueUpdated.object_attributes.title,
-                    },
-                    projectKey: issueUpdated.project.path_with_namespace,
-                },
+                createRoomData,
             },
             {
                 redisKey: 'inviteNewMembers_' + new Date(issueUpdated.object_attributes.updated_at).getTime(),
                 funcName: 'inviteNewMembers',
-                data: {
-                    key: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
-                    projectKey: issueUpdated.project.path_with_namespace,
-                    typeName: undefined,
-                },
+                data: inviteNewMembersData,
+            },
+            {
+                redisKey: 'postIssueUpdates_' + new Date(issueUpdated.object_attributes.updated_at).getTime(),
+                funcName: 'postIssueUpdates',
+                data: postIssueUpdateData,
             },
         ];
 

@@ -7,7 +7,7 @@ import { schemas } from './schemas';
 import delay from 'delay';
 import { Issue, Transition, Config, IssueWithComments } from '../../types/index';
 import { TIMEOUT } from '../../lib/consts';
-import * as selectors from './selector.jira';
+import { selectors } from './selector.jira';
 import { TaskTracker } from '../../types';
 import { getProjectKeyFromIssueKey, errorTracing } from '../../lib/utils';
 import { JiraSelectors, JiraProject, RenderedIssue } from './types';
@@ -65,7 +65,7 @@ export class Jira implements TaskTracker {
     /**
      * Create jira url
      */
-    getUrl(...args: string[]): string {
+    getUrl(...args: any[]): string {
         return [this.url, this.restVersion, ...args].join('/');
     }
 
@@ -395,7 +395,7 @@ export class Jira implements TaskTracker {
     /**
      * Make request to jira by issueId adding renderedFields and filter by fields
      */
-    async getRenderedValues(key: string, fields: string[]): Promise<any> {
+    async getIssueFieldsValues(key: string, fields: string[]): Promise<any> {
         try {
             const issue = await this.getIssueFormatted(key);
 
@@ -406,7 +406,7 @@ export class Jira implements TaskTracker {
 
             return renderedValues;
         } catch (err) {
-            throw ['getRenderedValues error', err].join('\n');
+            throw ['getIssueFieldsValues error', err].join('\n');
         }
     }
 
@@ -468,13 +468,15 @@ export class Jira implements TaskTracker {
     /**
      * Get status data with color
      */
-    async getStatusData(statusId: string): Promise<{ colorName: string | undefined } | undefined> {
+    async getStatusColor(statusId: string | number): Promise<string | undefined> {
         try {
             const statusUrl = this.getUrl('status', statusId);
 
             const data = await this.request(statusUrl);
 
-            return { colorName: R.path(['statusCategory', 'colorName'], data) };
+            const colorName: string | undefined = R.path(['statusCategory', 'colorName'], data);
+
+            return colorName;
         } catch (error) {
             logger.error(error);
         }

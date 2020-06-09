@@ -111,8 +111,8 @@ describe('Jira request test', () => {
         expect(checkNotProjectRoom).to.be.false;
     });
 
-    it('getRenderedValues test', async () => {
-        const getRenderedValuesData = await jiraApi.getRenderedValues(issue.key, ['description']);
+    it('getIssueFieldsValues test', async () => {
+        const getRenderedValuesData = await jiraApi.getIssueFieldsValues(issue.key, ['description']);
         expect(getRenderedValuesData).to.be.deep.equal({ description: renderedIssueJSON.renderedFields.description });
     });
 

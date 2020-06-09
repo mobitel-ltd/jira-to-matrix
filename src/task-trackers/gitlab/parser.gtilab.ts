@@ -1,9 +1,35 @@
-import { Parser, Selectors, Config, CreateRoomData, PostCommentData, InviteNewMembersData } from '../../types';
+import {
+    Parser,
+    Selectors,
+    Config,
+    CreateRoomData,
+    PostCommentData,
+    InviteNewMembersData,
+    PostIssueUpdatesData,
+} from '../../types';
 
 export class GitlabParser implements Parser {
     issueMovedType = 'issueMovedType';
 
     constructor(private features: Config['features'], private selectors: Selectors) {}
+
+    isPostIssueUpdates(body) {
+        return Boolean(
+            this.features.postIssueUpdates &&
+                this.selectors.isCorrectWebhook(body, 'update') &&
+                this.selectors.getIssueChanges(body),
+        );
+    }
+
+    getPostIssueUpdatesData(body): PostIssueUpdatesData {
+        const author = this.selectors.getDisplayName(body)!;
+        const changes = this.selectors.getIssueChanges(body)!;
+        const oldKey = this.selectors.getIssueKey(body);
+
+        const projectKey = this.selectors.getProjectKey(body)!;
+
+        return { oldKey, changes, author, projectKey };
+    }
 
     isCreateRoom(body) {
         return Boolean(
@@ -52,6 +78,7 @@ export class GitlabParser implements Parser {
     actionFuncs = {
         postComment: this.isPostComment,
         inviteNewMembers: this.isMemberInvite,
+        postIssueUpdates: this.isPostIssueUpdates,
     };
 
     getBotActions(body) {

@@ -1,4 +1,4 @@
-import { Selectors, Issue, Project, ChangelogItem } from '../../types';
+import { Selectors, Issue, Project } from '../../types';
 
 interface UserData {
     self: string;
@@ -97,7 +97,7 @@ export interface IssueLink {
     };
 }
 
-export interface ChangelogItems {
+export interface ChangelogItem {
     field: string;
     fieldtype: string;
     from: string | null;
@@ -108,13 +108,12 @@ export interface ChangelogItems {
 
 export interface Changelog {
     id: string;
-    items: ChangelogItems[];
+    items: ChangelogItem[];
 }
 
 export interface JiraSelectors extends Selectors {
     extractName(body, path?: string[]): string | undefined;
     getIssueMembers(body): string[];
-    getChangelog(body): Changelog | undefined;
     getComment(body): string | undefined;
     getEpicKey(body): string | undefined;
     getLinks(body): IssueLink[];

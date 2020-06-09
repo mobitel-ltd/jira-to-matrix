@@ -1,8 +1,8 @@
 import * as R from 'ramda';
 import { config } from '../../config';
-import { Issue, ChangelogItem, Relation, DescriptionFields } from '../../types';
+import { Issue, Relation, DescriptionFields, IssueChanges } from '../../types';
 import { translate } from '../../locales';
-import { Comment, Changelog, JiraSelectors, IssueLink } from './types';
+import { Comment, Changelog, JiraSelectors, IssueLink, ChangelogItem } from './types';
 
 const { features } = config;
 
@@ -45,8 +45,13 @@ const handlers = {
 
             return [...new Set(possibleMembers)];
         },
-        getChangelog: (body): string | undefined => R.path(['issue', 'changelog'], body),
-        getHookChangelog: (body): string | undefined => R.path(['changelog'], body),
+        getChangelog: (body): Changelog | undefined => R.path(['issue', 'changelog'], body),
+        getIssueChanges: (body): IssueChanges[] | undefined => {
+            const changelog = handlers.issue.getChangelog(body) || handlers.issue.getHookChangelog(body);
+
+            return changelog && changelog.items.map(el => ({ field: el.field, newValue: el.toString }));
+        },
+        getHookChangelog: (body): Changelog | undefined => R.path(['changelog'], body),
         getProject: (body): string | undefined => R.path(['issue', 'fields', 'project'], body),
         getProjectKey: (body): string | undefined => R.path(['key'], handlers.issue.getProject(body)),
         getIssueName: (body): string | undefined => handlers.issue.getIssueKey(body),
@@ -111,6 +116,8 @@ export const runMethod = (body: any, method: string): any => {
     return handler && handler[method] && handler[method](body);
 };
 
+const getIssueChanges = (body): IssueChanges[] | undefined => runMethod(body, 'getIssueChanges');
+
 export const getDisplayName = body => runMethod(body, 'getDisplayName');
 
 export const getMembers = body => runMethod(body, 'getMembers') || handlers.issue.getMembers({ issue: body });
@@ -125,7 +132,7 @@ export const getProjectKey = body => runMethod(body, 'getProjectKey') || handler
 
 export const getLinks = body => runMethod(body, 'getLinks');
 
-export const getChangelog = (body): Changelog | undefined => {
+const getChangelog = (body): Changelog | undefined => {
     const type = getHandler(body);
 
     return type.getChangelog(body) || type.getHookChangelog(body);
@@ -160,7 +167,7 @@ export const getBodyTimestamp = (body): number | undefined => R.path(['timestamp
 
 export const getRedisKey = (funcName: string, body: any): string => [funcName, getBodyTimestamp(body)].join('_');
 
-export const getChangelogItems = (body): ChangelogItem[] => R.pathOr([], ['items'], getChangelog(body));
+const getChangelogItems = (body): ChangelogItem[] => R.pathOr([], ['items'], getChangelog(body));
 
 export const isCorrectWebhook = (body: any, hookName: any): boolean => getBodyWebhookEvent(body) === hookName;
 
@@ -252,6 +259,7 @@ export interface GetFieldOptions {
 }
 
 export const selectors: JiraSelectors = {
+    getIssueChanges,
     getCreator,
     extractName,
     getBodyWebhookEvent,
@@ -266,7 +274,6 @@ export const selectors: JiraSelectors = {
     getIssueName,
     getProjectKey,
     getLinks,
-    getChangelog,
     getComment,
     getCommentBody,
     getEpicKey,
