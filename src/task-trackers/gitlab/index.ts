@@ -21,6 +21,64 @@ import { selectors } from './selectors';
 const logger = getLogger(module);
 
 export class Gitlab implements TaskTracker {
+    private slashCommandsList = [
+        '/approve',
+        '/assign',
+        '/assign',
+        '/assign',
+        '/award',
+        '/child_epic',
+        '/clear_weight',
+        '/close',
+        '/confidential',
+        '/copy_metadata',
+        '/copy_metadata',
+        '/create_merge_request',
+        '/done',
+        '/due',
+        '/duplicate',
+        '/epic',
+        '/estimate',
+        '/iteration',
+        '/label',
+        '/lock',
+        '/merge',
+        '/milestone',
+        '/move',
+        '/parent_epic',
+        '/promote',
+        '/publish',
+        '/reassign',
+        '/relabel',
+        '/relate',
+        '/remove_child_epic',
+        '/remove_due_date',
+        '/remove_epic',
+        '/remove_estimate',
+        '/remove_iteration',
+        '/remove_milestone',
+        '/remove_parent_epic',
+        '/remove_time_spent',
+        '/remove_zoom',
+        '/reopen',
+        '/shrug',
+        '/spend',
+        '/spend',
+        '/submit_review',
+        '/subscribe',
+        '/tableflip',
+        '/target_branch',
+        '/title',
+        '/todo',
+        '/unassign',
+        '/unassign',
+        '/unlabel',
+        '/unlock',
+        '/unsubscribe',
+        '/weight',
+        '/wip',
+        '/zoom',
+    ];
     // export class Gitlab {
     url: string;
     user: string;
@@ -87,23 +145,6 @@ export class Gitlab implements TaskTracker {
         return this.request(url, _options);
     }
 
-    /**
-     * @example namespace/project-123
-     */
-    transformFromKey(key: string): { namespaceWithProject: string; issueId: number } {
-        const [issueId, ...keyReversedParts] = key
-            .toLowerCase()
-            .split('-')
-            .reverse();
-        const namespaceWithProject = keyReversedParts.reverse().join('-');
-
-        return { namespaceWithProject, issueId: Number(issueId) };
-    }
-
-    transformToKey(namespaceWithProject: string, issueId: number): string {
-        return [namespaceWithProject, issueId].join('-');
-    }
-
     private async getProjectIdByNamespace(namespaceWithProjectName: string): Promise<number> {
         const project = await this.getBaseProject(namespaceWithProjectName);
 
@@ -112,7 +153,7 @@ export class Gitlab implements TaskTracker {
 
     // key is like namespace/project-123
     async getIssue(key: string): Promise<Issue & GitlabIssue> {
-        const { namespaceWithProject, issueId } = this.transformFromKey(key);
+        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(key);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const url = this.getRestUrl('projects', projectId, 'issues', issueId);
@@ -125,9 +166,19 @@ export class Gitlab implements TaskTracker {
         return [this.url, this.restVersion, ...args].join('/');
     }
 
+    private isSlashCommand(text: string): boolean {
+        const [firstWord] = text.split(' ');
+
+        return this.slashCommandsList.includes(firstWord);
+    }
+
     getPostCommentBody(sender: string, bodyText: string): string {
-        // TODO fix bug in view
-        return `@${sender}:<br>${bodyText}`;
+        if (this.isSlashCommand(bodyText)) {
+            logger.debug(`Sended text ${bodyText} is gitlab slash command`);
+            return bodyText;
+        }
+
+        return `@${sender}:\n${bodyText}`;
     }
 
     async getIssueFieldsValues(key: string, fields: (keyof GitlabIssueHook['changes'])[]): Promise<any> {
@@ -156,8 +207,14 @@ export class Gitlab implements TaskTracker {
         }
     }
 
+    private isBadRequest(errMessage: string): boolean {
+        const badRequestErrorPart = 'status is 400';
+
+        return errMessage.includes(badRequestErrorPart);
+    }
+
     async postComment(gitlabIssueKey: string, sender: string, bodyText: string): Promise<string> {
-        const { namespaceWithProject, issueId } = this.transformFromKey(gitlabIssueKey);
+        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(gitlabIssueKey);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const body = this.getPostCommentBody(sender, bodyText);
@@ -165,9 +222,19 @@ export class Gitlab implements TaskTracker {
         // TODO make correct query params passing
         const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes?' + params);
 
-        await this.requestPost(url, {});
+        try {
+            await this.requestPost(url, {});
 
-        return body;
+            return body;
+        } catch (error) {
+            if (typeof error === 'string' && this.isBadRequest(error)) {
+                // https://gitlab.com/gitlab-org/gitlab/-/issues/35627
+                logger.warn('Post command has got 400 status, but it will be skipped because of gitlab bug');
+                return body;
+            }
+
+            throw error;
+        }
     }
 
     async getIssueSafety(key: string): Promise<Issue | boolean> {
@@ -225,13 +292,13 @@ export class Gitlab implements TaskTracker {
     }
 
     getViewUrl(key: string) {
-        const keyData = this.transformFromKey(key);
+        const keyData = this.selectors.transformFromKey(key);
 
         return [this.url, keyData.namespaceWithProject, 'issues', keyData.issueId].join('/');
     }
 
     async getIssueComments(key): Promise<IssueWithComments> {
-        const { namespaceWithProject, issueId } = this.transformFromKey(key);
+        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(key);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes');

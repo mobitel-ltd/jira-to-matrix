@@ -68,6 +68,16 @@ describe('Gitlab actions', () => {
             oldKey: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
             projectKey: issueUpdated.project.path_with_namespace,
             author: issueUpdated.user.name,
+            newRoomName:
+                '#' +
+                issueUpdated.object_attributes.iid +
+                ' ' +
+                issueUpdated.object_attributes.title +
+                ' ' +
+                issueUpdated.project.path_with_namespace +
+                '-' +
+                issueUpdated.object_attributes.iid,
+
             changes: [{ field: 'title', newValue: issueUpdated.changes.title.current }],
         };
         const inviteNewMembersData: InviteNewMembersData = {
@@ -85,7 +95,7 @@ describe('Gitlab actions', () => {
             },
             projectKey: issueUpdated.project.path_with_namespace,
         };
-        const expected: {} = [
+        const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
                 createRoomData,

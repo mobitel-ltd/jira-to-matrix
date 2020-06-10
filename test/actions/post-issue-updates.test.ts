@@ -200,10 +200,10 @@ describe('Post issue updates test', () => {
         const data = taskTracker.parser.getPostIssueUpdatesData(onlySummaryUpdateJSON);
         const res = await postIssueUpdates.run(data);
 
-        expect(chatSingle.updateRoomName).to.be.calledWithExactly(roomId, {
-            key: data.oldKey,
-            summary: changelog.items[0].toString,
-        });
+        expect(chatSingle.updateRoomName).to.be.calledWithExactly(
+            roomId,
+            `${data.oldKey} ${changelog.items[0].toString}`,
+        );
         expect(res).to.be.true;
     });
 

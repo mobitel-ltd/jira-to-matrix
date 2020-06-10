@@ -2,7 +2,21 @@ import { GitlabIssueHook, GitlabCommentHook, HookTypes, GitlabSelectors, GitlabI
 import { translate } from '../../locales';
 import { DescriptionFields, IssueChanges } from '../../types';
 
-const transformToKey = (namespaceWithProject: string, issueId: number) => [namespaceWithProject, issueId].join('-');
+/**
+ * @example namespace/project-123
+ */
+const transformFromKey = (key: string): { namespaceWithProject: string; issueId: number } => {
+    const [issueId, ...keyReversedParts] = key
+        .toLowerCase()
+        .split('-')
+        .reverse();
+    const namespaceWithProject = keyReversedParts.reverse().join('-');
+
+    return { namespaceWithProject, issueId: Number(issueId) };
+};
+
+const transformToKey = (namespaceWithProject: string, issueId: number): string =>
+    [namespaceWithProject, issueId].join('-');
 
 interface BodyGetters<T> {
     getProjectKey(body: T): string;
@@ -170,7 +184,15 @@ const getCreator = body => runMethod(body, 'getUserId');
 
 const getIssueChanges = body => runMethod(body, 'getIssueChanges');
 
+const composeRoomName = (key, summary) => {
+    const data = transformFromKey(key);
+
+    return '#' + data.issueId + ' ' + summary + ' ' + key;
+};
+
 export const selectors: GitlabSelectors = {
+    transformFromKey,
+    composeRoomName,
     getIssueChanges,
     getCreator,
     transformToKey,
