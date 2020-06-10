@@ -1,0 +1,122 @@
+{
+    "object_kind": "issue",
+    "event_type": "issue",
+    "user": {
+        "name": "Иванов Иван Иванович",
+        "username": "ii_ivanov",
+        "avatar_url": "https://gitlab.test-example.ru/uploads/-/system/user/avatar/221/avatar.png"
+    },
+    "project": {
+        "id": 3032,
+        "name": "GitlabToMatrix",
+        "description": "",
+        "web_url": "https://gitlab.test-example.ru/indev/gitlabtomatrix",
+        "avatar_url": null,
+        "git_ssh_url": "git@gitlab.test-example.ru:indev/gitlabtomatrix.git",
+        "git_http_url": "https://gitlab.test-example.ru/indev/gitlabtomatrix.git",
+        "namespace": "INDEV",
+        "visibility_level": 0,
+        "path_with_namespace": "indev/gitlabtomatrix",
+        "default_branch": "master",
+        "ci_config_path": null,
+        "homepage": "https://gitlab.test-example.ru/indev/gitlabtomatrix",
+        "url": "git@gitlab.test-example.ru:indev/gitlabtomatrix.git",
+        "ssh_url": "git@gitlab.test-example.ru:indev/gitlabtomatrix.git",
+        "http_url": "https://gitlab.test-example.ru/indev/gitlabtomatrix.git"
+    },
+    "object_attributes": {
+        "author_id": 221,
+        "closed_at": null,
+        "confidential": false,
+        "created_at": "2020-06-05 08:08:25 UTC",
+        "description": "Test description",
+        "due_date": null,
+        "id": 1427,
+        "iid": 16,
+        "last_edited_at": "2020-06-05 12:07:36 +0300",
+        "last_edited_by_id": 221,
+        "milestone_id": null,
+        "moved_to_id": null,
+        "duplicated_to_id": null,
+        "project_id": 3032,
+        "relative_position": 1073745323,
+        "state_id": 1,
+        "time_estimate": 0,
+        "title": "Test issue 2 updated",
+        "updated_at": "2020-06-05 09:07:36 UTC",
+        "updated_by_id": 221,
+        "url": "https://gitlab.test-example.ru/indev/gitlabtomatrix/issues/16",
+        "total_time_spent": 0,
+        "human_total_time_spent": null,
+        "human_time_estimate": null,
+        "assignee_ids": [
+            45
+        ],
+        "assignee_id": 45,
+        "labels": [
+            {
+                "id": 232,
+                "title": "ToDo",
+                "color": "#FF0000",
+                "project_id": 3032,
+                "created_at": "2020-05-13 09:10:31 UTC",
+                "updated_at": "2020-05-13 09:10:31 UTC",
+                "template": false,
+                "description": "Задачи, которые нужно брать в работу ",
+                "type": "ProjectLabel",
+                "group_id": null
+            }
+        ],
+        "state": "opened",
+        "action": "update"
+    },
+    "labels": [
+        {
+            "id": 232,
+            "title": "ToDo",
+            "color": "#FF0000",
+            "project_id": 3032,
+            "created_at": "2020-05-13 09:10:31 UTC",
+            "updated_at": "2020-05-13 09:10:31 UTC",
+            "template": false,
+            "description": "Задачи, которые нужно брать в работу ",
+            "type": "ProjectLabel",
+            "group_id": null
+        }
+    ],
+    "changes": {
+        "last_edited_at": {
+            "previous": null,
+            "current": "2020-06-05 12:07:36 +0300"
+        },
+        "last_edited_by_id": {
+            "previous": null,
+            "current": 221
+        },
+        "title": {
+            "previous": "Test issue 2",
+            "current": "Test issue 2 updated"
+        },
+        "updated_at": {
+            "previous": "2020-06-05 08:08:25 UTC",
+            "current": "2020-06-05 09:07:36 UTC"
+        },
+        "updated_by_id": {
+            "previous": null,
+            "current": 221
+        }
+    },
+    "repository": {
+        "name": "GitlabToMatrix",
+        "url": "git@gitlab.test-example.ru:indev/gitlabtomatrix.git",
+        "description": "",
+        "homepage": "https://gitlab.test-example.ru/indev/gitlabtomatrix"
+    },
+    "assignees": [
+        {
+            "name": "Петров Петр Петрович",
+            "username": "pp_petrov",
+            "avatar_url": "https://secure.gravatar.com/avatar/fea50ba67a952c46cd128d3dea7c7b5a?s=80&d=identicon"
+        }
+    ]
+}

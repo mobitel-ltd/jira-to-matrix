@@ -1,21 +1,23 @@
 {
   "name": "jira-matrix-bot",
-  "version": "0.6.0",
-  "main": "index.js",
+  "version": "0.7.0",
+  "main": "src/app.ts",
   "license": "WTFPL",
   "engines": {
-    "node": ">=10"
+    "node": ">=13"
   },
   "scripts": {
-    "format": "prettier --write \"{src,test}/**/*.js\"",
-    "dev": "nodemon logs/start.js",
+    "build": "tsc -p tsconfig.build.json",
+    "compile:test": "rimraf dist && npm run build && rimraf dist",
+    "format": "prettier --write \"{src,test}/**/*.ts\"",
     "dev:debug": "nodemon --inspect logs/start.js",
-    "lint": "eslint \"{src,test}/**/*.js\"",
-    "start": "node src/app.js",
-    "start-dev": "nodemon src/app.js",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "prestart": "rimraf dist && npm run build",
+    "start": "NODE_ENV=production node dist/app.js",
+    "start-dev": "ts-node src/app.ts",
     "debug": "nodemon --inspect src/app.js",
-    "test-single": "NODE_ENV=test nyc mocha",
-    "test": "NODE_ENV=test nyc mocha --timeout 10000  test/* --exit",
+    "test-single": "NODE_ENV=test nyc mocha --watch $1",
+    "test": "NODE_ENV=test nyc mocha",
     "test-all": "TEST_WATCH=1 npm run test",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
@@ -24,24 +26,57 @@
     "url": "git@github.com:grigori-gru/jira-to-matrix.git"
   },
   "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "src/**/*.ts"
+    ],
     "exclude": [
-      "src/redis-client.js",
-      "src/modules/log.js",
-      "src/config",
-      "test"
-    ]
+      "src/types",
+      "src/messengers/matrix-api.ts",
+      "test",
+      "**/*.d.ts"
+    ],
+    "all": true
   },
   "pre-commit": [
     "lint",
     "test-all"
   ],
   "devDependencies": {
+    "@types/body-parser": "^1.19.0",
+    "@types/chai": "^4.2.11",
+    "@types/express": "^4.17.6",
+    "@types/faker": "^4.1.12",
+    "@types/fs-extra": "^9.0.1",
+    "@types/html-to-text": "^5.1.0",
+    "@types/joi": "^14.3.4",
+    "@types/lodash": "^4.14.152",
+    "@types/luxon": "^1.24.0",
+    "@types/marked": "^0.7.4",
+    "@types/minimist": "^1.2.0",
+    "@types/mocha": "^7.0.2",
+    "@types/nock": "^11.1.0",
+    "@types/node": "^14.0.4",
+    "@types/node-polyglot": "^0.4.34",
+    "@types/proxyquire": "^1.3.28",
+    "@types/ramda": "^0.27.5",
+    "@types/redis": "^2.8.21",
+    "@types/request-promise-native": "^1.0.17",
+    "@types/sinon": "^9.0.3",
+    "@types/sinon-chai": "^3.2.4",
+    "@types/supertest": "^2.0.9",
+    "@types/winston": "^2.4.4",
+    "@typescript-eslint/eslint-plugin": "^2.21.0",
+    "@typescript-eslint/parser": "^2.21.0",
     "chai": "^4.2.0",
-    "eslint": "^6.8.0",
-    "eslint-config-google": "^0.14.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-chai-friendly": "0.6.0",
-    "eslint-plugin-prettier": "^3.1.3",
+    "eslint": "^7.0.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^23.8.0",
+    "eslint-plugin-prettier": "^3.1.2",
     "faker": "latest",
     "fs-extra": "^9.0.0",
     "lodash": "^4.17.15",
@@ -52,13 +87,17 @@
     "nyc": "^14.1.1",
     "pre-commit": "^1.2.2",
     "prettier": "^1.19.1",
-    "proxyquire": "^2.1.3",
     "sinon": "^9.0.1",
     "sinon-chai": "^3.5.0",
-    "supertest": "^4.0.2"
+    "source-map-support": "^0.5.19",
+    "supertest": "^4.0.2",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.9.2"
   },
   "dependencies": {
     "@slack/web-api": "^5.2.1",
+    "@taoqf/javascript-state-machine": "^3.1.4",
+    "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "david": "^12.0.0",
     "delay": "^4.3.0",
@@ -72,12 +111,14 @@
     "matrix-js-sdk": "mobitel-ltd/matrix-js-sdk",
     "minimist": "^1.2.5",
     "node-polyglot": "^2.4.0",
+    "proxyquire": "^2.1.3",
     "ramda": "^0.27.0",
     "redis": "^3.0.2",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.8",
+    "rimraf": "^3.0.2",
     "ru-names": "^1.0.7",
-    "simple-git": "^1.132.0",
+    "simple-git": "^2.5.0",
     "tmp-promise": "^2.0.2",
     "winston": "^2.4.4"
   }

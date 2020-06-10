@@ -1,0 +1,460 @@
+// const { getRestUrl } from '../../src/lib/utils';
+// import { pipe, set, clone } from 'lodash/fp';
+// const projectCreatedJSON from '../fixtures/webhooks/project/created.json'
+// const issueCreatedJSON from '../fixtures/webhooks/issue/created.json'
+// const { getCreateRoomData } from '../../src/jira-hook-parser/parse-body';
+// const renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json'
+// const statusJSON from '../fixtures/jira-api-requests/status.json'
+// const htmlToText from 'html-to-text').fromString;
+// import * as faker from 'faker';
+// import marked from 'marked';
+// const newLinksbody from '../fixtures/webhooks/issuelink/created.json'
+// const linksDeletedBody from '../fixtures/webhooks/issuelink/deleted.json'
+// const {
+//     jira: { url: jiraUrl },
+//     usersToIgnore,
+//     testMode,
+// } from '../../src/config');
+
+// const assert from 'assert');
+
+// // const testNewUserAssignBody from '../fixtures/webhooks/issue/updated/issue-assigned.json'
+// const newGenNotIgnoreProject from '../fixtures/jira-api-requests/project-gens/new-gen/correct.json'
+// const commentCreatedHook from '../fixtures/webhooks/comment/created.json'
+// const notIgnoredIssueHook from '../fixtures/webhooks/issue/updated/commented-changed.json'
+// const ignoredIssueHook from '../fixtures/webhooks/issue/updated/generic.json'
+// const notIgnoreCreatorIssueBody from '../fixtures/jira-api-requests/issue.json'
+// const rankHook from '../fixtures/webhooks/issue/updated/rank-changed.json'
+// import * as utils from '../../src/lib/utils';
+// const messages from '../../src/lib/messages');
+// import nock from 'nock';
+
+// import * as chai from 'chai';
+// const { expect } = chai;
+
+// const ignnoreUsers = [...usersToIgnore, ...testMode.users];
+
+// const {
+//     getPostStatusData,
+//     getManuallyIgnore,
+//     getIgnoreProject,
+//     getDescription,
+//     getNewAvatarUrl,
+// } from '../../src/bot/actions/helper';
+
+// const testUserId = faker.random.arrayElement(testMode.users);
+
+// const ignoreIssueKey = 'LALALLALA-1111';
+
+// const ignoredCreatorHook = pipe(clone, set('issue.key', ignoreIssueKey))(notIgnoredIssueHook);
+
+// const ignoredBody = pipe(
+//     clone,
+//     set('fields.creator.displayName', testUserId),
+//     // set('fields.creator.name', testUserId),
+// )(notIgnoreCreatorIssueBody);
+
+// describe('Helper tests', () => {
+//     afterEach(() => {
+//         nock.cleanAll();
+//     });
+
+//     it('getPostStatusData with null', () => {
+//         const data = {
+//             key: 'BBCOM-956',
+//             summary: 'BBCOM-956',
+//             id: '26313',
+//             changelog: null,
+//             name: testUserId,
+//         };
+
+//         const { body, htmlBody } = getPostStatusData(data);
+//         assert.equal(body, null);
+//         assert.equal(htmlBody, null);
+//     });
+
+//     describe('Test getManuallyIgnore', () => {
+//         beforeEach(() => {
+//             nock(getRestUrl())
+//                 .get(`/issue/${notIgnoredIssueHook.issue.key}`)
+//                 .reply(200, notIgnoreCreatorIssueBody)
+//                 .get(`/issue/${ignoredCreatorHook.issue.key}`)
+//                 .reply(200, ignoredBody);
+//         });
+
+//         describe('Test mode TRUE', () => {
+//             const testStatus = true;
+
+//             it('Issue creator is in the ignore-list, hook must NOT BE hundled (ignore-status=TRUE)', async () => {
+//                 const ignoreStatus = await getManuallyIgnore(notIgnoredIssueHook, ignnoreUsers, testStatus);
+
+//                 expect(ignoreStatus).to.be.true;
+//             });
+
+//             it('Issue creator is NOT in the ignore-list, hook must BE hundled (ignore-status=FALSE)', async () => {
+//                 const ignoreStatus = await getManuallyIgnore(ignoredCreatorHook, ignnoreUsers, testStatus);
+
+//                 expect(ignoreStatus).to.be.false;
+//             });
+//         });
+
+//         describe('Test mode FALSE', () => {
+//             const testStatus = false;
+
+//             it('Issue creator in the ignore-list, hook must NOT BE hundled (ignore-status=TRUE)', async () => {
+//                 const ignoreStatus = await getManuallyIgnore(ignoredCreatorHook, ignnoreUsers, testStatus);
+
+//                 expect(ignoreStatus).to.be.true;
+//             });
+
+//             it('Issue creator is NOT in the ignore-list, hook must BE hundled (ignore-status=FALSE)', async () => {
+//                 const ignoreStatus = await getManuallyIgnore(notIgnoredIssueHook, ignnoreUsers, testStatus);
+
+//                 expect(ignoreStatus).to.be.false;
+//             });
+//         });
+//     });
+
+//     describe('geDescription test', () => {
+//         const createRoomData = getCreateRoomData(issueCreatedJSON);
+
+//         const epicKey = createRoomData.issue.descriptionFields.epicLink;
+
+//         const { descriptionFields } = createRoomData.issue;
+//         const description = marked(renderedIssueJSON.renderedFields.description);
+//         const post = `
+//             Assignee:
+//                 <br>${utils.INDENT}${descriptionFields.assigneeName}
+//             <br>Reporter:
+//                 <br>${utils.INDENT}${descriptionFields.reporterName}
+//             <br>Type:
+//                 <br>${utils.INDENT}${descriptionFields.typeName}<br>
+//             <br>Estimate time:
+//                 <br>${utils.INDENT}${descriptionFields.estimateTime}<br>
+//             <br>Description:
+//                 <br>${utils.INDENT}${description}<br>
+//             <br>Priority:
+//                 <br>${utils.INDENT}${descriptionFields.priority}<br>`;
+//         const epicInfo = `            <br>Epic link:
+//                 <br>${utils.INDENT}${epicKey}
+//                 <br>${utils.INDENT}${taskTracker.getViewUrl(epicKey)}<br>`;
+//         const expectedHTMLBody = [post, epicInfo].join('\n');
+//         const expectedBody = htmlToText(expectedHTMLBody);
+
+//         before(() => {
+//             nock(taskTracker.getRestUrl())
+//                 .get(`/issue/${issueCreatedJSON.issue.key}`)
+//                 .query(Jira.expandParams)
+//                 .reply(200, renderedIssueJSON);
+//         });
+
+//         it('Description with epic should be created', async () => {
+//             const result = await getDescription(createRoomData.issue);
+//             expect(result).deep.eq({ body: expectedBody, htmlBody: expectedHTMLBody });
+//         });
+//     });
+
+//     describe('Test getIgnoreInfo', () => {
+//         const testStatus = false;
+
+//         beforeEach(() => {
+//             nock(jiraUrl)
+//                 .get('')
+//                 .reply(200, '<HTML>');
+
+//             nock(taskTracker.getRestUrl())
+//                 .get(`/issue/${ignoredCreatorHook.issue.key}`)
+//                 .reply(200, ignoredBody)
+//                 .get(`/issue/${ignoreIssueKey}`)
+//                 .times(2)
+//                 .reply(200, ignoredBody)
+//                 .get(`/issue/${rankHook.issue.key}`)
+//                 .reply(200, notIgnoreCreatorIssueBody)
+//                 .get(`/issue/${notIgnoredIssueHook.issue.key}`)
+//                 .times(2)
+//                 .reply(200, notIgnoreCreatorIssueBody)
+//                 .get(`/project/${projectCreatedJSON.project.key}`)
+//                 .reply(200, newGenNotIgnoreProject)
+//                 .get(`/issue/${utils.getIssueId(commentCreatedHook)}`)
+//                 .times(2)
+//                 .reply(200, notIgnoreCreatorIssueBody)
+//                 .get(`/issue/${linksDeletedBody.issueLink.sourceIssueId}`)
+//                 .reply(200, notIgnoreCreatorIssueBody)
+//                 .get(`/issue/${linksDeletedBody.issueLink.destinationIssueId}`)
+//                 .reply(200, notIgnoreCreatorIssueBody)
+//                 .get(`/issue/${newLinksbody.issueLink.sourceIssueId}`)
+//                 .reply(200, notIgnoreCreatorIssueBody)
+//                 .get(`/issue/${newLinksbody.issueLink.destinationIssueId}`)
+//                 .reply(200, notIgnoreCreatorIssueBody);
+//         });
+
+//         it('Expect NOT ignore issue hook if issue is available', async () => {
+//             const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+//                 notIgnoredIssueHook,
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(timestamp).to.be.eq(notIgnoredIssueHook.timestamp);
+//             expect(webhookEvent).to.be.eq(notIgnoredIssueHook.webhookEvent);
+//             expect(issueName).to.be.eq(notIgnoredIssueHook.issue.key);
+//             expect(ignoreStatus).to.be.false;
+//         });
+
+//         it('Expect ignore issue hook if creater is test-user', async () => {
+//             const { ignoreStatus } = await getIgnoreProject(ignoredCreatorHook, ignnoreUsers, testStatus);
+//             expect(ignoreStatus).to.be.true;
+//         });
+
+//         it('Expect NOT ignore issue hook if creater is NOT test-user', async () => {
+//             const { ignoreStatus } = await getIgnoreProject(notIgnoredIssueHook, ignnoreUsers, testStatus);
+//             expect(ignoreStatus).to.be.false;
+//         });
+
+//         it('Expect rankHook to be ignore', async () => {
+//             const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+//                 rankHook,
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(timestamp).to.be.eq(rankHook.timestamp);
+//             expect(webhookEvent).to.be.eq(rankHook.webhookEvent);
+//             expect(issueName).to.be.eq(rankHook.issue.key);
+//             expect(ignoreStatus).to.be.true;
+//         });
+
+//         it('Expect IGNORE issue hook if issue is not available', async () => {
+//             const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+//                 ignoredIssueHook,
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(timestamp).to.be.eq(ignoredIssueHook.timestamp);
+//             expect(webhookEvent).to.be.eq(ignoredIssueHook.webhookEvent);
+//             expect(issueName).to.be.eq(ignoredIssueHook.issue.key);
+//             expect(ignoreStatus).to.be.true;
+//         });
+
+//         it('Expect NOT ignore comment create hook if issue with comment is available', async () => {
+//             const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+//                 commentCreatedHook,
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(timestamp).to.be.eq(commentCreatedHook.timestamp);
+//             expect(webhookEvent).to.be.eq(commentCreatedHook.webhookEvent);
+//             expect(issueName).to.be.eq(utils.getIssueId(commentCreatedHook));
+//             expect(ignoreStatus).to.be.false;
+//         });
+
+//         it('Expect IGNORE comment create hook if issue with comment is not available', async () => {
+//             nock.cleanAll();
+//             nock(jiraUrl)
+//                 .get('')
+//                 .reply(200, '<HTML>');
+
+//             const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+//                 commentCreatedHook,
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(timestamp).to.be.eq(commentCreatedHook.timestamp);
+//             expect(webhookEvent).to.be.eq(commentCreatedHook.webhookEvent);
+//             expect(issueName).to.be.eq(utils.getIssueId(commentCreatedHook));
+//             expect(ignoreStatus).to.be.true;
+//         });
+
+//         it('Expect getIgnoreProject to be thrown if jira is not connected', async () => {
+//             nock.cleanAll();
+//             nock(jiraUrl)
+//                 .get('')
+//                 .reply(404);
+
+//             let result;
+//             try {
+//                 result = await getIgnoreProject(commentCreatedHook, ignnoreUsers, testStatus);
+//             } catch (err) {
+//                 result = err;
+//             }
+//             expect(result).to.be.eq(messages.noJiraConnection);
+//         });
+
+//         it('Expect IGNORE issuelink deleted/created hook if both id are not available', async () => {
+//             nock.cleanAll();
+//             nock(jiraUrl)
+//                 .get('')
+//                 .reply(200, '<HTML>');
+//             const body = faker.random.arrayElement([linksDeletedBody, newLinksbody]);
+
+//             const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+//                 body,
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(timestamp).to.be.eq(body.timestamp);
+//             expect(webhookEvent).to.be.eq(body.webhookEvent);
+//             expect(issueName).to.be.eq(body.issueLink.id);
+//             expect(ignoreStatus).to.be.true;
+//         });
+
+//         it('Expect NOT ignore issuelink deleted/created hook if at least one of links is available', async () => {
+//             const [status1, status2] = faker.random.arrayElement([
+//                 [404, 200],
+//                 [200, 404],
+//             ]);
+//             const body = faker.random.arrayElement([linksDeletedBody, newLinksbody]);
+//             nock.cleanAll();
+//             nock(jiraUrl)
+//                 .get('')
+//                 .reply(200, '<HTML>');
+
+//             nock(taskTracker.getRestUrl())
+//                 .get(`/issue/${body.issueLink.sourceIssueId}`)
+//                 .times(3)
+//                 .reply(status1, notIgnoreCreatorIssueBody)
+//                 .get(`/issue/${body.issueLink.destinationIssueId}`)
+//                 .times(3)
+//                 .reply(status2, notIgnoreCreatorIssueBody);
+
+//             const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+//                 body,
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(timestamp).to.be.eq(body.timestamp);
+//             expect(webhookEvent).to.be.eq(body.webhookEvent);
+//             expect(issueName).to.be.eq(body.issueLink.id);
+//             expect(ignoreStatus).to.be.false;
+//         });
+
+//         it('Expect getIgnoreProject not ignores project_created hook', async () => {
+//             const { issueName, timestamp, webhookEvent, ignoreStatus } = await getIgnoreProject(
+//                 projectCreatedJSON,
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(timestamp).to.be.eq(projectCreatedJSON.timestamp);
+//             expect(webhookEvent).to.be.eq(projectCreatedJSON.webhookEvent);
+//             expect(issueName).to.be.eq(projectCreatedJSON.project.key);
+//             expect(ignoreStatus).to.be.false;
+//         });
+
+//         it('Expect getIgnoreProject ignore unknown hook type', async () => {
+//             const { ignoreStatus } = await getIgnoreProject(
+//                 { ...projectCreatedJSON, webhookEvent: 'unknown_type' },
+//                 ignnoreUsers,
+//                 testStatus,
+//             );
+
+//             expect(ignoreStatus).to.be.true;
+//         });
+//     });
+
+//     describe('getNewAvatarUrl testing', () => {
+//         const roomId = 'TEST-1';
+//         const newStatusData = {
+//             field: 'status',
+//             fieldtype: 'jira',
+//             fieldId: 'status',
+//             from: '10257',
+//             fromString: 'To Do',
+//             to: '10279',
+//             toString: 'In Progress',
+//         };
+//         const errStatusId = 100000;
+//         const statusId = newStatusData.to;
+//         const withoutExpectedColors = {
+//             red: 'mxc://matrix.example/red',
+//             purple: 'mxc://matrix.example/purple',
+//             green: 'mxc://matrix.example/green',
+//             white: 'mxc://matrix.example/white',
+//             'blue-gray': 'mxc://matrix.example/blue-gray',
+//         };
+
+//         const expectedColorUrl = 'mxc://matrix.example/yellow';
+//         const usingPojects = ['TEST'];
+//         const colors = {
+//             ...withoutExpectedColors,
+//             [statusJSON.statusCategory.colorName]: expectedColorUrl,
+//         };
+
+//         beforeEach(() => {
+//             nock(taskTracker.getRestUrl())
+//                 .get(`/status/${newStatusData.to}`)
+//                 .reply(200, statusJSON)
+//                 .get(`/status/${errStatusId}`)
+//                 .reply(404);
+//         });
+
+//         it('Expect getNewAvatarUrl should return undefined if no statusId is put', async () => {
+//             const res = await getNewAvatarUrl(roomId, { colors });
+//             expect(res).to.be.undefined;
+//         });
+
+//         it('Expect getNewAvatarUrl should return undefined if no colors is put', async () => {
+//             const res = await getNewAvatarUrl(roomId, { statusId });
+//             expect(res).to.be.undefined;
+//         });
+
+//         it('Expect getNewAvatarUrl should return correct color if statusId have this field id color link', async () => {
+//             const res = await getNewAvatarUrl(roomId, {
+//                 colors,
+//                 statusId,
+//                 usingPojects,
+//             });
+//             expect(res).to.be.eq(expectedColorUrl);
+//         });
+
+//         it('Expect getNewAvatarUrl should return correct color if statusId have this field id color link and all project passed ({usingPojects: "all"})', async () => {
+//             const res = await getNewAvatarUrl(roomId, {
+//                 colors,
+//                 statusId,
+//                 usingPojects: 'all',
+//             });
+//             expect(res).to.be.eq(expectedColorUrl);
+//         });
+
+//         it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects', async () => {
+//             const res = await getNewAvatarUrl(roomId, {
+//                 colors,
+//                 statusId,
+//                 usingPojects: ['NOTTEST'],
+//             });
+//             expect(res).to.be.undefined;
+//         });
+
+//         it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects (empty array)', async () => {
+//             const res = await getNewAvatarUrl(roomId, {
+//                 colors,
+//                 statusId,
+//                 usingPojects: [],
+//             });
+//             expect(res).to.be.undefined;
+//         });
+
+//         it('Expect getNewAvatarUrl should return undefined if project is not exists in using projects (empty project field)', async () => {
+//             const res = await getNewAvatarUrl(roomId, {
+//                 colors,
+//                 statusId,
+//             });
+//             expect(res).to.be.undefined;
+//         });
+
+//         it('Expect getNewAvatarUrl should return undefined if color is not exists in our colors data', async () => {
+//             const res = await getNewAvatarUrl(roomId, { colors: withoutExpectedColors, statusId });
+//             expect(res).to.be.undefined;
+//         });
+
+//         it('Expect getNewAvatarUrl should return undefined if request to get color has error inside', async () => {
+//             const res = await getNewAvatarUrl(roomId, { colors, statusId: errStatusId });
+//             expect(res).to.be.undefined;
+//         });
+//     });
+// });

@@ -1,0 +1,168 @@
+{
+    "object_kind": "issue",
+    "event_type": "issue",
+    "user": {
+        "name": "Иванов Иван Иванович",
+        "username": "ii_ivanov",
+        "avatar_url": "https://gitlab.test-example.ru/uploads/-/system/user/avatar/221/avatar.png"
+    },
+    "project": {
+        "id": 5,
+        "name": "GitlabToMatrix",
+        "description": "Aut reprehenderit ut est.",
+        "web_url": "http://example.com/indev/gitlabtomatrix",
+        "avatar_url": null,
+        "git_ssh_url": "git@example.com:indev/gitlabtomatrix.git",
+        "git_http_url": "http://example.com/indev/gitlabtomatrix.git",
+        "namespace": "Gitlab Org",
+        "visibility_level": 10,
+        "path_with_namespace": "indev/gitlabtomatrix",
+        "default_branch": "master",
+        "homepage": "http://example.com/indev/gitlabtomatrix",
+        "url": "http://example.com/indev/gitlabtomatrix.git",
+        "ssh_url": "git@example.com:indev/gitlabtomatrix.git",
+        "http_url": "http://example.com/indev/gitlabtomatrix.git"
+    },
+    "object_attributes": {
+        "author_id": 221,
+        "closed_at": null,
+        "confidential": false,
+        "created_at": "2020-06-05 08:09:16 UTC",
+        "description": "Test description",
+        "due_date": null,
+        "id": 92,
+        "iid": 17,
+        "last_edited_at": null,
+        "last_edited_by_id": null,
+        "milestone_id": null,
+        "moved_to_id": null,
+        "duplicated_to_id": null,
+        "project_id": 3032,
+        "relative_position": 1073745823,
+        "state_id": 1,
+        "time_estimate": 0,
+        "title": "Test title",
+        "updated_at": "2020-06-05 08:09:16 UTC",
+        "updated_by_id": null,
+        "url": "https://gitlab.test-example.ru/indev/gitlabtomatrix/issues/17",
+        "total_time_spent": 0,
+        "human_total_time_spent": null,
+        "human_time_estimate": null,
+        "assignee_ids": [
+            45
+        ],
+        "assignee_id": 45,
+        "labels": [
+            {
+                "id": 232,
+                "title": "ToDo",
+                "color": "#FF0000",
+                "project_id": 3032,
+                "created_at": "2020-05-13 09:10:31 UTC",
+                "updated_at": "2020-05-13 09:10:31 UTC",
+                "template": false,
+                "description": "Задачи, которые нужно брать в работу ",
+                "type": "ProjectLabel",
+                "group_id": null
+            }
+        ],
+        "state": "opened",
+        "action": "open"
+    },
+    "labels": [
+        {
+            "id": 232,
+            "title": "ToDo",
+            "color": "#FF0000",
+            "project_id": 3032,
+            "created_at": "2020-05-13 09:10:31 UTC",
+            "updated_at": "2020-05-13 09:10:31 UTC",
+            "template": false,
+            "description": "Задачи, которые нужно брать в работу ",
+            "type": "ProjectLabel",
+            "group_id": null
+        }
+    ],
+    "changes": {
+        "author_id": {
+            "previous": null,
+            "current": 221
+        },
+        "created_at": {
+            "previous": null,
+            "current": "2020-06-05 08:09:16 UTC"
+        },
+        "description": {
+            "previous": null,
+            "current": "Test description"
+        },
+        "id": {
+            "previous": null,
+            "current": 1428
+        },
+        "iid": {
+            "previous": null,
+            "current": 17
+        },
+        "project_id": {
+            "previous": null,
+            "current": 3032
+        },
+        "relative_position": {
+            "previous": null,
+            "current": 1073745823
+        },
+        "title": {
+            "previous": null,
+            "current": "Test title"
+        },
+        "updated_at": {
+            "previous": null,
+            "current": "2020-06-05 08:09:16 UTC"
+        },
+        "assignees": {
+            "previous": [],
+            "current": [
+                {
+                    "name": "Петров Петр Петрович",
+                    "username": "pp_petrov",
+                    "avatar_url": "https://avatar.com/avatar/lalala?s=80&d=identicon"
+                }
+            ]
+        },
+        "labels": {
+            "previous": [],
+            "current": [
+                {
+                    "id": 232,
+                    "title": "ToDo",
+                    "color": "#FF0000",
+                    "project_id": 3032,
+                    "created_at": "2020-05-13 09:10:31 UTC",
+                    "updated_at": "2020-05-13 09:10:31 UTC",
+                    "template": false,
+                    "description": "Задачи, которые нужно брать в работу ",
+                    "type": "ProjectLabel",
+                    "group_id": null
+                }
+            ]
+        },
+        "total_time_spent": {
+            "previous": null,
+            "current": 0
+        }
+    },
+    "repository": {
+        "name": "GitlabToMatrix",
+        "url": "git@gitlab.test-example.ru:indev/gitlabtomatrix.git",
+        "description": "",
+        "homepage": "https://gitlab.test-example.ru/indev/gitlabtomatrix"
+    },
+    "assignees": [
+        {
+            "name": "Петров Петр Петрович",
+            "username": "pp_petrov",
+            "avatar_url": "https://avatar.com/avatar/lalala?s=80&d=identicon"
+        }
+    ]
+}

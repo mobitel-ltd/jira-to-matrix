@@ -76,14 +76,14 @@
                     "timeZone": "Europe/Moscow"
                 },
                 {
-                    "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=gv_grudinin",
+                    "self": "https://jira.test-example.ru/jira/rest/api/2/user?username=ii_ivanov",
                     "avatarUrls": {
                         "48x48": "https://secure.gravatar.com/avatar/f171b6f7572dee3137354db01c9b7e89?d=mm&s=48",
                         "24x24": "https://secure.gravatar.com/avatar/f171b6f7572dee3137354db01c9b7e89?d=mm&s=24",
                         "16x16": "https://secure.gravatar.com/avatar/f171b6f7572dee3137354db01c9b7e89?d=mm&s=16",
                         "32x32": "https://secure.gravatar.com/avatar/f171b6f7572dee3137354db01c9b7e89?d=mm&s=32"
                     },
-                    "displayName": "Грудинин Григорий Владимирович",
+                    "displayName": "Иванов Иван Иванович",
                     "active": true,
                     "timeZone": "Europe/Moscow"
                 }

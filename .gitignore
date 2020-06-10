@@ -79,6 +79,9 @@ typings/
 
 # dev config
 /config.js
+/config.ts
+/config.*.json
+/config.json
 
 # log
 logs/
@@ -91,3 +94,7 @@ dump.rdb
 
 ignore-list*
 autoinvite-list*
+
+dist
+
+tmp
