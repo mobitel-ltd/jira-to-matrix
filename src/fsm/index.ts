@@ -30,7 +30,7 @@ const getJiraFsm = (app, port) =>
             onStart() {
                 this.server = http.createServer(app);
                 this.server.listen(port, () => {
-                    logger.info(`Jira hooks are listening on port ${port}`);
+                    logger.info(`Hooks are listening on port ${port}`);
                 });
             },
             // onEnterState() {

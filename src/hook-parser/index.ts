@@ -114,11 +114,11 @@ export class HookParser {
     async isIgnoreCreator(body) {
         if (this.selectors.isCommentEvent(body)) {
             const creator = this.selectors.getCreator(body);
-            if (creator && this.ignoredUsers.includes(creator)) {
-                logger.warn(`Comment author is ignore user "${creator}", skip hook`);
+            // if (creator && this.ignoredUsers.includes(creator)) {
+            //     logger.warn(`Comment author is ignore user "${creator}", skip hook`);
 
-                return true;
-            }
+            //     return true;
+            // }
 
             if (creator === this.config.taskTracker.user) {
                 logger.warn(`Comment author is task tracker user "${creator}", skip hook`);

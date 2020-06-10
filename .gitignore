@@ -80,6 +80,7 @@ typings/
 # dev config
 /config.js
 /config.ts
+/config.*.json
 /config.json
 
 # log
