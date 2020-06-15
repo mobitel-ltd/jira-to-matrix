@@ -48,7 +48,9 @@ describe('Gitlab actions', () => {
                 funcName: 'postComment',
                 data: {
                     issueId: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
-                    headerText: translate('comment_created', { name: commentHook.user.name }),
+                    headerText: translate('comment_created', {
+                        name: `${commentHook.user.name} ${commentHook.user.username}`,
+                    }),
                     comment: {
                         body: commentHook.object_attributes.note,
                         id: commentHook.object_attributes.id,
@@ -68,6 +70,16 @@ describe('Gitlab actions', () => {
             oldKey: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
             projectKey: issueUpdated.project.path_with_namespace,
             author: issueUpdated.user.name,
+            newRoomName:
+                '#' +
+                issueUpdated.object_attributes.iid +
+                ' ' +
+                issueUpdated.object_attributes.title +
+                ' ' +
+                issueUpdated.project.path_with_namespace +
+                '-' +
+                issueUpdated.object_attributes.iid,
+
             changes: [{ field: 'title', newValue: issueUpdated.changes.title.current }],
         };
         const inviteNewMembersData: InviteNewMembersData = {
@@ -85,7 +97,7 @@ describe('Gitlab actions', () => {
             },
             projectKey: issueUpdated.project.path_with_namespace,
         };
-        const expected: {} = [
+        const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
                 createRoomData,

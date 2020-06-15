@@ -630,12 +630,11 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
     }
 
     composeRoomName(key: string, summary: string): string {
-        return `${key} ${summary}`;
+        return summary ? `${key} ${summary}` : key;
     }
 
-    async updateRoomName(roomId: string, roomData: { key: string; summary: string }): Promise<void> {
-        const newName = this.composeRoomName(roomData.key, roomData.summary);
-        await this.setRoomName(roomId, newName);
+    async updateRoomName(roomId: string, newRoomName: string): Promise<void> {
+        await this.setRoomName(roomId, newRoomName);
     }
 
     async updateRoomData(roomId: string, topic: string, key: string): Promise<void> {

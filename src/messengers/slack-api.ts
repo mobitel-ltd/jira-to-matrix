@@ -423,17 +423,10 @@ export class SlackApi extends BaseChatApi {
 
     /**
      * Update room name
-     *
-     * @param  {string} roomId channel id
-     * @param  {object} roomData issue data
-     * @param  {string} roomData.key jira issue key
-     * @param  {string} roomData.summary jira issue summary
-     * @returns {Promise<void>} update room data
      */
-    async updateRoomName(roomId, roomData) {
-        const newName = this.composeRoomName(roomData.key);
-        await this.setRoomName(roomId, newName);
-        await this.setPurpose(roomId, roomData.summary);
+    async updateRoomName(roomId: string, newRoomName: string) {
+        await this.setRoomName(roomId, newRoomName);
+        // await this.setPurpose(roomId, roomData.summary);
     }
 
     /**

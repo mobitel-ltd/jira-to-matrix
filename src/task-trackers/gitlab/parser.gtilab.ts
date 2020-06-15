@@ -24,11 +24,13 @@ export class GitlabParser implements Parser {
     getPostIssueUpdatesData(body): PostIssueUpdatesData {
         const author = this.selectors.getDisplayName(body)!;
         const changes = this.selectors.getIssueChanges(body)!;
+        const newTitleData = changes.find(data => data.field === 'title');
         const oldKey = this.selectors.getIssueKey(body);
+        const newRoomName = newTitleData && this.selectors.composeRoomName(oldKey, newTitleData.newValue);
 
         const projectKey = this.selectors.getProjectKey(body)!;
 
-        return { oldKey, changes, author, projectKey };
+        return { oldKey, changes, author, projectKey, newRoomName };
     }
 
     isCreateRoom(body) {

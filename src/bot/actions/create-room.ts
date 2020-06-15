@@ -78,7 +78,7 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
 
             const invite = [...issueWatchersChatIds, ...autoinviteUsers];
 
-            const name = this.chatApi.composeRoomName(key, summary);
+            const name = this.taskTracker.selectors.composeRoomName(key, summary);
             const topic = this.taskTracker.getViewUrl(key);
 
             const avatarUrl = this.getDefaultAvatarLink(key, 'issue', colors);

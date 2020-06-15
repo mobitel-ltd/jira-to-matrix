@@ -367,6 +367,7 @@ export interface Notes {
 }
 
 export interface GitlabSelectors extends Selectors {
+    transformFromKey(key: string): { namespaceWithProject: string; issueId: number };
     transformToKey(namespaceWithProject: string, issueId: number): string;
     // true if hook should be ignored
     isIgnoreHookType(body): boolean;

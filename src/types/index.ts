@@ -173,6 +173,8 @@ export interface DescriptionFields {
 }
 
 export interface Selectors {
+    composeRoomName(key: string, summary: string): string;
+
     getIssueChanges(body): IssueChanges[] | undefined;
 
     getCreator(body): string | undefined;
@@ -438,7 +440,7 @@ interface CommonMessengerApi {
     /**
      * Update room name
      */
-    updateRoomName(roomId: string, roomData: { key: string; summary: string }): Promise<void>;
+    updateRoomName(roomId: string, newRoomName: string): Promise<void>;
 
     /**
      * Update room info data
@@ -595,7 +597,7 @@ export interface PostIssueUpdatesData {
     newStatusId?: number | string;
     oldKey: string;
     newKey?: string;
-    newNameData?: { key: string; summary: string };
+    newRoomName?: string;
     changes: IssueChanges[];
     author: string;
     projectKey: string;

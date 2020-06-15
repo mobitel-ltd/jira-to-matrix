@@ -84,7 +84,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> {
         changes,
         oldKey,
         newKey,
-        newNameData,
+        newRoomName,
         projectKey,
     }: PostIssueUpdatesData): Promise<boolean> {
         try {
@@ -102,9 +102,9 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> {
                 logger.debug(`Added new topic ${newKey} for room ${oldKey}`);
             }
 
-            if (newNameData) {
-                await this.chatApi.updateRoomName(roomId, newNameData);
-                logger.debug(`Room ${oldKey} name updated with ${newNameData.summary}`);
+            if (newRoomName) {
+                await this.chatApi.updateRoomName(roomId, newRoomName);
+                logger.debug(`Room ${oldKey} name updated with ${newRoomName}`);
             }
 
             const info = await this.getIssueUpdateInfoMessageBody(changes, oldKey, author);
