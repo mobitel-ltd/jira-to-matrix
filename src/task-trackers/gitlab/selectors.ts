@@ -140,7 +140,9 @@ const runMethod = (body: any, method: string): any => {
 };
 
 const getHeaderText = body => {
-    const name = handlers.note.getDisplayName(body);
+    const fullName = handlers.note.getDisplayName(body);
+    const userId = handlers.note.getUserId(body);
+    const name = `${fullName} ${userId}`;
 
     return translate('comment_created', { name });
 };

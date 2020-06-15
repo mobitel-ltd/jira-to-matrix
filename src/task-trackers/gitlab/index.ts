@@ -174,7 +174,7 @@ export class Gitlab implements TaskTracker {
 
     getPostCommentBody(sender: string, bodyText: string): string {
         if (this.isSlashCommand(bodyText)) {
-            logger.debug(`Sended text ${bodyText} is gitlab slash command`);
+            logger.debug(`Sended text "${bodyText}" is gitlab slash command`);
             return bodyText;
         }
 

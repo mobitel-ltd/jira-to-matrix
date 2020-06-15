@@ -48,7 +48,9 @@ describe('Gitlab actions', () => {
                 funcName: 'postComment',
                 data: {
                     issueId: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
-                    headerText: translate('comment_created', { name: commentHook.user.name }),
+                    headerText: translate('comment_created', {
+                        name: `${commentHook.user.name} ${commentHook.user.username}`,
+                    }),
                     comment: {
                         body: commentHook.object_attributes.note,
                         id: commentHook.object_attributes.id,

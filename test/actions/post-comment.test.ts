@@ -127,7 +127,9 @@ describe('Post comments test', () => {
                     body: gitlabCommentCreated.object_attributes.note,
                     id: gitlabCommentCreated.object_attributes.id,
                 },
-                headerText: translate('comment_created', { name: gitlabCommentCreated.user.name }),
+                headerText: translate('comment_created', {
+                    name: `${gitlabCommentCreated.user.name} ${gitlabCommentCreated.user.username}`,
+                }),
                 issueId: gitlabCommentCreated.project.path_with_namespace + '-' + gitlabCommentCreated.issue.iid,
             };
 
