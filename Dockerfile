@@ -5,8 +5,6 @@ RUN mkdir /app/logs
 COPY package*.json ./
 RUN npm ci --only=production
 
-COPY . /app
+COPY . .
 
-EXPOSE 4100
-
-CMD ["node", "src/app.js"]
+CMD ["node", "dist/app.js"]
