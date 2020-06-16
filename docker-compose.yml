@@ -1,10 +1,13 @@
-version: '3.3'
+version: '3.7'
 
 services:
     bot_app:
         image: bot
         depends_on:
             - bot_redis
+        build:
+            context: .
+            target: production
         networks:
             - mynetwork
         ports:
