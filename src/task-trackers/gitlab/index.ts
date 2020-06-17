@@ -124,6 +124,8 @@ export class Gitlab implements TaskTracker {
 
             return response.data;
         } catch (err) {
+            // TODO remove it
+            logger.error(err);
             throw messages.getRequestErrorLog(url, err?.response?.status, options.method, err?.response?.statusText);
         }
     }
