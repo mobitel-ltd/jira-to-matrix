@@ -255,7 +255,10 @@ export class Gitlab implements TaskTracker {
         const queryPararms = querystring.stringify({ search: namespaceWithProjectName });
         // TODO make correct query params passing
         const url = this.getRestUrl('projects?' + queryPararms);
-        const [project] = await this.request(url);
+        const foundProjects: GitlabProject[] = await this.request(url);
+        const project: GitlabProject | undefined = foundProjects.find(
+            el => el.path_with_namespace === namespaceWithProjectName,
+        );
         if (!project) {
             throw new Error(`Not found project by namespace ${namespaceWithProjectName}`);
         }
