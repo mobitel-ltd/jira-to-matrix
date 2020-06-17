@@ -165,9 +165,9 @@ const isCorrectWebhook = (body: any, hookName: any): boolean =>
 const getProjectKey = body => runMethod(body, 'getProjectKey') || issueRequestHandlers.getProjectKey(body);
 
 const getBodyTimestamp = body => {
-    const time = body?.object_attributes?.updated_at || body?.object_attributes?.created_at;
+    const time: string = body?.object_attributes?.updated_at || body?.object_attributes?.created_at;
 
-    return new Date(time).getTime();
+    return new Date(time).getTime() || time.split(' ').join();
 };
 
 const getRedisKey = (funcName: string, body: any): string => [funcName, getBodyTimestamp(body)].join('_');
