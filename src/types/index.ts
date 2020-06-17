@@ -227,7 +227,7 @@ export interface Selectors {
 
     getSummary(body): string | undefined;
 
-    getBodyTimestamp(body): number | undefined;
+    getBodyTimestamp(body): string | number | undefined;
 
     getRedisKey(funcName: string, body: any): string;
 
