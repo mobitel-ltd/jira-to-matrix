@@ -36,23 +36,33 @@ export interface GitlabCommentHook extends GitlabHook {
         id: number;
         note: string;
         noteable_type: string;
+        attachment: string | null;
         author_id: number;
+        change_position: string | null;
+        commit_id: string | null;
         created_at: string;
-        updated_at: string;
-        project_id: number;
-        attachment: null;
-        line_code: null;
-        commit_id: string;
+        discussion_id: string;
+        line_code: string | null;
         noteable_id: number;
-        system: false;
-        st_diff: null;
+        original_position: string | null;
+        position: string | null;
+        project_id: number;
+        resolved_at: string | null;
+        resolved_by_id: string | null;
+        resolved_by_push: string | null;
+        st_diff: string | null;
+        system: boolean;
+        type: string | null;
+        updated_at: string;
+        updated_by_id: string | null;
+        description: string;
         url: string;
     };
     issue: {
         id: number;
         title: string;
         assignee_ids: number[];
-        assignee_id: null;
+        assignee_id: string | null;
         author_id: number;
         project_id: number;
         created_at: string;
@@ -367,6 +377,9 @@ export interface Notes {
 }
 
 export interface GitlabSelectors extends Selectors {
+    getUploadUrl(body): string | null | undefined;
+    isUploadBody(body): boolean;
+    getUploadInfo(body): string;
     transformFromKey(key: string): { namespaceWithProject: string; issueId: number };
     transformToKey(namespaceWithProject: string, issueId: number): string;
     // true if hook should be ignored

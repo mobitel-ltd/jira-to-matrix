@@ -36,7 +36,7 @@ export function createSinonStubInstance<T>(
 
 const { prefix } = baseConfig.config.redis;
 
-const defaultRoomId = 'roomId';
+export const defaultRoomId = 'roomId';
 const defaultAlias = 'ALIAS';
 
 export const roomAdmins: { name: string; displayName: string; userId?: string }[] = [

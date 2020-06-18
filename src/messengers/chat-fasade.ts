@@ -63,6 +63,12 @@ export class ChatFasade {
         return client.updateRoomName(roomId, roomData);
     }
 
+    async upload(roomId, url) {
+        const client = await this._getTargetClient(roomId);
+
+        return client.upload(roomId, url);
+    }
+
     /**
      * Set new topic for matrix room
      *
@@ -99,7 +105,7 @@ export class ChatFasade {
      * @param {MessengerApi[]} clientPool array of messenger api instance
      * @returns {MessengerApi} chat bot instance
      */
-    async _getTargetClient(roomId, clientPool = this.chatPool.slice().reverse()) {
+    async _getTargetClient(roomId, clientPool = this.chatPool.slice().reverse()): Promise<MessengerApi> {
         const [client, ...restClients] = clientPool;
         if (!client) {
             throw new Error(`No bot in room with id = ${roomId}`);
@@ -119,10 +125,12 @@ export class ChatFasade {
         try {
             const client = await this._getTargetClient(roomId);
             const roomData = await client.getRoomDataById(roomId);
-            return {
-                client,
-                roomData,
-            };
+            if (roomData) {
+                return {
+                    client,
+                    roomData,
+                };
+            }
         } catch (error) {
             return undefined;
         }
