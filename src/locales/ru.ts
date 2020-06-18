@@ -5,6 +5,7 @@ import names from 'ru-names';
 
 export const dict = Object.freeze({
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',
+    uploadInfo: '%{name} загрузил%{f} файл',
     setBotToAdmin: 'Неверно установлен статус бота в проекте [%{projectKey}](%{viewUrl}), обратитесь к администратору',
     noRulesToWatchIssue: 'У бота нет прав для просмотра и совершения действий в данной задаче в Jira',
     comment_created: '%{name} добавил%{f} комментарий',

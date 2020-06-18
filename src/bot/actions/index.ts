@@ -13,6 +13,8 @@ import { PostLinkedChanges } from './post-linked-changes';
 import { PostLinkDeleted } from './post-link-deleted';
 import { ArchiveProject } from './archive-project';
 import { Jira } from '../../task-trackers/jira';
+import { Upload } from './upload';
+import { Gitlab } from '../../task-trackers/gitlab';
 
 export class Actions {
     commandsDict: Record<ActionNames, RunAction>;
@@ -30,6 +32,8 @@ export class Actions {
             [ActionNames.PostLinkedChanges]: new PostLinkedChanges(config, taskTracker as Jira, chatApi),
             [ActionNames.PostLinksDeleted]: new PostLinkDeleted(config, taskTracker as Jira, chatApi),
             [ActionNames.PostNewLinks]: new PostNewLinks(config, taskTracker as Jira, chatApi),
+            // Gitlab only
+            [ActionNames.Upload]: new Upload(config, taskTracker as Gitlab, chatApi),
         };
     }
 

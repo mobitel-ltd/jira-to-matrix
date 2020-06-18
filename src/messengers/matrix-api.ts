@@ -8,6 +8,7 @@ import { MessengerApi, RoomData, ChatConfig, CommandNames } from '../types';
 import { Commands } from '../bot/commands';
 import { LoggerInstance } from 'winston';
 import { NO_ROOM_PATTERN, END_NO_ROOM_PATTERN } from '../lib/consts';
+import axios from 'axios';
 
 const getEvent = content => ({
     getType: () => 'm.room.power_levels',
@@ -687,6 +688,24 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         } catch (error) {
             this.logger.error(`Error in request to all messages for ${roomId}.`);
             this.logger.error(error);
+        }
+    }
+
+    async upload(roomId: string, url: string): Promise<string> {
+        try {
+            const response = await axios.get(url, { responseType: 'arraybuffer' });
+            const imageType = response.headers['content-type'];
+            const uploadResponse = await this.client.uploadContent(response.data, {
+                rawResponse: false,
+                type: imageType,
+            });
+            const matrixUrl = uploadResponse.content_uri;
+            await this.client.sendImageMessage(roomId, matrixUrl, {}, '');
+
+            return matrixUrl;
+        } catch (error) {
+            this.logger.error(error);
+            throw error;
         }
     }
 

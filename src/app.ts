@@ -28,9 +28,6 @@ if (config.messenger.name === 'matrix') {
 const taskTracker = getTaskTracker(config);
 
 const commands = new Commands(config, taskTracker);
-/**
- * @type {import('./messengers/messenger-abstract')[]} chat instance
- */
 const chatApiPool = config.messenger.bots.map(item => {
     return new ChatApi(commands, { ...item, ...config }, getLogger('messenger-api'), sdk);
 });

@@ -484,9 +484,18 @@ export interface CreateRoomOpions {
 
 export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
     /**
+     * Create room alias
+     */
+    createAlias(name, roomId): Promise<string | false>;
+    /**
      * Get link to download media
      */
     getDownloadLink(chatLink: string): string;
+
+    /**
+     * Upload file by url to room
+     */
+    upload(roomId: string, url: string): Promise<string>;
 
     /**
      * Delete matrix room alias
@@ -629,6 +638,12 @@ export interface PostNewLinksData {
     links: string[];
 }
 
+export interface UploadData {
+    issueKey: string;
+    uploadInfo: string;
+    uploadUrl: string;
+}
+
 export interface PostCommentData {
     issueId: string;
     headerText: string;
@@ -699,6 +714,7 @@ export enum ActionNames {
     PostLinkedChanges = 'postLinkedChanges',
     PostLinksDeleted = 'postLinksDeleted',
     ArchiveProject = 'archiveProject',
+    Upload = 'upload',
 }
 
 export interface Parser {

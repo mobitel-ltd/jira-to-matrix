@@ -2,6 +2,7 @@
 /* eslint-disable camelcase */
 
 export const dict = Object.freeze({
+    uploadInfo: '%{name} upload file',
     successProjectAddToArchive:
         'Project "%{projectKey}" is added to archive with activity limit "%{activeTime}" months',
     successProjectAddToArchiveWithStatus:

@@ -4,11 +4,12 @@ import commentHook from '../../fixtures/webhooks/gitlab/commented.json';
 import issueCreated from '../../fixtures/webhooks/gitlab/issue/created.json';
 import issueUpdated from '../../fixtures/webhooks/gitlab/issue/updated.json';
 import { config } from '../../../src/config';
-import { Config, CreateRoomData, PostIssueUpdatesData, InviteNewMembersData } from '../../../src/types';
+import { Config, CreateRoomData, PostIssueUpdatesData, InviteNewMembersData, UploadData } from '../../../src/types';
 import { HookParser } from '../../../src/hook-parser';
 import { getTaskTracker } from '../../../src/task-trackers';
 import { REDIS_ROOM_KEY } from '../../../src/redis-client';
 import { translate } from '../../../src/locales';
+import uploadHook from '../../fixtures/webhooks/gitlab/upload.json';
 
 describe('Gitlab actions', () => {
     const gitlabConfig: Config = R.set(R.lensPath(['taskTracker', 'type']), 'gitlab', config);
@@ -136,6 +137,38 @@ describe('Gitlab actions', () => {
         ];
 
         const res = hookParser.getFuncAndBody(issueCreated);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('should return create room and upload for note hook with upload', () => {
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: uploadHook.project.path_with_namespace + '-' + uploadHook.issue.iid,
+                descriptionFields: undefined,
+                projectKey: uploadHook.project.path_with_namespace,
+                summary: uploadHook.issue.title,
+            },
+            projectKey: uploadHook.project.path_with_namespace,
+        };
+        const data: UploadData = {
+            issueKey: uploadHook.project.path_with_namespace + '-' + uploadHook.issue.iid,
+            uploadUrl: uploadHook.object_attributes.description.slice(8, -1),
+            uploadInfo: translate('uploadInfo', { name: `${uploadHook.user.name} ${uploadHook.user.username}` }),
+        };
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData,
+            },
+            {
+                redisKey: 'upload_' + new Date(uploadHook.object_attributes.updated_at).getTime(),
+                funcName: 'upload',
+                data,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(uploadHook);
 
         assert.deepEqual(res, expected);
     });

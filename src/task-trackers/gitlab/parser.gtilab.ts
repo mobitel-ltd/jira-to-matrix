@@ -1,17 +1,18 @@
 import {
     Parser,
-    Selectors,
     Config,
     CreateRoomData,
     PostCommentData,
     InviteNewMembersData,
     PostIssueUpdatesData,
+    UploadData,
 } from '../../types';
+import { GitlabSelectors } from './types';
 
 export class GitlabParser implements Parser {
     issueMovedType = 'issueMovedType';
 
-    constructor(private features: Config['features'], private selectors: Selectors) {}
+    constructor(private features: Config['features'], private selectors: GitlabSelectors) {}
 
     isPostIssueUpdates(body) {
         return Boolean(
@@ -62,7 +63,9 @@ export class GitlabParser implements Parser {
     }
 
     isPostComment(body) {
-        return Boolean(this.features.postComments && this.selectors.isCommentEvent(body));
+        return Boolean(
+            this.features.postComments && this.selectors.isCommentEvent(body) && !this.selectors.isUploadBody(body),
+        );
     }
 
     getInviteNewMembersData(body): InviteNewMembersData {
@@ -73,14 +76,27 @@ export class GitlabParser implements Parser {
         return { key, typeName: descriptionFields?.typeName, projectKey };
     }
 
+    getUploadData(body): UploadData {
+        return {
+            uploadInfo: this.selectors.getUploadInfo(body)!,
+            issueKey: this.selectors.getIssueKey(body),
+            uploadUrl: this.selectors.getUploadUrl(body)!,
+        };
+    }
+
     isMemberInvite(body) {
         return this.features.inviteNewMembers && this.selectors.isCorrectWebhook(body, 'update');
+    }
+
+    isUpload(body) {
+        return this.features.postComments && this.selectors.isCommentEvent(body) && this.selectors.isUploadBody(body);
     }
 
     actionFuncs = {
         postComment: this.isPostComment,
         inviteNewMembers: this.isMemberInvite,
         postIssueUpdates: this.isPostIssueUpdates,
+        upload: this.isUpload,
     };
 
     getBotActions(body) {

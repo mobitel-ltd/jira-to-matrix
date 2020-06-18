@@ -44,9 +44,17 @@ interface CommentGetters<T> extends BodyGetters<T> {
         id: number;
         body: string;
     };
+    isUploadBody(body: T): boolean;
+    getUploadUrl(body: T): string | undefined | null;
 }
 
 const missField = translate('miss');
+
+const extractUrl = (text?: string): string | undefined | null => {
+    const res = text && text.match(/!\[.*?\]\((.*?)\)/);
+
+    return res && res[1];
+};
 
 const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<GitlabCommentHook> } = {
     issue: {
@@ -91,6 +99,8 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         // Return undefined because there is no way to get expected issue fields by comment hook
         getDescriptionFields: () => undefined,
         getMembers: body => [body.user.name],
+        getUploadUrl: body => extractUrl(body.object_attributes.description),
+        isUploadBody: body => body.object_attributes.note.includes('](/uploads/'),
     },
 };
 
@@ -192,7 +202,22 @@ const composeRoomName = (key, summary) => {
     return '#' + data.issueId + ' ' + summary + ' ' + key;
 };
 
+const isUploadBody = handlers.note.isUploadBody;
+
+const getUploadUrl = handlers.note.getUploadUrl;
+
+const getUploadInfo = body => {
+    const fullName = handlers.note.getDisplayName(body);
+    const userId = handlers.note.getUserId(body);
+    const name = `${fullName} ${userId}`;
+
+    return translate('uploadInfo', { name });
+};
+
 export const selectors: GitlabSelectors = {
+    getUploadInfo,
+    getUploadUrl,
+    isUploadBody,
     transformFromKey,
     composeRoomName,
     getIssueChanges,
