@@ -15,6 +15,48 @@ const getEvent = content => ({
     getContent: () => content,
 });
 
+export enum Msgtype {
+    text = 'm.text',
+    image = 'm.image',
+    audio = 'm.audio',
+    emote = 'm.emote',
+    notice = 'm.notice',
+    file = 'm.file',
+    location = 'm.location',
+    video = 'm.video',
+}
+
+interface BaseContent {
+    body: string;
+}
+
+interface FileContent extends BaseContent {
+    filename: string;
+    info: {
+        mimetype: string;
+        size: number;
+    };
+    msgtype: Msgtype.file;
+    url: string;
+}
+
+interface TextContent extends BaseContent {
+    msgtype: Msgtype.text;
+}
+
+interface ImageContent extends BaseContent {
+    info: {
+        h: number;
+        mimetype: string;
+        size: number;
+        w: number;
+    };
+    msgtype: Msgtype.image;
+    url: string;
+}
+
+type Content = ImageContent | TextContent | FileContent;
+
 export class MatrixApi extends BaseChatApi implements MessengerApi {
     userId: string;
     baseUrl: string;
@@ -86,7 +128,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         return commandPart && `!${commandPart}`;
     }
 
-    parseEventBody(body: string): { commandName?: CommandNames; bodyText?: string } {
+    parseTextBody(body: string): { commandName: CommandNames; bodyText?: string } | undefined {
         try {
             const trimedBody = body.trim();
 
@@ -115,7 +157,47 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
             return { commandName, bodyText };
         } catch (err) {
             this.logger.error(`Error in parsing comment from matrix: ${err}`);
-            return {};
+        }
+    }
+
+    parseFileBody(
+        content: FileContent,
+    ): { commandName: CommandNames.Upload; url: string; bodyText: string } | undefined {
+        if (!this.config.features.postEachComments) {
+            return;
+        }
+
+        return {
+            bodyText: content.body,
+            commandName: CommandNames.Upload,
+            url: this.getDownloadLink(content.url),
+        };
+    }
+
+    parseImageBody(
+        content: ImageContent,
+    ): { commandName: CommandNames.Upload; url: string; bodyText: string } | undefined {
+        if (!this.config.features.postEachComments) {
+            return;
+        }
+
+        return {
+            bodyText: content.body,
+            commandName: CommandNames.Upload,
+            url: this.getDownloadLink(content.url),
+        };
+    }
+
+    parseEventBody(content: Content): { commandName?: CommandNames; bodyText?: string; url?: string } | undefined {
+        switch (content.msgtype) {
+            case Msgtype.text:
+                return this.parseTextBody(content.body);
+            case Msgtype.image:
+                return this.parseImageBody(content);
+            case Msgtype.file:
+                return this.parseFileBody(content);
+            default:
+                break;
         }
     }
 
@@ -134,13 +216,14 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
                 return;
             }
 
-            const { body } = event.getContent();
+            const content: Content = event.getContent();
 
-            const { commandName, bodyText } = this.parseEventBody(body);
+            const parseRes = this.parseEventBody(content);
 
-            if (!commandName) {
+            if (!parseRes?.commandName) {
                 return;
             }
+            const { commandName, ...bodyData } = parseRes;
             const roomData = this.getRoomData(room);
             const roomName = roomData.alias;
 
@@ -155,7 +238,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
                 sender,
                 roomName,
                 roomId: room.roomId,
-                bodyText,
+                ...bodyData,
             });
         } catch (err) {
             const errMsg = errorTracing(

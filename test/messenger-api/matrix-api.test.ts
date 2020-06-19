@@ -1,5 +1,5 @@
 import * as chai from 'chai';
-import { MatrixApi } from '../../src/messengers/matrix-api';
+import { MatrixApi, Msgtype } from '../../src/messengers/matrix-api';
 import { Commands } from '../../src/bot/commands';
 import { getLogger } from '../../src/modules/log';
 import { config } from '../../src/config';
@@ -15,46 +15,46 @@ describe('command handler test', () => {
 
         it('correct command name', () => {
             const body = '!help';
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).to.be.equal('help');
-            expect(bodyText).to.be.undefined;
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).to.be.equal('help');
+            expect(res?.bodyText).to.be.undefined;
         });
 
         it('correct command name', () => {
             const body = '!help   ';
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).to.be.equal('help');
-            expect(bodyText).to.be.undefined;
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).to.be.equal('help');
+            expect(res?.bodyText).to.be.undefined;
         });
 
         it('correct command name', () => {
             const body = '!op gogogogo';
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).to.be.equal('op');
-            expect(bodyText).to.be.equal('gogogogo');
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).to.be.equal('op');
+            expect(res?.bodyText).to.be.equal('gogogogo');
         });
 
         it('correct command long body args', () => {
             const command = 'op';
             const commandOptions = '--option optionParam';
             const body = `!${command}   ${commandOptions}`;
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).to.be.equal(command);
-            expect(bodyText).to.be.equal(commandOptions);
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).to.be.equal(command);
+            expect(res?.bodyText).to.be.equal(commandOptions);
         });
 
         it('false command name', () => {
             const body = CommandNames.Help;
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).not.to.be;
-            expect(bodyText).to.be.eq(body);
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).not.to.be;
+            expect(res?.bodyText).to.be.eq(body);
         });
 
         it('false command name', () => {
             const body = '!!help';
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).not.to.be;
-            expect(bodyText).not.to.be;
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).not.to.be;
+            expect(res?.bodyText).not.to.be;
         });
     });
 
@@ -69,23 +69,23 @@ describe('command handler test', () => {
 
         it('should return command comment and body even if no command was made', () => {
             const body = CommandNames.Help;
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).to.be.eq(CommandNames.Comment);
-            expect(bodyText).to.be.eq(body);
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).to.be.eq(CommandNames.Comment);
+            expect(res?.bodyText).to.be.eq(body);
         });
 
         it('correct command name', () => {
             const body = matrix.createCommand(CommandNames.Help);
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).to.be.eq(CommandNames.Help);
-            expect(bodyText).to.be.undefined;
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).to.be.eq(CommandNames.Help);
+            expect(res?.bodyText).to.be.undefined;
         });
 
         it('correct command name', () => {
             const body = matrix.createCommand(CommandNames.Help) + ' lalalla';
-            const { commandName, bodyText } = matrix.parseEventBody(body);
-            expect(commandName).to.be.eq(CommandNames.Help);
-            expect(bodyText).to.be.eq('lalalla');
+            const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
+            expect(res?.commandName).to.be.eq(CommandNames.Help);
+            expect(res?.bodyText).to.be.eq('lalalla');
         });
     });
 });

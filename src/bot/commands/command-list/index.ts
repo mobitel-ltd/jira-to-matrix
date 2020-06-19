@@ -18,6 +18,8 @@ import { ProjectArchiveCommand } from './archive-project';
 import { Config, TaskTracker, MessengerApi, CommandNames } from '../../../types';
 import { RunCommand } from './command-base';
 import { Jira } from '../../../task-trackers/jira';
+import { UploadCommand } from './upload';
+import { Gitlab } from '../../../task-trackers/gitlab';
 
 export const getCommandDict = (
     config: Config,
@@ -40,4 +42,5 @@ export const getCommandDict = (
     [CommandNames.Kick]: new KickCommand(config, taskTracker as Jira, chatApi),
     [CommandNames.Archive]: new ArchiveCommand(config, taskTracker as Jira, chatApi),
     [CommandNames.Projectarchive]: new ProjectArchiveCommand(config, taskTracker as Jira, chatApi),
+    [CommandNames.Upload]: new UploadCommand(config, taskTracker as Gitlab, chatApi),
 });

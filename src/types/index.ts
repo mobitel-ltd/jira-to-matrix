@@ -678,6 +678,7 @@ export interface CommandOptions {
     roomId: string;
     bodyText?: string;
     roomData: RoomData;
+    url?: string;
 }
 
 export enum CommandNames {
@@ -697,6 +698,7 @@ export enum CommandNames {
     Kick = 'kick',
     Archive = 'archive',
     Projectarchive = 'projectarchive',
+    Upload = 'upload',
 }
 
 export interface RunCommandsOptions extends CommandOptions {
