@@ -1,3 +1,4 @@
+import { Projects } from '@gitbeaker/node';
 import * as R from 'ramda';
 import axios, { AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
@@ -110,10 +111,10 @@ export class Gitlab implements TaskTracker {
         this.parser = new GitlabParser(options.features, selectors);
     }
 
-    async request(url: string, newOptions?: AxiosRequestConfig): Promise<any> {
+    async request(url: string, newOptions?: AxiosRequestConfig, contentType = 'application/json'): Promise<any> {
         const options: AxiosRequestConfig = {
             method: 'GET',
-            headers: { 'private-token': this.password, 'content-type': 'application/json' },
+            headers: { 'private-token': this.password, 'content-type': contentType },
             timeout: TIMEOUT,
             ...newOptions,
             url,
@@ -125,7 +126,7 @@ export class Gitlab implements TaskTracker {
             return response.data;
         } catch (err) {
             // TODO remove it
-            logger.error(err);
+            // logger.error(err);
             throw messages.getRequestErrorLog(url, err?.response?.status, options.method, err?.response?.statusText);
         }
     }
@@ -138,13 +139,13 @@ export class Gitlab implements TaskTracker {
         return undefined;
     }
 
-    requestPost(url: string, options: AxiosRequestConfig): Promise<any> {
+    requestPost(url: string, options: AxiosRequestConfig, contentType?: string): Promise<any> {
         const _options: AxiosRequestConfig = {
             ...options,
             method: 'POST',
         };
 
-        return this.request(url, _options);
+        return this.request(url, _options, contentType);
     }
 
     private async getProjectIdByNamespace(namespaceWithProjectName: string): Promise<number> {
@@ -341,5 +342,27 @@ export class Gitlab implements TaskTracker {
 
     isAvoidHookType() {
         return false;
+    }
+
+    async upload(
+        issueKey: string,
+        fileOptions: { url: string; fileName: string },
+    ): Promise<{ fullUrl: string; markdown: string }> {
+        const response = await axios.get(fileOptions.url, { responseType: 'arraybuffer' });
+        const imageType = response.headers['content-type'];
+        const { namespaceWithProject } = this.selectors.transformFromKey(issueKey);
+        const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
+
+        const projects = new Projects({ token: this.password, host: this.url });
+        const uploadInfo: any = await projects.upload(projectId, response.data, {
+            metadata: { contentType: imageType, filename: fileOptions.fileName },
+        });
+
+        const fullUrl = this.getRestUrl('projects', projectId) + uploadInfo.url;
+
+        return {
+            fullUrl,
+            markdown: uploadInfo.markdown,
+        };
     }
 }

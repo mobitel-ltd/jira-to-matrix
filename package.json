@@ -95,6 +95,7 @@
     "typescript": "^3.9.2"
   },
   "dependencies": {
+    "@gitbeaker/node": "^21.7.0",
     "@slack/web-api": "^5.2.1",
     "@taoqf/javascript-state-machine": "^3.1.4",
     "axios": "^0.19.2",
