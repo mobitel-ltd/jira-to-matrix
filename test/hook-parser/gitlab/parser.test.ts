@@ -74,9 +74,9 @@ describe('Gitlab actions', () => {
             newRoomName:
                 '#' +
                 issueUpdated.object_attributes.iid +
-                ' ' +
+                ';' +
                 issueUpdated.object_attributes.title +
-                ' ' +
+                ';' +
                 issueUpdated.project.path_with_namespace +
                 '-' +
                 issueUpdated.object_attributes.iid,
