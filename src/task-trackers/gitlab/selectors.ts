@@ -199,7 +199,7 @@ const getIssueChanges = body => runMethod(body, 'getIssueChanges');
 const composeRoomName = (key, summary) => {
     const data = transformFromKey(key);
 
-    return '#' + data.issueId + ' ' + summary + ' ' + key;
+    return '#' + data.issueId + ';' + summary.slice(0, 60) + ';' + key;
 };
 
 const isUploadBody = handlers.note.isUploadBody;
