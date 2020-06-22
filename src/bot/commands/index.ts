@@ -40,8 +40,10 @@ export class Commands {
             if (message) {
                 await chatApi.sendHtmlMessage(roomId, message, message);
             }
+            // TODO remove after setting roomData to all tests
             logger.debug(
-                `${commandName} successfully executed by ${sender} in room id "${roomId}" with alias "${roomName}"`,
+                `${commandName} successfully executed by "${sender}" in room id "${roomData?.id ||
+                    roomId}" with alias "${roomData?.alias || roomName}"`,
             );
 
             return message;
