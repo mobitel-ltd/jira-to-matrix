@@ -96,6 +96,7 @@ export interface Config {
     sshLink?: string;
     gitReposPath?: string;
     ignoreCommands: string[];
+    maxFileSize: number;
 }
 
 export interface ChatConfig extends Config {

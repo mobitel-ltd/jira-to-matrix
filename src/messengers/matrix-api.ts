@@ -56,6 +56,16 @@ interface ImageContent extends BaseContent {
 }
 
 type Content = ImageContent | TextContent | FileContent;
+const removeStatus = 'shouldRemove';
+
+interface FailParse {
+    isSuccess: false;
+    body?: typeof removeStatus;
+}
+interface SuccessParse {
+    isSuccess: true;
+    body: { commandName: CommandNames; url?: string; bodyText?: string };
+}
 
 export class MatrixApi extends BaseChatApi implements MessengerApi {
     userId: string;
@@ -128,7 +138,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         return commandPart && `!${commandPart}`;
     }
 
-    parseTextBody(body: string): { commandName: CommandNames; bodyText?: string } | undefined {
+    parseTextBody(body: string): SuccessParse | FailParse {
         try {
             const trimedBody = body.trim();
 
@@ -142,53 +152,88 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
 
             if (this.config.features.postEachComments) {
                 if (!Object.values(CommandNames).some(el => el === commandNameFromUser)) {
-                    return { commandName: CommandNames.Comment, bodyText: trimedBody };
+                    return {
+                        isSuccess: true,
+                        body: { commandName: CommandNames.Comment, bodyText: trimedBody },
+                    };
                 }
             }
 
+            if (!commandNameFromUser) {
+                return {
+                    isSuccess: false,
+                };
+            }
             const commandName = commandNameFromUser;
 
             if (this.createCommand(commandName) === trimedBody) {
-                return { commandName };
+                return {
+                    isSuccess: true,
+                    body: { commandName },
+                };
             }
 
             const bodyText = trimedBody.replace(this.createCommand(commandNameFromUser), '').trim();
 
-            return { commandName, bodyText };
+            return {
+                isSuccess: true,
+                body: { commandName, bodyText },
+            };
         } catch (err) {
             this.logger.error(`Error in parsing comment from matrix: ${err}`);
+            return {
+                isSuccess: false,
+            };
         }
     }
 
-    parseFileBody(
-        content: FileContent,
-    ): { commandName: CommandNames.Upload; url: string; bodyText: string } | undefined {
+    parseFileBody(content: FileContent): SuccessParse | FailParse {
         if (!this.config.features.postEachComments) {
-            return;
+            return {
+                isSuccess: false,
+            };
+        }
+        if (content.info.size >= this.config.maxFileSize) {
+            return {
+                isSuccess: false,
+                body: removeStatus,
+            };
         }
 
         return {
-            bodyText: content.body,
-            commandName: CommandNames.Upload,
-            url: this.getDownloadLink(content.url),
+            isSuccess: true,
+            body: {
+                bodyText: content.body,
+                commandName: CommandNames.Upload,
+                url: this.getDownloadLink(content.url),
+            },
         };
     }
 
-    parseImageBody(
-        content: ImageContent,
-    ): { commandName: CommandNames.Upload; url: string; bodyText: string } | undefined {
+    parseImageBody(content: ImageContent): SuccessParse | FailParse {
         if (!this.config.features.postEachComments) {
-            return;
+            return {
+                isSuccess: false,
+            };
+        }
+        if (content.info.size >= this.config.maxFileSize) {
+            return {
+                isSuccess: false,
+                body: removeStatus,
+            };
         }
 
         return {
-            bodyText: content.body,
-            commandName: CommandNames.Upload,
-            url: this.getDownloadLink(content.url),
+            isSuccess: true,
+            body: {
+                bodyText: content.body,
+                commandName: CommandNames.Upload,
+                url: this.getDownloadLink(content.url),
+            },
         };
     }
 
-    parseEventBody(content: Content): { commandName?: CommandNames; bodyText?: string; url?: string } | undefined {
+    parseEventBody(content: Content): SuccessParse | FailParse {
         switch (content.msgtype) {
             case Msgtype.text:
                 return this.parseTextBody(content.body);
@@ -197,7 +242,9 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
             case Msgtype.file:
                 return this.parseFileBody(content);
             default:
-                break;
+                return {
+                    isSuccess: false,
+                };
         }
     }
 
@@ -219,13 +266,28 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
             const content: Content = event.getContent();
 
             const parseRes = this.parseEventBody(content);
-
-            if (!parseRes?.commandName) {
-                return;
-            }
-            const { commandName, ...bodyData } = parseRes;
             const roomData = this.getRoomData(room);
             const roomName = roomData.alias;
+
+            if (!parseRes.isSuccess) {
+                if (parseRes.body === removeStatus) {
+                    this.logger.warn('Media size is bigger than limited, start removing');
+                    await this.client.redactEvent(roomData.id, event.getId());
+                    const message = 'Media upload is too big, max size is 10 mb';
+                    // await this.commands.run(CommandNames.Comment, {
+                    //     roomData,
+                    //     chatApi: this,
+                    //     sender,
+                    //     roomName,
+                    //     roomId: room.roomId,
+                    //     bodyText: message,
+                    // });
+                    await this.sendHtmlMessage(room.roomId, message, message);
+                    return;
+                }
+                return;
+            }
+            const { commandName, ...bodyData } = parseRes.body;
 
             if (commandName === CommandNames.Comment && roomData.alias === this.getNotifyData()?.name) {
                 return;

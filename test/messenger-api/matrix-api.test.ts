@@ -16,22 +16,28 @@ describe('command handler test', () => {
         it('correct command name', () => {
             const body = '!help';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).to.be.equal('help');
-            expect(res?.bodyText).to.be.undefined;
+            expect(res).to.be.deep.equal({
+                isSuccess: true,
+                body: { commandName: CommandNames.Help },
+            });
         });
 
         it('correct command name', () => {
             const body = '!help   ';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).to.be.equal('help');
-            expect(res?.bodyText).to.be.undefined;
+            expect(res).to.be.deep.equal({
+                isSuccess: true,
+                body: { commandName: 'help' },
+            });
         });
 
         it('correct command name', () => {
             const body = '!op gogogogo';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).to.be.equal('op');
-            expect(res?.bodyText).to.be.equal('gogogogo');
+            expect(res).to.be.deep.equal({
+                isSuccess: true,
+                body: { commandName: 'op', bodyText: 'gogogogo' },
+            });
         });
 
         it('correct command long body args', () => {
@@ -39,22 +45,26 @@ describe('command handler test', () => {
             const commandOptions = '--option optionParam';
             const body = `!${command}   ${commandOptions}`;
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).to.be.equal(command);
-            expect(res?.bodyText).to.be.equal(commandOptions);
+            expect(res).to.be.deep.equal({
+                isSuccess: true,
+                body: { commandName: command, bodyText: commandOptions },
+            });
         });
 
         it('false command name', () => {
             const body = CommandNames.Help;
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).not.to.be;
-            expect(res?.bodyText).to.be.eq(body);
+            expect(res).to.be.deep.equal({
+                isSuccess: false,
+            });
         });
 
         it('false command name', () => {
             const body = '!!help';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).not.to.be;
-            expect(res?.bodyText).not.to.be;
+            expect(res).to.be.deep.equal({
+                isSuccess: false,
+            });
         });
     });
 
@@ -70,22 +80,28 @@ describe('command handler test', () => {
         it('should return command comment and body even if no command was made', () => {
             const body = CommandNames.Help;
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).to.be.eq(CommandNames.Comment);
-            expect(res?.bodyText).to.be.eq(body);
+            expect(res).to.be.deep.equal({
+                isSuccess: true,
+                body: { commandName: CommandNames.Comment, bodyText: body },
+            });
         });
 
         it('correct command name', () => {
             const body = matrix.createCommand(CommandNames.Help);
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).to.be.eq(CommandNames.Help);
-            expect(res?.bodyText).to.be.undefined;
+            expect(res).to.be.deep.equal({
+                isSuccess: true,
+                body: { commandName: CommandNames.Help },
+            });
         });
 
         it('correct command name', () => {
             const body = matrix.createCommand(CommandNames.Help) + ' lalalla';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
-            expect(res?.commandName).to.be.eq(CommandNames.Help);
-            expect(res?.bodyText).to.be.eq('lalalla');
+            expect(res).to.be.deep.equal({
+                isSuccess: true,
+                body: { commandName: CommandNames.Help, bodyText: 'lalalla' },
+            });
         });
     });
 });
