@@ -78,7 +78,7 @@ describe('Gitlab actions', () => {
                 issueUpdated.object_attributes.title +
                 ';' +
                 issueUpdated.project.path_with_namespace +
-                '-' +
+                '/issues/' +
                 issueUpdated.object_attributes.iid,
 
             changes: [{ field: 'title', newValue: issueUpdated.changes.title.current }],
