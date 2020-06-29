@@ -26,6 +26,7 @@ const defaultConfigData = {
     delayInterval: 500,
     pathToDocs: 'https://github.com/mobitel-ltd/jira-to-matrix/tree/master/docs',
     ignoreCommands: [],
+    maxFileSize: 10 * 1024 * 1024,
 };
 
 const composeConfig = (baseConfig: any): Config => {

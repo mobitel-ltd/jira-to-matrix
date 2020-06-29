@@ -12,22 +12,16 @@
             },
             "name": "Mocha Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "args": [
-                "--timeout",
-                "999999",
-                "--colors",
-                "${workspaceFolder}/test/**/*.test.js"
-            ],
+            "args": ["--timeout", "999999", "--colors", "${workspaceFolder}/test/**/*.test.js"],
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "node",
-            "request": "attach",
-            "name": "Node: Nodemon",
-            "processId": "${command:PickProcess}",
-            "restart": true,
-            "stopOnEntry": true,
-            "protocol": "inspector"
+            "request": "launch",
+            "name": "Launch Program",
+            "cwd": "${workspaceRoot}",
+            "runtimeArgs": ["-r", "ts-node/register"],
+            "args": ["${workspaceRoot}/src/app.ts"]
         }
     ]
 }
