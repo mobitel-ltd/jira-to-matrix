@@ -1,6 +1,6 @@
 import { GitlabIssueHook, GitlabCommentHook, HookTypes, GitlabSelectors, GitlabIssue } from './types';
 import { translate } from '../../locales';
-import { DescriptionFields, IssueChanges } from '../../types';
+import { DescriptionFields, IssueChanges, IssueStateEnum } from '../../types';
 
 /**
  * @example namespace/project-123
@@ -56,6 +56,13 @@ const extractUrl = (text?: string): string | undefined | null => {
     return res && res[1];
 };
 
+const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind;
+
+const getTypeEvent = body => body?.object_attributes?.action;
+
+const isCorrectWebhook = (body: any, hookName: any): boolean =>
+    getBodyWebhookEvent(body) === hookName || getTypeEvent(body) === hookName;
+
 const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<GitlabCommentHook> } = {
     issue: {
         getProjectKey: body => body.project.path_with_namespace,
@@ -67,7 +74,11 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         getSummary: body => body.object_attributes.title,
         getMembers: body => [...body.assignees.map(el => el.name), body.user.name],
         getDescriptionFields: () => undefined,
-        getIssueChanges: (body): any => {
+        getIssueChanges: (body): any[] => {
+            if (isCorrectWebhook(body, 'close')) {
+                return [{ field: 'status', newValue: IssueStateEnum.close }];
+            }
+
             return Object.entries(body.changes)
 
                 .filter(([el]) => !el.includes('_'))
@@ -129,8 +140,6 @@ const issueRequestHandlers: BodyGetters<GitlabIssue> = {
     }),
 };
 
-const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind;
-
 const getHandler = (body): typeof issueRequestHandlers | typeof handlers.issue | typeof handlers.note | undefined => {
     const type = getBodyWebhookEvent(body);
 
@@ -163,14 +172,9 @@ const getMembers = body => runMethod(body, 'getMembers') || getIssueMembers(body
 
 const isCommentEvent = body => getBodyWebhookEvent(body) === HookTypes.Comment;
 
-const getTypeEvent = body => body?.object_attributes?.action;
-
 const getIssueCreator = (body: GitlabIssue) => body?.author?.username;
 
 const getDisplayName = body => runMethod(body, 'getDisplayName');
-
-const isCorrectWebhook = (body: any, hookName: any): boolean =>
-    getBodyWebhookEvent(body) === hookName || getTypeEvent(body) === hookName;
 
 const getProjectKey = body => runMethod(body, 'getProjectKey') || issueRequestHandlers.getProjectKey(body);
 
@@ -196,11 +200,11 @@ const getCreator = body => runMethod(body, 'getUserId');
 
 const getIssueChanges = body => runMethod(body, 'getIssueChanges');
 
-const composeRoomName = (key: string, summary: string) => {
+const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) => {
     const data = transformFromKey(key);
     const nameWithIssuePath = [data.namespaceWithProject, 'issues', data.issueId].join('/');
 
-    return '#' + data.issueId + ';' + summary.slice(0, 60) + ';' + nameWithIssuePath;
+    return ['#' + data.issueId, state, summary.slice(0, 60), nameWithIssuePath].join(';');
 };
 
 const isUploadBody = handlers.note.isUploadBody;

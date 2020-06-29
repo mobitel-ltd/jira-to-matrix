@@ -22,6 +22,7 @@ import gitlabIssueUpdated from '../fixtures/webhooks/gitlab/issue/updated.json';
 import gitlabIssueNewAssign from '../fixtures/webhooks/gitlab/issue/new-assign.json';
 import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
+import gitlabClosedIssue from '../fixtures/webhooks/gitlab/issue/closed.json';
 
 const { expect } = chai;
 
@@ -369,6 +370,42 @@ describe('PostIssueUpdates in Gitlab', () => {
                 .times(2)
                 .reply(200, gitlabIssueJson);
             postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabIssueNewAssign);
+            const chatClass = getChatClass({ roomId });
+            chatApi = chatClass.chatApi;
+            chatSingle = chatClass.chatApiSingle;
+            chatSingle.getRoomId
+                .resolves(roomId)
+                .withArgs(null)
+                .throws('Error');
+
+            postIssueUpdates = new PostIssueUpdates(config, gitlabTracker, chatApi);
+        });
+
+        it('Is correct postIssueUpdatesData', async () => {
+            const result = await postIssueUpdates.run(postIssueUpdatesData);
+            expect(chatSingle.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+            expect(result).to.be.true;
+        });
+    });
+
+    describe('Issue closed', () => {
+        const changes = `<br>status: ${gitlabClosedIssue.object_attributes.state}`;
+        const expectedData = [
+            roomId,
+            translate('issueHasChanged'),
+            `${translate('issue_updated', { name: gitlabClosedIssue.user.name })}${changes}`,
+        ];
+
+        beforeEach(() => {
+            nock(gitlabTracker.getRestUrl())
+                .get(`/projects`)
+                .times(2)
+                .query({ search: gitlabClosedIssue.project.path_with_namespace })
+                .reply(200, gitlabProjectsJson)
+                .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabClosedIssue.object_attributes.iid}`)
+                .times(2)
+                .reply(200, gitlabIssueJson);
+            postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabClosedIssue);
             const chatClass = getChatClass({ roomId });
             chatApi = chatClass.chatApi;
             chatSingle = chatClass.chatApiSingle;
