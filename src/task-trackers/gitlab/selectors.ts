@@ -196,10 +196,11 @@ const getCreator = body => runMethod(body, 'getUserId');
 
 const getIssueChanges = body => runMethod(body, 'getIssueChanges');
 
-const composeRoomName = (key, summary) => {
+const composeRoomName = (key: string, summary: string) => {
     const data = transformFromKey(key);
+    const nameWithIssuePath = [data.namespaceWithProject, 'issues', data.issueId].join('/');
 
-    return '#' + data.issueId + ';' + summary.slice(0, 60) + ';' + key;
+    return '#' + data.issueId + ';' + summary.slice(0, 60) + ';' + nameWithIssuePath;
 };
 
 const isUploadBody = handlers.note.isUploadBody;
