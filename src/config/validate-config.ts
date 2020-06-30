@@ -110,6 +110,7 @@ const schema = obj({
         }),
     },
     delayInterval: int.optional(),
+    maxFileSize: int.optional(),
 });
 
 /**

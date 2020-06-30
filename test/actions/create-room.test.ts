@@ -392,7 +392,14 @@ describe('Create room test with gitlab as task tracker', () => {
                     getUserIdByDisplayName(gitlabIssueJson.author.name),
                 ].map(name => getChatClass().chatApiSingle.getChatUserId(name));
                 const roomName =
-                    '#' + gitlabCommentCreatedHook.issue.iid + ';' + gitlabIssueJson.title + ';' + issueKey;
+                    '#' +
+                    gitlabCommentCreatedHook.issue.iid +
+                    ';' +
+                    gitlabIssueJson.title +
+                    ';' +
+                    gitlabCommentCreatedHook.project.path_with_namespace +
+                    '/issues/' +
+                    gitlabCommentCreatedHook.issue.iid;
 
                 expectedIssueRoomOptions = {
                     invite: members,
@@ -489,7 +496,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     gitlabIssueJson.title +
                     ';' +
                     gitlabIssueCreatedJson.project.path_with_namespace +
-                    '-' +
+                    '/issues/' +
                     gitlabIssueCreatedJson.object_attributes.iid;
 
                 expectedIssueRoomOptions = {
