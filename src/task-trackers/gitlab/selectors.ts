@@ -70,9 +70,11 @@ const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) 
     return [
         '#' + data.issueId,
         summary.slice(0, 60),
+        state,
         [data.namespaceWithProject, 'issues', data.issueId].join('/'),
-        state.concat(';'),
-    ].join(';');
+    ]
+        .join(';')
+        .concat(';');
 };
 
 const isCorrectWebhook = (body: any, hookName: any): boolean =>
