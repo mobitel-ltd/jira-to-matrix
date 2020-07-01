@@ -397,11 +397,11 @@ describe('Create room test with gitlab as task tracker', () => {
                     ';' +
                     gitlabIssueJson.title +
                     ';' +
+                    IssueStateEnum.open +
+                    ';' +
                     gitlabCommentCreatedHook.project.path_with_namespace +
                     '/issues/' +
                     gitlabCommentCreatedHook.issue.iid +
-                    ';' +
-                    IssueStateEnum.open +
                     ';';
 
                 expectedIssueRoomOptions = {
@@ -498,11 +498,11 @@ describe('Create room test with gitlab as task tracker', () => {
                     ';' +
                     gitlabIssueJson.title +
                     ';' +
+                    IssueStateEnum.open +
+                    ';' +
                     gitlabIssueCreatedJson.project.path_with_namespace +
                     '/issues/' +
                     gitlabIssueCreatedJson.object_attributes.iid +
-                    ';' +
-                    IssueStateEnum.open +
                     ';';
 
                 expectedIssueRoomOptions = {
