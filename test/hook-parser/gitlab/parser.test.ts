@@ -84,13 +84,14 @@ describe('Gitlab actions', () => {
                 '#' +
                 issueUpdated.object_attributes.iid +
                 ';' +
-                IssueStateEnum.open +
-                ';' +
                 issueUpdated.object_attributes.title +
                 ';' +
                 issueUpdated.project.path_with_namespace +
                 '/issues/' +
-                issueUpdated.object_attributes.iid,
+                issueUpdated.object_attributes.iid +
+                ';' +
+                IssueStateEnum.open +
+                ';',
 
             changes: [{ field: 'title', newValue: issueUpdated.changes.title.current }],
         };
@@ -193,13 +194,14 @@ describe('Gitlab actions', () => {
                 '#' +
                 gitlabClosedIssue.object_attributes.iid +
                 ';' +
-                IssueStateEnum.close +
-                ';' +
                 gitlabClosedIssue.object_attributes.title +
                 ';' +
                 gitlabClosedIssue.project.path_with_namespace +
                 '/issues/' +
-                gitlabClosedIssue.object_attributes.iid,
+                gitlabClosedIssue.object_attributes.iid +
+                ';' +
+                IssueStateEnum.close +
+                ';',
 
             changes: [{ field: 'status', newValue: IssueStateEnum.close }],
         };
@@ -238,13 +240,14 @@ describe('Gitlab actions', () => {
                 '#' +
                 gitlabReopenedIssue.object_attributes.iid +
                 ';' +
-                IssueStateEnum.open +
-                ';' +
                 gitlabReopenedIssue.object_attributes.title +
                 ';' +
                 gitlabReopenedIssue.project.path_with_namespace +
                 '/issues/' +
-                gitlabReopenedIssue.object_attributes.iid,
+                gitlabReopenedIssue.object_attributes.iid +
+                ';' +
+                IssueStateEnum.open +
+                ';',
 
             changes: [{ field: 'status', newValue: IssueStateEnum.open }],
         };

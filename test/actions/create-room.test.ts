@@ -395,13 +395,14 @@ describe('Create room test with gitlab as task tracker', () => {
                     '#' +
                     gitlabCommentCreatedHook.issue.iid +
                     ';' +
-                    IssueStateEnum.open +
-                    ';' +
                     gitlabIssueJson.title +
                     ';' +
                     gitlabCommentCreatedHook.project.path_with_namespace +
                     '/issues/' +
-                    gitlabCommentCreatedHook.issue.iid;
+                    gitlabCommentCreatedHook.issue.iid +
+                    ';' +
+                    IssueStateEnum.open +
+                    ';';
 
                 expectedIssueRoomOptions = {
                     invite: members,
@@ -495,13 +496,14 @@ describe('Create room test with gitlab as task tracker', () => {
                     '#' +
                     gitlabIssueCreatedJson.object_attributes.iid +
                     ';' +
-                    IssueStateEnum.open +
-                    ';' +
                     gitlabIssueJson.title +
                     ';' +
                     gitlabIssueCreatedJson.project.path_with_namespace +
                     '/issues/' +
-                    gitlabIssueCreatedJson.object_attributes.iid;
+                    gitlabIssueCreatedJson.object_attributes.iid +
+                    ';' +
+                    IssueStateEnum.open +
+                    ';';
 
                 expectedIssueRoomOptions = {
                     invite: members,

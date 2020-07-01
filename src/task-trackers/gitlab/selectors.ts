@@ -66,9 +66,13 @@ const getTypeEvent = body => body?.object_attributes?.action;
 
 const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) => {
     const data = transformFromKey(key);
-    const nameWithIssuePath = [data.namespaceWithProject, 'issues', data.issueId].join('/');
 
-    return ['#' + data.issueId, state, summary.slice(0, 60), nameWithIssuePath].join(';');
+    return [
+        '#' + data.issueId,
+        summary.slice(0, 60),
+        [data.namespaceWithProject, 'issues', data.issueId].join('/'),
+        state.concat(';'),
+    ].join(';');
 };
 
 const isCorrectWebhook = (body: any, hookName: any): boolean =>
