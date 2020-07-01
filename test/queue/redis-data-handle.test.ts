@@ -123,8 +123,10 @@ describe('redis-data-handle test', () => {
     };
 
     beforeEach(() => {
-        nock(config.taskTracker.url)
-            .get('')
+        const [endpoint, ...restBase] = config.taskTracker.url.split('/').reverse();
+        const baseUrl = restBase.reverse().join('/');
+        nock(baseUrl)
+            .get('/' + endpoint)
             .times(2)
             .reply(200, '<HTML>');
 

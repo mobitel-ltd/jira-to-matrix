@@ -48,6 +48,10 @@ interface CommentGetters<T> extends BodyGetters<T> {
     getUploadUrl(body: T): string | undefined | null;
 }
 
+interface IssueGetters<T> extends BodyGetters<T> {
+    getRoomName(body: T): string;
+}
+
 const missField = translate('miss');
 
 const extractUrl = (text?: string): string | undefined | null => {
@@ -59,6 +63,13 @@ const extractUrl = (text?: string): string | undefined | null => {
 const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind;
 
 const getTypeEvent = body => body?.object_attributes?.action;
+
+const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) => {
+    const data = transformFromKey(key);
+    const nameWithIssuePath = [data.namespaceWithProject, 'issues', data.issueId].join('/');
+
+    return ['#' + data.issueId, state, summary.slice(0, 60), nameWithIssuePath].join(';');
+};
 
 const isCorrectWebhook = (body: any, hookName: any): boolean =>
     getBodyWebhookEvent(body) === hookName || getTypeEvent(body) === hookName;
@@ -77,6 +88,9 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         getIssueChanges: (body): any[] => {
             if (isCorrectWebhook(body, 'close')) {
                 return [{ field: 'status', newValue: IssueStateEnum.close }];
+            }
+            if (isCorrectWebhook(body, 'reopen')) {
+                return [{ field: 'status', newValue: IssueStateEnum.open }];
             }
 
             return Object.entries(body.changes)
@@ -115,7 +129,13 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
     },
 };
 
-const issueRequestHandlers: BodyGetters<GitlabIssue> = {
+const issueRequestHandlers: IssueGetters<GitlabIssue> = {
+    getRoomName: body => {
+        const key = issueRequestHandlers.getFullKey(body);
+        const summary = issueRequestHandlers.getSummary(body);
+        const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
+        return composeRoomName(key, { summary, state });
+    },
     getIssueChanges: () => undefined,
     getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
     getUserId: body => body.author.username,
@@ -200,13 +220,6 @@ const getCreator = body => runMethod(body, 'getUserId');
 
 const getIssueChanges = body => runMethod(body, 'getIssueChanges');
 
-const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) => {
-    const data = transformFromKey(key);
-    const nameWithIssuePath = [data.namespaceWithProject, 'issues', data.issueId].join('/');
-
-    return ['#' + data.issueId, state, summary.slice(0, 60), nameWithIssuePath].join(';');
-};
-
 const isUploadBody = handlers.note.isUploadBody;
 
 const getUploadUrl = handlers.note.getUploadUrl;
@@ -220,6 +233,7 @@ const getUploadInfo = body => {
 };
 
 export const selectors: GitlabSelectors = {
+    getRoomName: issueRequestHandlers.getRoomName,
     getUploadInfo,
     getUploadUrl,
     isUploadBody,

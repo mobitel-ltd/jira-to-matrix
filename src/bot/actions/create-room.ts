@@ -22,6 +22,7 @@ interface CreateIssueRoomOptions {
     summary: string;
     projectKey: string;
     descriptionFields: DescriptionFields;
+    roomName: string;
 }
 
 export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements RunAction {
@@ -67,7 +68,7 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
     async createIssueRoom(issue: CreateIssueRoomOptions): Promise<void> {
         try {
             const { colors } = this.config;
-            const { key, summary, projectKey, descriptionFields } = issue;
+            const { key, summary, projectKey, descriptionFields, roomName } = issue;
 
             const autoinviteUsers = await getAutoinviteUsers(projectKey, descriptionFields.typeName);
 
@@ -78,7 +79,6 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
 
             const invite = [...issueWatchersChatIds, ...autoinviteUsers];
 
-            const name = this.taskTracker.selectors.composeRoomName(key, summary);
             const topic = this.taskTracker.getViewUrl(key);
 
             const avatarUrl = this.getDefaultAvatarLink(key, 'issue', colors);
@@ -86,7 +86,7 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
             const options = {
                 room_alias_name: key,
                 invite,
-                name,
+                name: roomName,
                 topic,
                 purpose: summary,
                 avatarUrl,
@@ -136,6 +136,7 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
             summary: this.taskTracker.selectors.getSummary(issueBody)!,
             descriptionFields: this.taskTracker.selectors.getDescriptionFields(issueBody)!,
             projectKey: this.taskTracker.selectors.getProjectKey(issueBody)!,
+            roomName: this.taskTracker.selectors.getRoomName(issueBody),
         };
     }
 

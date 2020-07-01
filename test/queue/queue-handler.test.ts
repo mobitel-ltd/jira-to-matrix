@@ -32,8 +32,10 @@ describe('Queue handler test', () => {
         hookParser = new HookParser(taskTracker, config, queueHandler);
         stub(hookParser, 'isIgnore');
 
-        nock(config.taskTracker.url)
-            .get('')
+        const [endpoint, ...restBase] = config.taskTracker.url.split('/').reverse();
+        const baseUrl = restBase.reverse().join('/');
+        nock(baseUrl)
+            .get('/' + endpoint)
             .reply(200, '<HTML>');
 
         nock(taskTracker.getRestUrl())

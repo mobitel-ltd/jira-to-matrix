@@ -179,6 +179,8 @@ export enum IssueStateEnum {
 }
 
 export interface Selectors {
+    getRoomName(body): string;
+
     composeRoomName(key: string, options: { summary: string; state?: IssueStateEnum }): string;
 
     getIssueChanges(body): IssueChanges[] | undefined;

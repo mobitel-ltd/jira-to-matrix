@@ -20,7 +20,8 @@ export class GitlabParser implements Parser {
             (this.features.postIssueUpdates &&
                 this.selectors.getIssueChanges(body) &&
                 this.selectors.isCorrectWebhook(body, 'update')) ||
-                this.selectors.isCorrectWebhook(body, 'close'),
+                this.selectors.isCorrectWebhook(body, 'close') ||
+                this.selectors.isCorrectWebhook(body, 'reopen'),
         );
     }
 
@@ -39,6 +40,12 @@ export class GitlabParser implements Parser {
             newRoomName = this.selectors.composeRoomName(oldKey, {
                 summary: this.selectors.getSummary(body)!,
                 state: IssueStateEnum.close,
+            });
+        }
+        if (this.selectors.isCorrectWebhook(body, 'reopen')) {
+            newRoomName = this.selectors.composeRoomName(oldKey, {
+                summary: this.selectors.getSummary(body)!,
+                state: IssueStateEnum.open,
             });
         }
 
@@ -98,7 +105,10 @@ export class GitlabParser implements Parser {
     }
 
     isMemberInvite(body) {
-        return this.features.inviteNewMembers && this.selectors.isCorrectWebhook(body, 'update');
+        return (
+            this.features.inviteNewMembers &&
+            (this.selectors.isCorrectWebhook(body, 'update') || this.selectors.isCorrectWebhook(body, 'reopen'))
+        );
     }
 
     isUpload(body) {

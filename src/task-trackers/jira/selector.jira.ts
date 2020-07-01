@@ -260,7 +260,15 @@ export interface GetFieldOptions {
 
 const composeRoomName = (key, { summary }) => `${key} ${summary}`;
 
+const getRoomName = body => {
+    const key = getIssueKey(body);
+    const summary = getSummary(body);
+
+    return composeRoomName(key, { summary });
+};
+
 export const selectors: JiraSelectors = {
+    getRoomName,
     composeRoomName,
     getIssueChanges,
     getCreator,

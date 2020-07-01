@@ -15,7 +15,7 @@ import watchersBody from '../fixtures/jira-api-requests/watchers.json';
 import projectData from '../fixtures/jira-api-requests/project.json';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
 import { Jira } from '../../src/task-trackers/jira';
-import { CreateRoomData, CreateRoomOpions } from '../../src/types';
+import { CreateRoomData, CreateRoomOpions, IssueStateEnum } from '../../src/types';
 import { getDefaultErrorLog } from '../../src/lib/utils';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
@@ -395,6 +395,8 @@ describe('Create room test with gitlab as task tracker', () => {
                     '#' +
                     gitlabCommentCreatedHook.issue.iid +
                     ';' +
+                    IssueStateEnum.open +
+                    ';' +
                     gitlabIssueJson.title +
                     ';' +
                     gitlabCommentCreatedHook.project.path_with_namespace +
@@ -492,6 +494,8 @@ describe('Create room test with gitlab as task tracker', () => {
                 const roomName =
                     '#' +
                     gitlabIssueCreatedJson.object_attributes.iid +
+                    ';' +
+                    IssueStateEnum.open +
                     ';' +
                     gitlabIssueJson.title +
                     ';' +

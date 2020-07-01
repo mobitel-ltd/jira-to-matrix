@@ -18,6 +18,7 @@ import { REDIS_ROOM_KEY } from '../../../src/redis-client';
 import { translate } from '../../../src/locales';
 import uploadHook from '../../fixtures/webhooks/gitlab/upload.json';
 import gitlabClosedIssue from '../../fixtures/webhooks/gitlab/issue/closed.json';
+import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.json';
 
 describe('Gitlab actions', () => {
     const gitlabConfig: Config = R.set(R.lensPath(['taskTracker', 'type']), 'gitlab', config);
@@ -183,7 +184,7 @@ describe('Gitlab actions', () => {
         assert.deepEqual(res, expected);
     });
 
-    it('should return create room, inviteNewMembers, postIssueUpdate for issue closed hook', () => {
+    it('should return create room, postIssueUpdate for issue closed hook', () => {
         const postIssueUpdateData: PostIssueUpdatesData = {
             oldKey: gitlabClosedIssue.project.path_with_namespace + '-' + gitlabClosedIssue.object_attributes.iid,
             projectKey: gitlabClosedIssue.project.path_with_namespace,
@@ -224,6 +225,61 @@ describe('Gitlab actions', () => {
         ];
 
         const res = hookParser.getFuncAndBody(gitlabClosedIssue);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('should return create room, inviteNewMembers, postIssueUpdate for issue reopen hook', () => {
+        const postIssueUpdateData: PostIssueUpdatesData = {
+            oldKey: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
+            projectKey: gitlabReopenedIssue.project.path_with_namespace,
+            author: gitlabReopenedIssue.user.name,
+            newRoomName:
+                '#' +
+                gitlabReopenedIssue.object_attributes.iid +
+                ';' +
+                IssueStateEnum.open +
+                ';' +
+                gitlabReopenedIssue.object_attributes.title +
+                ';' +
+                gitlabReopenedIssue.project.path_with_namespace +
+                '/issues/' +
+                gitlabReopenedIssue.object_attributes.iid,
+
+            changes: [{ field: 'status', newValue: IssueStateEnum.open }],
+        };
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
+                descriptionFields: undefined,
+                projectKey: gitlabReopenedIssue.project.path_with_namespace,
+                summary: gitlabReopenedIssue.object_attributes.title,
+            },
+            projectKey: gitlabReopenedIssue.project.path_with_namespace,
+        };
+        const inviteNewMembersData: InviteNewMembersData = {
+            key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
+            projectKey: gitlabReopenedIssue.project.path_with_namespace,
+            typeName: undefined,
+        };
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData,
+            },
+            {
+                redisKey: 'inviteNewMembers_' + new Date(gitlabReopenedIssue.object_attributes.updated_at).getTime(),
+                funcName: 'inviteNewMembers',
+                data: inviteNewMembersData,
+            },
+            {
+                redisKey: 'postIssueUpdates_' + new Date(gitlabReopenedIssue.object_attributes.updated_at).getTime(),
+                funcName: 'postIssueUpdates',
+                data: postIssueUpdateData,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(gitlabReopenedIssue);
 
         assert.deepEqual(res, expected);
     });
