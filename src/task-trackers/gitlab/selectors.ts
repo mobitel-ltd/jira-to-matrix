@@ -1,6 +1,6 @@
 import { GitlabIssueHook, GitlabCommentHook, HookTypes, GitlabSelectors, GitlabIssue } from './types';
 import { translate } from '../../locales';
-import { DescriptionFields, IssueChanges } from '../../types';
+import { DescriptionFields, IssueChanges, IssueStateEnum } from '../../types';
 
 /**
  * @example namespace/project-123
@@ -48,6 +48,10 @@ interface CommentGetters<T> extends BodyGetters<T> {
     getUploadUrl(body: T): string | undefined | null;
 }
 
+interface IssueGetters<T> extends BodyGetters<T> {
+    getRoomName(body: T): string;
+}
+
 const missField = translate('miss');
 
 const extractUrl = (text?: string): string | undefined | null => {
@@ -55,6 +59,20 @@ const extractUrl = (text?: string): string | undefined | null => {
 
     return res && res[1];
 };
+
+const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind;
+
+const getTypeEvent = body => body?.object_attributes?.action;
+
+const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) => {
+    const data = transformFromKey(key);
+    const nameWithIssuePath = [data.namespaceWithProject, 'issues', data.issueId].join('/');
+
+    return ['#' + data.issueId, state, summary.slice(0, 60), nameWithIssuePath].join(';');
+};
+
+const isCorrectWebhook = (body: any, hookName: any): boolean =>
+    getBodyWebhookEvent(body) === hookName || getTypeEvent(body) === hookName;
 
 const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<GitlabCommentHook> } = {
     issue: {
@@ -67,7 +85,14 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         getSummary: body => body.object_attributes.title,
         getMembers: body => [...body.assignees.map(el => el.name), body.user.name],
         getDescriptionFields: () => undefined,
-        getIssueChanges: (body): any => {
+        getIssueChanges: (body): any[] => {
+            if (isCorrectWebhook(body, 'close')) {
+                return [{ field: 'status', newValue: IssueStateEnum.close }];
+            }
+            if (isCorrectWebhook(body, 'reopen')) {
+                return [{ field: 'status', newValue: IssueStateEnum.open }];
+            }
+
             return Object.entries(body.changes)
 
                 .filter(([el]) => !el.includes('_'))
@@ -104,7 +129,13 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
     },
 };
 
-const issueRequestHandlers: BodyGetters<GitlabIssue> = {
+const issueRequestHandlers: IssueGetters<GitlabIssue> = {
+    getRoomName: body => {
+        const key = issueRequestHandlers.getFullKey(body);
+        const summary = issueRequestHandlers.getSummary(body);
+        const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
+        return composeRoomName(key, { summary, state });
+    },
     getIssueChanges: () => undefined,
     getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
     getUserId: body => body.author.username,
@@ -128,8 +159,6 @@ const issueRequestHandlers: BodyGetters<GitlabIssue> = {
         typeName: missField,
     }),
 };
-
-const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind;
 
 const getHandler = (body): typeof issueRequestHandlers | typeof handlers.issue | typeof handlers.note | undefined => {
     const type = getBodyWebhookEvent(body);
@@ -163,14 +192,9 @@ const getMembers = body => runMethod(body, 'getMembers') || getIssueMembers(body
 
 const isCommentEvent = body => getBodyWebhookEvent(body) === HookTypes.Comment;
 
-const getTypeEvent = body => body?.object_attributes?.action;
-
 const getIssueCreator = (body: GitlabIssue) => body?.author?.username;
 
 const getDisplayName = body => runMethod(body, 'getDisplayName');
-
-const isCorrectWebhook = (body: any, hookName: any): boolean =>
-    getBodyWebhookEvent(body) === hookName || getTypeEvent(body) === hookName;
 
 const getProjectKey = body => runMethod(body, 'getProjectKey') || issueRequestHandlers.getProjectKey(body);
 
@@ -196,13 +220,6 @@ const getCreator = body => runMethod(body, 'getUserId');
 
 const getIssueChanges = body => runMethod(body, 'getIssueChanges');
 
-const composeRoomName = (key: string, summary: string) => {
-    const data = transformFromKey(key);
-    const nameWithIssuePath = [data.namespaceWithProject, 'issues', data.issueId].join('/');
-
-    return '#' + data.issueId + ';' + summary.slice(0, 60) + ';' + nameWithIssuePath;
-};
-
 const isUploadBody = handlers.note.isUploadBody;
 
 const getUploadUrl = handlers.note.getUploadUrl;
@@ -216,6 +233,7 @@ const getUploadInfo = body => {
 };
 
 export const selectors: GitlabSelectors = {
+    getRoomName: issueRequestHandlers.getRoomName,
     getUploadInfo,
     getUploadUrl,
     isUploadBody,

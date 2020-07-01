@@ -173,8 +173,15 @@ export interface DescriptionFields {
     priority: string;
 }
 
+export enum IssueStateEnum {
+    close = 'close',
+    open = 'open',
+}
+
 export interface Selectors {
-    composeRoomName(key: string, summary: string): string;
+    getRoomName(body): string;
+
+    composeRoomName(key: string, options: { summary: string; state?: IssueStateEnum }): string;
 
     getIssueChanges(body): IssueChanges[] | undefined;
 

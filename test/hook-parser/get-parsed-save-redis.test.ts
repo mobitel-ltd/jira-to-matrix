@@ -53,8 +53,10 @@ describe('get-parsed-save to redis', () => {
             .times(3)
             .reply(200, notIgnoreIssueBody);
 
-        nock(config.taskTracker.url)
-            .get('')
+        const [endpoint, ...restBase] = config.taskTracker.url.split('/').reverse();
+        const baseUrl = restBase.reverse().join('/');
+        nock(baseUrl)
+            .get('/' + endpoint)
             .times(2)
             .reply(200, '<HTML>');
     });

@@ -191,7 +191,7 @@ describe('Integ tests', () => {
         await redis.setAsync(REDIS_IGNORE_PREFIX, bodyToJSON);
 
         nock(config.taskTracker.url)
-            .get('')
+            .get('*')
             .times(2)
             .reply(200, '<HTML>');
 
@@ -243,10 +243,13 @@ describe('Integ tests', () => {
         expect(res.text).to.be.eq(`Version ${process.env.npm_package_version}`);
     });
 
+    // fix bug with url path
     it('Expect comment created hook to be handled', async () => {
         nock.cleanAll();
-        nock(config.taskTracker.url)
-            .get('')
+        const [endpoint, ...restBase] = config.taskTracker.url.split('/').reverse();
+        const baseUrl = restBase.reverse().join('/');
+        nock(baseUrl)
+            .get('/' + endpoint)
             .times(2)
             .reply(200, '<HTML>');
         nock(taskTracker.getRestUrl())
@@ -280,7 +283,7 @@ describe('Integ tests', () => {
     it.skip('Expect issue_generic hook to be handled and all keys should be handled', async () => {
         nock.cleanAll();
         nock(config.taskTracker.url)
-            .get('')
+            .get('*')
             .times(2)
             .reply(200, '<HTML>');
         nock(taskTracker.getRestUrl())

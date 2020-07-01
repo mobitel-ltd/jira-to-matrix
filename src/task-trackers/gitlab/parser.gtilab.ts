@@ -6,6 +6,7 @@ import {
     InviteNewMembersData,
     PostIssueUpdatesData,
     UploadData,
+    IssueStateEnum,
 } from '../../types';
 import { GitlabSelectors } from './types';
 
@@ -16,9 +17,11 @@ export class GitlabParser implements Parser {
 
     isPostIssueUpdates(body) {
         return Boolean(
-            this.features.postIssueUpdates &&
-                this.selectors.isCorrectWebhook(body, 'update') &&
-                this.selectors.getIssueChanges(body),
+            (this.features.postIssueUpdates &&
+                this.selectors.getIssueChanges(body) &&
+                this.selectors.isCorrectWebhook(body, 'update')) ||
+                this.selectors.isCorrectWebhook(body, 'close') ||
+                this.selectors.isCorrectWebhook(body, 'reopen'),
         );
     }
 
@@ -27,7 +30,24 @@ export class GitlabParser implements Parser {
         const changes = this.selectors.getIssueChanges(body)!;
         const newTitleData = changes.find(data => data.field === 'title');
         const oldKey = this.selectors.getIssueKey(body);
-        const newRoomName = newTitleData && this.selectors.composeRoomName(oldKey, newTitleData.newValue);
+        let newRoomName: string | undefined;
+        if (newTitleData) {
+            newRoomName = this.selectors.composeRoomName(oldKey, {
+                summary: newTitleData.newValue,
+            });
+        }
+        if (this.selectors.isCorrectWebhook(body, 'close')) {
+            newRoomName = this.selectors.composeRoomName(oldKey, {
+                summary: this.selectors.getSummary(body)!,
+                state: IssueStateEnum.close,
+            });
+        }
+        if (this.selectors.isCorrectWebhook(body, 'reopen')) {
+            newRoomName = this.selectors.composeRoomName(oldKey, {
+                summary: this.selectors.getSummary(body)!,
+                state: IssueStateEnum.open,
+            });
+        }
 
         const projectKey = this.selectors.getProjectKey(body)!;
 
@@ -85,7 +105,10 @@ export class GitlabParser implements Parser {
     }
 
     isMemberInvite(body) {
-        return this.features.inviteNewMembers && this.selectors.isCorrectWebhook(body, 'update');
+        return (
+            this.features.inviteNewMembers &&
+            (this.selectors.isCorrectWebhook(body, 'update') || this.selectors.isCorrectWebhook(body, 'reopen'))
+        );
     }
 
     isUpload(body) {

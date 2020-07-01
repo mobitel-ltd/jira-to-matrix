@@ -118,7 +118,8 @@ export class JiraParser implements Parser {
             : typeof this.selectors.getNewSummary(body) === 'string'
             ? { key: oldKey, summary: this.selectors.getNewSummary(body)! }
             : undefined;
-        const newRoomName = newNameData && this.selectors.composeRoomName(newNameData.key, newNameData.summary);
+        const newRoomName =
+            newNameData && this.selectors.composeRoomName(newNameData.key, { summary: newNameData.summary });
         const newStatusId = this.selectors.getNewStatusId(body);
         const projectKey = this.selectors.getProjectKey(body)!;
 
