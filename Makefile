@@ -2,10 +2,18 @@ debug:
 	npm run debug
 
 dev:
-	npm run dev
+	npm run start-dev
+
+dev-jira:
+	cp config.jira.json config.json
+	npm run start-dev
+
+dev-gitlab:
+	cp config.gitlab.json config.json
+	npm run start-dev
 
 test:
-	npm test -- --watch
+	npm run test-all
 
 start:
 	npm run start-dev
