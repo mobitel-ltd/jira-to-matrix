@@ -6,14 +6,14 @@ import { PostIssueUpdatesData, IssueChanges, TaskTracker } from '../../types';
 import { isRepoExists, getRepoLink, exportEvents } from '../../lib/git-lib';
 import { kick } from '../commands/command-list/common-actions';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { BaseAction } from './base-action';
+import { BaseAction, RunAction } from './base-action';
 import { LAST_STATUS_COLOR } from '../../redis-client';
 
 const logger = getLogger(module);
 
 // usingPojects: 'all' | [string] | undefined
 
-export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> {
+export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
     async getNewAvatarUrl(issueKey, { statusId, colors, usingPojects }) {
         if (!colors) {
             logger.warn(`No color links is passed to update avatar for room ${issueKey}`);

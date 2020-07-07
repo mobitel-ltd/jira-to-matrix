@@ -12,7 +12,7 @@ export class Commands {
 
     async run(
         commandName: string | CommandNames,
-        { chatApi, roomData, roomId, roomName, sender, bodyText, url }: RunCommandsOptions,
+        { chatApi, roomData, roomId, roomName, sender, bodyText, url, senderDisplayName }: RunCommandsOptions,
     ) {
         try {
             if (R.pipe(R.pathOr([], ['ignoreCommands']), R.includes(commandName))(this.config)) {
@@ -35,6 +35,7 @@ export class Commands {
                 sender,
                 roomData,
                 url,
+                senderDisplayName,
             });
 
             if (message) {

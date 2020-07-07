@@ -127,10 +127,10 @@ export class Jira implements TaskTracker {
     /**
      * Post comment to issue
      */
-    async postComment(keyOrId: string, sender: string, bodyText: string): Promise<void> {
+    async postComment(keyOrId: string, { senderDisplayName }, bodyText: string): Promise<void> {
         const url = this.getUrl('issue', keyOrId, 'comment');
 
-        await this.requestPost(url, schemas.comment(sender, bodyText));
+        await this.requestPost(url, schemas.comment(senderDisplayName, bodyText));
     }
 
     /**

@@ -4,12 +4,12 @@ import { getLogger } from '../../modules/log';
 import { redis, getRedisEpicKey } from '../../redis-client';
 import { PostEpicUpdatesData } from '../../types';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { BaseAction } from './base-action';
+import { BaseAction, RunAction } from './base-action';
 import { Jira } from '../../task-trackers/jira';
 
 const logger = getLogger(module);
 
-export class PostEpicUpdates extends BaseAction<ChatFasade, Jira> {
+export class PostEpicUpdates extends BaseAction<ChatFasade, Jira> implements RunAction {
     getNewIssueMessageBody = ({ summary, key }) => {
         const viewUrl = this.taskTracker.getViewUrl(key);
         const values = { key, viewUrl, summary };

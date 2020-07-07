@@ -266,7 +266,11 @@ export interface TaskTracker {
 
     isAvoidHookType(type?: string): boolean;
 
-    postComment(keyOrId: string, sender: string, bodyText: string): Promise<any>;
+    postComment(
+        keyOrId: string,
+        senderData: { sender: string; senderDisplayName: string | undefined },
+        bodyText: string,
+    ): Promise<any>;
 
     // /**
     //  * Set issue to special transition
@@ -687,6 +691,7 @@ export interface CommandOptions {
     bodyText?: string;
     roomData: RoomData;
     url?: string;
+    senderDisplayName?: string;
 }
 
 export enum CommandNames {

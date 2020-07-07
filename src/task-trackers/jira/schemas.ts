@@ -1,6 +1,6 @@
 export const schemas = {
     comment: (sender, message) => {
-        const body = `[~${sender}]:\n${message}`;
+        const body = `${sender}:\n${message}`;
         return JSON.stringify({ body });
     },
 

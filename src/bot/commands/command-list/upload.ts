@@ -17,6 +17,6 @@ export class UploadCommand extends Command<Gitlab> implements RunCommand {
 
         logger.debug(`Image successfully uploaded to url ${fullUrl}`);
 
-        await this.taskTracker.postComment(roomData.alias, sender, markdown);
+        await this.taskTracker.postComment(roomData.alias, { sender }, markdown);
     }
 }
