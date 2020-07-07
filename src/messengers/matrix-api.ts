@@ -262,6 +262,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
             if (sender === this.getMyId()) {
                 return;
             }
+            const senderDisplayName = event?.sender?.name;
 
             const content: Content = event.getContent();
 
@@ -300,6 +301,7 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
                 sender,
                 roomName,
                 roomId: room.roomId,
+                senderDisplayName,
                 ...bodyData,
             });
         } catch (err) {

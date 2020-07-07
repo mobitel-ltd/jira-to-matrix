@@ -100,19 +100,19 @@ export class ChatFasade {
 
     /**
      * Get bot which joined to room in chat
-     *
-     * @param {string} roomId chat room id
-     * @param {MessengerApi[]} clientPool array of messenger api instance
-     * @returns {MessengerApi} chat bot instance
      */
-    async _getTargetClient(roomId, clientPool = this.chatPool.slice().reverse()): Promise<MessengerApi> {
-        const [client, ...restClients] = clientPool;
-        if (!client) {
-            throw new Error(`No bot in room with id = ${roomId}`);
-        }
-        const status = client.isConnected() && (await client.isInRoom(roomId));
+    async _getTargetClient(roomId: string): Promise<MessengerApi> {
+        const iter = async (clientPool: MessengerApi[]) => {
+            const [client, ...restClients] = clientPool;
+            if (!client) {
+                throw new Error(`No bot in room with id = ${roomId}`);
+            }
+            const status = client.isConnected() && (await client.isInRoom(roomId));
 
-        return status ? client : this._getTargetClient(roomId, restClients);
+            return status ? client : iter(restClients);
+        };
+
+        return iter(this.chatPool.slice().reverse());
     }
 
     /**

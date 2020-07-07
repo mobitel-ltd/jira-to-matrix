@@ -1,14 +1,14 @@
 import { getLogger } from '../../modules/log';
 import { fromString } from 'html-to-text';
 import { PostCommentData, TaskTracker } from '../../types';
-import { BaseAction } from './base-action';
+import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
 
 export const getCommentHTMLBody = (headerText, commentBody) => `${headerText}: <br>${commentBody}`;
 
-export class PostComment extends BaseAction<ChatFasade, TaskTracker> {
+export class PostComment extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
     async run({ issueId, headerText, comment, author }: PostCommentData) {
         try {
             if (!issueId) {

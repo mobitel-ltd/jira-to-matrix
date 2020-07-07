@@ -5,7 +5,7 @@ import { translate } from '../../src/locales';
 import { getChatClass, taskTracker, getRoomId } from '../test-utils';
 import { Commands } from '../../src/bot/commands';
 import { schemas } from '../../src/task-trackers/jira/schemas';
-import { CommandNames } from '../../src/types';
+import { CommandNames, RunCommandsOptions } from '../../src/types';
 import { config } from '../../src/config';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
@@ -15,21 +15,23 @@ chai.use(sinonChai);
 
 describe('comment test', () => {
     let chatApi;
-    let baseOptions;
+    let baseOptions: RunCommandsOptions;
     const commands = new Commands(config, taskTracker);
 
     const commandName = CommandNames.Comment;
     const roomName = 'BBCOM-123';
     const bodyText = 'text in body';
     const sender = 'user';
+    const senderDisplayName = 'Иванов Иван Иванович';
     const roomId = getRoomId();
 
     beforeEach(() => {
         chatApi = getChatClass().chatApiSingle;
+        const roomData = getChatClass().getRoomData();
 
-        baseOptions = { roomId, roomName, sender, chatApi, bodyText };
+        baseOptions = { roomId, roomName, sender, chatApi, bodyText, roomData, senderDisplayName };
         nock(taskTracker.getRestUrl())
-            .post(`/issue/${roomName}/comment`, schemas.comment(sender, bodyText))
+            .post(`/issue/${roomName}/comment`, schemas.comment(senderDisplayName, bodyText))
             .reply(201);
     });
 

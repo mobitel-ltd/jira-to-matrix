@@ -60,7 +60,7 @@ describe('Gitlab api testing', () => {
         });
 
         it('should post comment', async () => {
-            const res = await gitlab.postComment(issueKey, sender, bodyText);
+            const res = await gitlab.postComment(issueKey, { sender }, bodyText);
 
             expect(res).to.be.eq(gitlab.getPostCommentBody(sender, bodyText));
         });

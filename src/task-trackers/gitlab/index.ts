@@ -216,7 +216,7 @@ export class Gitlab implements TaskTracker {
         return errMessage.includes(badRequestErrorPart);
     }
 
-    async postComment(gitlabIssueKey: string, sender: string, bodyText: string): Promise<string> {
+    async postComment(gitlabIssueKey: string, { sender }, bodyText: string): Promise<string> {
         const { namespaceWithProject, issueId } = this.selectors.transformFromKey(gitlabIssueKey);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
