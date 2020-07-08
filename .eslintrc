@@ -1,13 +1,22 @@
 {
     "parser": "@typescript-eslint/parser",
-    "extends": ["plugin:import/typescript", "plugin:@typescript-eslint/recommended", "prettier/@typescript-eslint"],
+    "extends": [
+        "plugin:import/typescript",
+        "plugin:@typescript-eslint/recommended",
+        "prettier/@typescript-eslint",
+        "plugin:mocha/recommended"
+    ],
     "root": true,
     "env": {
-        "node": true,
-        "jest": true
+        "node": true
     },
-    "plugins": ["prettier"],
+    "plugins": ["prettier", "mocha"],
     "rules": {
+        "mocha/no-mocha-arrows": "off",
+        "mocha/no-setup-in-describe": "off",
+        "mocha/max-top-level-suites": "off",
+        "mocha/no-hooks-for-single-case": "off",
+        "mocha/no-skipped-tests": "off",
         "@typescript-eslint/no-useless-constructor": "error",
         "@typescript-eslint/no-explicit-any": "off",
         "class-methods-use-this": "off",

@@ -223,7 +223,7 @@ describe('Archive command', () => {
             expect(mediaFiles).to.have.deep.members(expectedMediaFileNames);
         });
 
-        it('expect git pull send event data', async () => {
+        it('expect git pull send event data ', async () => {
             const links = await exportEvents({
                 ...configWithTmpPath,
                 listEvents: [...rawEvents, eventBefore],
