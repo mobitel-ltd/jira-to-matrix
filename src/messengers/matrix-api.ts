@@ -512,7 +512,10 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
             };
 
             const result = await this.client._http.authedRequest(undefined, method, path, {}, body);
-            const userId: string | undefined = R.path(['results', 0, 'user_id'], result);
+            const domainUsers: string[] | undefined = result?.results
+                .map(el => el.user_id)
+                .filter((el: string) => el.includes(this.config.messenger.domain));
+            const userId: string | undefined = domainUsers && domainUsers[0];
 
             if (!userId) {
                 this.logger.warn(`Not found user by search params ${searchParam}`);
