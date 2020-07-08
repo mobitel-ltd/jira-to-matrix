@@ -302,7 +302,7 @@ describe('Create room test', () => {
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueAvatar);
         expect(result).to.be.true;
     });
-    it('Expect room should be created if descriptionFields not exist in roomdata', async function() {
+    it('Expect room should be created if descriptionFields not exist in roomdata', async () => {
         chatApi.getRoomIdByName.reset();
         chatApi.getRoomIdByName.resolves(false);
         const result = await createRoom.run({
@@ -313,7 +313,7 @@ describe('Create room test', () => {
         expect(result).to.be.true;
     });
 
-    it('Expect create room not invite user without chat id', async function() {
+    it('Expect create room not invite user without chat id', async () => {
         const result = await createRoom.run({ ...options, issue: { key: notFoundUserIssueKey } });
 
         expect(result).to.be.true;
