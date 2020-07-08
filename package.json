@@ -76,6 +76,7 @@
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-jest": "^23.8.0",
+    "eslint-plugin-mocha": "^7.0.1",
     "eslint-plugin-prettier": "^3.1.2",
     "faker": "latest",
     "fs-extra": "^9.0.0",

@@ -13,7 +13,7 @@ describe('command handler test', () => {
         const chatConfig: ChatConfig = { ...config, ...config.messenger.bots[0] };
         const matrix = new MatrixApi(commands, chatConfig, getLogger('matrix'), {});
 
-        it('correct command name', () => {
+        it('expect success parse correct command name', () => {
             const body = '!help';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
             expect(res).to.be.deep.equal({
@@ -22,7 +22,7 @@ describe('command handler test', () => {
             });
         });
 
-        it('correct command name', () => {
+        it('expect success parse correct command name with spaces in the end', () => {
             const body = '!help   ';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
             expect(res).to.be.deep.equal({
@@ -31,7 +31,7 @@ describe('command handler test', () => {
             });
         });
 
-        it('correct command name', () => {
+        it('expect success parse correct command name with args', () => {
             const body = '!op gogogogo';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
             expect(res).to.be.deep.equal({
@@ -40,7 +40,7 @@ describe('command handler test', () => {
             });
         });
 
-        it('correct command long body args', () => {
+        it('expect success parse correct command long body args', () => {
             const command = 'op';
             const commandOptions = '--option optionParam';
             const body = `!${command}   ${commandOptions}`;
@@ -51,7 +51,7 @@ describe('command handler test', () => {
             });
         });
 
-        it('false command name', () => {
+        it('except false command name', () => {
             const body = CommandNames.Help;
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
             expect(res).to.be.deep.equal({
@@ -85,7 +85,6 @@ describe('command handler test', () => {
                 body: { commandName: CommandNames.Comment, bodyText: body },
             });
         });
-
         it('correct command name', () => {
             const body = matrix.createCommand(CommandNames.Help);
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
@@ -95,7 +94,7 @@ describe('command handler test', () => {
             });
         });
 
-        it('correct command name', () => {
+        it('correct command name with args', () => {
             const body = matrix.createCommand(CommandNames.Help) + ' lalalla';
             const res = matrix.parseEventBody({ body, msgtype: Msgtype.text });
             expect(res).to.be.deep.equal({

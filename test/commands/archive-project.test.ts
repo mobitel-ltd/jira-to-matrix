@@ -121,7 +121,7 @@ describe('command project archive test', () => {
         expect(data).to.includes(bodyText);
     });
 
-    it('Expect archive return succcess message if command with limit time options is coorectly added', async () => {
+    it('Expect archive return succcess message if command with limit time options is coorectly added last status', async () => {
         const body = `--${STATUS_OPTION}    ${lastStatusName}`;
         const result = await commands.run(commandName, { ...baseOptions, bodyText: `${bodyText} ${body}` });
         const expected = translate('successProjectAddToArchiveWithStatus', {
