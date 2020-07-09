@@ -5,7 +5,7 @@ const getMessage = obj =>
 
 export const infoBody = `
     <br>
-    Use <font color="green"><strong>!help</strong></font> in chat for give info for jira commands
+    Use <font color="green"><strong>!help</strong></font> in chat for give info for commands
     `;
 
 export const noJiraConnection = 'No connection with Jira!!!';

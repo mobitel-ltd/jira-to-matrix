@@ -5,7 +5,7 @@
 Kick all room members exept admin and action bot.   
 Required 
 * power level 100 (room admin)
-* issue creator (for Jira rooms)
+* issue creator (for TaskTracker rooms)
 
 ## Options
 
