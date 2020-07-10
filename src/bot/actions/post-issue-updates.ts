@@ -14,22 +14,22 @@ const logger = getLogger(module);
 // usingPojects: 'all' | [string] | undefined
 
 export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
-    async getNewAvatarUrl(issueKey, { statusId, colors, usingPojects }) {
-        if (!colors) {
+    async getNewAvatarUrl(issueKey, { statusId, isNewStatus }) {
+        if (!this.config.colors) {
             logger.warn(`No color links is passed to update avatar for room ${issueKey}`);
 
             return;
         }
-        if (!statusId) {
+        if (!statusId && !isNewStatus) {
             logger.warn(`No statusId is passed to update avatar for room ${issueKey}`);
 
             return;
         }
 
-        if (this.isAvatarIssueKey(issueKey, usingPojects)) {
-            const colorName = await this.taskTracker.getStatusColor(statusId);
+        if (this.isIssueUseAvatars(issueKey)) {
+            const colors = await this.taskTracker.getCurrentIssueColor(issueKey);
 
-            return colorName && colors[colorName];
+            return await this.getAvatarLink(issueKey, colors);
         }
     }
 
@@ -56,7 +56,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         return { htmlBody, body };
     }
 
-    async isArchiveStatus(projectKey: string, statusId?: number | string) {
+    async isArchiveStatus(projectKey: string, issueKey: string, statusId?: number | string) {
         if (!statusId) {
             logger.debug('Status is not changed');
 
@@ -70,7 +70,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         )(exportConfigParams);
 
         if (isInConfigArchiveList) {
-            const colorName = await this.taskTracker.getStatusColor(statusId);
+            const colorName = await this.taskTracker.getStatusColor({ statusId, issueKey });
 
             return colorName === LAST_STATUS_COLOR;
         }
@@ -86,6 +86,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         newKey,
         newRoomName,
         projectKey,
+        isNewStatus,
     }: PostIssueUpdatesData): Promise<boolean> {
         try {
             if (!(await this.taskTracker.hasIssue(oldKey))) {
@@ -113,8 +114,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
 
             const newAvatarUrl = await this.getNewAvatarUrl(oldKey, {
                 statusId: newStatusId,
-                colors: R.path(['colors', 'links'], this.config),
-                usingPojects: R.path(['colors', 'projects'], this.config),
+                isNewStatus,
             });
 
             if (newAvatarUrl) {
@@ -123,7 +123,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
                 logger.debug(`Room ${roomId} have got new avatar ${newAvatarUrl}`);
             }
 
-            if (await this.isArchiveStatus(projectKey, newStatusId)) {
+            if (await this.isArchiveStatus(projectKey, oldKey, newStatusId)) {
                 const { baseRemote, baseLink, sshLink, gitReposPath } = this.config;
 
                 const repoName = projectKey;

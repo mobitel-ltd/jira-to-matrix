@@ -16,7 +16,9 @@
         "avatar_url": "https://secure.gravatar.com/avatar/102030",
         "web_url": "https://gitlab.example.com/ii_ivanov"
     },
-    "labels": [],
+    "labels": [
+        "ToDo"
+    ],
     "milestone": {
         "id": 86,
         "iid": 2,

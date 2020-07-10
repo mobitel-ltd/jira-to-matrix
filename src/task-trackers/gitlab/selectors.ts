@@ -1,4 +1,5 @@
-import { GitlabIssueHook, GitlabCommentHook, HookTypes, GitlabSelectors, GitlabIssue } from './types';
+import { differenceBy } from 'lodash';
+import { GitlabIssueHook, GitlabCommentHook, HookTypes, GitlabSelectors, GitlabIssue, GitlabLabelHook } from './types';
 import { translate } from '../../locales';
 import { DescriptionFields, IssueChanges, IssueStateEnum } from '../../types';
 
@@ -80,6 +81,27 @@ const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) 
 const isCorrectWebhook = (body: any, hookName: any): boolean =>
     getBodyWebhookEvent(body) === hookName || getTypeEvent(body) === hookName;
 
+const addMsg = (labels: string[], msg: string): string => {
+    switch (labels.length) {
+        case 0:
+            return '';
+        case 1:
+            return labels.join(', ').concat(' label is ' + msg);
+        default:
+            return labels.join(', ').concat(' labels are ' + msg);
+    }
+};
+
+const getCurrentLabelsMsg = (prev: GitlabLabelHook[], current: GitlabLabelHook[]) => {
+    const added = differenceBy(current, prev, 'id').map(el => `"${el.title}"`);
+    const removed = differenceBy(prev, current, 'id').map(el => `"${el.title}"`);
+
+    const addedMsg = addMsg(added, 'added');
+    const removedMsg = addMsg(removed, 'removed');
+
+    return addedMsg + '; ' + removedMsg;
+};
+
 const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<GitlabCommentHook> } = {
     issue: {
         getProjectKey: body => body.project.path_with_namespace,
@@ -107,7 +129,13 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
                         case 'assignees':
                             return { field, newValue: value.current[0]?.name };
                         case 'labels':
-                            return { field, newValue: value.current[0]?.title };
+                            return {
+                                field,
+                                newValue: getCurrentLabelsMsg(
+                                    value.previous as GitlabLabelHook[],
+                                    value.current as GitlabLabelHook[],
+                                ),
+                            };
                         default:
                             return { field, newValue: value.current };
                     }

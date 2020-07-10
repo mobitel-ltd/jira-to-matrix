@@ -841,6 +841,16 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         }
     }
 
+    async uploadContent(data: Buffer, imageType: string): Promise<string> {
+        const uploadResponse = await this.client.uploadContent(data, {
+            rawResponse: false,
+            type: imageType,
+        });
+        const matrixUrl = uploadResponse.content_uri;
+
+        return matrixUrl;
+    }
+
     async upload(roomId: string, url: string): Promise<string> {
         try {
             const response = await axios.get(url, { responseType: 'arraybuffer' });

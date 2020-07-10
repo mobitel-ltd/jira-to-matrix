@@ -121,9 +121,10 @@ export class JiraParser implements Parser {
         const newRoomName =
             newNameData && this.selectors.composeRoomName(newNameData.key, { summary: newNameData.summary });
         const newStatusId = this.selectors.getNewStatusId(body);
+        const isNewStatus = Boolean(newStatusId);
         const projectKey = this.selectors.getProjectKey(body)!;
 
-        return { oldKey, newKey, newRoomName, changes, author, newStatusId, projectKey };
+        return { oldKey, newKey, newRoomName, changes, author, newStatusId, projectKey, isNewStatus };
     }
 
     getPostLinksDeletedData(body) {

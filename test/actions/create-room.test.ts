@@ -15,7 +15,7 @@ import watchersBody from '../fixtures/jira-api-requests/watchers.json';
 import projectData from '../fixtures/jira-api-requests/project.json';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
 import { Jira } from '../../src/task-trackers/jira';
-import { CreateRoomData, CreateRoomOpions, IssueStateEnum } from '../../src/types';
+import { CreateRoomData, CreateRoomOpions, IssueStateEnum, Config } from '../../src/types';
 import { getDefaultErrorLog } from '../../src/lib/utils';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
@@ -23,6 +23,7 @@ import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.g
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
 import gitlabIssueCreatedJson from '../fixtures/webhooks/gitlab/issue/created.json';
+import gitlabLabelJson from '../fixtures/gitlab-api-requests/labels.json';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -31,6 +32,7 @@ describe('Create room test', () => {
     let chatApi;
     let options: CreateRoomData;
     let createRoom: CreateRoom;
+    const messengerLink = 'lalala';
 
     const notFoundUserIssueKey = 'KEY';
     const notFoundUser = 'not_found_user';
@@ -94,7 +96,7 @@ describe('Create room test', () => {
         name: getChatClass().chatApiSingle.composeRoomName(issueKeyAvatar, issueBodyJSON.fields.summary),
         topic: taskTracker.getViewUrl(issueKeyAvatar),
         purpose: issueBodyJSON.fields.summary,
-        avatarUrl: config.colors.links.issue,
+        avatarUrl: messengerLink,
     };
 
     const expectedEpicProjectOptions = {
@@ -117,7 +119,9 @@ describe('Create room test', () => {
             roomId: [createRoomData.issue.key, createRoomData.projectKey!],
         });
         chatApi = chatClass.chatApiSingle;
-        createRoom = new CreateRoom(config, taskTracker, chatApi);
+        chatApi.uploadContent.resolves(messengerLink);
+
+        createRoom = new CreateRoom(config, taskTracker, chatClass.chatApi);
 
         nock(taskTracker.getRestUrl())
             // comment created hook
@@ -348,7 +352,7 @@ describe('Create room test with gitlab as task tracker', () => {
                 roomId: [createRoomData.issue.key, createRoomData.projectKey!],
             });
             chatApi = chatClass.chatApiSingle;
-            createRoom = new CreateRoom(config, gitlabTracker, chatApi);
+            createRoom = new CreateRoom(config, gitlabTracker, chatClass.chatApi);
         });
 
         it('should return correct createRoomData', async () => {
@@ -370,9 +374,13 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects`)
                     .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
+                    .times(3)
                     .reply(200, gitlabProjectsJson)
                     .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
-                    .reply(200, gitlabIssueJson);
+                    .times(2)
+                    .reply(200, gitlabIssueJson)
+                    .get(`/projects/${gitlabProjectsJson[0].id}/labels`)
+                    .reply(200, gitlabLabelJson);
             });
 
             it('should not call create room if they are alredy exists', async () => {
@@ -416,13 +424,15 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects`)
                     .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
-                    .times(3)
+                    .times(5)
                     .reply(200, gitlabProjectsJson)
                     .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
                     .times(3)
                     .reply(200, gitlabIssueJson)
                     .get(`/projects/${gitlabProjectsJson[0].id}/members/all`)
-                    .reply(200, projectMembersJson);
+                    .reply(200, projectMembersJson)
+                    .get(`/projects/${gitlabProjectsJson[0].id}/labels`)
+                    .reply(200, gitlabLabelJson);
             });
 
             it('should call room creation', async () => {
@@ -437,6 +447,8 @@ describe('Create room test with gitlab as task tracker', () => {
 
     describe('Issue created hook', () => {
         let createRoomData: CreateRoomData;
+        const messengerLink = 'lalala';
+        let chatFasade;
         beforeEach(() => {
             createRoomData = gitlabTracker.parser.getCreateRoomData(gitlabIssueCreatedJson);
             const chatClass = getChatClass({
@@ -444,7 +456,9 @@ describe('Create room test with gitlab as task tracker', () => {
                 roomId: [createRoomData.issue.key, createRoomData.projectKey!],
             });
             chatApi = chatClass.chatApiSingle;
-            createRoom = new CreateRoom(config, gitlabTracker, chatApi);
+            chatFasade = chatClass.chatApi;
+            chatApi.uploadContent.resolves(messengerLink);
+            createRoom = new CreateRoom(config, gitlabTracker, chatFasade);
         });
 
         it('should return correct createRoomData', async () => {
@@ -468,9 +482,13 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects`)
                     .query({ search: gitlabIssueCreatedJson.project.path_with_namespace })
+                    .times(3)
                     .reply(200, gitlabProjectsJson)
                     .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
-                    .reply(200, gitlabIssueJson);
+                    .times(2)
+                    .reply(200, gitlabIssueJson)
+                    .get(`/projects/${gitlabProjectsJson[0].id}/labels`)
+                    .reply(200, gitlabLabelJson);
             });
 
             it('should not call create room if they are alredy exists', async () => {
@@ -519,20 +537,36 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects`)
                     .query({ search: gitlabIssueCreatedJson.project.path_with_namespace })
-                    .times(3)
+                    .times(5)
                     .reply(200, gitlabProjectsJson)
                     .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
                     .times(3)
                     .reply(200, gitlabIssueJson)
                     .get(`/projects/${gitlabProjectsJson[0].id}/members/all`)
-                    .reply(200, projectMembersJson);
+                    .reply(200, projectMembersJson)
+                    .get(`/projects/${gitlabProjectsJson[0].id}/labels`)
+                    .reply(200, gitlabLabelJson);
             });
 
-            it('should call room creation', async () => {
+            it('should call room creation with no avatar', async () => {
                 chatApi.getRoomIdByName.reset();
                 chatApi.getRoomIdByName.resolves(false);
                 const result = await createRoom.run(createRoomData);
                 expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptions);
+                expect(result).to.be.true;
+            });
+
+            it('should call room creation with avatar if config color projects is set to "all"', async () => {
+                chatApi.getRoomIdByName.reset();
+                chatApi.getRoomIdByName.resolves(false);
+                const configAllProjectsColors: Config = pipe(clone, set('colors.projects', 'all'))(config) as Config;
+                createRoom = new CreateRoom(configAllProjectsColors, gitlabTracker, chatFasade);
+
+                const result = await createRoom.run(createRoomData);
+                expect(chatApi.createRoom).to.be.calledWithExactly({
+                    ...expectedIssueRoomOptions,
+                    avatarUrl: messengerLink,
+                });
                 expect(result).to.be.true;
             });
         });

@@ -144,6 +144,7 @@ export const getChatClass = (options?: {
         kickUserByRoom: stub().callsFake(userId => userId),
         getRoomDataById: stub(),
         getRoomMembers: stub(),
+        uploadContent: stub(),
     });
 
     const chatApi = new ChatFasade([(chatApiSingle as any) as MessengerApi]);

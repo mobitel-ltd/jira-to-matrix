@@ -4,10 +4,11 @@ import { getLogger } from '../../modules/log';
 import { translate } from '../../locales';
 import { getAutoinviteUsers } from '../settings';
 import { infoBody } from '../../lib/messages';
-import { CreateRoomData, MessengerApi, TaskTracker, DescriptionFields } from '../../types';
+import { CreateRoomData, TaskTracker, DescriptionFields } from '../../types';
 import { errorTracing } from '../../lib/utils';
 import { LINE_BREAKE_TAG, INDENT } from '../../lib/consts';
 import { BaseAction, RunAction } from './base-action';
+import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
 
@@ -23,9 +24,10 @@ interface CreateIssueRoomOptions {
     projectKey: string;
     descriptionFields: DescriptionFields;
     roomName: string;
+    statusColors: string[] | string;
 }
 
-export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements RunAction {
+export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
     getEpicInfo(epicLink) {
         epicLink === translate('miss')
             ? ''
@@ -67,21 +69,20 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
 
     async createIssueRoom(issue: CreateIssueRoomOptions): Promise<void> {
         try {
-            const { colors } = this.config;
-            const { key, summary, projectKey, descriptionFields, roomName } = issue;
+            const { key, summary, projectKey, descriptionFields, roomName, statusColors } = issue;
 
             const autoinviteUsers = await getAutoinviteUsers(projectKey, descriptionFields.typeName);
 
             const issueWatchers = await this.taskTracker.getIssueWatchers(issue.key);
             const issueWatchersChatIds = await Promise.all(
-                issueWatchers.map(displayName => this.chatApi.getUserIdByDisplayName(displayName)),
+                issueWatchers.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
             );
 
             const invite = [...issueWatchersChatIds, ...autoinviteUsers];
 
             const topic = this.taskTracker.getViewUrl(key);
 
-            const avatarUrl = this.getDefaultAvatarLink(key, 'issue', colors);
+            const avatarUrl = await this.getAvatarLink(key, statusColors);
 
             const options = {
                 room_alias_name: key,
@@ -92,13 +93,13 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
                 avatarUrl,
             };
 
-            const roomId = await this.chatApi.createRoom(options);
+            const roomId = await this.currentChatItem.createRoom(options);
 
             logger.info(`Created room for ${key}: ${roomId}`);
             const { body, htmlBody } = this.getDescription(descriptionFields);
 
-            await this.chatApi.sendHtmlMessage(roomId, body, htmlBody);
-            await this.chatApi.sendHtmlMessage(roomId, infoBody, infoBody);
+            await this.currentChatItem.sendHtmlMessage(roomId, body, htmlBody);
+            await this.currentChatItem.sendHtmlMessage(roomId, infoBody, infoBody);
         } catch (err) {
             throw errorTracing('createIssueRoom', err);
         }
@@ -107,8 +108,8 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
     async createProjectRoom(projectKey) {
         try {
             const { lead, name: projectName } = await this.taskTracker.getProject(projectKey);
-            const name = this.chatApi.composeRoomName(projectKey, projectName);
-            const leadUserId = await this.chatApi.getUserIdByDisplayName(lead);
+            const name = this.currentChatItem.composeRoomName(projectKey, projectName);
+            const leadUserId = await this.currentChatItem.getUserIdByDisplayName(lead);
             const topic = this.taskTracker.getViewUrl(projectKey);
 
             const options = {
@@ -118,7 +119,7 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
                 topic,
             };
 
-            const roomId = await this.chatApi.createRoom(options);
+            const roomId = await this.currentChatItem.createRoom(options);
             logger.info(`Created room for project ${projectKey}: ${roomId}`);
         } catch (err) {
             throw errorTracing('createProjectRoom', err);
@@ -131,12 +132,15 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
             return false;
         }
 
+        const statusColors = (await this.taskTracker.getCurrentIssueColor(keyOrId)) || this.defaultAvatarColor;
+
         return {
             key: this.taskTracker.selectors.getIssueKey(issueBody)!,
             summary: this.taskTracker.selectors.getSummary(issueBody)!,
             descriptionFields: this.taskTracker.selectors.getDescriptionFields(issueBody)!,
             projectKey: this.taskTracker.selectors.getProjectKey(issueBody)!,
             roomName: this.taskTracker.selectors.getRoomName(issueBody),
+            statusColors,
         };
     }
 
@@ -154,12 +158,12 @@ export class CreateRoom extends BaseAction<MessengerApi, TaskTracker> implements
 
                     return false;
                 }
-                if (!(await this.chatApi.getRoomIdByName(checkedIssue.key))) {
+                if (!(await this.currentChatItem.getRoomIdByName(checkedIssue.key))) {
                     await this.createIssueRoom(checkedIssue);
                 }
             }
             if (projectKey) {
-                (await this.chatApi.getRoomIdByName(projectKey)) || (await this.createProjectRoom(projectKey));
+                (await this.currentChatItem.getRoomIdByName(projectKey)) || (await this.createProjectRoom(projectKey));
             }
 
             return true;

@@ -91,12 +91,6 @@ const schema = obj({
     }),
     colors: objOptional({
         projects: Joi.alternatives(array(Joi.string()).optional(), 'all'),
-        links: obj({
-            issue: string,
-            green: string,
-            yellow: string,
-            'blue-gray': string,
-        }).unknown(true),
     }),
     gitArchive: {
         user: string,
