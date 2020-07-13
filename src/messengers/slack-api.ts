@@ -9,7 +9,6 @@ import { BaseChatApi } from './base-api';
 import { ChatConfig } from '../types';
 import { LoggerInstance } from 'winston';
 import { Commands } from '../bot/commands';
-import { stub } from 'sinon';
 // import { MessengerApi } from '../types';
 
 export class SlackApi extends BaseChatApi {
@@ -40,7 +39,7 @@ export class SlackApi extends BaseChatApi {
      */
     leaveRoom() {
         // TODO override
-        stub();
+        undefined;
     }
 
     /**
@@ -493,35 +492,35 @@ export class SlackApi extends BaseChatApi {
     }
 
     upload() {
-        return stub();
+        return undefined;
     }
 
     uploadContent() {
-        return stub() as any;
+        return undefined as any;
     }
 
     createAlias() {
-        return stub();
+        return undefined;
     }
 
     getDownloadLink() {
-        return stub();
+        return undefined;
     }
 
     setRoomJoinedByUrl() {
-        return stub();
+        return undefined;
     }
 
     joinRoom() {
-        return stub();
+        return undefined;
     }
     getRooms() {
-        return stub();
+        return undefined;
     }
     setRoomAvatar() {
-        return stub();
+        return undefined;
     }
     getAllEventsFromRoom() {
-        return stub();
+        return undefined;
     }
 }

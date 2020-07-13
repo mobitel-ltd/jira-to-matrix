@@ -22,6 +22,7 @@ import gitlabIssueUpdated from '../fixtures/webhooks/gitlab/issue/updated.json';
 import gitlabIssueNewAssign from '../fixtures/webhooks/gitlab/issue/new-assign.json';
 import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
+import gitlabClosedIssueJson from '../fixtures/gitlab-api-requests/closed-issue.json';
 import gitlabClosedIssue from '../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabReopenedIssue from '../fixtures/webhooks/gitlab/issue/reopened.json';
 
@@ -306,6 +307,7 @@ describe('PostIssueUpdates in Gitlab', () => {
     let postIssueUpdates: PostIssueUpdates;
     let postIssueUpdatesData: PostIssueUpdatesData;
     const roomId = '!abcdefg:matrix';
+    const messengerLink = 'lalala';
 
     beforeEach(() => {
         gitlabTracker = new Gitlab({
@@ -403,28 +405,32 @@ describe('PostIssueUpdates in Gitlab', () => {
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
                 .get(`/projects`)
-                .times(2)
+                .times(3)
                 .query({ search: gitlabClosedIssue.project.path_with_namespace })
                 .reply(200, gitlabProjectsJson)
                 .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabClosedIssue.object_attributes.iid}`)
-                .times(2)
-                .reply(200, gitlabIssueJson);
+                .times(3)
+                .reply(200, gitlabClosedIssueJson);
             postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabClosedIssue);
             const chatClass = getChatClass({ roomId });
             chatApi = chatClass.chatApi;
             chatSingle = chatClass.chatApiSingle;
+            chatSingle.uploadContent.resolves(messengerLink);
+
             chatSingle.getRoomId
                 .resolves(roomId)
                 .withArgs(null)
                 .throws('Error');
 
-            postIssueUpdates = new PostIssueUpdates(config, gitlabTracker, chatApi);
+            const allColorsConfig = pipe(clone, set('colors.projects', 'all'))(config) as Config;
+            postIssueUpdates = new PostIssueUpdates(allColorsConfig, gitlabTracker, chatApi);
         });
 
         it('should send correct update info', async () => {
             const result = await postIssueUpdates.run(postIssueUpdatesData);
-            expect(chatSingle.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
             expect(result).to.be.true;
+            expect(chatSingle.setRoomAvatar).have.to.be.calledWithExactly(roomId, messengerLink);
+            expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
         });
     });
 

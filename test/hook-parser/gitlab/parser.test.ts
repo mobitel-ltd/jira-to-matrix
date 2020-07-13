@@ -191,7 +191,7 @@ describe('Gitlab actions', () => {
             oldKey: gitlabClosedIssue.project.path_with_namespace + '-' + gitlabClosedIssue.object_attributes.iid,
             projectKey: gitlabClosedIssue.project.path_with_namespace,
             author: gitlabClosedIssue.user.name,
-            isNewStatus: false,
+            isNewStatus: true,
             newRoomName:
                 '#' +
                 gitlabClosedIssue.object_attributes.iid +
@@ -238,7 +238,7 @@ describe('Gitlab actions', () => {
             oldKey: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
             projectKey: gitlabReopenedIssue.project.path_with_namespace,
             author: gitlabReopenedIssue.user.name,
-            isNewStatus: false,
+            isNewStatus: true,
             newRoomName:
                 '#' +
                 gitlabReopenedIssue.object_attributes.iid +

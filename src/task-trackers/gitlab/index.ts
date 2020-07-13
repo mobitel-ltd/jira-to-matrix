@@ -374,6 +374,9 @@ export class Gitlab implements TaskTracker {
     async getCurrentIssueColor(key: string): Promise<string[]> {
         const { namespaceWithProject } = this.selectors.transformFromKey(key);
         const issue = await this.getIssue(key);
+        if (issue.state === 'closed') {
+            return ['gray'];
+        }
         const projectLabels = await this.getProjectLabels(namespaceWithProject);
 
         return projectLabels.filter(el => issue.labels.includes(el.name)).map(el => el.color);
