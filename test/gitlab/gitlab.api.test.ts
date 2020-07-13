@@ -2,10 +2,12 @@ import nock from 'nock';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import issueJson from '../fixtures/gitlab-api-requests/issue.json';
 import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import labelsJson from '../fixtures/gitlab-api-requests/labels.json';
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { config } from '../../src/config';
+import { pipe, set, clone } from 'lodash/fp';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -96,6 +98,47 @@ describe('Gitlab api testing', () => {
         it('should return issue author and watchers', async () => {
             const res = await gitlab.getIssueWatchers(issueKey);
             const expected = [(issueJson.assignee as any).name as string, issueJson.author.name];
+            expect(res).to.be.deep.eq(expected);
+        });
+    });
+
+    describe('getCurrentIssueColor', () => {
+        it('should return correct color', async () => {
+            nock(gitlab.getRestUrl())
+                .get(`/projects`)
+                .query({ search: `${projectNamespace}/${projectKey}` })
+                .times(2)
+                .reply(200, projectsJson)
+                .get(`/projects/${projectsJson[0].id}/issues/${issueId}`)
+                .reply(200, issueJson)
+                .get('/projects/3032/labels')
+                .reply(200, labelsJson);
+
+            const res = await gitlab.getCurrentIssueColor(issueKey);
+            const expected = labelsJson.filter(el => issueJson.labels.includes(el.name)).map(el => el.color);
+            expect(res).to.be.deep.eq(expected);
+        });
+
+        it('should return only unique colors', async () => {
+            const issueJsonWithAllProjectLabels: any = pipe(
+                clone,
+                set(
+                    'labels',
+                    labelsJson.map(label => label.name),
+                ),
+            )(issueJson);
+            nock(gitlab.getRestUrl())
+                .get(`/projects`)
+                .query({ search: `${projectNamespace}/${projectKey}` })
+                .times(2)
+                .reply(200, projectsJson)
+                .get(`/projects/${projectsJson[0].id}/issues/${issueId}`)
+                .reply(200, issueJsonWithAllProjectLabels)
+                .get('/projects/3032/labels')
+                .reply(200, labelsJson);
+
+            const res = await gitlab.getCurrentIssueColor(issueKey);
+            const expected = [...new Set(labelsJson.map(el => el.color))];
             expect(res).to.be.deep.eq(expected);
         });
     });
