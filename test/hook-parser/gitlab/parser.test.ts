@@ -80,6 +80,7 @@ describe('Gitlab actions', () => {
             oldKey: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
             projectKey: issueUpdated.project.path_with_namespace,
             author: issueUpdated.user.name,
+            isNewStatus: false,
             newRoomName:
                 '#' +
                 issueUpdated.object_attributes.iid +
@@ -190,6 +191,7 @@ describe('Gitlab actions', () => {
             oldKey: gitlabClosedIssue.project.path_with_namespace + '-' + gitlabClosedIssue.object_attributes.iid,
             projectKey: gitlabClosedIssue.project.path_with_namespace,
             author: gitlabClosedIssue.user.name,
+            isNewStatus: false,
             newRoomName:
                 '#' +
                 gitlabClosedIssue.object_attributes.iid +
@@ -236,6 +238,7 @@ describe('Gitlab actions', () => {
             oldKey: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
             projectKey: gitlabReopenedIssue.project.path_with_namespace,
             author: gitlabReopenedIssue.user.name,
+            isNewStatus: false,
             newRoomName:
                 '#' +
                 gitlabReopenedIssue.object_attributes.iid +

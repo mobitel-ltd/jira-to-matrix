@@ -112,6 +112,7 @@ export interface Changelog {
 }
 
 export interface JiraSelectors extends Selectors {
+    getIssueColor(body): string;
     extractName(body, path?: string[]): string | undefined;
     getIssueMembers(body): string[];
     getComment(body): string | undefined;

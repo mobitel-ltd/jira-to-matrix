@@ -133,10 +133,8 @@ export class Gitlab implements TaskTracker {
 
     // async getLabels();
 
-    async getStatusColor(statusId: string | number, projectId: string): Promise<string | undefined> {
-        await this.getProject(projectId);
-
-        return undefined;
+    getStatusColor({ issueKey }): Promise<string[]> {
+        return this.getCurrentIssueColor(issueKey);
     }
 
     requestPost(url: string, options: AxiosRequestConfig, contentType?: string): Promise<any> {
@@ -197,7 +195,7 @@ export class Gitlab implements TaskTracker {
                         case 'assignees':
                             return { [key]: (value as HookUser)[0].name };
                         case 'labels':
-                            return { [key]: (value as GitlabLabel)[0].title };
+                            return { [key]: (value as string)[0] };
                         default:
                             return { [key]: value };
                     }
@@ -364,5 +362,20 @@ export class Gitlab implements TaskTracker {
             fullUrl,
             markdown: uploadInfo.markdown,
         };
+    }
+
+    async getProjectLabels(namespaceWithProject): Promise<GitlabLabel[]> {
+        const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
+        const url = this.getRestUrl('projects', projectId, 'labels');
+
+        return await this.request(url);
+    }
+
+    async getCurrentIssueColor(key: string): Promise<string[]> {
+        const { namespaceWithProject } = this.selectors.transformFromKey(key);
+        const issue = await this.getIssue(key);
+        const projectLabels = await this.getProjectLabels(namespaceWithProject);
+
+        return projectLabels.filter(el => issue.labels.includes(el.name)).map(el => el.color);
     }
 }

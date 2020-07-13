@@ -1,12 +1,19 @@
-import { Config, TaskTracker } from '../../types';
+import { createCanvas } from 'canvas';
+import { Config, TaskTracker, MessengerApi } from '../../types';
 import marked from 'marked';
 import { translate } from '../../locales';
 import { getLogger } from '../../modules/log';
+import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
 
-export class BaseAction<T, Task extends TaskTracker> {
-    constructor(public config: Config, public taskTracker: Task, public chatApi: T) {}
+export class BaseAction<T extends ChatFasade, Task extends TaskTracker> {
+    currentChatItem: MessengerApi;
+    defaultAvatarColor = 'white';
+
+    constructor(public config: Config, public taskTracker: Task, public chatApi: T) {
+        this.currentChatItem = this.chatApi.getCurrentClient();
+    }
 
     getPostStatusData = (data): { body: string; htmlBody: string } | undefined => {
         if (!data.status) {
@@ -39,7 +46,8 @@ export class BaseAction<T, Task extends TaskTracker> {
         return { body, htmlBody };
     };
 
-    isAvatarIssueKey = (issueKey, usingPojects) => {
+    isIssueUseAvatars = (issueKey: string) => {
+        const usingPojects = this.config.colors.projects;
         if (!usingPojects) {
             logger.warn(`No usingPojects is passed to update avatar for room ${issueKey}`);
 
@@ -59,15 +67,49 @@ export class BaseAction<T, Task extends TaskTracker> {
         return false;
     };
 
-    getDefaultAvatarLink = (key, type, colorsConfigData) => {
-        if (!colorsConfigData) {
+    // some colors in jira have cannot be painted, special codes should be used
+    getColorCode = (colorName: string): string => {
+        const colorDict = {
+            'blue-gray': '#6699cc',
+        };
+
+        return colorDict[colorName] || colorName;
+    };
+
+    drawLogo(colorList?: string[]): Buffer {
+        const baseColors = colorList?.length ? colorList : ['white'];
+        const colors = baseColors.map(this.getColorCode);
+        const radius = 200;
+        const canvas = createCanvas(radius * 2, radius * 2);
+        const ctx = canvas.getContext('2d');
+        const pieAngle = (2 * Math.PI) / colors.length;
+
+        colors.forEach((color, index) => {
+            ctx.beginPath();
+            ctx.moveTo(radius, radius);
+            const startAngle = index * pieAngle;
+            const endAngle = (index + 1) * pieAngle;
+            ctx.arc(radius, radius, radius, startAngle, endAngle, false);
+            ctx.fillStyle = color;
+            ctx.fill();
+        });
+
+        return canvas.toBuffer();
+    }
+
+    async getAvatarLink(key: string, statusColors?: string[] | string): Promise<string | undefined> {
+        const { colors } = this.config;
+        if (!colors) {
             return;
         }
 
-        if (this.isAvatarIssueKey(key, colorsConfigData.projects)) {
-            return colorsConfigData.links[type];
+        if (this.isIssueUseAvatars(key)) {
+            const colorsToHandle = typeof statusColors === 'string' ? [statusColors] : statusColors;
+            const buffer = this.drawLogo(colorsToHandle);
+
+            return await this.currentChatItem.uploadContent(buffer, 'image/png');
         }
-    };
+    }
 }
 
 export interface RunAction {

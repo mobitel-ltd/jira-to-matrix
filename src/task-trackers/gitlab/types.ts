@@ -11,7 +11,7 @@ export interface HookUser {
     avatar_url: string;
 }
 
-export interface GitlabLabel {
+export interface GitlabLabelHook {
     id: number;
     title: string;
     color: string;
@@ -22,6 +22,18 @@ export interface GitlabLabel {
     description: string;
     type: string;
     group_id: number;
+}
+
+export interface GitlabLabel {
+    id: number;
+    name: string;
+    color: string;
+    description: string;
+    description_html: string;
+    text_color: string;
+    subscribed: boolean;
+    priority: null | string;
+    is_project_label: boolean;
 }
 
 export enum HookTypes {
@@ -110,10 +122,10 @@ export interface GitlabIssueHook extends GitlabHook {
         url: string;
         state: string;
         action: string;
-        labels: GitlabLabel[];
+        labels: GitlabLabelHook[];
     };
     assignees: HookUser[];
-    labels: GitlabLabel[];
+    labels: GitlabLabelHook[];
     changes: {
         author_id: {
             previous: null | number;
@@ -152,8 +164,8 @@ export interface GitlabIssueHook extends GitlabHook {
             current: '2020-06-05 08:09:16 UTC';
         };
         labels: {
-            previous: GitlabLabel[];
-            current: GitlabLabel[];
+            previous: GitlabLabelHook[];
+            current: GitlabLabelHook[];
         };
         assignees: {
             previous: HookUser[];
@@ -223,7 +235,7 @@ export interface GitlabIssue {
     iid: number;
     assignees: GitlabUserDataShort[];
     assignee: GitlabUserDataShort | null;
-    labels: [];
+    labels: string[];
     upvotes: number;
     downvotes: number;
     merge_requests_count: number;

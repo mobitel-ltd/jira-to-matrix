@@ -48,10 +48,11 @@ export class GitlabParser implements Parser {
                 state: IssueStateEnum.open,
             });
         }
+        const isNewStatus = Boolean(changes.find(data => data.field === 'labels'));
 
         const projectKey = this.selectors.getProjectKey(body)!;
 
-        return { oldKey, changes, author, projectKey, newRoomName };
+        return { oldKey, changes, author, projectKey, newRoomName, isNewStatus };
     }
 
     isCreateRoom(body) {

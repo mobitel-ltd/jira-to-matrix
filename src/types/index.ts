@@ -70,13 +70,13 @@ export interface Config {
     };
     colors: {
         //
-        links: {
-            issue: string;
-            green: string;
-            yellow: string;
-            'blue-gray': string;
-            purple: string;
-        };
+        // links: {
+        //     issue: string;
+        //     green: string;
+        //     yellow: string;
+        //     'blue-gray': string;
+        //     purple: string;
+        // };
         projects: string[] | 'all';
     };
     gitArchive?: {
@@ -256,9 +256,11 @@ export interface TaskTracker {
 
     parser: Parser;
 
+    getCurrentIssueColor(key: string): Promise<string | string[]>;
+
     getIssueFieldsValues(key: string, fields: string[]): Promise<any>;
 
-    getStatusColor(statusId: string | number, projectId?: string): Promise<string | undefined>;
+    getStatusColor(data: { statusId: string | number; issueKey: string }): Promise<string | undefined | string[]>;
 
     checkIgnoreList(ignoreList, hookType, taskType, body): boolean;
 
@@ -496,8 +498,14 @@ export interface CreateRoomOpions {
 
 export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
     /**
+     * Upload content to messenger
+     */
+    uploadContent(data: Buffer, imageType: string): Promise<string>;
+
+    /**
      * Create room alias
      */
+
     createAlias(name, roomId): Promise<string | false>;
     /**
      * Get link to download media
@@ -622,6 +630,7 @@ export interface PostIssueUpdatesData {
     changes: IssueChanges[];
     author: string;
     projectKey: string;
+    isNewStatus?: boolean;
 }
 
 export interface PostEpicUpdatesData {

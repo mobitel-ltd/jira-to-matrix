@@ -21,7 +21,7 @@ export class Actions {
 
     constructor(private config: Config, private taskTracker: TaskTracker, private chatApi: ChatFasade) {
         this.commandsDict = {
-            [ActionNames.CreateRoom]: new CreateRoom(config, taskTracker, chatApi.worker),
+            [ActionNames.CreateRoom]: new CreateRoom(config, taskTracker, chatApi),
             [ActionNames.InviteNewMembers]: new InviteNewMembers(config, taskTracker, chatApi),
             [ActionNames.PostComment]: new PostComment(config, taskTracker, chatApi),
             [ActionNames.PostProjectUpdates]: new PostProjectUpdates(config, taskTracker, chatApi),

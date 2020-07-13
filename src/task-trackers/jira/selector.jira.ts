@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { config } from '../../config';
 import { Issue, Relation, DescriptionFields, IssueChanges } from '../../types';
 import { translate } from '../../locales';
-import { Comment, Changelog, JiraSelectors, IssueLink, ChangelogItem } from './types';
+import { Comment, Changelog, JiraSelectors, IssueLink, ChangelogItem, JiraIssue } from './types';
 
 const { features } = config;
 
@@ -268,6 +268,7 @@ const getRoomName = body => {
 };
 
 export const selectors: JiraSelectors = {
+    getIssueColor: (body: JiraIssue) => body.fields.status.statusCategory.colorName,
     getRoomName,
     composeRoomName,
     getIssueChanges,

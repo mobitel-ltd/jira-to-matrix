@@ -468,7 +468,7 @@ export class Jira implements TaskTracker {
     /**
      * Get status data with color
      */
-    async getStatusColor(statusId: string | number): Promise<string | undefined> {
+    async getStatusColor({ statusId }: { statusId: string | number }): Promise<string | undefined> {
         try {
             const statusUrl = this.getUrl('status', statusId);
 
@@ -608,5 +608,11 @@ export class Jira implements TaskTracker {
         return type === 'issuelink'
             ? await this.getAvailableIssueId(body)
             : this.selectors.getIssueKey(body) || this.selectors.getIssueId(body);
+    }
+
+    async getCurrentIssueColor(key: string): Promise<string> {
+        const issue = await this.getIssue(key);
+
+        return this.selectors.getIssueColor(issue);
     }
 }
