@@ -53,6 +53,7 @@ describe('get-bot-data for jira', () => {
                     newStatusId: 10257,
                     oldKey: 'TCP-2',
                     newKey: 'INDEV-130',
+                    isNewStatus: true,
                     newRoomName: 'INDEV-130' + ' ' + 'test Task 2',
                     changes: jiraApi.selectors.getIssueChanges(issueMovedJSON)!,
                     author: 'jira_test',

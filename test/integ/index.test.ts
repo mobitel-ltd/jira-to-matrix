@@ -42,6 +42,7 @@ import { slack } from '../fixtures/messenger-settings';
 import { QueueHandler } from '../../src/queue';
 import { Commands } from '../../src/bot/commands';
 import { Actions } from '../../src/bot/actions';
+import { ChatFasade } from '../../src/messengers/chat-fasade';
 const { expect } = chai;
 chai.use(sinonChai);
 
@@ -178,7 +179,8 @@ describe('Integ tests', () => {
 
     const commands = new Commands(slackConfig, taskTracker);
     const slackApi = new SlackApi(commands, testConfig, logger, sdk as any);
-    const actions = new Actions(slackConfig, taskTracker, slackApi as any);
+    const chatFasade = new ChatFasade([slackApi as any]);
+    const actions = new Actions(slackConfig, taskTracker, chatFasade);
     const queueHandler = new QueueHandler(taskTracker, slackConfig, actions);
     slackApi.getUserIdByDisplayName = getUserIdByDisplayName;
 

@@ -630,7 +630,7 @@ export interface PostIssueUpdatesData {
     changes: IssueChanges[];
     author: string;
     projectKey: string;
-    isNewStatus: boolean;
+    isNewStatus?: boolean;
 }
 
 export interface PostEpicUpdatesData {

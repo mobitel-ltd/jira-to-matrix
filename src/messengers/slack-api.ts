@@ -9,10 +9,11 @@ import { BaseChatApi } from './base-api';
 import { ChatConfig } from '../types';
 import { LoggerInstance } from 'winston';
 import { Commands } from '../bot/commands';
+import { stub } from 'sinon';
 // import { MessengerApi } from '../types';
 
-// export class SlackApi extends BaseChatApi implements MessengerApi {
 export class SlackApi extends BaseChatApi {
+    // export class SlackApi extends BaseChatApi {
     commandServer;
     count = 0;
     client: any;
@@ -39,6 +40,7 @@ export class SlackApi extends BaseChatApi {
      */
     leaveRoom() {
         // TODO override
+        stub();
     }
 
     /**
@@ -488,5 +490,38 @@ export class SlackApi extends BaseChatApi {
      */
     getRoomDataById(roomId) {
         return roomId;
+    }
+
+    upload() {
+        return stub();
+    }
+
+    uploadContent() {
+        return stub() as any;
+    }
+
+    createAlias() {
+        return stub();
+    }
+
+    getDownloadLink() {
+        return stub();
+    }
+
+    setRoomJoinedByUrl() {
+        return stub();
+    }
+
+    joinRoom() {
+        return stub();
+    }
+    getRooms() {
+        return stub();
+    }
+    setRoomAvatar() {
+        return stub();
+    }
+    getAllEventsFromRoom() {
+        return stub();
     }
 }

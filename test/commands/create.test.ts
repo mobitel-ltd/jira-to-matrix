@@ -20,6 +20,7 @@ chai.use(sinonChai);
 
 describe('create test', () => {
     let chatApi;
+    let chatFasade;
     let baseOptions;
     let commands: Commands;
 
@@ -38,6 +39,7 @@ describe('create test', () => {
         commands = new Commands(config, taskTracker);
 
         chatApi = getChatClass().chatApiSingle;
+        chatFasade = getChatClass().chatApi;
         chatApi.getRoomId.withArgs(taskTracker.selectors.getInwardLinkKey(issueLinkBody)).resolves(roomId);
         chatApi.getRoomId.withArgs(taskTracker.selectors.getOutwardLinkKey(issueLinkBody)).resolves(roomId);
         baseOptions = { roomId, roomName, sender, chatApi, bodyText };
@@ -83,9 +85,9 @@ describe('create test', () => {
         expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(roomId, post, post);
     });
 
-    it('Expect create new issue and receive hook "new link - relates to" IF command "!create TestTypeTask" with correct type issue and correct new issue name', async () => {
+    it.skip('Expect create new issue and receive hook "new link - relates to" IF command "!create TestTypeTask" with correct type issue and correct new issue name', async () => {
         const result = await commands.run(commandName, { ...baseOptions, bodyText: 'TestTypeTask abracadabra' });
-        const postNewLinks = new PostNewLinks(config, taskTracker, chatApi);
+        const postNewLinks = new PostNewLinks(config, taskTracker, chatFasade);
 
         const body = postNewLinks.getPostLinkMessageBody({
             relation: issueLinkBody.type.outward,

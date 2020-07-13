@@ -33,6 +33,7 @@ describe('Post issue updates test', () => {
     const roomId = '!abcdefg:matrix';
     let chatApi;
     let chatSingle;
+    const messengerLink = 'lalala';
     let postIssueUpdates: PostIssueUpdates;
 
     const postIssueUpdatesData = taskTracker.parser.getPostIssueUpdatesData(issueMovedJSON);
@@ -76,6 +77,8 @@ describe('Post issue updates test', () => {
         const chatClass = getChatClass({ roomId });
         chatSingle = chatClass.chatApiSingle;
         chatApi = chatClass.chatApi;
+        chatSingle.uploadContent.resolves(messengerLink);
+
         chatSingle.getRoomId
             .resolves(roomId)
             .withArgs(null)
@@ -89,6 +92,7 @@ describe('Post issue updates test', () => {
     });
 
     const project = 'LALALA';
+    const issueKey = project + '-1';
 
     describe('isArchiveStatus', () => {
         beforeEach(() => {
@@ -101,17 +105,17 @@ describe('Post issue updates test', () => {
         });
 
         it('should return true if all data is expected', async () => {
-            const res = await postIssueUpdates.isArchiveStatus(project, greenStatusId);
+            const res = await postIssueUpdates.isArchiveStatus(project, issueKey, greenStatusId);
             expect(res).to.be.true;
         });
 
         it('should return false if color is yellow in staus', async () => {
-            const res = await postIssueUpdates.isArchiveStatus(project, yellowStatusId);
+            const res = await postIssueUpdates.isArchiveStatus(project, issueKey, yellowStatusId);
             expect(res).to.be.false;
         });
 
         it('should return false if empty data passed', async () => {
-            const res = await postIssueUpdates.isArchiveStatus(project);
+            const res = await postIssueUpdates.isArchiveStatus(project, issueKey);
             expect(res).to.be.false;
         });
     });
@@ -212,7 +216,6 @@ describe('Post issue updates test', () => {
     it('Expect status changes with room avatar color change', async () => {
         const issueKey = issueStatusChangedJSON.issue.key;
         const colorConfig = { ...config, colors: { ...config.colors, projects: [issueKey.split('-')[0]] } };
-        const expectedColorLink = config.colors.links[greenStatus.statusCategory.colorName];
 
         const data = taskTracker.parser.getPostIssueUpdatesData(issueStatusChangedJSON);
         postIssueUpdates = new PostIssueUpdates(colorConfig, taskTracker, chatApi);
@@ -220,7 +223,7 @@ describe('Post issue updates test', () => {
         const res = await postIssueUpdates.run(data);
 
         expect(res).to.be.true;
-        expect(chatSingle.setRoomAvatar).have.to.be.calledWithExactly(roomId, expectedColorLink);
+        expect(chatSingle.setRoomAvatar).have.to.be.calledWithExactly(roomId, messengerLink);
     });
 
     it('Expect status changes but room avatar not changed because project of room is not exists in config.color.projects', async () => {
