@@ -1,4 +1,4 @@
-import { Selectors, Parser } from '../types';
+import { Selectors, Parser, Issue } from '../types';
 import { getLogger } from '../modules/log';
 import * as messages from '../lib/messages';
 import { redis, REDIS_IGNORE_PREFIX, REDIS_ROOM_KEY } from '../redis-client';
@@ -92,16 +92,42 @@ export class HookParser {
         return this.taskTracker.checkIgnoreList(ignoreList.taskType, taskType, type, body);
     }
 
+    async getIssueForSearch(keyOrKeys: string | string[]): Promise<Issue> {
+        if (Array.isArray(keyOrKeys)) {
+            const res = await Promise.all(
+                keyOrKeys.map(async key => {
+                    try {
+                        const issue = await this.taskTracker.getIssue(key);
+
+                        return issue;
+                    } catch (error) {
+                        return false;
+                    }
+                }),
+            );
+
+            const [issue] = res.filter(Boolean);
+
+            if (!issue) {
+                throw new Error('Issue not found for push hook');
+            }
+
+            return issue;
+        }
+
+        return await this.taskTracker.getIssue(keyOrKeys);
+    }
+
     async getManuallyIgnore(body) {
         const type = this.selectors.getHookType(body);
         if (this.taskTracker.isAvoidHookType(type)) {
             return false;
         }
-        const descriptionFields = this.selectors.getDescriptionFields(body);
 
         const keyOrId = await this.taskTracker.getKeyOrIdForCheckIgnore(body);
-        const issue = await this.taskTracker.getIssue(keyOrId!);
+        const issue = await this.getIssueForSearch(keyOrId);
         const projectKey = this.selectors.getProjectKey(issue);
+        const descriptionFields = this.selectors.getDescriptionFields(body);
 
         const status = await this.isManuallyIgnore(projectKey, descriptionFields?.typeName, type, body);
         if (status) {
@@ -128,7 +154,7 @@ export class HookParser {
         }
         const keyOrId = await this.taskTracker.getKeyOrIdForCheckIgnore(body);
 
-        const issue = await this.taskTracker.getIssue(keyOrId!);
+        const issue = await this.getIssueForSearch(keyOrId!);
         const issueCreator = this.selectors.getIssueCreator(issue)!;
 
         return this.isTestCreator(issueCreator);

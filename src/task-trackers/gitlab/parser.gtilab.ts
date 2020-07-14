@@ -7,13 +7,29 @@ import {
     PostIssueUpdatesData,
     UploadData,
     IssueStateEnum,
+    PushCommitData,
+    ActionNames,
 } from '../../types';
-import { GitlabSelectors } from './types';
+import { GitlabSelectors, HookTypes } from './types';
 
 export class GitlabParser implements Parser {
     issueMovedType = 'issueMovedType';
 
     constructor(private features: Config['features'], private selectors: GitlabSelectors) {}
+
+    isPostPushCommit(body) {
+        return Boolean(this.features.postIssueUpdates && this.selectors.isCorrectWebhook(body, HookTypes.Push));
+    }
+
+    getPostPushCommitData(body): PushCommitData {
+        const author = this.selectors.getDisplayName(body)!;
+        const keyAndCommits = this.selectors.getCommitKeysBody(body);
+
+        return {
+            author,
+            keyAndCommits,
+        };
+    }
 
     isPostIssueUpdates(body) {
         return Boolean(
@@ -57,7 +73,9 @@ export class GitlabParser implements Parser {
 
     isCreateRoom(body) {
         return Boolean(
-            this.features.createRoom && this.selectors.getKey(body),
+            this.features.createRoom &&
+                !this.selectors.isCorrectWebhook(body, HookTypes.Push) &&
+                this.selectors.getKey(body),
             // TODO not found webhook for issue moved to another project
             // && this.selectors.getTypeEvent(body) !== this.issueMovedType,
         );
@@ -121,6 +139,7 @@ export class GitlabParser implements Parser {
         inviteNewMembers: this.isMemberInvite,
         postIssueUpdates: this.isPostIssueUpdates,
         upload: this.isUpload,
+        [ActionNames.PostCommit]: this.isPostPushCommit,
     };
 
     getBotActions(body) {

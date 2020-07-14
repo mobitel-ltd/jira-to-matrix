@@ -1,7 +1,17 @@
-import { differenceBy } from 'lodash';
-import { GitlabIssueHook, GitlabCommentHook, HookTypes, GitlabSelectors, GitlabIssue, GitlabLabelHook } from './types';
+import { differenceBy, union, groupBy, mapValues } from 'lodash';
+import {
+    GitlabIssueHook,
+    GitlabCommentHook,
+    HookTypes,
+    GitlabSelectors,
+    GitlabIssue,
+    GitlabLabelHook,
+    GitlabPushHook,
+    GitlabPushCommit,
+} from './types';
 import { translate } from '../../locales';
-import { DescriptionFields, IssueChanges, IssueStateEnum } from '../../types';
+import { DescriptionFields, IssueChanges, IssueStateEnum, CommitInfo } from '../../types';
+import { URL } from 'url';
 
 /**
  * @example namespace/project-123
@@ -16,26 +26,34 @@ const transformFromKey = (key: string): { namespaceWithProject: string; issueId:
     return { namespaceWithProject, issueId: Number(issueId) };
 };
 
-const transformToKey = (namespaceWithProject: string, issueId: number): string =>
+export const transformToKey = (namespaceWithProject: string, issueId: number): string =>
     [namespaceWithProject, issueId].join('-');
 
-interface BodyGetters<T> {
-    getProjectKey(body: T): string;
-    getFullKey(body: T): string;
-    /**
-     * Иванов Иван Иванович
-     */
+interface BaseGetters<T> {
     getDisplayName(body: T): string;
     /**
      * ii_ivanov
      */
     getUserId(body: T): string;
+    keysForCheckIgnore(body: T): string[] | string;
+}
+
+interface BodyGetters<T> extends BaseGetters<T> {
+    getProjectKey(body: T): string;
+    getFullKey(body: T): string;
+    /**
+     * Иванов Иван Иванович
+     */
     getIssueId(body: T): number;
     getIssueName(body: T): string;
     getSummary(body: T): string;
     getMembers(body: T): string[];
     getDescriptionFields(body: T): DescriptionFields | undefined;
     getIssueChanges(body: T): IssueChanges[] | undefined;
+}
+
+interface PushGetters<T> extends BaseGetters<T> {
+    getCommitKeysBody(body: T): Record<string, CommitInfo[]>;
 }
 
 interface CommentGetters<T> extends BodyGetters<T> {
@@ -102,10 +120,55 @@ const getCurrentLabelsMsg = (prev: GitlabLabelHook[], current: GitlabLabelHook[]
     return addedMsg + '; ' + removedMsg;
 };
 
-const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<GitlabCommentHook> } = {
+const getNamespaceProjectPathFromUrl = (url: string) => {
+    try {
+        if (!url.startsWith('http')) {
+            // it's namespace/project/issues/id pattern
+            return url;
+        }
+        const urlConstr = new URL(url);
+
+        return urlConstr.pathname.slice(1);
+    } catch (error) {
+        return;
+    }
+};
+
+const getByIssuePattern = (str: string): string[] => {
+    const issueIds = [...str.matchAll(/[\w\/.:]*issues\/[\d]*/g)];
+
+    return issueIds
+        .map(([el]) => el)
+        .map(getNamespaceProjectPathFromUrl)
+        .filter(Boolean)
+        .map(el => el!.replace('/issues/', '-'));
+};
+
+const getBySharpedPatterns = (str: string, namespace: string): string[] => {
+    const sharpIds = [...str.matchAll(/[\w\/]*#[\d]+/g)];
+
+    return sharpIds
+        .map(([el]) => el)
+        .map(el => (el.startsWith('#') ? namespace.concat(el) : el))
+        .map(el => el.replace('#', '-'));
+};
+
+export const extractKeysFromCommitMessage = (message: string, nameSpaceWithProject: string): string[] => {
+    const sharpFullKeys = getBySharpedPatterns(message, nameSpaceWithProject);
+    const issuePatterned = getByIssuePattern(message);
+
+    return union(sharpFullKeys, issuePatterned);
+};
+
+const handlers: {
+    issue: BodyGetters<GitlabIssueHook>;
+    note: CommentGetters<GitlabCommentHook>;
+    push: PushGetters<GitlabPushHook>;
+} = {
     issue: {
         getProjectKey: body => body.project.path_with_namespace,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.object_attributes.iid),
+        keysForCheckIgnore: body => handlers.issue.getFullKey(body),
         getDisplayName: body => body.user.name,
         getUserId: body => body.user.username,
         getIssueId: body => body.object_attributes.iid,
@@ -143,6 +206,7 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         },
     },
     note: {
+        keysForCheckIgnore: body => handlers.note.getFullKey(body),
         getIssueChanges: () => undefined,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.issue.iid),
         getProjectKey: body => body.project.path_with_namespace,
@@ -161,6 +225,40 @@ const handlers: { issue: BodyGetters<GitlabIssueHook>; note: CommentGetters<Gitl
         getUploadUrl: body => extractUrl(body.object_attributes.description),
         isUploadBody: body => body.object_attributes.note.includes('](/uploads/'),
     },
+    push: {
+        getDisplayName: body => body.user_name,
+        getUserId: body => body.user_username,
+        getCommitKeysBody: body => {
+            const nameSpaceWithProject = body.project.path_with_namespace;
+            const commits = body.commits;
+
+            const getCommitSendBody = (body: GitlabPushCommit): CommitInfo => ({
+                added: body.added,
+                author: body.author.name,
+                message: body.message,
+                modified: body.modified,
+                removed: body.removed,
+                timestamp: body.timestamp,
+                url: body.url,
+            });
+
+            const res = commits
+                .map(item => {
+                    const keys = extractKeysFromCommitMessage(item.message, nameSpaceWithProject);
+                    const commitBody = getCommitSendBody(item);
+
+                    return keys.map(key => ({
+                        key,
+                        commitBody,
+                    }));
+                })
+                .flat();
+            const groupedByKeys = groupBy(res, 'key');
+
+            return mapValues(groupedByKeys, el => el.map(({ commitBody }) => commitBody));
+        },
+        keysForCheckIgnore: body => Object.keys(handlers.push.getCommitKeysBody(body)),
+    },
 };
 
 const issueRequestHandlers: IssueGetters<GitlabIssue> = {
@@ -170,6 +268,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
         const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
         return composeRoomName(key, { summary, state });
     },
+    keysForCheckIgnore: body => issueRequestHandlers.getFullKey(body),
     getIssueChanges: () => undefined,
     getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
     getUserId: body => body.author.username,
@@ -194,7 +293,9 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
     }),
 };
 
-const getHandler = (body): typeof issueRequestHandlers | typeof handlers.issue | typeof handlers.note | undefined => {
+const getHandler = (
+    body: unknown,
+): typeof issueRequestHandlers | typeof handlers.issue | typeof handlers.note | typeof handlers.push | undefined => {
     const type = getBodyWebhookEvent(body);
 
     return (type && handlers[type]) || issueRequestHandlers;
@@ -233,7 +334,10 @@ const getDisplayName = body => runMethod(body, 'getDisplayName');
 const getProjectKey = body => runMethod(body, 'getProjectKey') || issueRequestHandlers.getProjectKey(body);
 
 const getBodyTimestamp = body => {
-    const time: string = body?.object_attributes?.updated_at || body?.object_attributes?.created_at;
+    const time: string | undefined = body?.object_attributes?.updated_at || body?.object_attributes?.created_at;
+    if (!time) {
+        return new Date().getTime();
+    }
 
     return new Date(time).getTime() || time.split(' ').join();
 };
@@ -266,7 +370,11 @@ const getUploadInfo = body => {
     return translate('uploadInfo', { name });
 };
 
+const keysForCheckIgnore = body => runMethod(body, 'keysForCheckIgnore');
+
 export const selectors: GitlabSelectors = {
+    keysForCheckIgnore,
+    getCommitKeysBody: handlers['push'].getCommitKeysBody,
     getRoomName: issueRequestHandlers.getRoomName,
     getUploadInfo,
     getUploadUrl,

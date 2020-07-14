@@ -15,6 +15,7 @@ import {
     GitlabIssueHook,
     HookUser,
     GitlabLabel,
+    HookTypes,
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
@@ -330,16 +331,16 @@ export class Gitlab implements TaskTracker {
         return ignoreList.includes(taskType);
     }
 
-    getKeyOrIdForCheckIgnore(body): string {
-        return this.selectors.getIssueKey(body) || this.selectors.getIssueId(body);
+    getKeyOrIdForCheckIgnore(body): string[] | string {
+        return this.selectors.keysForCheckIgnore(body);
     }
 
     isIgnoreHook(body) {
         return this.selectors.isIgnoreHookType(body);
     }
 
-    isAvoidHookType() {
-        return false;
+    isAvoidHookType(type) {
+        return type === HookTypes.Push;
     }
 
     async upload(
