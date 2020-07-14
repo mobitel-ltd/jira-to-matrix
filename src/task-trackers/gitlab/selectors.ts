@@ -9,6 +9,7 @@ import {
     GitlabPushHook,
     GitlabPushCommit,
 } from './types';
+import marked from 'marked';
 import { translate } from '../../locales';
 import { DescriptionFields, IssueChanges, IssueStateEnum, CommitInfo } from '../../types';
 import { URL } from 'url';
@@ -189,6 +190,8 @@ const handlers: {
                 .filter(([el]) => !el.includes('_'))
                 .map(([field, value]) => {
                     switch (field) {
+                        case 'description':
+                            return { field, newValue: marked(value.current as string) };
                         case 'assignees':
                             return { field, newValue: value.current[0]?.name };
                         case 'labels':

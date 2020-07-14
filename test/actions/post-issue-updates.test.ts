@@ -353,7 +353,7 @@ describe('PostIssueUpdates in Gitlab', () => {
 
         it('Is correct postIssueUpdatesData', async () => {
             const result = await postIssueUpdates.run(postIssueUpdatesData);
-            expect(chatSingle.sendHtmlMessage).have.to.been.calledWithExactly(...expectedData);
+            expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
             expect(result).to.be.true;
         });
     });

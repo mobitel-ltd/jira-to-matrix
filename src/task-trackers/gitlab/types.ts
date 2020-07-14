@@ -130,39 +130,39 @@ export interface GitlabIssueHook extends GitlabHook {
     changes: {
         author_id: {
             previous: null | number;
-            current: 221;
+            current: number;
         };
         created_at: {
             previous: null | number;
-            current: '2020-06-05 08:09:16 UTC';
+            current: string;
         };
         description: {
             previous: null | string;
-            current: 'Test description';
+            current: string;
         };
         id: {
             previous: null | number;
-            current: 1428;
+            current: number;
         };
         iid: {
             previous: null | number;
-            current: 17;
+            current: number;
         };
         project_id: {
             previous: null | number;
-            current: 3032;
+            current: number;
         };
         relative_position: {
             previous: null | number;
-            current: 1073745823;
+            current: number;
         };
         title: {
             previous: null | string;
-            current: 'Test title';
+            current: string;
         };
         updated_at: {
             previous: null | string;
-            current: '2020-06-05 08:09:16 UTC';
+            current: string;
         };
         labels: {
             previous: GitlabLabelHook[];
