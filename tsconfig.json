@@ -8,15 +8,15 @@
         "noImplicitAny": false,
         "removeComments": true,
         "noLib": false,
-        "esModuleInterop"             : true,
+        "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        // "lib": ["esnext"],
+        "lib": ["es2020", "ES2019.Array"],
         "target": "ES2019",
         "sourceMap": true,
         "outDir": "./dist",
-        "baseUrl": "./",
+        "baseUrl": "./"
         // "moduleResolution": "Node"
     },
     "exclude": ["node_modules"]

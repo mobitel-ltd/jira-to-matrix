@@ -15,6 +15,7 @@ import { ArchiveProject } from './archive-project';
 import { Jira } from '../../task-trackers/jira';
 import { Upload } from './upload';
 import { Gitlab } from '../../task-trackers/gitlab';
+import { PostCommit } from './post-commit';
 
 export class Actions {
     commandsDict: Record<ActionNames, RunAction>;
@@ -34,6 +35,7 @@ export class Actions {
             [ActionNames.PostNewLinks]: new PostNewLinks(config, taskTracker as Jira, chatApi),
             // Gitlab only
             [ActionNames.Upload]: new Upload(config, taskTracker as Gitlab, chatApi),
+            [ActionNames.PostCommit]: new PostCommit(config, taskTracker as Gitlab, chatApi),
         };
     }
 

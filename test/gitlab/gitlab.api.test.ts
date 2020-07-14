@@ -8,6 +8,7 @@ import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { config } from '../../src/config';
 import { pipe, set, clone } from 'lodash/fp';
+import { extractKeysFromCommitMessage, transformToKey } from '../../src/task-trackers/gitlab/selectors';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -140,6 +141,35 @@ describe('Gitlab api testing', () => {
             const res = await gitlab.getCurrentIssueColor(issueKey);
             const expected = [...new Set(labelsJson.map(el => el.color))];
             expect(res).to.be.deep.eq(expected);
+        });
+    });
+
+    describe('Commit message parse', () => {
+        const id1 = 10;
+        const id2 = 20;
+        const id3 = 30;
+        const projectNamespace = 'indev/gitlabtomatrix';
+        const otherProject = 'othernamespace/otherproject';
+        const messagePart = [
+            'Message',
+            '#lalalla',
+            '123',
+            `#${id1}`,
+            `${otherProject}#${id2}`,
+            `https://gitlab.example.com/indev/gitlabtomatrix/issues/${id3}`,
+        ];
+        const expected = [
+            transformToKey(projectNamespace, id1),
+            transformToKey(projectNamespace, id3),
+            transformToKey(otherProject, id2),
+        ].sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
+
+        it('should return gitlab full key', () => {
+            const message = messagePart.join(' ');
+            const res = extractKeysFromCommitMessage(message, projectNamespace).sort((a, b) =>
+                a.localeCompare(b, 'en', { numeric: true }),
+            );
+            expect(res).to.deep.eq(expected);
         });
     });
 });

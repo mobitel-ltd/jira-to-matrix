@@ -264,7 +264,7 @@ export interface TaskTracker {
 
     checkIgnoreList(ignoreList, hookType, taskType, body): boolean;
 
-    getKeyOrIdForCheckIgnore(body): Promise<string> | string;
+    getKeyOrIdForCheckIgnore(body): Promise<string> | string | string[];
 
     isAvoidHookType(type?: string): boolean;
 
@@ -312,7 +312,7 @@ export interface TaskTracker {
     /**
      * Make GET request to jira by key or id
      */
-    getIssue(keyOrId): Promise<Issue>;
+    getIssue(keyOrId: string | number): Promise<Issue>;
 
     // /**
     //  * Create link with issue
@@ -633,6 +633,21 @@ export interface PostIssueUpdatesData {
     isNewStatus?: boolean;
 }
 
+export interface CommitInfo {
+    message: string;
+    timestamp: string;
+    url: string;
+    author: string;
+    added: string[];
+    modified: string[];
+    removed: string[];
+}
+
+export interface PushCommitData {
+    keyAndCommits: Record<string, CommitInfo[]>;
+    author: string;
+}
+
 export interface PostEpicUpdatesData {
     epicKey: string;
     data: { key: string; summary: string; id: string; name: string; status?: string };
@@ -739,6 +754,7 @@ export enum ActionNames {
     PostLinksDeleted = 'postLinksDeleted',
     ArchiveProject = 'archiveProject',
     Upload = 'upload',
+    PostCommit = 'postPushCommit',
 }
 
 export interface Parser {

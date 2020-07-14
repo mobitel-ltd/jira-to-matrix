@@ -1,4 +1,4 @@
-import { Project, Selectors } from '../../types';
+import { Project, Selectors, CommitInfo } from '../../types';
 
 export interface GitlabUserData extends GitlabUserDataShort {
     access_level: number;
@@ -39,6 +39,7 @@ export interface GitlabLabel {
 export enum HookTypes {
     Comment = 'note',
     Issue = 'issue',
+    Push = 'push',
 }
 
 export interface GitlabCommentHook extends GitlabHook {
@@ -203,6 +204,49 @@ export interface GitlabHook {
         homepage: string;
     };
     object_attributes: any;
+}
+
+export interface GitlabPushCommit {
+    id: string;
+    message: string;
+    timestamp: string;
+    url: string;
+    author: {
+        name: string;
+        email: string;
+    };
+    added: string[];
+    modified: string[];
+    removed: string[];
+}
+
+export interface GitlabPushHook {
+    object_kind: HookTypes.Push;
+    event_name: string;
+    before: string;
+    after: string;
+    ref: string;
+    checkout_sha: string;
+    message: string;
+    user_id: number;
+    user_name: string;
+    user_username: string;
+    user_email: string;
+    user_avatar: string;
+    project_id: number;
+    project: GitlabHook['project'];
+    commits: GitlabPushCommit[];
+    total_commits_count: number;
+    push_options: any;
+    repository: {
+        name: string;
+        url: string;
+        description: string;
+        homepage: string;
+        git_http_url: string;
+        git_ssh_url: string;
+        visibility_level: number;
+    };
 }
 
 export interface GitlabUserDataShort {
@@ -389,6 +433,8 @@ export interface Notes {
 }
 
 export interface GitlabSelectors extends Selectors {
+    keysForCheckIgnore(body): string | string[];
+    getCommitKeysBody(body: GitlabPushHook): Record<string, CommitInfo[]>;
     getUploadUrl(body): string | null | undefined;
     isUploadBody(body): boolean;
     getUploadInfo(body): string;

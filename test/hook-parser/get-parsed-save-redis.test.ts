@@ -18,6 +18,7 @@ import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
 import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
+import gitlabPushHook from '../fixtures/webhooks/gitlab/push-event.json';
 
 const issueId = commentCreatedHook.comment.self.split('/').reverse()[2];
 
@@ -99,11 +100,12 @@ describe('get-parsed-save to redis', () => {
 describe('Queue handler test with gitlab', () => {
     let queueHandler: QueueHandler;
     let hookParser: HookParser;
+    let gitlabTracker;
 
     beforeEach(() => {
         const { chatApi, chatApiSingle } = getChatClass();
         chatApiSingle.getRoomId = stub();
-        const gitlabTracker = new Gitlab({
+        gitlabTracker = new Gitlab({
             url: 'https://gitlab.test-example.ru',
             user: 'gitlab_bot',
             password: 'fakepasswprd',
@@ -115,7 +117,7 @@ describe('Queue handler test with gitlab', () => {
 
         nock(gitlabTracker.getRestUrl())
             .get(`/projects`)
-            .times(2)
+            .times(4)
             .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
             .reply(200, gitlabProjectsJson)
             .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
@@ -150,5 +152,15 @@ describe('Queue handler test with gitlab', () => {
         expect(status).to.be.false;
         const roomsKeys = await queueHandler.getRedisRooms();
         expect(roomsKeys).to.be.null;
+    });
+
+    it('Should handle push hook from gitlab', async () => {
+        nock(gitlabTracker.getRestUrl())
+            .get(`/projects/${gitlabProjectsJson[0].id}/issues/${57}`)
+            .times(4)
+            .reply(200, gitlabIssueJson);
+
+        const res = await hookParser.getParsedAndSaveToRedis(gitlabPushHook);
+        expect(res).to.be.true;
     });
 });
