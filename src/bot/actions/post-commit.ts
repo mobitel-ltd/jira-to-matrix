@@ -7,6 +7,7 @@ import { ChatFasade } from '../../messengers/chat-fasade';
 import { Gitlab } from '../../task-trackers/gitlab';
 import { GitlabPushCommit } from '../../task-trackers/gitlab/types';
 import { errorTracing } from '../../lib/utils';
+import { translate } from '../../locales';
 
 const logger = getLogger(module);
 
@@ -18,6 +19,16 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> implements RunAct
 
         return res.filter(Boolean) as string[];
     }
+
+    static parseCommit = (data: GitlabPushCommit[]): string[] => {
+        return data.map(el => {
+            const text = el.id.slice(0, 8);
+            const link = el.url;
+
+            return `[${text}](${link})`;
+        });
+    };
+
     async sendCommitData(key: string, commitInfo: GitlabPushCommit[], author: string) {
         try {
             const roomId = await this.chatApi.getRoomId(key);
@@ -33,9 +44,11 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> implements RunAct
         }
     }
 
-    static getCommitHTMLBody = (author: string, commitInfo: GitlabPushCommit[]) => {
-        const jsonData = marked(['```', JSON.stringify(commitInfo, null, 2), '```'].join('\n'));
+    static getCommitHTMLBody = (name: string, commitInfo: GitlabPushCommit[]) => {
+        const jsonData = marked(['```json', JSON.stringify(commitInfo, null, 2), '```'].join('\n'));
+        const headerText = translate('pushCommitInfo', { name });
+        const commitsLinks = PostCommit.parseCommit(commitInfo).join(' ');
 
-        return marked(`${author} mentioned this current issue in commits: \n\n${jsonData}`);
+        return marked(`${headerText}: ${commitsLinks} \n\n${jsonData}`);
     };
 }
