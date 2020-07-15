@@ -59,7 +59,7 @@ describe('Gitlab actions', () => {
                 data: {
                     issueId: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
                     headerText: translate('comment_created', {
-                        name: `${commentHook.user.name} ${commentHook.user.username}`,
+                        name: `${commentHook.user.username} ${commentHook.user.name}`,
                     }),
                     comment: {
                         body: commentHook.object_attributes.note,
@@ -167,7 +167,7 @@ describe('Gitlab actions', () => {
         const data: UploadData = {
             issueKey: uploadHook.project.path_with_namespace + '-' + uploadHook.issue.iid,
             uploadUrl: uploadHook.object_attributes.description.slice(8, -1),
-            uploadInfo: translate('uploadInfo', { name: `${uploadHook.user.name} ${uploadHook.user.username}` }),
+            uploadInfo: translate('uploadInfo', { name: `${uploadHook.user.username} ${uploadHook.user.name}` }),
         };
         const expected = [
             {
