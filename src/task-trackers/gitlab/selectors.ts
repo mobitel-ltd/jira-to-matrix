@@ -11,7 +11,7 @@ import {
 } from './types';
 import marked from 'marked';
 import { translate } from '../../locales';
-import { DescriptionFields, IssueChanges, IssueStateEnum, CommitInfo } from '../../types';
+import { DescriptionFields, IssueChanges, IssueStateEnum } from '../../types';
 import { URL } from 'url';
 
 /**
@@ -54,7 +54,7 @@ interface BodyGetters<T> extends BaseGetters<T> {
 }
 
 interface PushGetters<T> extends BaseGetters<T> {
-    getCommitKeysBody(body: T): Record<string, CommitInfo[]>;
+    getCommitKeysBody(body: T): Record<string, GitlabPushCommit[]>;
 }
 
 interface CommentGetters<T> extends BodyGetters<T> {
@@ -235,24 +235,13 @@ const handlers: {
             const nameSpaceWithProject = body.project.path_with_namespace;
             const commits = body.commits;
 
-            const getCommitSendBody = (body: GitlabPushCommit): CommitInfo => ({
-                added: body.added,
-                author: body.author.name,
-                message: body.message,
-                modified: body.modified,
-                removed: body.removed,
-                timestamp: body.timestamp,
-                url: body.url,
-            });
-
             const res = commits
                 .map(item => {
                     const keys = extractKeysFromCommitMessage(item.message, nameSpaceWithProject);
-                    const commitBody = getCommitSendBody(item);
 
                     return keys.map(key => ({
                         key,
-                        commitBody,
+                        commitBody: item,
                     }));
                 })
                 .flat();

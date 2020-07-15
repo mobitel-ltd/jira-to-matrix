@@ -28,7 +28,7 @@ describe('Post commit', () => {
     });
 
     it('Expect postCommit works correct with push hook and', async () => {
-        const commitData = Object.values(postPushCommitData.keyAndCommits)[0];
+        const commitData = gitlabPushHook.commits;
         const htmlBody = getCommitHTMLBody(postPushCommitData.author, commitData);
         const result = await postComment.run(postPushCommitData);
 

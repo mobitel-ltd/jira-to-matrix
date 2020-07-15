@@ -1,4 +1,4 @@
-import { Project, Selectors, CommitInfo } from '../../types';
+import { Project, Selectors } from '../../types';
 
 export interface GitlabUserData extends GitlabUserDataShort {
     access_level: number;
@@ -434,7 +434,7 @@ export interface Notes {
 
 export interface GitlabSelectors extends Selectors {
     keysForCheckIgnore(body): string | string[];
-    getCommitKeysBody(body: GitlabPushHook): Record<string, CommitInfo[]>;
+    getCommitKeysBody(body: GitlabPushHook): Record<string, GitlabPushCommit[]>;
     getUploadUrl(body): string | null | undefined;
     isUploadBody(body): boolean;
     getUploadInfo(body): string;

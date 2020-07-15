@@ -1,21 +1,16 @@
 import marked from 'marked';
 import { getLogger } from '../../modules/log';
 import { fromString } from 'html-to-text';
-import { PushCommitData, CommitInfo } from '../../types';
+import { PushCommitData } from '../../types';
 import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { Gitlab } from '../../task-trackers/gitlab';
+import { GitlabPushCommit } from '../../task-trackers/gitlab/types';
 
 const logger = getLogger(module);
 
-export const getCommitHTMLBody = (author: string, commitInfo: CommitInfo[]) => {
-    const jsonData = commitInfo
-        .map(el =>
-            Object.entries(el)
-                .map(([key, val]) => `${key}: ${val.length ? val : 'none'}`)
-                .join('<br>'),
-        )
-        .join('\n- - - - - - - - - - - - - -\n');
+export const getCommitHTMLBody = (author: string, commitInfo: GitlabPushCommit[]) => {
+    const jsonData = marked(['```', JSON.stringify(commitInfo, null, 2), '```'].join('\n'));
 
     return marked(`${author} mentioned this current issue in commits: \n\n${jsonData}`);
 };
@@ -31,7 +26,7 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> implements RunAct
             throw ['Error in Post comment', err].join('\n');
         }
     }
-    async sendCommitData(key: string, commitInfo: CommitInfo[], author: string) {
+    async sendCommitData(key: string, commitInfo: GitlabPushCommit[], author: string) {
         try {
             const roomId = await this.chatApi.getRoomId(key);
             const message = getCommitHTMLBody(author, commitInfo);
