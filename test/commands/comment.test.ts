@@ -82,6 +82,12 @@ describe('gitlab comment test', () => {
         nock.cleanAll();
     });
 
+    it('Expect comment not to be sent and error send to room', async () => {
+        baseOptions = { roomId, roomName, sender, chatApi, bodyText: 'lalalla' };
+        const result = await commands.run(commandName, baseOptions);
+        expect(result).to.be.eq(translate('errorCommentSend'));
+    });
+
     describe('Slash command', () => {
         const bodyText = '/assign @ii_ivanov';
         beforeEach(() => {
@@ -94,6 +100,7 @@ describe('gitlab comment test', () => {
                 .query({ body: bodyText })
                 .reply(400);
         });
+
         it('Expect comment to be sent', async () => {
             const result = await commands.run(commandName, baseOptions);
             expect(chatApi.sendHtmlMessage).not.to.be.called;

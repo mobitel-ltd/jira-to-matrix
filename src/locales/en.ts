@@ -2,6 +2,7 @@
 /* eslint-disable camelcase */
 
 export const dict = Object.freeze({
+    errorCommentSend: 'Error sending comment to taskTracker, send info to admin',
     uploadInfo: '%{name} upload file',
     successProjectAddToArchive:
         'Project "%{projectKey}" is added to archive with activity limit "%{activeTime}" months',

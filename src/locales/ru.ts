@@ -4,6 +4,7 @@ import Ramda from 'ramda';
 import names from 'ru-names';
 
 export const dict = Object.freeze({
+    errorCommentSend: 'Ошибка отправки сообщения в taskTracker, обратитесь к администратору',
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',
     uploadInfo: '%{name} загрузил%{f} файл',
     setBotToAdmin: 'Неверно установлен статус бота в проекте [%{projectKey}](%{viewUrl}), обратитесь к администратору',
