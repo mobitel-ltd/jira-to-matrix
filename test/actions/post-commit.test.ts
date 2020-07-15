@@ -28,6 +28,13 @@ describe('Post commit', () => {
         postCommit = new PostCommit(config, gitlabTracker, chatApi);
     });
 
+    it('should parse commit', async () => {
+        const res = PostCommit.parseCommit(gitlabPushHook.commits);
+        const expected = [`[${gitlabPushHook.commits[0].id.slice(0, 8)}](${gitlabPushHook.commits[0].url})`];
+
+        expect(res).to.be.deep.eq(expected);
+    });
+
     it('Expect postCommit works correct with push hook and', async () => {
         const commitData = gitlabPushHook.commits;
         const htmlBody = PostCommit.getCommitHTMLBody(
