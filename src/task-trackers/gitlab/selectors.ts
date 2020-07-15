@@ -138,7 +138,7 @@ const getNamespaceProjectPathFromUrl = (url: string) => {
 };
 
 const getByIssuePattern = (str: string): string[] => {
-    const issueIds = [...str.matchAll(/[\w\/.:]*issues\/[\d]*/g)];
+    const issueIds = [...str.matchAll(/[\w\/.\-:]*issues\/[\d]*/g)];
 
     return issueIds
         .map(([el]) => el)

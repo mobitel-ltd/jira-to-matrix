@@ -156,7 +156,7 @@ describe('Gitlab api testing', () => {
             '123',
             `#${id1}`,
             `${otherProject}#${id2}`,
-            `https://gitlab.example.com/indev/gitlabtomatrix/issues/${id3}`,
+            `https://gitlab-example.com/indev/gitlabtomatrix/issues/${id3}`,
         ];
         const expected = [
             transformToKey(projectNamespace, id1),
