@@ -5,7 +5,7 @@ import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabPushHook from '../fixtures/webhooks/gitlab/push-event.json';
-import { PostCommit, getCommitHTMLBody } from '../../src/bot/actions/post-commit';
+import { PostCommit } from '../../src/bot/actions/post-commit';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -29,7 +29,7 @@ describe('Post commit', () => {
 
     it('Expect postCommit works correct with push hook and', async () => {
         const commitData = gitlabPushHook.commits;
-        const htmlBody = getCommitHTMLBody(postPushCommitData.author, commitData);
+        const htmlBody = postComment.getCommitHTMLBody(postPushCommitData.author, commitData);
         const result = await postComment.run(postPushCommitData);
 
         expect(result).to.be.true;
