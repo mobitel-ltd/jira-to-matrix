@@ -1,4 +1,5 @@
 import { BaseChatApi } from '../messengers/base-api';
+import { GitlabPushCommit } from '../task-trackers/gitlab/types';
 
 export interface Config {
     port: string;
@@ -633,18 +634,8 @@ export interface PostIssueUpdatesData {
     isNewStatus?: boolean;
 }
 
-export interface CommitInfo {
-    message: string;
-    timestamp: string;
-    url: string;
-    author: string;
-    added: string[];
-    modified: string[];
-    removed: string[];
-}
-
 export interface PushCommitData {
-    keyAndCommits: Record<string, CommitInfo[]>;
+    keyAndCommits: Record<string, GitlabPushCommit[]>;
     author: string;
 }
 
