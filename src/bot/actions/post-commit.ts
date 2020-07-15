@@ -45,7 +45,7 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> implements RunAct
     }
 
     static getCommitHTMLBody = (name: string, commitInfo: GitlabPushCommit[]) => {
-        const jsonData = marked(['```json', JSON.stringify(commitInfo, null, 2), '```'].join('\n'));
+        const jsonData = marked(['```', JSON.stringify(commitInfo, null, 2), '```'].join('\n'));
         const headerText = translate('pushCommitInfo', { name });
         const commitsLinks = PostCommit.parseCommit(commitInfo).join(' ');
 

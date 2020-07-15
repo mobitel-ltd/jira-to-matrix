@@ -163,7 +163,7 @@ export const extractKeysFromCommitMessage = (message: string, nameSpaceWithProje
     return union(sharpFullKeys, issuePatterned);
 };
 
-const getFullName = (displayName: string, userId: string) => [displayName, userId].join(' ');
+const getFullName = (displayName: string, userId: string) => [userId, `${displayName}`].join(' ');
 
 const handlers: {
     issue: BodyGetters<GitlabIssueHook>;

@@ -38,7 +38,7 @@ describe('Post commit', () => {
     it('Expect postCommit works correct with push hook and', async () => {
         const commitData = gitlabPushHook.commits;
         const htmlBody = PostCommit.getCommitHTMLBody(
-            gitlabPushHook.user_name + ' ' + gitlabPushHook.user_username,
+            gitlabPushHook.user_username + ' ' + gitlabPushHook.user_name,
             commitData,
         );
         const result = await postCommit.run(postPushCommitData);
