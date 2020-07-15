@@ -6,6 +6,7 @@ import sinonChai from 'sinon-chai';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabPushHook from '../fixtures/webhooks/gitlab/push-event.json';
 import { PostCommit } from '../../src/bot/actions/post-commit';
+import { GitlabPushHook } from '../../src/task-trackers/gitlab/types';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -13,26 +14,29 @@ chai.use(sinonChai);
 describe('Post commit', () => {
     let chatApi;
     let chatSingle;
-    let postComment: PostCommit;
+    let postCommit: PostCommit;
     const gitlabTracker = new Gitlab({ ...config.taskTracker, features: config.features });
 
     const roomId = 'roomId';
-    const postPushCommitData = gitlabTracker.parser.getPostPushCommitData(gitlabPushHook);
+    const postPushCommitData = gitlabTracker.parser.getPostPushCommitData(gitlabPushHook as GitlabPushHook);
 
     beforeEach(() => {
         const chatClass = getChatClass({ alias: Object.keys(postPushCommitData.keyAndCommits) });
         chatSingle = chatClass.chatApiSingle;
         chatApi = chatClass.chatApi;
 
-        postComment = new PostCommit(config, gitlabTracker, chatApi);
+        postCommit = new PostCommit(config, gitlabTracker, chatApi);
     });
 
     it('Expect postCommit works correct with push hook and', async () => {
         const commitData = gitlabPushHook.commits;
-        const htmlBody = postComment.getCommitHTMLBody(postPushCommitData.author, commitData);
-        const result = await postComment.run(postPushCommitData);
+        const htmlBody = PostCommit.getCommitHTMLBody(
+            gitlabPushHook.user_name + ' ' + gitlabPushHook.user_username,
+            commitData,
+        );
+        const result = await postCommit.run(postPushCommitData);
 
-        expect(result).to.be.true;
+        expect(result).to.be.deep.eq(Object.keys(postPushCommitData.keyAndCommits));
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomId, fromString(htmlBody), htmlBody);
     });
 });

@@ -433,6 +433,7 @@ export interface Notes {
 }
 
 export interface GitlabSelectors extends Selectors {
+    getFullNameWithId(body: GitlabPushHook): string;
     keysForCheckIgnore(body): string | string[];
     getCommitKeysBody(body: GitlabPushHook): Record<string, GitlabPushCommit[]>;
     getUploadUrl(body): string | null | undefined;
