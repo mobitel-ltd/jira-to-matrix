@@ -10,7 +10,7 @@ import {
     PushCommitData,
     ActionNames,
 } from '../../types';
-import { GitlabSelectors, HookTypes } from './types';
+import { GitlabSelectors, HookTypes, GitlabPushHook } from './types';
 
 export class GitlabParser implements Parser {
     issueMovedType = 'issueMovedType';
@@ -21,8 +21,8 @@ export class GitlabParser implements Parser {
         return Boolean(this.features.postIssueUpdates && this.selectors.isCorrectWebhook(body, HookTypes.Push));
     }
 
-    getPostPushCommitData(body): PushCommitData {
-        const author = this.selectors.getDisplayName(body)!;
+    getPostPushCommitData(body: GitlabPushHook): PushCommitData {
+        const author = this.selectors.getFullNameWithId(body);
         const keyAndCommits = this.selectors.getCommitKeysBody(body);
 
         return {

@@ -55,9 +55,11 @@ interface BodyGetters<T> extends BaseGetters<T> {
 
 interface PushGetters<T> extends BaseGetters<T> {
     getCommitKeysBody(body: T): Record<string, GitlabPushCommit[]>;
+    getFullNameWithId(body: T): string;
 }
 
 interface CommentGetters<T> extends BodyGetters<T> {
+    getFullNameWithId(body: T): string;
     getCommentBody(
         body: T,
     ): {
@@ -161,6 +163,8 @@ export const extractKeysFromCommitMessage = (message: string, nameSpaceWithProje
     return union(sharpFullKeys, issuePatterned);
 };
 
+const getFullName = (displayName: string, userId: string) => [displayName, userId].join(' ');
+
 const handlers: {
     issue: BodyGetters<GitlabIssueHook>;
     note: CommentGetters<GitlabCommentHook>;
@@ -227,6 +231,7 @@ const handlers: {
         getMembers: body => [body.user.name],
         getUploadUrl: body => extractUrl(body.object_attributes.description),
         isUploadBody: body => body.object_attributes.note.includes('](/uploads/'),
+        getFullNameWithId: body => getFullName(handlers.note.getDisplayName(body), handlers.note.getUserId(body)),
     },
     push: {
         getDisplayName: body => body.user_name,
@@ -250,6 +255,7 @@ const handlers: {
             return mapValues(groupedByKeys, el => el.map(({ commitBody }) => commitBody));
         },
         keysForCheckIgnore: body => Object.keys(handlers.push.getCommitKeysBody(body)),
+        getFullNameWithId: body => getFullName(handlers.push.getDisplayName(body), handlers.push.getUserId(body)),
     },
 };
 
@@ -306,9 +312,7 @@ const runMethod = (body: any, method: string): any => {
 };
 
 const getHeaderText = body => {
-    const fullName = handlers.note.getDisplayName(body);
-    const userId = handlers.note.getUserId(body);
-    const name = `${fullName} ${userId}`;
+    const name = handlers.note.getFullNameWithId(body);
 
     return translate('comment_created', { name });
 };
@@ -355,9 +359,7 @@ const isUploadBody = handlers.note.isUploadBody;
 const getUploadUrl = handlers.note.getUploadUrl;
 
 const getUploadInfo = body => {
-    const fullName = handlers.note.getDisplayName(body);
-    const userId = handlers.note.getUserId(body);
-    const name = `${fullName} ${userId}`;
+    const name = getFullName(handlers.note.getDisplayName(body), handlers.note.getUserId(body));
 
     return translate('uploadInfo', { name });
 };
@@ -365,6 +367,7 @@ const getUploadInfo = body => {
 const keysForCheckIgnore = body => runMethod(body, 'keysForCheckIgnore');
 
 export const selectors: GitlabSelectors = {
+    getFullNameWithId: handlers.push.getFullNameWithId,
     keysForCheckIgnore,
     getCommitKeysBody: handlers['push'].getCommitKeysBody,
     getRoomName: issueRequestHandlers.getRoomName,
