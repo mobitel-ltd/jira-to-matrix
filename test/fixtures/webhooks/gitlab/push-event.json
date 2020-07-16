@@ -33,7 +33,7 @@
     "commits": [
         {
             "id": "00e36ed8a14dc0d35b92384680ba99284df9814a",
-            "message": "indev/gitlabtomatrix#57 update readme\n",
+            "message": "indev/gitlabtomatrix#57 update readme",
             "timestamp": "2020-07-13T16:52:49+03:00",
             "url": "https://vcs.gitlab.example.com/indev/gitlabtomatrix/commit/00e36ed8a14dc0d35b92384680ba99284df9814a",
             "author": {

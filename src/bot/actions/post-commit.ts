@@ -1,6 +1,6 @@
+import * as toYaml from 'js-yaml';
 import marked from 'marked';
 import { getLogger } from '../../modules/log';
-import { fromString } from 'html-to-text';
 import { PushCommitData } from '../../types';
 import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
@@ -20,7 +20,7 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> implements RunAct
         return res.filter(Boolean) as string[];
     }
 
-    static parseCommit = (data: GitlabPushCommit[]): string[] => {
+    static getCommitLinks = (data: GitlabPushCommit[]): string[] => {
         return data.map(el => {
             const text = el.id.slice(0, 8);
             const link = el.url;
@@ -32,8 +32,8 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> implements RunAct
     async sendCommitData(key: string, commitInfo: GitlabPushCommit[], author: string) {
         try {
             const roomId = await this.chatApi.getRoomId(key);
-            const message = PostCommit.getCommitHTMLBody(author, commitInfo);
-            await this.chatApi.sendHtmlMessage(roomId, fromString(message), message);
+            const res = PostCommit.getTextAndHTML(author, commitInfo);
+            await this.chatApi.sendHtmlMessage(roomId, res.text, res.html);
 
             logger.debug(`Posted comment with commit info to ${key} room with id ${roomId} from ${author}\n`);
 
@@ -44,11 +44,21 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> implements RunAct
         }
     }
 
-    static getCommitHTMLBody = (name: string, commitInfo: GitlabPushCommit[]) => {
-        const jsonData = marked(['```', JSON.stringify(commitInfo, null, 2), '```'].join('\n'));
-        const headerText = translate('pushCommitInfo', { name });
-        const commitsLinks = PostCommit.parseCommit(commitInfo).join(' ');
+    static parseCommit = (commitInfo: GitlabPushCommit[]) => {
+        const ymlData = toYaml.safeDump(commitInfo, { lineWidth: -1 });
 
-        return marked(`${headerText}: ${commitsLinks} \n\n${jsonData}`);
+        return ['```yaml', ymlData, '```'].join('\n');
+        // const jsonData = JSON.stringify(commitInfo, null, 2);
+        // return ['<pre><code class="language-yaml"> ', ymlData, '\n</code></pre>\n'].join('');
+        // return marked(['```', jsonData, '```'].join('\n'));
+    };
+
+    static getTextAndHTML = (name: string, commitInfo: GitlabPushCommit[]) => {
+        const headerText = translate('pushCommitInfo', { name });
+        const commitsLinks = PostCommit.getCommitLinks(commitInfo).join(' ');
+        const commitData = PostCommit.parseCommit(commitInfo);
+        const text = `${headerText}: ${commitsLinks} \n${commitData}`;
+
+        return { text, html: marked(text) };
     };
 }
