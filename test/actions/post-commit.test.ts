@@ -1,4 +1,3 @@
-import { fromString } from 'html-to-text';
 import { getChatClass } from '../test-utils';
 import { config } from '../../src/config';
 import * as chai from 'chai';
@@ -29,7 +28,7 @@ describe('Post commit', () => {
     });
 
     it('should parse commit', async () => {
-        const res = PostCommit.parseCommit(gitlabPushHook.commits);
+        const res = PostCommit.getCommitLinks(gitlabPushHook.commits);
         const expected = [`[${gitlabPushHook.commits[0].id.slice(0, 8)}](${gitlabPushHook.commits[0].url})`];
 
         expect(res).to.be.deep.eq(expected);
@@ -37,13 +36,13 @@ describe('Post commit', () => {
 
     it('Expect postCommit works correct with push hook and', async () => {
         const commitData = gitlabPushHook.commits;
-        const htmlBody = PostCommit.getCommitHTMLBody(
+        const res = PostCommit.getTextAndHTML(
             gitlabPushHook.user_username + ' ' + gitlabPushHook.user_name,
             commitData,
         );
         const result = await postCommit.run(postPushCommitData);
 
         expect(result).to.be.deep.eq(Object.keys(postPushCommitData.keyAndCommits));
-        expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomId, fromString(htmlBody), htmlBody);
+        expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(roomId, res.text, res.html);
     });
 });
