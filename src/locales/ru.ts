@@ -4,7 +4,7 @@ import Ramda from 'ramda';
 import names from 'ru-names';
 
 export const dict = Object.freeze({
-    pushCommitInfo: '%{name} упомянул задачу в следующих коммитах',
+    pushCommitInfo: '%{name} упомянул задачу в следующих коммитах:',
     errorCommentSend: 'Ошибка отправки сообщения в taskTracker, обратитесь к администратору',
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',
     uploadInfo: '%{name} загрузил%{f} файл',

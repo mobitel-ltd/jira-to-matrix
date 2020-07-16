@@ -39,7 +39,7 @@ interface BaseGetters<T> {
     keysForCheckIgnore(body: T): string[] | string;
 }
 
-interface BodyGetters<T> extends BaseGetters<T> {
+interface BodyGetters<T = unknown> extends BaseGetters<T> {
     getProjectKey(body: T): string;
     getFullKey(body: T): string;
     /**
@@ -305,7 +305,7 @@ const isIgnoreHookType = (body): boolean => {
     return !Boolean(type && handlers[type]);
 };
 
-const runMethod = (body: any, method: string): any => {
+const runMethod = (body: any, method: keyof BodyGetters): any => {
     const handler = getHandler(body);
 
     return handler && handler[method] && handler[method](body);

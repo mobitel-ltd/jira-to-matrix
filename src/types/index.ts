@@ -453,6 +453,11 @@ interface CommonMessengerApi {
     sendHtmlMessage(roomId: string, body: string, htmlBody: string): Promise<void>;
 
     /**
+     * Send message to chat room
+     */
+    sendTextMessage(roomId: string, body: string): Promise<void>;
+
+    /**
      * Update room name
      */
     updateRoomName(roomId: string, newRoomName: string): Promise<void>;

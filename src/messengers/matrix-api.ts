@@ -692,6 +692,23 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
     /**
      * Send message to matrix room
      */
+    async sendTextMessage(roomId: string, body: string): Promise<void> {
+        try {
+            await this.client.sendTextMessage(roomId, body);
+        } catch (err) {
+            if (this._isEventExeptionError(err)) {
+                this.logger.warn(err.message);
+
+                return;
+            }
+
+            throw ['Error in sendHtmlMessage', err].join('\n');
+        }
+    }
+
+    /**
+     * Send message to matrix room
+     */
     async sendHtmlMessage(roomId: string, body: string, htmlBody: string): Promise<void> {
         try {
             await this.client.sendHtmlMessage(roomId, body, htmlBody);

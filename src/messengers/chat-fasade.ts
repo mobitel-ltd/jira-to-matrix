@@ -232,10 +232,24 @@ export class ChatFasade {
      * @param  {string} htmlBody chat message body
      * @returns {Promise<void>} void
      */
-    async sendHtmlMessage(roomId, body, htmlBody = body) {
+    async sendHtmlMessage(roomId: string, body: string, htmlBody = body) {
         const client = await this._getTargetClient(roomId);
 
         return client.sendHtmlMessage(roomId, body, htmlBody);
+    }
+
+    /**
+     * Send text to chat room
+     *
+     * @param  {string} roomId chat room id
+     * @param  {string} body chat info message body
+     * @param  {string} htmlBody chat message body
+     * @returns {Promise<void>} void
+     */
+    async sendTextMessage(roomId: string, body: string) {
+        const client = await this._getTargetClient(roomId);
+
+        return client.sendTextMessage(roomId, body);
     }
 
     /**
