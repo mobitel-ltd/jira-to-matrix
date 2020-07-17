@@ -1,5 +1,5 @@
 import { BaseChatApi } from '../messengers/base-api';
-import { GitlabPushCommit } from '../task-trackers/gitlab/types';
+import { GitlabPushCommit, GitlabPipeline } from '../task-trackers/gitlab/types';
 
 export interface Config {
     port: string;
@@ -639,6 +639,12 @@ export interface PostIssueUpdatesData {
     isNewStatus?: boolean;
 }
 
+export interface PostPipelineData {
+    issueKeys: string[];
+    pipelineData: GitlabPipeline;
+    author: string;
+}
+
 export interface PushCommitData {
     keyAndCommits: Record<string, GitlabPushCommit[]>;
     author: string;
@@ -751,6 +757,7 @@ export enum ActionNames {
     ArchiveProject = 'archiveProject',
     Upload = 'upload',
     PostCommit = 'postPushCommit',
+    Pipeline = 'postPipeline',
 }
 
 export interface Parser {

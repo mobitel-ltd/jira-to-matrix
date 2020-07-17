@@ -10,6 +10,7 @@ const logger = getLogger(module);
 export class BaseAction<T extends ChatFasade, Task extends TaskTracker> {
     currentChatItem: MessengerApi;
     defaultAvatarColor = 'white';
+    static line = Array.from({ length: 40 }, () => '-').join('');
 
     constructor(public config: Config, public taskTracker: Task, public chatApi: T) {
         this.currentChatItem = this.chatApi.getCurrentClient();

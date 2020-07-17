@@ -40,6 +40,7 @@ export enum HookTypes {
     Comment = 'note',
     Issue = 'issue',
     Push = 'push',
+    Pipeline = 'pipeline',
 }
 
 export interface GitlabCommentHook extends GitlabHook {
@@ -81,9 +82,9 @@ export interface GitlabCommentHook extends GitlabHook {
         created_at: string;
         updated_at: string;
         position: number;
-        branch_name: null;
+        branch_name: null | string;
         description: string;
-        milestone_id: null;
+        milestone_id: null | string;
         state: string;
         iid: number;
         labels: GitlabLabel[];
@@ -110,7 +111,7 @@ export interface GitlabIssueHook extends GitlabHook {
         milestone_id: null | string;
         state_id: number;
         confidential: boolean;
-        discussion_locked: true;
+        discussion_locked: boolean;
         due_date: null | string;
         moved_to_id: null | string;
         duplicated_to_id: null | string;
@@ -175,28 +176,26 @@ export interface GitlabIssueHook extends GitlabHook {
     };
 }
 
+export interface HookProject {
+    id: number;
+    name: string;
+    description: string;
+    web_url: string;
+    avatar_url: null | string;
+    git_ssh_url: string;
+    git_http_url: string;
+    namespace: string;
+    visibility_level: number;
+    path_with_namespace: string;
+    default_branch: string;
+    ci_config_path: null | string;
+}
+
 export interface GitlabHook {
     object_kind: string;
     event_type?: string;
     user: HookUser;
-    project: {
-        id: number;
-        name: string;
-        description: string;
-        web_url: string;
-        avatar_url: null | string | string;
-        git_ssh_url: string;
-        git_http_url: string;
-        namespace: string;
-        visibility_level: number;
-        path_with_namespace: string;
-        default_branch: string;
-        ci_config_path: null | string | string;
-        homepage: string;
-        url: string;
-        ssh_url: string;
-        http_url: string;
-    };
+    project: HookProject;
     repository: {
         name: string;
         url: string;
@@ -206,7 +205,7 @@ export interface GitlabHook {
     object_attributes: any;
 }
 
-export interface GitlabPushCommit {
+export interface BaseCommitInfo {
     id: string;
     message: string;
     timestamp: string;
@@ -215,6 +214,9 @@ export interface GitlabPushCommit {
         name: string;
         email: string;
     };
+}
+
+export interface GitlabPushCommit extends BaseCommitInfo {
     added: string[];
     modified: string[];
     removed: string[];
@@ -234,7 +236,7 @@ export interface GitlabPushHook {
     user_email: string;
     user_avatar: string;
     project_id: number;
-    project: GitlabHook['project'];
+    project: HookProject;
     commits: GitlabPushCommit[];
     total_commits_count: number;
     push_options: any;
@@ -246,6 +248,69 @@ export interface GitlabPushHook {
         git_http_url: string;
         git_ssh_url: string;
         visibility_level: number;
+    };
+}
+
+export interface PipelineBuild {
+    id: number;
+    stage: string;
+    name: string;
+    status: string;
+    created_at: string;
+    started_at: string | null;
+    finished_at: string | null;
+    when: string;
+    manual: boolean;
+    allow_failure: boolean;
+    user: HookUser;
+    runner: {
+        id: number;
+        description: string;
+        active: boolean;
+        is_shared: boolean;
+    } | null;
+    artifacts_file: {
+        filename: null | string;
+        size: null | string;
+    };
+}
+
+export interface GitlabPipelineHook {
+    object_kind: HookTypes.Pipeline;
+    object_attributes: {
+        id: number;
+        ref: string;
+        tag: boolean;
+        sha: string;
+        before_sha: string;
+        source: string;
+        status: string;
+        detailed_status: string;
+        stages: string[];
+        created_at: string;
+        finished_at: string;
+        duration: number;
+        variables: string[];
+    };
+    merge_request: string | null;
+    user: HookUser;
+    project: HookProject;
+    commit: BaseCommitInfo;
+    builds: PipelineBuild[];
+}
+
+export interface GitlabPipeline {
+    object_kind: HookTypes.Pipeline;
+    object_attributes: {
+        url: string;
+        username: string;
+        ref: string;
+        tag: boolean;
+        sha: string;
+        status: string;
+        created_at: string;
+        duration: number;
+        stages: Record<string, Record<string, string>>[];
     };
 }
 
@@ -327,7 +392,7 @@ export interface GitlabProject extends Project {
     path_with_namespace: string;
     created_at: string;
     default_branch: string;
-    tag_list: [];
+    tag_list: string[];
     ssh_url_to_repo: string;
     http_url_to_repo: string;
     web_url: string;
@@ -390,7 +455,7 @@ export interface GitlabProject extends Project {
     auto_cancel_pending_pipelines: string;
     build_coverage_regex: string | null;
     ci_config_path: string | null;
-    shared_with_groups: [];
+    shared_with_groups: string[];
     only_allow_merge_if_pipeline_succeeds: boolean;
     request_access_enabled: boolean;
     only_allow_merge_if_all_discussions_are_resolved: boolean;
@@ -424,7 +489,7 @@ export interface Notes {
     };
     created_at: string;
     updated_at: string;
-    system: true;
+    system: boolean;
     noteable_id: number;
     noteable_type: string;
     noteable_iid: number;
@@ -433,7 +498,9 @@ export interface Notes {
 }
 
 export interface GitlabSelectors extends Selectors {
-    getFullNameWithId(body: GitlabPushHook): string;
+    getPostKeys(body: GitlabPipelineHook): string[];
+    isPipelineHook(body: any): boolean;
+    getFullNameWithId(body: GitlabPushHook | GitlabPipelineHook): string;
     keysForCheckIgnore(body): string | string[];
     getCommitKeysBody(body: GitlabPushHook): Record<string, GitlabPushCommit[]>;
     getUploadUrl(body): string | null | undefined;
