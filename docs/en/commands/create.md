@@ -2,7 +2,7 @@
 
 `!create <type task> name for new issue`
 
-Create new issue in Jira and add link to current issue:
+Create new issue in TaskTracker and add link to current issue:
 
 ```
 !create Task My new task
@@ -23,7 +23,7 @@ Types of task for project "TCP":
 ```
 !create Task
 Issue name exist.
-Use !create typeTask name task for jira
+Use !create typeTask name task for TaskTracker
 ```
 
 The algorithm for creating a connection between a new task and the current one:

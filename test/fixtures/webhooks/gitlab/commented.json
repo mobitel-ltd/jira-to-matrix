@@ -1,0 +1,100 @@
+{
+    "object_kind": "note",
+    "user": {
+        "name": "Иванов Иван Иванович",
+        "username": "ii_ivanov",
+        "avatar_url": "http://www.gravatar.com/avatar/url"
+    },
+    "project_id": 5,
+    "project": {
+        "id": 5,
+        "name": "Gitlab Test",
+        "description": "Aut reprehenderit ut est.",
+        "web_url": "http://example.com/indev/gitlabtomatrix",
+        "avatar_url": null,
+        "git_ssh_url": "git@example.com:indev/gitlabtomatrix.git",
+        "git_http_url": "http://example.com/indev/gitlabtomatrix.git",
+        "namespace": "Gitlab Org",
+        "visibility_level": 10,
+        "path_with_namespace": "indev/gitlabtomatrix",
+        "default_branch": "master",
+        "homepage": "http://example.com/indev/gitlabtomatrix",
+        "url": "http://example.com/indev/gitlabtomatrix.git",
+        "ssh_url": "git@example.com:indev/gitlabtomatrix.git",
+        "http_url": "http://example.com/indev/gitlabtomatrix.git"
+    },
+    "repository": {
+        "name": "GitlabToMatrix",
+        "url": "git@gitlab.test-example.ru:indev/gitlabtomatrix.git",
+        "description": "",
+        "homepage": "https://gitlab.test-example.ru/indev/gitlabtomatrix"
+    },
+    "object_attributes": {
+        "id": 1241,
+        "note": "Hello world",
+        "noteable_type": "Issue",
+        "attachment": null,
+        "author_id": 399,
+        "change_position": null,
+        "commit_id": null,
+        "created_at": "2020-06-18 15:24:14 UTC",
+        "discussion_id": "302cb9c4a38a75c4b78887e648210771ea74a2ee",
+        "line_code": null,
+        "noteable_id": 1474,
+        "original_position": null,
+        "position": null,
+        "project_id": 3032,
+        "resolved_at": null,
+        "resolved_by_id": null,
+        "resolved_by_push": null,
+        "st_diff": null,
+        "system": false,
+        "type": null,
+        "updated_at": "2020-06-18 15:24:14 UTC",
+        "updated_by_id": null,
+        "description": "lalal",
+        "url": "http://example.com/indev/gitlabtomatrix/issues/17#note_1241"
+    },
+    "issue": {
+        "id": 92,
+        "title": "test",
+        "assignee_ids": [],
+        "assignee_id": null,
+        "author_id": 1,
+        "project_id": 5,
+        "created_at": "2015-04-12 14:53:17 UTC",
+        "updated_at": "2015-04-26 08:28:42 UTC",
+        "position": 0,
+        "branch_name": null,
+        "description": "test",
+        "milestone_id": null,
+        "state": "closed",
+        "iid": 17,
+        "labels": [
+            {
+                "id": 25,
+                "title": "Afterpod",
+                "color": "#3e8068",
+                "project_id": null,
+                "created_at": "2019-06-05T14:32:20.211Z",
+                "updated_at": "2019-06-05T14:32:20.211Z",
+                "template": false,
+                "description": null,
+                "type": "GroupLabel",
+                "group_id": 4
+            },
+            {
+                "id": 86,
+                "title": "Element",
+                "color": "#231afe",
+                "project_id": 4,
+                "created_at": "2019-06-05T14:32:20.637Z",
+                "updated_at": "2019-06-05T14:32:20.637Z",
+                "template": false,
+                "description": null,
+                "type": "ProjectLabel",
+                "group_id": null
+            }
+        ]
+    }
+}

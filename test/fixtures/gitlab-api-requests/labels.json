@@ -1,0 +1,57 @@
+[
+    {
+        "id": 306,
+        "name": "Close",
+        "color": "#999999",
+        "description": null,
+        "description_html": "",
+        "text_color": "#FFFFFF",
+        "subscribed": false,
+        "priority": null,
+        "is_project_label": true
+    },
+    {
+        "id": 234,
+        "name": "Done",
+        "color": "#999999",
+        "description": null,
+        "description_html": "",
+        "text_color": "#FFFFFF",
+        "subscribed": false,
+        "priority": null,
+        "is_project_label": true
+    },
+    {
+        "id": 233,
+        "name": "InProgress",
+        "color": "#F0AD4E",
+        "description": null,
+        "description_html": "",
+        "text_color": "#FFFFFF",
+        "subscribed": false,
+        "priority": null,
+        "is_project_label": true
+    },
+    {
+        "id": 305,
+        "name": "Open",
+        "color": "#111",
+        "description": null,
+        "description_html": "",
+        "text_color": "#FFFFFF",
+        "subscribed": false,
+        "priority": null,
+        "is_project_label": true
+    },
+    {
+        "id": 232,
+        "name": "ToDo",
+        "color": "#FF0000",
+        "description": "Задачи, которые нужно брать в работу ",
+        "description_html": "Задачи, которые нужно брать в работу ",
+        "text_color": "#FFFFFF",
+        "subscribed": false,
+        "priority": null,
+        "is_project_label": true
+    }
+]

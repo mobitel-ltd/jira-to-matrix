@@ -140,4 +140,6 @@ module.exports = Object.freeze({
     baseDir: '/tmp',
     // delay interval for archiving rooms and other high loadly chat server operations
     delayInterval: 5,
+    // Optional max file size to upload from messanger, 10 * 1024 * 1024 by default
+    maxFileSize: 10485760,
 });

@@ -1,26 +1,22 @@
-version: '3.3'
+version: '3.7'
 
 services:
-    jira_bot_app:
-        image: node:13.5.0
-        working_dir: /usr/src/app
-        container_name: jira_bot_app
-        command: sh -c "npm run start-dev"
-        volumes:
-            - '~/.bash_history:/.bash_history'
-            - './:/usr/src/app:delegated'
-            - '/tmp:/tmp:delegated'
+    bot_app:
+        image: bot
         depends_on:
-            - redis_db_jira
-        ports:
-            - 54100:54100
+            - bot_redis
+        build:
+            context: .
+            target: production
         networks:
             - mynetwork
-    redis_db_jira:
-        image: redis:4.0.11-alpine
-        container_name: redis_db_jira
         ports:
-            - '6379:6379'
+            - '4000:4000'
+    bot_redis:
+        image: redis
+        container_name: bot_redis
+        ports:
+            - '6378:6379'
         volumes:
             - redis_bot:/data
         user: redis

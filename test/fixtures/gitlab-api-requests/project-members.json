@@ -1,0 +1,42 @@
+[
+    {
+        "id": 81,
+        "name": "worker",
+        "username": "worker",
+        "state": "active",
+        "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/81/lalalal_400x400.jpg",
+        "web_url": "https://gitlab.example.com/worker",
+        "access_level": 40,
+        "expires_at": null
+    },
+    {
+        "id": 45,
+        "name": "Иванов Иван Иванович",
+        "username": "ii_ivanov",
+        "state": "active",
+        "avatar_url": "https://secure.gravatar.com/avatar/102030",
+        "web_url": "https://gitlab.example.com/ii_ivanov",
+        "access_level": 50,
+        "expires_at": null
+    },
+    {
+        "id": 300,
+        "name": "Борисов Борис Борисович",
+        "username": "bb_borisov",
+        "state": "active",
+        "avatar_url": "https://secure.gravatar.com/avatar/c99a2d0ef5bbf95e871931cbf3c0a437?s=80\u0026d=identicon",
+        "web_url": "https://gitlab.example.com/bb_borisov",
+        "access_level": 30,
+        "expires_at": null
+    },
+    {
+        "id": 46,
+        "name": "Петров Петр Петрович",
+        "username": "pp_petrov",
+        "state": "active",
+        "avatar_url": "https://secure.gravatar.com/avatar/10203040",
+        "web_url": "https://gitlab.example.com/pp_petrov",
+        "access_level": 20,
+        "expires_at": null
+    }
+]

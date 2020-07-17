@@ -2,7 +2,7 @@
     "expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations",
     "id": "11442",
     "self": "https://jira.test-example.ru/rest/api/2/issue/11442",
-    "key": "INDEV-6",
+    "key": "BBCOM-1398",
     "fields": {
         "issuetype": {
             "self": "https://jira.test-example.ru/rest/api/2/issuetype/10177",
@@ -18,7 +18,7 @@
         "project": {
             "self": "https://jira.test-example.ru/rest/api/2/project/10105",
             "id": "10105",
-            "key": "INDEV",
+            "key": "BBCOM",
             "name": "Internal Development",
             "projectTypeKey": "software",
             "avatarUrls": {
@@ -34,7 +34,7 @@
         "resolutiondate": null,
         "workratio": -1,
         "watches": {
-            "self": "https://jira.test-example.ru/rest/api/2/issue/INDEV-6/watchers",
+            "self": "https://jira.test-example.ru/rest/api/2/issue/BBCOM-1398/watchers",
             "watchCount": 1,
             "isWatching": false
         },
@@ -71,7 +71,7 @@
                 },
                 "outwardIssue": {
                     "id": "11961",
-                    "key": "INDEV-28",
+                    "key": "BBCOM-28",
                     "self": "https://jira.test-example.ru/rest/api/2/issue/11961",
                     "fields": {
                         "summary": "Тест линков",
@@ -209,7 +209,7 @@
             "total": 0
         },
         "votes": {
-            "self": "https://jira.test-example.ru/rest/api/2/issue/INDEV-6/votes",
+            "self": "https://jira.test-example.ru/rest/api/2/issue/BBCOM-1398/votes",
             "votes": 0,
             "hasVoted": false
         },

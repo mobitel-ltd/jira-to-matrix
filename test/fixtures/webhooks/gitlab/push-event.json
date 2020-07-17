@@ -1,0 +1,61 @@
+{
+    "object_kind": "push",
+    "event_name": "push",
+    "before": "aa03fe424da8d175b5c3c337b759d826bd1b97c5",
+    "after": "00e36ed8a14dc0d35b92384680ba99284df9814a",
+    "ref": "refs/heads/add-colors",
+    "checkout_sha": "00e36ed8a14dc0d35b92384680ba99284df9814a",
+    "message": "Jira body",
+    "user_id": 221,
+    "user_name": "Иванов Иван Иванович",
+    "user_username": "ii_ivanov",
+    "user_email": "",
+    "user_avatar": "https://vcs.gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png",
+    "project_id": 3032,
+    "project": {
+        "id": 3032,
+        "name": "GitlabToMatrix",
+        "description": "",
+        "web_url": "https://vcs.gitlab.example.com/indev/gitlabtomatrix",
+        "avatar_url": "https://vcs.gitlab.example.com/indev/gitlabtomatrix/-/avatar",
+        "git_ssh_url": "git@vcs.gitlab.example.com:indev/gitlabtomatrix.git",
+        "git_http_url": "https://vcs.gitlab.example.com/indev/gitlabtomatrix.git",
+        "namespace": "INDEV",
+        "visibility_level": 0,
+        "path_with_namespace": "indev/gitlabtomatrix",
+        "default_branch": "master",
+        "ci_config_path": null,
+        "homepage": "https://vcs.gitlab.example.com/indev/gitlabtomatrix",
+        "url": "git@vcs.gitlab.example.com:indev/gitlabtomatrix.git",
+        "ssh_url": "git@vcs.gitlab.example.com:indev/gitlabtomatrix.git",
+        "http_url": "https://vcs.gitlab.example.com/indev/gitlabtomatrix.git"
+    },
+    "commits": [
+        {
+            "id": "00e36ed8a14dc0d35b92384680ba99284df9814a",
+            "message": "indev/gitlabtomatrix#57 update readme",
+            "timestamp": "2020-07-13T16:52:49+03:00",
+            "url": "https://vcs.gitlab.example.com/indev/gitlabtomatrix/commit/00e36ed8a14dc0d35b92384680ba99284df9814a",
+            "author": {
+                "name": "ii_ivanov",
+                "email": "ii_ivanov@gitlab.example.com"
+            },
+            "added": [],
+            "modified": [
+                "README.md"
+            ],
+            "removed": []
+        }
+    ],
+    "total_commits_count": 1,
+    "push_options": {},
+    "repository": {
+        "name": "GitlabToMatrix",
+        "url": "git@vcs.gitlab.example.com:indev/gitlabtomatrix.git",
+        "description": "",
+        "homepage": "https://vcs.gitlab.example.com/indev/gitlabtomatrix",
+        "git_http_url": "https://vcs.gitlab.example.com/indev/gitlabtomatrix.git",
+        "git_ssh_url": "git@vcs.gitlab.example.com:indev/gitlabtomatrix.git",
+        "visibility_level": 0
+    }
+}

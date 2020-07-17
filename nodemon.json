@@ -1,8 +1,6 @@
 {
-    "watch": [
-        "src"
-    ],
-    "ignore": [
-        "backup/*"
-    ]
-}
+    "watch": ["src"],
+    "ext": "ts",
+    "ignore": ["test/**/*"],
+    "exec": "ts-node ./src/app.ts"
+  }
