@@ -2,7 +2,7 @@
 /* eslint-disable camelcase */
 
 export const dict = Object.freeze({
-    pushCommitInfo: '%{name} pushed commits',
+    pushCommitInfo: '%{name} pushed commits:',
     errorCommentSend: 'Error sending comment to taskTracker, send info to admin',
     uploadInfo: '%{name} upload file',
     successProjectAddToArchive:

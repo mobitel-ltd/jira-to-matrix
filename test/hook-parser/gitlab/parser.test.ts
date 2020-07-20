@@ -11,6 +11,7 @@ import {
     InviteNewMembersData,
     UploadData,
     IssueStateEnum,
+    PostPipelineData,
 } from '../../../src/types';
 import { HookParser } from '../../../src/hook-parser';
 import { getTaskTracker } from '../../../src/task-trackers';
@@ -19,6 +20,8 @@ import { translate } from '../../../src/locales';
 import uploadHook from '../../fixtures/webhooks/gitlab/upload.json';
 import gitlabClosedIssue from '../../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.json';
+import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
+import { HookTypes } from '../../../src/task-trackers/gitlab/types';
 
 describe('Gitlab actions', () => {
     const gitlabConfig: Config = R.set(R.lensPath(['taskTracker', 'type']), 'gitlab', config);
@@ -286,6 +289,71 @@ describe('Gitlab actions', () => {
         ];
 
         const res = hookParser.getFuncAndBody(gitlabReopenedIssue);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it.skip('should post pipeline data for pipeline hook', () => {
+        const postPipelineData: PostPipelineData = {
+            author: `${pipelineHook.user.username} ${pipelineHook.user.name}`,
+            // issue id is extracted pipelineHook.commit.message
+            issueKeys: [pipelineHook.project.path_with_namespace + '-' + 2],
+            pipelineData: {
+                object_kind: HookTypes.Pipeline,
+                object_attributes: {
+                    created_at: pipelineHook.object_attributes.created_at,
+                    duration: pipelineHook.object_attributes.duration,
+                    ref: pipelineHook.object_attributes.ref,
+                    sha: pipelineHook.object_attributes.sha,
+                    status: pipelineHook.object_attributes.status,
+                    tag: pipelineHook.object_attributes.tag,
+                    username: pipelineHook.user.username,
+                    url: pipelineHook.project.web_url + '/pipelines/' + pipelineHook.object_attributes.id,
+                    stages: [
+                        {
+                            validate: {
+                                'lint-dockerfile': 'success',
+                                'node-gitignore-validate': 'success',
+                                'dockerignore-validate': 'success',
+                                'scan-sonarqube': 'success',
+                                'node-docs-validate': 'success',
+                            },
+                        },
+                        {
+                            'build-release': {
+                                'release-image-dind': 'success',
+                            },
+                        },
+                        {
+                            'build-debug': {
+                                'debug-image-dind': 'success',
+                            },
+                        },
+                        {
+                            test: {
+                                'node-coverage': 'success',
+                                'node-unit': 'success',
+                                'node-lint': 'success',
+                                'security-todo': 'success',
+                            },
+                        },
+                    ],
+                },
+            },
+        };
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData: false,
+            },
+            {
+                redisKey: 'postPipeline_' + new Date(pipelineHook.object_attributes.created_at).getTime(),
+                funcName: 'postPipeline',
+                data: postPipelineData,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(pipelineHook);
 
         assert.deepEqual(res, expected);
     });

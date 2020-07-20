@@ -1,5 +1,5 @@
 import { BaseChatApi } from '../messengers/base-api';
-import { GitlabPushCommit } from '../task-trackers/gitlab/types';
+import { GitlabPushCommit, GitlabPipeline } from '../task-trackers/gitlab/types';
 
 export interface Config {
     port: string;
@@ -453,6 +453,11 @@ interface CommonMessengerApi {
     sendHtmlMessage(roomId: string, body: string, htmlBody: string): Promise<void>;
 
     /**
+     * Send message to chat room
+     */
+    sendTextMessage(roomId: string, body: string): Promise<void>;
+
+    /**
      * Update room name
      */
     updateRoomName(roomId: string, newRoomName: string): Promise<void>;
@@ -634,6 +639,12 @@ export interface PostIssueUpdatesData {
     isNewStatus?: boolean;
 }
 
+export interface PostPipelineData {
+    issueKeys: string[];
+    pipelineData: GitlabPipeline;
+    author: string;
+}
+
 export interface PushCommitData {
     keyAndCommits: Record<string, GitlabPushCommit[]>;
     author: string;
@@ -746,6 +757,7 @@ export enum ActionNames {
     ArchiveProject = 'archiveProject',
     Upload = 'upload',
     PostCommit = 'postPushCommit',
+    Pipeline = 'postPipeline',
 }
 
 export interface Parser {

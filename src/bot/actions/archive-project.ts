@@ -221,7 +221,7 @@ export class ArchiveProject extends BaseAction<ChatFasade, Jira> implements RunA
                         Object.entries(res)
                             .map(([key, val]) => `${key} >>> ${val.length ? val : 'none'}`)
                             .join('<br>');
-                    await this.chatApi.sendHtmlMessage(commandRoomId, preparedMsg);
+                    await this.chatApi.sendHtmlMessage(commandRoomId as string, preparedMsg);
                 }
 
                 return res;

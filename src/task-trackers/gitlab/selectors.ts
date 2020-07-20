@@ -8,6 +8,7 @@ import {
     GitlabLabelHook,
     GitlabPushHook,
     GitlabPushCommit,
+    GitlabPipelineHook,
 } from './types';
 import marked from 'marked';
 import { translate } from '../../locales';
@@ -37,9 +38,11 @@ interface BaseGetters<T> {
      */
     getUserId(body: T): string;
     keysForCheckIgnore(body: T): string[] | string;
+    // TODO add it!!!
+    // getBodyTimestamp(body: T): string;
 }
 
-interface BodyGetters<T> extends BaseGetters<T> {
+interface BodyGetters<T = unknown> extends BaseGetters<T> {
     getProjectKey(body: T): string;
     getFullKey(body: T): string;
     /**
@@ -56,6 +59,13 @@ interface BodyGetters<T> extends BaseGetters<T> {
 interface PushGetters<T> extends BaseGetters<T> {
     getCommitKeysBody(body: T): Record<string, GitlabPushCommit[]>;
     getFullNameWithId(body: T): string;
+}
+
+interface PipelineGetters extends BaseGetters<GitlabPipelineHook> {
+    getFullNameWithId(body: GitlabPipelineHook): string;
+    getPipelineStatus(body: GitlabPipelineHook): string;
+    isFinalPipeline(body: GitlabPipelineHook): boolean;
+    getIssueKeys(body: GitlabPipelineHook): string[];
 }
 
 interface CommentGetters<T> extends BodyGetters<T> {
@@ -169,6 +179,7 @@ const handlers: {
     issue: BodyGetters<GitlabIssueHook>;
     note: CommentGetters<GitlabCommentHook>;
     push: PushGetters<GitlabPushHook>;
+    pipeline: PipelineGetters;
 } = {
     issue: {
         getProjectKey: body => body.project.path_with_namespace,
@@ -211,6 +222,7 @@ const handlers: {
                     }
                 });
         },
+        // getBodyTimestamp: body => body.object_attributes.created_at,
     },
     note: {
         keysForCheckIgnore: body => handlers.note.getFullKey(body),
@@ -257,6 +269,20 @@ const handlers: {
         keysForCheckIgnore: body => Object.keys(handlers.push.getCommitKeysBody(body)),
         getFullNameWithId: body => getFullName(handlers.push.getDisplayName(body), handlers.push.getUserId(body)),
     },
+    pipeline: {
+        getDisplayName: body => body.user.name,
+        getUserId: body => body.user.username,
+        getFullNameWithId: body =>
+            getFullName(handlers.pipeline.getDisplayName(body), handlers.pipeline.getUserId(body)),
+        getPipelineStatus: body => body.object_attributes.status,
+        isFinalPipeline: body => !['running', 'pending'].includes(handlers.pipeline.getPipelineStatus(body)),
+        getIssueKeys: body => {
+            const nameSpaceWithProject = body.project.path_with_namespace;
+
+            return extractKeysFromCommitMessage(body.commit.message, nameSpaceWithProject);
+        },
+        keysForCheckIgnore: body => handlers.pipeline.getIssueKeys(body),
+    },
 };
 
 const issueRequestHandlers: IssueGetters<GitlabIssue> = {
@@ -291,13 +317,22 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
     }),
 };
 
-const getHandler = (
-    body: unknown,
-): typeof issueRequestHandlers | typeof handlers.issue | typeof handlers.note | typeof handlers.push | undefined => {
+// function getHandler(body: unknown): undefined;
+function getHandler(body: GitlabPipelineHook): typeof handlers.pipeline;
+function getHandler(body: GitlabPushHook): typeof handlers.push;
+function getHandler(
+    body: unknown | GitlabPipelineHook | GitlabPushHook,
+):
+    | typeof issueRequestHandlers
+    | typeof handlers.issue
+    | typeof handlers.note
+    | typeof handlers.push
+    | typeof handlers.pipeline
+    | undefined {
     const type = getBodyWebhookEvent(body);
 
     return (type && handlers[type]) || issueRequestHandlers;
-};
+}
 
 const isIgnoreHookType = (body): boolean => {
     const type = getBodyWebhookEvent(body);
@@ -305,7 +340,7 @@ const isIgnoreHookType = (body): boolean => {
     return !Boolean(type && handlers[type]);
 };
 
-const runMethod = (body: any, method: string): any => {
+const runMethod = (body: any, method: keyof BodyGetters): any => {
     const handler = getHandler(body);
 
     return handler && handler[method] && handler[method](body);
@@ -366,8 +401,17 @@ const getUploadInfo = body => {
 
 const keysForCheckIgnore = body => runMethod(body, 'keysForCheckIgnore');
 
+const isPipelineHook = (body: unknown) =>
+    isCorrectWebhook(body, HookTypes.Pipeline) && handlers.pipeline.isFinalPipeline(body as GitlabPipelineHook);
+
 export const selectors: GitlabSelectors = {
-    getFullNameWithId: handlers.push.getFullNameWithId,
+    getPostKeys: handlers.pipeline.getIssueKeys,
+    isPipelineHook,
+    getFullNameWithId: body => {
+        const handler = getHandler(body as any);
+
+        return handler.getFullNameWithId(body as any);
+    },
     keysForCheckIgnore,
     getCommitKeysBody: handlers['push'].getCommitKeysBody,
     getRoomName: issueRequestHandlers.getRoomName,

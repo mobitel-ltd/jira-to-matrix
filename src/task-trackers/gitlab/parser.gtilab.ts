@@ -9,13 +9,46 @@ import {
     IssueStateEnum,
     PushCommitData,
     ActionNames,
+    PostPipelineData,
 } from '../../types';
-import { GitlabSelectors, HookTypes, GitlabPushHook } from './types';
+import { GitlabSelectors, HookTypes, GitlabPushHook, GitlabPipelineHook, PipelineBuild } from './types';
+import Lo from 'lodash/fp';
 
 export class GitlabParser implements Parser {
     issueMovedType = 'issueMovedType';
 
     constructor(private features: Config['features'], private selectors: GitlabSelectors) {}
+
+    isPostPipeline(body: any) {
+        return Boolean(this.features.postIssueUpdates && this.selectors.isPipelineHook(body));
+    }
+
+    getPostPipelineData(body: GitlabPipelineHook): PostPipelineData {
+        const groupedBuilds = Lo.pipe(
+            Lo.path('builds'),
+            Lo.groupBy('stage'),
+            Lo.mapValues(Lo.map((el: PipelineBuild) => ({ [el.name]: el.status }))),
+        )(body);
+
+        return {
+            author: this.selectors.getFullNameWithId(body),
+            issueKeys: this.selectors.getPostKeys(body),
+            pipelineData: {
+                object_kind: HookTypes.Pipeline,
+                object_attributes: {
+                    url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
+                    status: body.object_attributes.status,
+                    username: body.user.username,
+                    created_at: body.object_attributes.created_at,
+                    duration: body.object_attributes.duration,
+                    ref: body.object_attributes.ref,
+                    sha: body.object_attributes.sha,
+                    tag: body.object_attributes.tag,
+                    stages: body.object_attributes.stages.map(el => ({ [el]: groupedBuilds[el] })) as any,
+                },
+            },
+        };
+    }
 
     isPostPushCommit(body) {
         return Boolean(this.features.postIssueUpdates && this.selectors.isCorrectWebhook(body, HookTypes.Push));
@@ -75,6 +108,7 @@ export class GitlabParser implements Parser {
         return Boolean(
             this.features.createRoom &&
                 !this.selectors.isCorrectWebhook(body, HookTypes.Push) &&
+                !this.selectors.isCorrectWebhook(body, HookTypes.Pipeline) &&
                 this.selectors.getKey(body),
             // TODO not found webhook for issue moved to another project
             // && this.selectors.getTypeEvent(body) !== this.issueMovedType,
@@ -140,6 +174,7 @@ export class GitlabParser implements Parser {
         postIssueUpdates: this.isPostIssueUpdates,
         upload: this.isUpload,
         [ActionNames.PostCommit]: this.isPostPushCommit,
+        [ActionNames.Pipeline]: this.isPostPipeline,
     };
 
     getBotActions(body) {
