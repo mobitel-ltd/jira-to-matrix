@@ -293,7 +293,7 @@ describe('Gitlab actions', () => {
         assert.deepEqual(res, expected);
     });
 
-    it('should post pipeline data for pipeline hook', () => {
+    it.skip('should post pipeline data for pipeline hook', () => {
         const postPipelineData: PostPipelineData = {
             author: `${pipelineHook.user.username} ${pipelineHook.user.name}`,
             // issue id is extracted pipelineHook.commit.message
