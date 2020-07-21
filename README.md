@@ -1,4 +1,4 @@
-# JIRA to Matrix bot
+# Tasktracker to messenger bot
 
 [![Build Status](https://travis-ci.org/mobitel-ltd/jira-to-matrix.svg?branch=master)](https://travis-ci.org/mobitel-ltd/jira-to-matrix)
 [![codecov](https://codecov.io/gh/mobitel-ltd/jira-to-matrix/branch/master/graph/badge.svg)](https://codecov.io/gh/mobitel-ltd/jira-to-matrix)

@@ -31,6 +31,9 @@ app-kill:
 
 git:
 	npm run format
+	npm run lint
+	npm run compile:test
+	npm run test-all
 	git add .
 	git commit -m "$m"
 	git push origin HEAD
