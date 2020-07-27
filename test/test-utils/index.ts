@@ -65,7 +65,7 @@ const usersDict = {
     [usersWithSamePartName[0]]: 'ivan_A',
     [usersWithSamePartName[1]]: 'ivan_B',
 };
-
+export const matrixUrl = 'mxc://matrix.example.com/oNcSMEylPshkRHwqkckxzgzb';
 export const baseMedia = 'http://base.example';
 
 const getMediaLink = el => `${baseMedia}/${el}`;
@@ -145,6 +145,7 @@ export const getChatClass = (options?: {
         getRoomDataById: stub(),
         getRoomMembers: stub(),
         uploadContent: stub(),
+        upload: stub().resolves(matrixUrl),
     });
 
     const chatApi = new ChatFasade([(chatApiSingle as any) as MessengerApi]);

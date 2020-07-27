@@ -13,7 +13,7 @@ import { UploadData } from '../../src/types';
 const { expect } = chai;
 chai.use(sinonChai);
 
-describe('Gitlab api', () => {
+describe('Upload test', () => {
     let chatApi;
     let chatSingle;
     let upload: Upload;
@@ -40,7 +40,7 @@ describe('Gitlab api', () => {
         nock.cleanAll();
     });
 
-    it('Expect postComment works correct with comment-created hook and no body in comments collection', async () => {
+    it('Expect upload action works with upload hook and send message with upload info', async () => {
         const result = await upload.run(uploadData);
 
         expect(result).to.be.true;
