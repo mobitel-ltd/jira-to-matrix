@@ -1,46 +1,37 @@
 import nock from 'nock';
 import uploadHook from '../fixtures/webhooks/gitlab/upload.json';
+import uploadBinHook from '../fixtures/webhooks/gitlab/upload-bin.json';
 import { getChatClass, defaultRoomId } from '../test-utils';
 import { Upload } from '../../src/bot/actions/upload';
 import { config } from '../../src/config';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
 import { Gitlab } from '../../src/task-trackers/gitlab';
-import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
-import gitlabIssueComments from '../fixtures/gitlab-api-requests/comments.json';
 import { UploadData } from '../../src/types';
+import { translate } from '../../src/locales';
+import marked from 'marked';
 
 const { expect } = chai;
 chai.use(sinonChai);
 
-describe('Gitlab api', () => {
+describe('Upload test', () => {
     let chatApi;
     let chatSingle;
     let upload: Upload;
     const gitlabTracker = new Gitlab({ ...config.taskTracker, features: config.features });
 
-    const uploadData: UploadData = gitlabTracker.parser.getUploadData(uploadHook);
+    after(() => {
+        nock.cleanAll();
+    });
 
-    beforeEach(() => {
-        nock(gitlabTracker.getRestUrl())
-            .get(`/projects`)
-            .query({ search: uploadHook.project.path_with_namespace })
-            .reply(200, projectsJson)
-            .get(`/projects/${projectsJson[0].id}/issues/${uploadHook.issue.iid}/notes`)
-            .reply(200, gitlabIssueComments);
-
+    it('Expect upload action works with upload hook and send message with upload info', async () => {
+        const uploadData: UploadData = gitlabTracker.parser.getUploadData(uploadHook);
         const chatClass = getChatClass({ alias: uploadData.issueKey });
         chatSingle = chatClass.chatApiSingle;
         chatApi = chatClass.chatApi;
 
         upload = new Upload(config, gitlabTracker, chatApi);
-    });
 
-    after(() => {
-        nock.cleanAll();
-    });
-
-    it('Expect postComment works correct with comment-created hook and no body in comments collection', async () => {
         const result = await upload.run(uploadData);
 
         expect(result).to.be.true;
@@ -49,6 +40,27 @@ describe('Gitlab api', () => {
             defaultRoomId,
             uploadData.uploadInfo,
             uploadData.uploadInfo,
+        );
+    });
+
+    it('Expect sendHtmlMessage not be called if upload is not succeded', async () => {
+        const uploadData: UploadData = gitlabTracker.parser.getUploadData(uploadBinHook);
+        const chatClass = getChatClass({ alias: uploadData.issueKey });
+        chatSingle = chatClass.chatApiSingle;
+        chatApi = chatClass.chatApi;
+
+        upload = new Upload(config, gitlabTracker, chatApi);
+
+        chatSingle.upload.resolves(false);
+
+        const result = await upload.run(uploadData);
+
+        expect(result).to.be.true;
+        expect(chatSingle.upload).to.be.calledWithExactly(defaultRoomId, uploadData.uploadUrl);
+        expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(
+            defaultRoomId,
+            marked(translate('uploadLink', { url: uploadData.uploadUrl, headerText: uploadData.uploadInfo })),
+            translate('uploadLink', { url: uploadData.uploadUrl, headerText: uploadData.uploadInfo }),
         );
     });
 });

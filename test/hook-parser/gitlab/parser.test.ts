@@ -22,6 +22,7 @@ import gitlabClosedIssue from '../../fixtures/webhooks/gitlab/issue/closed.json'
 import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.json';
 import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
 import { HookTypes } from '../../../src/task-trackers/gitlab/types';
+import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 
 describe('Gitlab actions', () => {
     const gitlabConfig: Config = R.set(R.lensPath(['taskTracker', 'type']), 'gitlab', config);
@@ -185,6 +186,41 @@ describe('Gitlab actions', () => {
         ];
 
         const res = hookParser.getFuncAndBody(uploadHook);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('should return create room and upload for note hook with upload bin', () => {
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: uploadHookBin.project.path_with_namespace + '-' + uploadHookBin.issue.iid,
+                descriptionFields: undefined,
+                projectKey: uploadHookBin.project.path_with_namespace,
+                summary: uploadHookBin.issue.title,
+            },
+            projectKey: uploadHookBin.project.path_with_namespace,
+        };
+        const data: UploadData = {
+            issueKey: uploadHookBin.project.path_with_namespace + '-' + uploadHookBin.issue.iid,
+            uploadUrl: uploadHookBin.project.web_url + uploadHookBin.object_attributes.description.slice(19, -1),
+            uploadInfo: translate('uploadInfo', {
+                name: `${uploadHookBin.user.username} ${uploadHookBin.user.name}`,
+            }),
+        };
+
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData,
+            },
+            {
+                redisKey: 'upload_' + new Date(uploadHookBin.object_attributes.updated_at).getTime(),
+                funcName: 'upload',
+                data,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(uploadHookBin);
 
         assert.deepEqual(res, expected);
     });

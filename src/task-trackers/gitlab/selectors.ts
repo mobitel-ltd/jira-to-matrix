@@ -87,7 +87,7 @@ interface IssueGetters<T> extends BodyGetters<T> {
 const missField = translate('miss');
 
 const extractUrl = (text?: string): string | undefined | null => {
-    const res = text && text.match(/!\[.*?\]\((.*?)\)/);
+    const res = text && text.match(/\[.*?\]\((.*?)\)/);
 
     return res && res[1];
 };
@@ -241,7 +241,14 @@ const handlers: {
         // Return undefined because there is no way to get expected issue fields by comment hook
         getDescriptionFields: () => undefined,
         getMembers: body => [body.user.name],
-        getUploadUrl: body => extractUrl(body.object_attributes.description),
+        getUploadUrl: body => {
+            if (body.object_attributes.description?.includes('https://')) {
+                return extractUrl(body.object_attributes.description);
+            }
+
+            const base = body.object_attributes.description.split('(');
+            return body.project.web_url + base[1].slice(0, -1);
+        },
         isUploadBody: body => body.object_attributes.note.includes('](/uploads/'),
         getFullNameWithId: body => getFullName(handlers.note.getDisplayName(body), handlers.note.getUserId(body)),
     },
