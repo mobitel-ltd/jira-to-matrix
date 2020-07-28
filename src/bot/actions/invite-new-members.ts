@@ -1,7 +1,6 @@
 import * as Ramda from 'ramda';
 import { getLogger } from '../../modules/log';
 import { errorTracing } from '../../lib/utils';
-import { getAutoinviteUsers } from '../settings';
 import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { InviteNewMembersData, TaskTracker } from '../../types';
@@ -28,7 +27,7 @@ export class InviteNewMembers extends BaseAction<ChatFasade, TaskTracker> implem
                 issueWatchers.map(displayName => this.chatApi.getUserIdByDisplayName(displayName)),
             );
 
-            const autoinviteUsers = await getAutoinviteUsers(projectKey, typeName);
+            const autoinviteUsers = projectKey && typeName ? await this.getAutoinviteUsers(projectKey, typeName) : [];
 
             const jiraUsers = Ramda.uniq([...issueWatchersChatIds, ...autoinviteUsers]);
 

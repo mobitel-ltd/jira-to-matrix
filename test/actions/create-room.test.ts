@@ -4,7 +4,7 @@ import { CreateRoom } from '../../src/bot/actions/create-room';
 import { config } from '../../src/config';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
-import { getChatClass, taskTracker, getUserIdByDisplayName } from '../test-utils';
+import { getChatClass, taskTracker, getUserIdByDisplayName, cleanRedis } from '../test-utils';
 
 import commentCreatedJSON from '../fixtures/webhooks/comment/created.json';
 import renderedIssueJSON from '../fixtures/jira-api-requests/issue-rendered.json';
@@ -24,13 +24,13 @@ import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
 import gitlabIssueCreatedJson from '../fixtures/webhooks/gitlab/issue/created.json';
 import gitlabLabelJson from '../fixtures/gitlab-api-requests/labels.json';
+import { setSettingsData } from '../../src/bot/settings';
 
 const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Create room test', () => {
     let chatApi;
-    let options: CreateRoomData;
     let createRoom: CreateRoom;
     const messengerLink = 'lalala';
 
@@ -177,8 +177,9 @@ describe('Create room test', () => {
             .reply(200, renderedIssueJSON);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         nock.cleanAll();
+        await cleanRedis();
     });
 
     it('Expect both issue room and project room not to be created if we run simple issue_created and both chat room exists in chat', async () => {
@@ -240,7 +241,7 @@ describe('Create room test', () => {
         try {
             chatApi.getRoomId.callsFake(id => !(id === projectKey));
 
-            const result = await createRoom.run({ ...options, ...createRoomData, projectKey });
+            const result = await createRoom.run({ ...createRoomData, projectKey });
             expect(result).not.to.be;
         } catch (err) {
             res = err;
@@ -295,7 +296,6 @@ describe('Create room test', () => {
         chatApi.getRoomIdByName.reset();
         chatApi.getRoomIdByName.resolves(false);
         const result = await createRoom.run({
-            ...options,
             issue: {
                 key: issueKeyAvatar,
                 projectKey: projectForAvatar,
@@ -318,10 +318,36 @@ describe('Create room test', () => {
     });
 
     it('Expect create room not invite user without chat id', async () => {
-        const result = await createRoom.run({ ...options, issue: { key: notFoundUserIssueKey } });
+        const result = await createRoom.run({ issue: { key: notFoundUserIssueKey } });
 
         expect(result).to.be.true;
         expect(chatApi.createRoom).to.be.called;
+    });
+
+    it('Expect create room invite autoinviteUsers', async () => {
+        chatApi.getRoomIdByName.reset();
+        chatApi.getRoomIdByName.resolves(false);
+        const autoInviteuser = 'aa_invite';
+        await setSettingsData(
+            createRoomData.projectKey,
+            {
+                [issueBodyJSON.fields.issuetype.name]: [autoInviteuser],
+            },
+            'autoinvite',
+        );
+        const expectedOptions: CreateRoomOpions = {
+            room_alias_name: issueBodyJSON.key,
+            invite: [...new Set([...members, ...watchers, chatApi.getChatUserId(autoInviteuser)])],
+            name: getChatClass().chatApiSingle.composeRoomName(issueBodyJSON.key, issueBodyJSON.fields.summary),
+            topic: taskTracker.getViewUrl(issueBodyJSON.key),
+            purpose: taskTracker.selectors.getSummary(issueBodyJSON),
+            avatarUrl: undefined,
+        };
+
+        const result = await createRoom.run(createRoomData);
+
+        expect(result).to.be.true;
+        expect(chatApi.createRoom).to.be.calledWithExactly(expectedOptions);
     });
 });
 
