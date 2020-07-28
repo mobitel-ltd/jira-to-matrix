@@ -4,6 +4,7 @@ import marked from 'marked';
 import { translate } from '../../locales';
 import { getLogger } from '../../modules/log';
 import { ChatFasade } from '../../messengers/chat-fasade';
+import { REDIS_INVITE_PREFIX, redis } from '../../redis-client';
 
 const logger = getLogger(module);
 
@@ -110,6 +111,15 @@ export class BaseAction<T extends ChatFasade, Task extends TaskTracker> {
 
             return await this.currentChatItem.uploadContent(buffer, 'image/png');
         }
+    }
+
+    async getAutoinviteUsers(projectKey: string, typeName: string): Promise<string[]> {
+        const dataJSON = await redis.getAsync(REDIS_INVITE_PREFIX);
+        const data = dataJSON ? JSON.parse(dataJSON) : {};
+        const { [projectKey]: currentInvite = {} } = data;
+        const { [typeName]: autoinviteUsers = [] } = currentInvite;
+
+        return autoinviteUsers.map((el: string) => this.chatApi.getChatUserId(el));
     }
 }
 
