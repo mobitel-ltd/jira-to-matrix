@@ -10,9 +10,9 @@
             "env": {
                 "NODE_ENV": "test"
             },
-            "name": "Upload Tests",
+            "name": "Mocha Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "args": ["--timeout", "999999", "--colors", "${workspaceFolder}/test/actions/upload.test.ts"],
+            "args": ["--timeout", "999999", "--colors", "${workspaceFolder}/test/**/*.test.js"],
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
