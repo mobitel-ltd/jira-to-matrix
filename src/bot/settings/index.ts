@@ -67,11 +67,3 @@ export const delSettingsData = async (projectKey, prefix) => {
         logger.error(`Key was not delete from redis, ${err}`);
     }
 };
-
-export const getAutoinviteUsers = async (projectKey, typeName) => {
-    const dataJSON = await redis.getAsync(getPrefix.autoinvite);
-    const data = dataJSON ? JSON.parse(dataJSON) : {};
-    const { [projectKey]: currentInvite = {} } = data;
-    const { [typeName]: autoinviteUsers = [] } = currentInvite;
-    return autoinviteUsers;
-};

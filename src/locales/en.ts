@@ -5,6 +5,7 @@ export const dict = Object.freeze({
     pushCommitInfo: '%{name} pushed commits:',
     errorCommentSend: 'Error sending comment to taskTracker, send info to admin',
     uploadInfo: '%{name} upload file',
+    uploadLink: '<br>%{headerText}: [Open link](%{url})',
     successProjectAddToArchive:
         'Project "%{projectKey}" is added to archive with activity limit "%{activeTime}" months',
     successProjectAddToArchiveWithStatus:

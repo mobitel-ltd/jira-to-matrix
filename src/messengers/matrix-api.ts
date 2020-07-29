@@ -868,18 +868,31 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         return matrixUrl;
     }
 
-    async upload(roomId: string, url: string): Promise<string> {
+    async upload(roomId: string, url: string): Promise<string | undefined> {
         try {
+            const mimeTypes = [
+                'image/apng',
+                'image/bmp',
+                'image/gif',
+                'image/x-icon',
+                'image/jpeg',
+                'image/png',
+                'image/svg+xml',
+                'image/tiff',
+                'image/webp',
+            ];
+
             const response = await axios.get(url, { responseType: 'arraybuffer' });
             const imageType = response.headers['content-type'];
-            const uploadResponse = await this.client.uploadContent(response.data, {
-                rawResponse: false,
-                type: imageType,
-            });
-            const matrixUrl = uploadResponse.content_uri;
-            await this.client.sendImageMessage(roomId, matrixUrl, {}, '');
-
-            return matrixUrl;
+            if (mimeTypes.includes(imageType)) {
+                const uploadResponse = await this.client.uploadContent(response.data, {
+                    rawResponse: false,
+                    type: imageType,
+                });
+                const matrixUrl = uploadResponse.content_uri;
+                await this.client.sendImageMessage(roomId, matrixUrl, {}, '');
+                return matrixUrl;
+            }
         } catch (error) {
             this.logger.error(error);
             throw error;

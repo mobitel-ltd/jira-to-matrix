@@ -8,6 +8,7 @@ export const dict = Object.freeze({
     errorCommentSend: 'Ошибка отправки сообщения в taskTracker, обратитесь к администратору',
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',
     uploadInfo: '%{name} загрузил%{f} файл',
+    uploadLink: '<br>%{headerText}: [Посмотреть вложение](%{url})',
     setBotToAdmin: 'Неверно установлен статус бота в проекте [%{projectKey}](%{viewUrl}), обратитесь к администратору',
     noRulesToWatchIssue: 'У бота нет прав для просмотра и совершения действий в данной задаче в Jira',
     comment_created: '%{name} добавил%{f} комментарий',

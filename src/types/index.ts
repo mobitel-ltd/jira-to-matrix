@@ -521,7 +521,7 @@ export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
     /**
      * Upload file by url to room
      */
-    upload(roomId: string, url: string): Promise<string>;
+    upload(roomId: string, url: string): Promise<string | undefined>;
 
     /**
      * Delete matrix room alias

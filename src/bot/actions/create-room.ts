@@ -2,7 +2,6 @@ import { fromString } from 'html-to-text';
 import marked from 'marked';
 import { getLogger } from '../../modules/log';
 import { translate } from '../../locales';
-import { getAutoinviteUsers } from '../settings';
 import { infoBody } from '../../lib/messages';
 import { CreateRoomData, TaskTracker, DescriptionFields } from '../../types';
 import { errorTracing } from '../../lib/utils';
@@ -71,7 +70,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         try {
             const { key, summary, projectKey, descriptionFields, roomName, statusColors } = issue;
 
-            const autoinviteUsers = await getAutoinviteUsers(projectKey, descriptionFields.typeName);
+            const autoinviteUsers = await this.getAutoinviteUsers(projectKey, descriptionFields.typeName);
 
             const issueWatchers = await this.taskTracker.getIssueWatchers(issue.key);
             const issueWatchersChatIds = await Promise.all(
