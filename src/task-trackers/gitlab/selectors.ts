@@ -371,13 +371,9 @@ const getDisplayName = body => runMethod(body, 'getDisplayName');
 
 const getProjectKey = body => runMethod(body, 'getProjectKey') || issueRequestHandlers.getProjectKey(body);
 
-const getBodyTimestamp = body => {
-    const time: string | undefined = body?.object_attributes?.updated_at || body?.object_attributes?.created_at;
-    if (!time) {
-        return new Date().getTime();
-    }
-
-    return new Date(time).getTime() || time.split(' ').join();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getBodyTimestamp = (body): number => {
+    return Date.now();
 };
 
 const getRedisKey = (funcName: string, body: any): string => [funcName, getBodyTimestamp(body)].join('_');

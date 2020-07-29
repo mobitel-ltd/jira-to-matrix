@@ -23,8 +23,19 @@ import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.j
 import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
 import { HookTypes } from '../../../src/task-trackers/gitlab/types';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
+import { stub } from 'sinon';
 
 describe('Gitlab actions', () => {
+    const fakeTimestamp = 1596049533906;
+
+    beforeEach(() => {
+        stub(Date, 'now').returns(1596049533906);
+    });
+
+    afterEach(() => {
+        (Date.now as any).restore();
+    });
+
     const gitlabConfig: Config = R.set(R.lensPath(['taskTracker', 'type']), 'gitlab', config);
 
     const gitlabApi = getTaskTracker(gitlabConfig);
@@ -58,7 +69,7 @@ describe('Gitlab actions', () => {
                 },
             },
             {
-                redisKey: 'postComment_' + new Date(commentHook.object_attributes.created_at).getTime(),
+                redisKey: 'postComment_' + fakeTimestamp,
                 funcName: 'postComment',
                 data: {
                     issueId: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
@@ -121,12 +132,12 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'inviteNewMembers_' + new Date(issueUpdated.object_attributes.updated_at).getTime(),
+                redisKey: 'inviteNewMembers_' + fakeTimestamp,
                 funcName: 'inviteNewMembers',
                 data: inviteNewMembersData,
             },
             {
-                redisKey: 'postIssueUpdates_' + new Date(issueUpdated.object_attributes.updated_at).getTime(),
+                redisKey: 'postIssueUpdates_' + fakeTimestamp,
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
             },
@@ -179,7 +190,7 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'upload_' + new Date(uploadHook.object_attributes.updated_at).getTime(),
+                redisKey: 'upload_' + fakeTimestamp,
                 funcName: 'upload',
                 data,
             },
@@ -214,7 +225,7 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'upload_' + new Date(uploadHookBin.object_attributes.updated_at).getTime(),
+                redisKey: 'upload_' + fakeTimestamp,
                 funcName: 'upload',
                 data,
             },
@@ -261,7 +272,7 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'postIssueUpdates_' + new Date(gitlabClosedIssue.object_attributes.updated_at).getTime(),
+                redisKey: 'postIssueUpdates_' + fakeTimestamp,
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
             },
@@ -313,12 +324,12 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'inviteNewMembers_' + new Date(gitlabReopenedIssue.object_attributes.updated_at).getTime(),
+                redisKey: 'inviteNewMembers_' + fakeTimestamp,
                 funcName: 'inviteNewMembers',
                 data: inviteNewMembersData,
             },
             {
-                redisKey: 'postIssueUpdates_' + new Date(gitlabReopenedIssue.object_attributes.updated_at).getTime(),
+                redisKey: 'postIssueUpdates_' + fakeTimestamp,
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
             },
@@ -383,7 +394,7 @@ describe('Gitlab actions', () => {
                 createRoomData: false,
             },
             {
-                redisKey: 'postPipeline_' + new Date(pipelineHook.object_attributes.created_at).getTime(),
+                redisKey: 'postPipeline_' + fakeTimestamp,
                 funcName: 'postPipeline',
                 data: postPipelineData,
             },
