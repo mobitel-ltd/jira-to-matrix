@@ -19,7 +19,7 @@ export class Upload extends BaseAction<ChatFasade, Gitlab> implements RunAction 
                 const messageWithLink = translate('uploadLink', { url: uploadUrl, headerText: headerText });
                 const markedMessage = marked(messageWithLink);
                 logger.debug(`Link to file was successfully sending in room with id ${roomId}`);
-                await this.chatApi.sendHtmlMessage(roomId, markedMessage, messageWithLink);
+                await this.chatApi.sendHtmlMessage(roomId, messageWithLink, markedMessage);
             } else {
                 logger.debug(`File was successfully uploaded in room with id ${roomId}`);
                 await this.chatApi.sendHtmlMessage(roomId, headerText, headerText);

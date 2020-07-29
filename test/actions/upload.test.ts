@@ -59,8 +59,8 @@ describe('Upload test', () => {
         expect(chatSingle.upload).to.be.calledWithExactly(defaultRoomId, uploadData.uploadUrl);
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(
             defaultRoomId,
-            marked(translate('uploadLink', { url: uploadData.uploadUrl, headerText: uploadData.uploadInfo })),
             translate('uploadLink', { url: uploadData.uploadUrl, headerText: uploadData.uploadInfo }),
+            marked(translate('uploadLink', { url: uploadData.uploadUrl, headerText: uploadData.uploadInfo })),
         );
     });
 });
