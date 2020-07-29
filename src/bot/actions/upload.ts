@@ -4,7 +4,7 @@ import { BaseAction, RunAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { Gitlab } from '../../task-trackers/gitlab';
 import marked from 'marked';
-import { translate } from '../../../src/locales';
+import { translate } from '../../locales';
 
 const logger = getLogger(module);
 
