@@ -153,6 +153,16 @@ export class Gitlab implements TaskTracker {
         return project.id as number;
     }
 
+    private async getGroupIdByNamespace(namespaceWithProjectName: string): Promise<number> {
+        const [groupName] = namespaceWithProjectName.split('/');
+        const groupUrl = this.getRestUrl('groups');
+        const groups = await this.request(groupUrl);
+
+        const group = groups.find(el => el.path === groupName);
+
+        return group!.id;
+    }
+
     // key is like namespace/project-123
     async getIssue(key: string): Promise<Issue & GitlabIssue> {
         const { namespaceWithProject, issueId } = this.selectors.transformFromKey(key);
@@ -365,11 +375,25 @@ export class Gitlab implements TaskTracker {
         };
     }
 
-    async getProjectLabels(namespaceWithProject): Promise<GitlabLabel[]> {
+    async getProjectLabels(namespaceWithProject: string): Promise<GitlabLabel[]> {
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
         const url = this.getRestUrl('projects', projectId, 'labels');
 
         return await this.request(url);
+    }
+
+    async getGroupLabels(namespaceWithProject: string): Promise<GitlabLabel[]> {
+        const groupId = await this.getGroupIdByNamespace(namespaceWithProject);
+        const url = this.getRestUrl('groups', groupId, 'labels');
+
+        return await this.request(url);
+    }
+
+    async getAllAvailalbleLabels(namespaceWithProject): Promise<GitlabLabel[]> {
+        const projectLabels = await this.getProjectLabels(namespaceWithProject);
+        const groupLabels = await this.getGroupLabels(namespaceWithProject);
+
+        return [...projectLabels, ...groupLabels];
     }
 
     async getCurrentIssueColor(key: string): Promise<string[]> {
@@ -378,8 +402,10 @@ export class Gitlab implements TaskTracker {
         if (issue.state === 'closed') {
             return ['gray'];
         }
-        const projectLabels = await this.getProjectLabels(namespaceWithProject);
-        const colors = projectLabels.filter(el => issue.labels.includes(el.name)).map(el => el.color);
+
+        const allAvailalbleLabels = await this.getAllAvailalbleLabels(namespaceWithProject);
+
+        const colors = allAvailalbleLabels.filter(el => issue.labels.includes(el.name)).map(el => el.color);
 
         return [...new Set(colors)];
     }
