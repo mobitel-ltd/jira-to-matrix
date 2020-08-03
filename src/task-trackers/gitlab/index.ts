@@ -153,14 +153,14 @@ export class Gitlab implements TaskTracker {
         return project.id as number;
     }
 
-    private async getGroupIdByNamespace(namespaceWithProjectName: string): Promise<number> {
+    private async getGroupIdByNamespace(namespaceWithProjectName: string): Promise<number | undefined> {
         const [groupName] = namespaceWithProjectName.split('/');
         const groupUrl = this.getRestUrl('groups');
         const groups = await this.request(groupUrl);
 
         const group = groups.find(el => el.path === groupName);
 
-        return group!.id;
+        return group?.id;
     }
 
     // key is like namespace/project-123
@@ -384,6 +384,13 @@ export class Gitlab implements TaskTracker {
 
     async getGroupLabels(namespaceWithProject: string): Promise<GitlabLabel[]> {
         const groupId = await this.getGroupIdByNamespace(namespaceWithProject);
+        if (!groupId) {
+            logger.warn(
+                `Group by id with namespace ${namespaceWithProject} is not found. Return empty array of labels`,
+            );
+
+            return [];
+        }
         const url = this.getRestUrl('groups', groupId, 'labels');
 
         return await this.request(url);
