@@ -155,7 +155,7 @@ export class Gitlab implements TaskTracker {
 
     private async getGroupIdByNamespace(namespaceWithProjectName: string): Promise<number | undefined> {
         const [groupName] = namespaceWithProjectName.split('/');
-        const groupUrl = this.getRestUrl('groups');
+        const groupUrl = this.getRestUrl('groups?per_page=100');
         const groups = await this.request(groupUrl);
 
         const group = groups.find(el => el.path === groupName);
@@ -377,7 +377,7 @@ export class Gitlab implements TaskTracker {
 
     async getProjectLabels(namespaceWithProject: string): Promise<GitlabLabel[]> {
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
-        const url = this.getRestUrl('projects', projectId, 'labels');
+        const url = this.getRestUrl('projects', projectId, 'labels?per_page=100');
 
         return await this.request(url);
     }
@@ -391,7 +391,7 @@ export class Gitlab implements TaskTracker {
 
             return [];
         }
-        const url = this.getRestUrl('groups', groupId, 'labels');
+        const url = this.getRestUrl('groups', groupId, 'labels?per_page=100');
 
         return await this.request(url);
     }
