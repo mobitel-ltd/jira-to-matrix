@@ -8,13 +8,14 @@ import { kick } from '../commands/command-list/common-actions';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { BaseAction, RunAction } from './base-action';
 import { LAST_STATUS_COLOR } from '../../redis-client';
+import { GitlabLabelHook } from 'src/task-trackers/gitlab/types';
 
 const logger = getLogger(module);
 
 // usingPojects: 'all' | [string] | undefined
 
 export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
-    async getNewAvatarUrl(issueKey, { statusId, isNewStatus }) {
+    async getNewAvatarUrl(issueKey, { statusId, isNewStatus, hookLabels }) {
         if (!this.config.colors) {
             logger.warn(`No color links is passed to update avatar for room ${issueKey}`);
 
@@ -27,7 +28,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         }
 
         if (this.isIssueUseAvatars(issueKey)) {
-            const colors = await this.taskTracker.getCurrentIssueColor(issueKey);
+            const colors = await this.taskTracker.getCurrentIssueColor(issueKey, hookLabels);
 
             return await this.getAvatarLink(issueKey, colors);
         }
@@ -56,7 +57,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         return { htmlBody, body };
     }
 
-    async isArchiveStatus(projectKey: string, issueKey: string, statusId?: number | string) {
+    async isArchiveStatus(projectKey: string, issueKey: string, statusId?: number | string, labels: GitlabLabelHook[] = []) {
         if (!statusId) {
             logger.debug('Status is not changed');
 
@@ -87,8 +88,10 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         newRoomName,
         projectKey,
         isNewStatus,
+        hookLabels
     }: PostIssueUpdatesData): Promise<boolean> {
         try {
+            console.log(hookLabels);
             if (!(await this.taskTracker.hasIssue(oldKey))) {
                 logger.warn(`Issue by key ${oldKey} is not exists`);
 
@@ -111,10 +114,10 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
             const info = await this.getIssueUpdateInfoMessageBody(changes, oldKey, author);
             await this.chatApi.sendHtmlMessage(roomId, info.body, info.htmlBody);
             logger.debug(`Posted updates to ${roomId}`);
-
             const newAvatarUrl = await this.getNewAvatarUrl(oldKey, {
                 statusId: newStatusId,
                 isNewStatus,
+                hookLabels
             });
 
             if (newAvatarUrl) {

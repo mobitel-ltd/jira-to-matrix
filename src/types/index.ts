@@ -1,5 +1,5 @@
 import { BaseChatApi } from '../messengers/base-api';
-import { GitlabPushCommit, GitlabPipeline } from '../task-trackers/gitlab/types';
+import { GitlabPushCommit, GitlabPipeline, GitlabLabelHook } from '../task-trackers/gitlab/types';
 
 export interface Config {
     port: string;
@@ -257,11 +257,11 @@ export interface TaskTracker {
 
     parser: Parser;
 
-    getCurrentIssueColor(key: string): Promise<string | string[]>;
+    getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string | string[]>;
 
     getIssueFieldsValues(key: string, fields: string[]): Promise<any>;
 
-    getStatusColor(data: { statusId: string | number; issueKey: string }): Promise<string | undefined | string[]>;
+    getStatusColor(data: { statusId: string | number; issueKey: string , hookLabels?: GitlabLabelHook[]}): Promise<string | undefined | string[]>;
 
     checkIgnoreList(ignoreList, hookType, taskType, body): boolean;
 
@@ -612,6 +612,7 @@ export interface CreateRoomData {
         id?: string;
         summary?: string;
         projectKey?: string;
+        hookLabels?: GitlabLabelHook[];
         descriptionFields?: DescriptionFields;
     };
     projectKey?: string;
@@ -636,6 +637,7 @@ export interface PostIssueUpdatesData {
     changes: IssueChanges[];
     author: string;
     projectKey: string;
+    hookLabels?: GitlabLabelHook[];
     isNewStatus?: boolean;
 }
 

@@ -16,6 +16,7 @@ import {
     HookUser,
     GitlabLabel,
     HookTypes,
+    GitlabLabelHook
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
@@ -134,8 +135,8 @@ export class Gitlab implements TaskTracker {
 
     // async getLabels();
 
-    getStatusColor({ issueKey }): Promise<string[]> {
-        return this.getCurrentIssueColor(issueKey);
+    getStatusColor({ issueKey, hookLabels = [] }: { issueKey: string; hookLabels?: GitlabLabelHook[] }): Promise<string[]> {
+        return this.getCurrentIssueColor(issueKey, hookLabels);
     }
 
     requestPost(url: string, options: AxiosRequestConfig, contentType?: string): Promise<any> {
@@ -403,17 +404,18 @@ export class Gitlab implements TaskTracker {
         return [...projectLabels, ...groupLabels];
     }
 
-    async getCurrentIssueColor(key: string): Promise<string[]> {
-        const { namespaceWithProject } = this.selectors.transformFromKey(key);
+    async getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string[]> {
+        // const { namespaceWithProject } = this.selectors.transformFromKey(key);
         const issue = await this.getIssue(key);
+        console.log('11111',issue);
         if (issue.state === 'closed') {
             return ['gray'];
         }
-
-        const allAvailalbleLabels = await this.getAllAvailalbleLabels(namespaceWithProject);
-
-        const colors = allAvailalbleLabels.filter(el => issue.labels.includes(el.name)).map(el => el.color);
-
+        console.log('DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG',hookLabels);
+        // const allAvailalbleLabels = await this.getAllAvailalbleLabels(namespaceWithProject);
+        // const allAvailalbleLabels = labels;
+        // const colors = labels.filter(label => issue.labels.includes(label.name)).map(label => label.color);
+        const colors = (hookLabels || []).map(label => label.color);
         return [...new Set(colors)];
     }
 }
