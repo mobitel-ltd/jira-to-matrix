@@ -151,7 +151,6 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         try {
             const keyOrId = issue.key || issue.id;
             if (issue && keyOrId) {
-                console.log('sdsd', issue.hookLabels)
                 const checkedIssue = await this.getCheckedIssue(keyOrId, issue.hookLabels);
                 if (!checkedIssue) {
                     logger.warn(`Issue ${keyOrId} is not exists`);

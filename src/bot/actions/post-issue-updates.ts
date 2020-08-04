@@ -57,7 +57,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         return { htmlBody, body };
     }
 
-    async isArchiveStatus(projectKey: string, issueKey: string, statusId?: number | string, labels: GitlabLabelHook[] = []) {
+    async isArchiveStatus(projectKey: string, issueKey: string, statusId?: number | string, hookLabels: GitlabLabelHook[] = []) {
         if (!statusId) {
             logger.debug('Status is not changed');
 
@@ -71,7 +71,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         )(exportConfigParams);
 
         if (isInConfigArchiveList) {
-            const colorName = await this.taskTracker.getStatusColor({ statusId, issueKey });
+            const colorName = await this.taskTracker.getStatusColor({ statusId, issueKey, hookLabels });
 
             return colorName === LAST_STATUS_COLOR;
         }
@@ -91,7 +91,6 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         hookLabels
     }: PostIssueUpdatesData): Promise<boolean> {
         try {
-            console.log(hookLabels);
             if (!(await this.taskTracker.hasIssue(oldKey))) {
                 logger.warn(`Issue by key ${oldKey} is not exists`);
 
@@ -126,7 +125,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
                 logger.debug(`Room ${roomId} have got new avatar ${newAvatarUrl}`);
             }
 
-            if (await this.isArchiveStatus(projectKey, oldKey, newStatusId)) {
+            if (await this.isArchiveStatus(projectKey, oldKey, newStatusId, hookLabels)) {
                 const { baseRemote, baseLink, sshLink, gitReposPath } = this.config;
 
                 const repoName = projectKey;

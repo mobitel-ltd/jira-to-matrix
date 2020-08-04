@@ -77,7 +77,6 @@ export class GitlabParser implements Parser {
     getPostIssueUpdatesData(body): PostIssueUpdatesData {
         const author = this.selectors.getDisplayName(body)!;
         const changes = this.selectors.getIssueChanges(body)!;
-        console.log(body);
         const hookLabels = this.selectors.getIssueLabels(body);
         const newTitleData = changes.find(data => data.field === 'title');
         const oldKey = this.selectors.getIssueKey(body);
