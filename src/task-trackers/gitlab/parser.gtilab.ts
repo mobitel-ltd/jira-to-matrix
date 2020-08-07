@@ -78,8 +78,16 @@ export class GitlabParser implements Parser {
         const author = this.selectors.getDisplayName(body)!;
         const changes = this.selectors.getIssueChanges(body)!;
         const newTitleData = changes.find(data => data.field === 'title');
+        const newMilestone = changes.find(data => data.field === 'milestone_id');
         const oldKey = this.selectors.getIssueKey(body);
         let newRoomName: string | undefined;
+
+        if (newMilestone) {
+            newRoomName = this.selectors.composeRoomName(oldKey, {
+                summary: this.selectors.getSummary(body)!,
+                milestone: newMilestone.newValue,
+            });
+        }
         if (newTitleData) {
             newRoomName = this.selectors.composeRoomName(oldKey, {
                 summary: newTitleData.newValue,

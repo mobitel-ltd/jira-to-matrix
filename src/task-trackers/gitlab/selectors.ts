@@ -96,7 +96,7 @@ const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind
 
 const getTypeEvent = body => body?.object_attributes?.action;
 
-const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) => {
+const composeRoomName = (key: string, { summary, state = IssueStateEnum.open, milestone = ' ' }) => {
     const data = transformFromKey(key);
 
     return [
@@ -104,6 +104,7 @@ const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) 
         summary.slice(0, 60),
         state,
         [data.namespaceWithProject, 'issues', data.issueId].join('/'),
+        milestone,
     ]
         .join(';')
         .concat(';');
@@ -202,7 +203,7 @@ const handlers: {
 
             return Object.entries(body.changes)
 
-                .filter(([el]) => !el.includes('_'))
+                .filter(([el]) => !el.includes('updated_at'))
                 .map(([field, value]) => {
                     switch (field) {
                         case 'description':
@@ -217,6 +218,8 @@ const handlers: {
                                     value.current as GitlabLabelHook[],
                                 ),
                             };
+                        case 'milestone_id':
+                            return { field, newValue: value.current };
                         default:
                             return { field, newValue: value.current };
                     }
@@ -296,8 +299,9 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
     getRoomName: body => {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);
+        const milestone = body.milestone === null ? ' ' : body.milestone.title;
         const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
-        return composeRoomName(key, { summary, state });
+        return composeRoomName(key, { summary, state, milestone });
     },
     keysForCheckIgnore: body => issueRequestHandlers.getFullKey(body),
     getIssueChanges: () => undefined,

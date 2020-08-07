@@ -38,9 +38,13 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
 
     composeText = ({ author, fields, formattedValues }) => {
         const message = translate('issue_updated', { name: author });
-        const changesDescription = fields.map(field => `${field}: ${formattedValues[field]}`);
-
-        return [message, ...changesDescription].join('<br>');
+        if (fields.includes('milestone_id')) {
+            const changesDescription = ['Milestone was changed'];
+            return [message, ...changesDescription].join('<br>');
+        } else {
+            const changesDescription = fields.map(field => `${field}: ${formattedValues[field]}`);
+            return [message, ...changesDescription].join('<br>');
+        }
     };
 
     async getIssueUpdateInfoMessageBody(changes: IssueChanges[], oldKey, author) {
@@ -104,6 +108,20 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
             }
 
             if (newRoomName) {
+                const body = await this.taskTracker.getIssue(oldKey);
+
+                const getMilestone = body => {
+                    return body.milestone === null ? ' ' : body.milestone.title;
+                };
+                const getTitle = body => {
+                    return body.title;
+                };
+
+                newRoomName = this.taskTracker.selectors.composeRoomName(oldKey, {
+                    summary: getTitle(body),
+                    milestone: getMilestone(body),
+                });
+
                 await this.chatApi.updateRoomName(roomId, newRoomName);
                 logger.debug(`Room ${oldKey} name updated with ${newRoomName}`);
             }
