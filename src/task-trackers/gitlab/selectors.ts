@@ -201,29 +201,31 @@ const handlers: {
                 return [{ field: 'status', newValue: IssueStateEnum.open }];
             }
 
-            return Object.entries(body.changes)
-
-                .filter(([el]) => !el.includes('updated_at'))
-                .map(([field, value]) => {
-                    switch (field) {
-                        case 'description':
-                            return { field, newValue: marked(value.current as string) };
-                        case 'assignees':
-                            return { field, newValue: value.current[0]?.name };
-                        case 'labels':
-                            return {
-                                field,
-                                newValue: getCurrentLabelsMsg(
-                                    value.previous as GitlabLabelHook[],
-                                    value.current as GitlabLabelHook[],
-                                ),
-                            };
-                        case 'milestone_id':
-                            return { field, newValue: value.current };
-                        default:
-                            return { field, newValue: value.current };
-                    }
-                });
+            return (
+                Object.entries(body.changes)
+                    .filter(([el]) => !(el.includes('_at') || el.includes('_by') || el.includes('_position')))
+                    //.filter(([el]) => !['_position', '_at', '_by'].includes(el))
+                    .map(([field, value]) => {
+                        switch (field) {
+                            case 'description':
+                                return { field, newValue: marked(value.current as string) };
+                            case 'assignees':
+                                return { field, newValue: value.current[0]?.name };
+                            case 'labels':
+                                return {
+                                    field,
+                                    newValue: getCurrentLabelsMsg(
+                                        value.previous as GitlabLabelHook[],
+                                        value.current as GitlabLabelHook[],
+                                    ),
+                                };
+                            case 'milestone_id':
+                                return { field, newValue: value.current };
+                            default:
+                                return { field, newValue: value.current };
+                        }
+                    })
+            );
         },
         // getBodyTimestamp: body => body.object_attributes.created_at,
     },
