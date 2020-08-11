@@ -66,7 +66,12 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         return { htmlBody, body };
     }
 
-    async isArchiveStatus(projectKey: string, issueKey: string, statusId?: number | string, hookLabels: GitlabLabelHook[] = []) {
+    async isArchiveStatus(
+        projectKey: string,
+        issueKey: string,
+        statusId?: number | string,
+        hookLabels: GitlabLabelHook[] = [],
+    ) {
         if (!statusId) {
             logger.debug('Status is not changed');
 
@@ -97,7 +102,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         newRoomName,
         projectKey,
         isNewStatus,
-        hookLabels
+        hookLabels,
     }: PostIssueUpdatesData): Promise<boolean> {
         try {
             if (!(await this.taskTracker.hasIssue(oldKey))) {
@@ -117,17 +122,19 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
             if (newRoomName) {
                 const body = await this.taskTracker.getIssue(oldKey);
 
-                const getMilestone = body => {
-                    return body.milestone === null ? '' : body.milestone.title;
-                };
-                const getTitle = body => {
-                    return body.title;
-                };
+                if (body.hasOwnProperty('title')) {
+                    const getMilestone = body => {
+                        return body?.milestone === null || undefined ? '' : body.milestone.title;
+                    };
+                    const getTitle = body => {
+                        return body?.title === null || undefined ? '' : body.title;
+                    };
 
-                newRoomName = this.taskTracker.selectors.composeRoomName(oldKey, {
-                    summary: getTitle(body),
-                    milestone: getMilestone(body),
-                });
+                    newRoomName = this.taskTracker.selectors.composeRoomName(oldKey, {
+                        summary: getTitle(body),
+                        milestone: getMilestone(body),
+                    });
+                }
 
                 await this.chatApi.updateRoomName(roomId, newRoomName);
                 logger.debug(`Room ${oldKey} name updated with ${newRoomName}`);
@@ -139,7 +146,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
             const newAvatarUrl = await this.getNewAvatarUrl(oldKey, {
                 statusId: newStatusId,
                 isNewStatus,
-                hookLabels
+                hookLabels,
             });
 
             if (newAvatarUrl) {
