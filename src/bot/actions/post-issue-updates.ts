@@ -41,6 +41,11 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         if (fields.includes('milestone_id')) {
             const changesDescription = ['Milestone was changed'];
             return [message, ...changesDescription].join('<br>');
+        }
+        if (fields.includes('total_time_spent')) {
+            const hoursFromSecond = field => (field / 60 / 60).toFixed(2);
+            const changesDescription = fields.map(field => `${field}: ${hoursFromSecond(formattedValues[field])}h`);
+            return [message, ...changesDescription].join('<br>');
         } else {
             const changesDescription = fields.map(field => `${field}: ${formattedValues[field]}`);
             return [message, ...changesDescription].join('<br>');
@@ -111,7 +116,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
                 const body = await this.taskTracker.getIssue(oldKey);
 
                 const getMilestone = body => {
-                    return body.milestone === null ? ' ' : body.milestone.title;
+                    return body.milestone === null ? '' : body.milestone.title;
                 };
                 const getTitle = body => {
                     return body.title;

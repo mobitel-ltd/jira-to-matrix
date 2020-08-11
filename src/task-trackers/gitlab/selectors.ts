@@ -96,7 +96,7 @@ const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind
 
 const getTypeEvent = body => body?.object_attributes?.action;
 
-const composeRoomName = (key: string, { summary, state = IssueStateEnum.open, milestone = ' ' }) => {
+const composeRoomName = (key: string, { summary, state = IssueStateEnum.open, milestone = '' }) => {
     const data = transformFromKey(key);
 
     return [
@@ -301,7 +301,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
     getRoomName: body => {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);
-        const milestone = body.milestone === null ? ' ' : body.milestone.title;
+        const milestone = body.milestone === null ? '' : body.milestone.title;
         const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
         return composeRoomName(key, { summary, state, milestone });
     },
