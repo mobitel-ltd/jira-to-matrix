@@ -13,12 +13,12 @@
     "dev:debug": "nodemon --inspect logs/start.js",
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "prestart": "rimraf dist && npm run build",
-    "start": "NODE_ENV=production node dist/app.js",
+    "start": "cross-env NODE_ENV=production node dist/app.js",
     "start-dev": "ts-node src/app.ts",
     "debug": "nodemon --inspect src/app.js",
     "test-single": "NODE_ENV=test nyc mocha --watch $1",
-    "test": "NODE_ENV=test nyc mocha",
-    "test-all": "TEST_WATCH=1 npm run test",
+    "test": "cross-env NODE_ENV=test nyc mocha",
+    "test-all": "cross-env TEST_WATCH=1 npm run test",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "repository": {
@@ -98,6 +98,7 @@
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "canvas": "^2.6.1",
+    "cross-env": "^7.0.2",
     "david": "^12.0.0",
     "delay": "^4.3.0",
     "express": "^4.17.1",

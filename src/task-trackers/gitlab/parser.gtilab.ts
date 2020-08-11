@@ -77,6 +77,7 @@ export class GitlabParser implements Parser {
     getPostIssueUpdatesData(body): PostIssueUpdatesData {
         const author = this.selectors.getDisplayName(body)!;
         const changes = this.selectors.getIssueChanges(body)!;
+        const hookLabels = this.selectors.getIssueLabels(body);
         const newTitleData = changes.find(data => data.field === 'title');
         const newMilestone = changes.find(data => data.field === 'milestone_id');
         const oldKey = this.selectors.getIssueKey(body);
@@ -109,7 +110,7 @@ export class GitlabParser implements Parser {
 
         const projectKey = this.selectors.getProjectKey(body)!;
 
-        return { oldKey, changes, author, projectKey, newRoomName, isNewStatus };
+        return { oldKey, changes, author, projectKey, newRoomName, hookLabels, isNewStatus };
     }
 
     isCreateRoom(body) {
@@ -127,9 +128,10 @@ export class GitlabParser implements Parser {
         const projectKey = this.selectors.getProjectKey(body);
         const summary = this.selectors.getSummary(body);
         const key = this.selectors.getIssueKey(body);
+        const hookLabels =  this.selectors.getIssueLabels(body);
         const descriptionFields = this.selectors.getDescriptionFields(body);
 
-        const parsedIssue = { key, summary, projectKey, descriptionFields };
+        const parsedIssue = { key, summary, projectKey, descriptionFields, hookLabels };
 
         return { issue: parsedIssue, projectKey };
     }

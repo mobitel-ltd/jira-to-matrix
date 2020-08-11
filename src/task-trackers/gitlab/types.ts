@@ -505,6 +505,7 @@ export interface GitlabSelectors extends Selectors {
     getCommitKeysBody(body: GitlabPushHook): Record<string, GitlabPushCommit[]>;
     getUploadUrl(body): string | null | undefined;
     isUploadBody(body): boolean;
+    getIssueLabels(body): GitlabLabelHook[],
     getUploadInfo(body): string;
     transformFromKey(key: string): { namespaceWithProject: string; issueId: number };
     transformToKey(namespaceWithProject: string, issueId: number): string;
