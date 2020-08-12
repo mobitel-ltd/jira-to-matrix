@@ -21,7 +21,6 @@ import uploadHook from '../../fixtures/webhooks/gitlab/upload.json';
 import gitlabClosedIssue from '../../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.json';
 import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
-import { HookTypes } from '../../../src/task-trackers/gitlab/types';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
 
@@ -156,6 +155,7 @@ describe('Gitlab actions', () => {
                     issue: {
                         key: issueCreated.project.path_with_namespace + '-' + issueCreated.object_attributes.iid,
                         descriptionFields: undefined,
+                        hookLabels: undefined, // NEED CHANGE!
                         projectKey: issueCreated.project.path_with_namespace,
                         summary: issueCreated.object_attributes.title,
                     },
@@ -163,6 +163,7 @@ describe('Gitlab actions', () => {
                 },
             },
         ];
+        //         (hookLabels || []).map(label => label.color);
 
         const res = hookParser.getFuncAndBody(issueCreated);
 

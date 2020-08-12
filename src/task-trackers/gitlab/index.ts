@@ -16,7 +16,7 @@ import {
     HookUser,
     GitlabLabel,
     HookTypes,
-    GitlabLabelHook
+    GitlabLabelHook,
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
@@ -135,7 +135,13 @@ export class Gitlab implements TaskTracker {
 
     // async getLabels();
 
-    getStatusColor({ issueKey, hookLabels = [] }: { issueKey: string; hookLabels?: GitlabLabelHook[] }): Promise<string[]> {
+    getStatusColor({
+        issueKey,
+        hookLabels = [],
+    }: {
+        issueKey: string;
+        hookLabels?: GitlabLabelHook[];
+    }): Promise<string[]> {
         return this.getCurrentIssueColor(issueKey, hookLabels);
     }
 
@@ -263,18 +269,16 @@ export class Gitlab implements TaskTracker {
     }
 
     private async getBaseProject(namespaceWithProjectName: string): Promise<GitlabProject> {
-        const queryPararms = querystring.stringify({ search: namespaceWithProjectName });
+        const queryPararms = namespaceWithProjectName.split('/').join('%2F');
         // TODO make correct query params passing
-        const url = this.getRestUrl('projects?' + queryPararms);
-        const foundProjects: GitlabProject[] = await this.request(url);
-        const project: GitlabProject | undefined = foundProjects.find(
-            el => el.path_with_namespace === namespaceWithProjectName,
-        );
+        const url = this.getRestUrl('projects/' + queryPararms);
+        const foundProjects: GitlabProject = await this.request(url);
+        const project: boolean = foundProjects.path_with_namespace === namespaceWithProjectName;
         if (!project) {
             throw new Error(`Not found project by namespace ${namespaceWithProjectName}`);
         }
 
-        return project;
+        return foundProjects;
     }
 
     private async getProjectMembers(projectId): Promise<GitlabUserData[]> {

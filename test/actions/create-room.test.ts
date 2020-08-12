@@ -387,6 +387,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     key:
                         gitlabCommentCreatedHook.project.path_with_namespace + '-' + gitlabCommentCreatedHook.issue.iid,
                     descriptionFields: undefined,
+                    hookLabels: undefined,
                     projectKey: gitlabCommentCreatedHook.project.path_with_namespace,
                     summary: gitlabCommentCreatedHook.issue.description,
                 },
