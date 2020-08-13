@@ -417,7 +417,7 @@ export class Gitlab implements TaskTracker {
         // const allAvailalbleLabels = await this.getAllAvailalbleLabels(namespaceWithProject);
         // const allAvailalbleLabels = labels;
         // const colors = labels.filter(label => issue.labels.includes(label.name)).map(label => label.color);
-        const colors = (hookLabels || []).map(label => label.color);
+        const colors = (hookLabels || []).map(label => label.color).sort();
         return [...new Set(colors)];
     }
 }
