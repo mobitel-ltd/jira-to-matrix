@@ -49,8 +49,8 @@ export class Commands {
 
             return message;
         } catch (err) {
-            const post = translate('errorMatrixCommands');
-            await chatApi.sendHtmlMessage(roomId, post, post);
+            //const post = translate('errorMatrixCommands');
+            await chatApi.sendHtmlMessage(roomId, err, err);
             logger.error(err);
         }
     }
