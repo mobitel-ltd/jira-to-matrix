@@ -1,3 +1,4 @@
+import querystring from 'querystring';
 import proxyquire from 'proxyquire';
 import { config } from '../../src/config';
 import nock from 'nock';
@@ -20,7 +21,7 @@ import { Config, PostIssueUpdatesData, IssueStateEnum } from '../../src/types';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabIssueUpdated from '../fixtures/webhooks/gitlab/issue/updated.json';
 import gitlabIssueNewAssign from '../fixtures/webhooks/gitlab/issue/new-assign.json';
-import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import gitlabProjectJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import gitlabClosedIssueJson from '../fixtures/gitlab-api-requests/closed-issue.json';
 import gitlabClosedIssue from '../fixtures/webhooks/gitlab/issue/closed.json';
@@ -62,6 +63,7 @@ describe('Post issue updates test', () => {
             .query(Jira.expandParams)
             .reply(200, renderedIssueJSON)
             .get(`/issue/${taskTracker.selectors.getOldKey(issueMovedJSON)}`)
+            .times(2)
             .reply(200, issueBodyJSON)
             .get(`/issue/${issueStatusChangedJSON.issue.key}`)
             .query(Jira.expandParams)
@@ -332,12 +334,11 @@ describe('PostIssueUpdates in Gitlab', () => {
 
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
-                .get(`/projects`)
-                .times(2)
-                .query({ search: gitlabIssueUpdated.project.path_with_namespace })
-                .reply(200, gitlabProjectsJson)
-                .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueUpdated.object_attributes.iid}`)
-                .times(2)
+                .get(`/projects/${querystring.escape(gitlabIssueUpdated.project.path_with_namespace)}`)
+                .times(3)
+                .reply(200, gitlabProjectJson)
+                .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabIssueUpdated.object_attributes.iid}`)
+                .times(3)
                 .reply(200, gitlabIssueJson);
             postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabIssueUpdated);
             const chatClass = getChatClass({ roomId });
@@ -368,11 +369,10 @@ describe('PostIssueUpdates in Gitlab', () => {
 
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
-                .get(`/projects`)
+                .get(`/projects/${querystring.escape(gitlabIssueNewAssign.project.path_with_namespace)}`)
                 .times(2)
-                .query({ search: gitlabIssueNewAssign.project.path_with_namespace })
-                .reply(200, gitlabProjectsJson)
-                .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueNewAssign.object_attributes.iid}`)
+                .reply(200, gitlabProjectJson)
+                .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabIssueNewAssign.object_attributes.iid}`)
                 .times(2)
                 .reply(200, gitlabIssueJson);
             postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabIssueNewAssign);
@@ -404,12 +404,11 @@ describe('PostIssueUpdates in Gitlab', () => {
 
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
-                .get(`/projects`)
-                .times(3)
-                .query({ search: gitlabClosedIssue.project.path_with_namespace })
-                .reply(200, gitlabProjectsJson)
-                .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabClosedIssue.object_attributes.iid}`)
-                .times(3)
+                .get(`/projects/${querystring.escape(gitlabClosedIssue.project.path_with_namespace)}`)
+                .times(4)
+                .reply(200, gitlabProjectJson)
+                .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabClosedIssue.object_attributes.iid}`)
+                .times(4)
                 .reply(200, gitlabClosedIssueJson);
             postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabClosedIssue);
             const chatClass = getChatClass({ roomId });
@@ -444,12 +443,11 @@ describe('PostIssueUpdates in Gitlab', () => {
 
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
-                .get(`/projects`)
-                .times(2)
-                .query({ search: gitlabReopenedIssue.project.path_with_namespace })
-                .reply(200, gitlabProjectsJson)
-                .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabReopenedIssue.object_attributes.iid}`)
-                .times(2)
+                .get(`/projects/${querystring.escape(gitlabReopenedIssue.project.path_with_namespace)}`)
+                .times(3)
+                .reply(200, gitlabProjectJson)
+                .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabReopenedIssue.object_attributes.iid}`)
+                .times(3)
                 .reply(200, gitlabIssueJson);
             postIssueUpdatesData = gitlabTracker.parser.getPostIssueUpdatesData(gitlabReopenedIssue);
             const chatClass = getChatClass({ roomId });

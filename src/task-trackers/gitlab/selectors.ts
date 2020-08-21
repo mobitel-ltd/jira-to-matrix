@@ -43,6 +43,7 @@ interface BaseGetters<T> {
 }
 
 interface BodyGetters<T = unknown> extends BaseGetters<T> {
+    getIssueLabels(body: T): GitlabLabelHook[] | string[];
     getProjectKey(body: T): string;
     getFullKey(body: T): string;
     /**
@@ -82,10 +83,6 @@ interface CommentGetters<T> extends BodyGetters<T> {
 
 interface IssueGetters<T> extends BodyGetters<T> {
     getRoomName(body: T): string;
-}
-
-interface IssueHook<T> extends BodyGetters<T> {
-    getIssueLabels(body: T): GitlabLabelHook[];
 }
 
 const missField = translate('miss');
@@ -181,7 +178,7 @@ export const extractKeysFromCommitMessage = (message: string, nameSpaceWithProje
 const getFullName = (displayName: string, userId: string) => [userId, `${displayName}`].join(' ');
 
 const handlers: {
-    issue: IssueHook<GitlabIssueHook>;
+    issue: BodyGetters<GitlabIssueHook>;
     note: CommentGetters<GitlabCommentHook>;
     push: PushGetters<GitlabPushHook>;
     pipeline: PipelineGetters;
@@ -235,6 +232,7 @@ const handlers: {
         // getBodyTimestamp: body => body.object_attributes.created_at,
     },
     note: {
+        getIssueLabels: body => body.issue.labels,
         keysForCheckIgnore: body => handlers.note.getFullKey(body),
         getIssueChanges: () => undefined,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.issue.iid),
@@ -303,6 +301,7 @@ const handlers: {
 };
 
 const issueRequestHandlers: IssueGetters<GitlabIssue> = {
+    getIssueLabels: body => body.labels,
     getRoomName: body => {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);
@@ -405,7 +404,7 @@ const getIssueChanges = body => runMethod(body, 'getIssueChanges');
 
 const isUploadBody = handlers.note.isUploadBody;
 
-const getIssueLabels = handlers.issue.getIssueLabels;
+const getIssueLabels = body => runMethod(body, 'getIssueLabels');
 
 const getUploadUrl = handlers.note.getUploadUrl;
 

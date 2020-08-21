@@ -1,3 +1,4 @@
+import querystring from 'querystring';
 import path from 'path';
 import nock from 'nock';
 import * as chai from 'chai';
@@ -53,20 +54,19 @@ describe('gitlab upload test', () => {
             const testPicturePath = path.resolve(__dirname, '..', 'fixtures', fileName);
             const body = {
                 url: '/uploads/lalalaal',
-                markdown: `![${fileName}](${gitlabTracker.getRestUrl('projects', projectsJson[0].id)})`,
+                markdown: `![${fileName}](${gitlabTracker.getRestUrl('projects', projectsJson.id)})`,
             };
 
             nock(basePictureUrl)
                 .get(pictureFilePath)
                 .reply(200, testPicturePath);
             nock(gitlabTracker.getRestUrl())
-                .get(`/projects`)
-                .query({ search: `${projectNamespace}/${projectKey}` })
+                .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
                 .times(2)
                 .reply(200, projectsJson)
-                .post(`/projects/${projectsJson[0].id}/uploads`)
+                .post(`/projects/${projectsJson.id}/uploads`)
                 .reply(201, body)
-                .post(`/projects/${projectsJson[0].id}/issues/${issueId}/notes`)
+                .post(`/projects/${projectsJson.id}/issues/${issueId}/notes`)
                 .query({ body: gitlabTracker.getPostCommentBody(sender, body.markdown) })
                 .reply(201);
         });

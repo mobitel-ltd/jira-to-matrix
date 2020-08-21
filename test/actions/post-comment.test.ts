@@ -1,3 +1,4 @@
+import querystring from 'querystring';
 import { fromString } from 'html-to-text';
 import nock from 'nock';
 import commentCreatedHook from '../fixtures/webhooks/comment/created.json';
@@ -103,10 +104,9 @@ describe('Post comments test', () => {
 
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
-                .get(`/projects`)
-                .query({ search: gitlabCommentCreated.project.path_with_namespace })
+                .get(`/projects/${querystring.escape(gitlabCommentCreated.project.path_with_namespace)}`)
                 .reply(200, projectsJson)
-                .get(`/projects/${projectsJson[0].id}/issues/${gitlabCommentCreated.issue.iid}/notes`)
+                .get(`/projects/${projectsJson.id}/issues/${gitlabCommentCreated.issue.iid}/notes`)
                 .reply(200, gitlabIssueComments);
 
             const chatClass = getChatClass({ alias: postCommentData.issueId });

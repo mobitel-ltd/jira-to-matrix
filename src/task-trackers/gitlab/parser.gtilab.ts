@@ -128,7 +128,7 @@ export class GitlabParser implements Parser {
         const projectKey = this.selectors.getProjectKey(body);
         const summary = this.selectors.getSummary(body);
         const key = this.selectors.getIssueKey(body);
-        const hookLabels =  this.selectors.getIssueLabels(body);
+        const hookLabels = this.selectors.getIssueLabels(body);
         const descriptionFields = this.selectors.getDescriptionFields(body);
 
         const parsedIssue = { key, summary, projectKey, descriptionFields, hookLabels };

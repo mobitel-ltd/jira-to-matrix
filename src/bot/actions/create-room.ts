@@ -131,7 +131,8 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
             return false;
         }
 
-        const statusColors = (await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels)) || this.defaultAvatarColor;
+        const statusColors =
+            (await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels)) || this.defaultAvatarColor;
 
         return {
             key: this.taskTracker.selectors.getIssueKey(issueBody)!,

@@ -261,7 +261,11 @@ export interface TaskTracker {
 
     getIssueFieldsValues(key: string, fields: string[]): Promise<any>;
 
-    getStatusColor(data: { statusId: string | number; issueKey: string , hookLabels?: GitlabLabelHook[]}): Promise<string | undefined | string[]>;
+    getStatusColor(data: {
+        statusId: string | number;
+        issueKey: string;
+        hookLabels?: GitlabLabelHook[];
+    }): Promise<string | undefined | string[]>;
 
     checkIgnoreList(ignoreList, hookType, taskType, body): boolean;
 

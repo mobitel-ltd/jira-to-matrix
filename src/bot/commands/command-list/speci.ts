@@ -33,14 +33,16 @@ export class SpecCommand extends Command<Jira> implements RunCommand {
                 }
             }
         } catch (err) {
-            if (err.includes('status is 403')) {
-                const projectKey = utils.getProjectKeyFromIssueKey(roomName);
-                const viewUrl = this.taskTracker.getViewUrl(projectKey);
-                return translate('setBotToAdmin', { projectKey, viewUrl });
-            }
+            if (err.includes) {
+                if (err.includes('status is 403')) {
+                    const projectKey = utils.getProjectKeyFromIssueKey(roomName);
+                    const viewUrl = this.taskTracker.getViewUrl(projectKey);
+                    return translate('setBotToAdmin', { projectKey, viewUrl });
+                }
 
-            if (err.includes('status is 404')) {
-                return translate('noRulesToWatchIssue');
+                if (err.includes('status is 404')) {
+                    return translate('noRulesToWatchIssue');
+                }
             }
 
             throw utils.errorTracing('Spec command', err);

@@ -1,3 +1,4 @@
+import querystring from 'querystring';
 import * as R from 'ramda';
 import { pipe, set, clone } from 'lodash/fp';
 import { stub } from 'sinon';
@@ -116,11 +117,10 @@ describe('Queue handler test with gitlab', () => {
         hookParser = new HookParser(gitlabTracker, config, queueHandler);
 
         nock(gitlabTracker.getRestUrl())
-            .get(`/projects`)
+            .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
             .times(4)
-            .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
             .reply(200, gitlabProjectsJson)
-            .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+            .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
             .times(2)
             .reply(200, gitlabIssueJson);
     });
@@ -156,7 +156,7 @@ describe('Queue handler test with gitlab', () => {
 
     it('Should handle push hook from gitlab', async () => {
         nock(gitlabTracker.getRestUrl())
-            .get(`/projects/${gitlabProjectsJson[0].id}/issues/${57}`)
+            .get(`/projects/${gitlabProjectsJson.id}/issues/${57}`)
             .times(4)
             .reply(200, gitlabIssueJson);
 

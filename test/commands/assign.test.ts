@@ -114,11 +114,11 @@ describe('assign test', () => {
     });
 
     it('Expect be error (invite throw)', async () => {
-        chatApi.invite.throws('Error!!!');
-        const post = translate('errorMatrixCommands');
+        const errorMessage = 'Error!!!';
+        chatApi.invite.throws(errorMessage);
 
         const result = await commands.run(commandName, { bodyText: userSender.displayName, ...baseOptions });
-        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, errorMessage, errorMessage);
         expect(result).to.be.undefined;
     });
 

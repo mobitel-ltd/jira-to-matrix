@@ -1,3 +1,4 @@
+import querystring from 'querystring';
 import nock from 'nock';
 import * as chai from 'chai';
 import sinonChai from 'sinon-chai';
@@ -9,6 +10,7 @@ import { CommandNames, RunCommandsOptions } from '../../src/types';
 import { config } from '../../src/config';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import { getRequestErrorLog } from '../../src/lib/messages';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -85,7 +87,13 @@ describe('gitlab comment test', () => {
     it('Expect comment not to be sent and error send to room', async () => {
         baseOptions = { roomId, roomName, sender, chatApi, bodyText: 'lalalla' };
         const result = await commands.run(commandName, baseOptions);
-        expect(result).to.be.eq(translate('errorCommentSend'));
+        expect(result).to.be.eq(
+            getRequestErrorLog(
+                gitlabTracker.getRestUrl('projects', querystring.escape(`${projectNamespace}/${projectKey}`)),
+                undefined,
+                'GET',
+            ),
+        );
     });
 
     describe('Slash command', () => {
@@ -93,10 +101,9 @@ describe('gitlab comment test', () => {
         beforeEach(() => {
             baseOptions = { roomId, roomName, sender, chatApi, bodyText };
             nock(gitlabTracker.getRestUrl())
-                .get(`/projects`)
-                .query({ search: `${projectNamespace}/${projectKey}` })
+                .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
                 .reply(200, projectsJson)
-                .post(`/projects/${projectsJson[0].id}/issues/${issueId}/notes`)
+                .post(`/projects/${projectsJson.id}/issues/${issueId}/notes`)
                 .query({ body: bodyText })
                 .reply(400);
         });

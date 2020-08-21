@@ -23,6 +23,7 @@ import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.j
 import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
+import { HookTypes } from '../../../src/task-trackers/gitlab/types';
 
 describe('Gitlab actions', () => {
     const fakeTimestamp = 1596049533906;
@@ -54,18 +55,21 @@ describe('Gitlab actions', () => {
     });
 
     it('should return create room and post comment for note hook', () => {
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
+                descriptionFields: undefined,
+                projectKey: commentHook.project.path_with_namespace,
+                summary: commentHook.issue.title,
+                hookLabels: commentHook.issue.labels,
+            },
+            projectKey: commentHook.project.path_with_namespace,
+        };
+
         const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
-                createRoomData: {
-                    issue: {
-                        key: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
-                        descriptionFields: undefined,
-                        projectKey: commentHook.project.path_with_namespace,
-                        summary: commentHook.issue.title,
-                    },
-                    projectKey: commentHook.project.path_with_namespace,
-                },
+                createRoomData,
             },
             {
                 redisKey: 'postComment_' + fakeTimestamp,
@@ -106,9 +110,11 @@ describe('Gitlab actions', () => {
                 issueUpdated.project.path_with_namespace +
                 '/issues/' +
                 issueUpdated.object_attributes.iid +
+                ';' +
                 ';',
 
             changes: [{ field: 'title', newValue: issueUpdated.changes.title.current }],
+            hookLabels: issueUpdated.labels,
         };
         const inviteNewMembersData: InviteNewMembersData = {
             key: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
@@ -122,6 +128,7 @@ describe('Gitlab actions', () => {
                 descriptionFields: undefined,
                 projectKey: issueUpdated.project.path_with_namespace,
                 summary: issueUpdated.object_attributes.title,
+                hookLabels: issueUpdated.labels,
             },
             projectKey: issueUpdated.project.path_with_namespace,
         };
@@ -148,19 +155,20 @@ describe('Gitlab actions', () => {
     });
 
     it('should return create room for issue created hook', () => {
+        const createRoomData = {
+            issue: {
+                key: issueCreated.project.path_with_namespace + '-' + issueCreated.object_attributes.iid,
+                descriptionFields: undefined,
+                hookLabels: issueCreated.labels,
+                projectKey: issueCreated.project.path_with_namespace,
+                summary: issueCreated.object_attributes.title,
+            },
+            projectKey: issueCreated.project.path_with_namespace,
+        };
         const expected: { redisKey: typeof REDIS_ROOM_KEY; createRoomData: CreateRoomData }[] = [
             {
                 redisKey: REDIS_ROOM_KEY,
-                createRoomData: {
-                    issue: {
-                        key: issueCreated.project.path_with_namespace + '-' + issueCreated.object_attributes.iid,
-                        descriptionFields: undefined,
-                        hookLabels: undefined, // NEED CHANGE!
-                        projectKey: issueCreated.project.path_with_namespace,
-                        summary: issueCreated.object_attributes.title,
-                    },
-                    projectKey: issueCreated.project.path_with_namespace,
-                },
+                createRoomData,
             },
         ];
         //         (hookLabels || []).map(label => label.color);
@@ -177,6 +185,7 @@ describe('Gitlab actions', () => {
                 descriptionFields: undefined,
                 projectKey: uploadHook.project.path_with_namespace,
                 summary: uploadHook.issue.title,
+                hookLabels: uploadHook.issue.labels,
             },
             projectKey: uploadHook.project.path_with_namespace,
         };
@@ -209,6 +218,7 @@ describe('Gitlab actions', () => {
                 descriptionFields: undefined,
                 projectKey: uploadHookBin.project.path_with_namespace,
                 summary: uploadHookBin.issue.title,
+                hookLabels: [],
             },
             projectKey: uploadHookBin.project.path_with_namespace,
         };
@@ -254,8 +264,9 @@ describe('Gitlab actions', () => {
                 gitlabClosedIssue.project.path_with_namespace +
                 '/issues/' +
                 gitlabClosedIssue.object_attributes.iid +
+                ';' +
                 ';',
-
+            hookLabels: [],
             changes: [{ field: 'status', newValue: IssueStateEnum.close }],
         };
         const createRoomData: CreateRoomData = {
@@ -264,6 +275,7 @@ describe('Gitlab actions', () => {
                 descriptionFields: undefined,
                 projectKey: gitlabClosedIssue.project.path_with_namespace,
                 summary: gitlabClosedIssue.object_attributes.title,
+                hookLabels: [],
             },
             projectKey: gitlabClosedIssue.project.path_with_namespace,
         };
@@ -301,8 +313,9 @@ describe('Gitlab actions', () => {
                 gitlabReopenedIssue.project.path_with_namespace +
                 '/issues/' +
                 gitlabReopenedIssue.object_attributes.iid +
+                ';' +
                 ';',
-
+            hookLabels: gitlabReopenedIssue.labels,
             changes: [{ field: 'status', newValue: IssueStateEnum.open }],
         };
         const createRoomData: CreateRoomData = {
@@ -310,6 +323,7 @@ describe('Gitlab actions', () => {
                 key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
                 descriptionFields: undefined,
                 projectKey: gitlabReopenedIssue.project.path_with_namespace,
+                hookLabels: gitlabReopenedIssue.labels,
                 summary: gitlabReopenedIssue.object_attributes.title,
             },
             projectKey: gitlabReopenedIssue.project.path_with_namespace,
