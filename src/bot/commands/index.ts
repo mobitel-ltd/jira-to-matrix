@@ -10,6 +10,17 @@ const logger = getLogger(module);
 export class Commands {
     constructor(private config: Config, private taskTracker: TaskTracker) {}
 
+    getErrMessage = (err: any): string => {
+        if (typeof err === 'string') {
+            return err;
+        }
+        if (err instanceof Error) {
+            return err.name;
+        }
+
+        return err;
+    };
+
     async run(
         commandName: string | CommandNames,
         { chatApi, roomData, roomId, roomName, sender, bodyText, url, senderDisplayName }: RunCommandsOptions,
@@ -49,8 +60,9 @@ export class Commands {
 
             return message;
         } catch (err) {
-            const post = translate('errorMatrixCommands');
-            await chatApi.sendHtmlMessage(roomId, post, post);
+            const errMessage = this.getErrMessage(err);
+            //const post = translate('errorMatrixCommands');
+            await chatApi.sendHtmlMessage(roomId, errMessage, errMessage);
             logger.error(err);
         }
     }

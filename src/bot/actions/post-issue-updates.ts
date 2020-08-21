@@ -8,13 +8,14 @@ import { kick } from '../commands/command-list/common-actions';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { BaseAction, RunAction } from './base-action';
 import { LAST_STATUS_COLOR } from '../../redis-client';
+import { GitlabLabelHook } from 'src/task-trackers/gitlab/types';
 
 const logger = getLogger(module);
 
 // usingPojects: 'all' | [string] | undefined
 
 export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
-    async getNewAvatarUrl(issueKey, { statusId, isNewStatus }) {
+    async getNewAvatarUrl(issueKey, { statusId, isNewStatus, hookLabels }) {
         if (!this.config.colors) {
             logger.warn(`No color links is passed to update avatar for room ${issueKey}`);
 
@@ -27,7 +28,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         }
 
         if (this.isIssueUseAvatars(issueKey)) {
-            const colors = await this.taskTracker.getCurrentIssueColor(issueKey);
+            const colors = await this.taskTracker.getCurrentIssueColor(issueKey, hookLabels);
 
             return await this.getAvatarLink(issueKey, colors);
         }
@@ -38,9 +39,18 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
 
     composeText = ({ author, fields, formattedValues }) => {
         const message = translate('issue_updated', { name: author });
-        const changesDescription = fields.map(field => `${field}: ${formattedValues[field]}`);
-
-        return [message, ...changesDescription].join('<br>');
+        if (fields.includes('milestone_id')) {
+            const changesDescription = ['Milestone was changed'];
+            return [message, ...changesDescription].join('<br>');
+        }
+        if (fields.includes('total_time_spent')) {
+            const hoursFromSecond = field => (field / 60 / 60).toFixed(2);
+            const changesDescription = fields.map(field => `${field}: ${hoursFromSecond(formattedValues[field])}h`);
+            return [message, ...changesDescription].join('<br>');
+        } else {
+            const changesDescription = fields.map(field => `${field}: ${formattedValues[field]}`);
+            return [message, ...changesDescription].join('<br>');
+        }
     };
 
     async getIssueUpdateInfoMessageBody(changes: IssueChanges[], oldKey, author) {
@@ -56,7 +66,12 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         return { htmlBody, body };
     }
 
-    async isArchiveStatus(projectKey: string, issueKey: string, statusId?: number | string) {
+    async isArchiveStatus(
+        projectKey: string,
+        issueKey: string,
+        statusId?: number | string,
+        hookLabels: GitlabLabelHook[] = [],
+    ) {
         if (!statusId) {
             logger.debug('Status is not changed');
 
@@ -70,7 +85,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         )(exportConfigParams);
 
         if (isInConfigArchiveList) {
-            const colorName = await this.taskTracker.getStatusColor({ statusId, issueKey });
+            const colorName = await this.taskTracker.getStatusColor({ statusId, issueKey, hookLabels });
 
             return colorName === LAST_STATUS_COLOR;
         }
@@ -87,6 +102,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
         newRoomName,
         projectKey,
         isNewStatus,
+        hookLabels,
     }: PostIssueUpdatesData): Promise<boolean> {
         try {
             if (!(await this.taskTracker.hasIssue(oldKey))) {
@@ -104,6 +120,22 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
             }
 
             if (newRoomName) {
+                const body = await this.taskTracker.getIssue(oldKey);
+
+                if (body.hasOwnProperty('title')) {
+                    const getMilestone = body => {
+                        return body?.milestone === null || undefined ? '' : body.milestone.title;
+                    };
+                    const getTitle = body => {
+                        return body?.title === null || undefined ? '' : body.title;
+                    };
+
+                    newRoomName = this.taskTracker.selectors.composeRoomName(oldKey, {
+                        summary: getTitle(body),
+                        milestone: getMilestone(body),
+                    });
+                }
+
                 await this.chatApi.updateRoomName(roomId, newRoomName);
                 logger.debug(`Room ${oldKey} name updated with ${newRoomName}`);
             }
@@ -111,10 +143,10 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
             const info = await this.getIssueUpdateInfoMessageBody(changes, oldKey, author);
             await this.chatApi.sendHtmlMessage(roomId, info.body, info.htmlBody);
             logger.debug(`Posted updates to ${roomId}`);
-
             const newAvatarUrl = await this.getNewAvatarUrl(oldKey, {
                 statusId: newStatusId,
                 isNewStatus,
+                hookLabels,
             });
 
             if (newAvatarUrl) {
@@ -123,7 +155,7 @@ export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implem
                 logger.debug(`Room ${roomId} have got new avatar ${newAvatarUrl}`);
             }
 
-            if (await this.isArchiveStatus(projectKey, oldKey, newStatusId)) {
+            if (await this.isArchiveStatus(projectKey, oldKey, newStatusId, hookLabels)) {
                 const { baseRemote, baseLink, sshLink, gitReposPath } = this.config;
 
                 const repoName = projectKey;

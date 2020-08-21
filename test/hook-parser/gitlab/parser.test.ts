@@ -21,10 +21,21 @@ import uploadHook from '../../fixtures/webhooks/gitlab/upload.json';
 import gitlabClosedIssue from '../../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.json';
 import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
-import { HookTypes } from '../../../src/task-trackers/gitlab/types';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
+import { stub } from 'sinon';
+import { HookTypes } from '../../../src/task-trackers/gitlab/types';
 
 describe('Gitlab actions', () => {
+    const fakeTimestamp = 1596049533906;
+
+    beforeEach(() => {
+        stub(Date, 'now').returns(1596049533906);
+    });
+
+    afterEach(() => {
+        (Date.now as any).restore();
+    });
+
     const gitlabConfig: Config = R.set(R.lensPath(['taskTracker', 'type']), 'gitlab', config);
 
     const gitlabApi = getTaskTracker(gitlabConfig);
@@ -44,21 +55,24 @@ describe('Gitlab actions', () => {
     });
 
     it('should return create room and post comment for note hook', () => {
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
+                descriptionFields: undefined,
+                projectKey: commentHook.project.path_with_namespace,
+                summary: commentHook.issue.title,
+                hookLabels: commentHook.issue.labels,
+            },
+            projectKey: commentHook.project.path_with_namespace,
+        };
+
         const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
-                createRoomData: {
-                    issue: {
-                        key: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
-                        descriptionFields: undefined,
-                        projectKey: commentHook.project.path_with_namespace,
-                        summary: commentHook.issue.title,
-                    },
-                    projectKey: commentHook.project.path_with_namespace,
-                },
+                createRoomData,
             },
             {
-                redisKey: 'postComment_' + new Date(commentHook.object_attributes.created_at).getTime(),
+                redisKey: 'postComment_' + fakeTimestamp,
                 funcName: 'postComment',
                 data: {
                     issueId: commentHook.project.path_with_namespace + '-' + commentHook.issue.iid,
@@ -96,9 +110,11 @@ describe('Gitlab actions', () => {
                 issueUpdated.project.path_with_namespace +
                 '/issues/' +
                 issueUpdated.object_attributes.iid +
+                ';' +
                 ';',
 
             changes: [{ field: 'title', newValue: issueUpdated.changes.title.current }],
+            hookLabels: issueUpdated.labels,
         };
         const inviteNewMembersData: InviteNewMembersData = {
             key: issueUpdated.project.path_with_namespace + '-' + issueUpdated.object_attributes.iid,
@@ -112,6 +128,7 @@ describe('Gitlab actions', () => {
                 descriptionFields: undefined,
                 projectKey: issueUpdated.project.path_with_namespace,
                 summary: issueUpdated.object_attributes.title,
+                hookLabels: issueUpdated.labels,
             },
             projectKey: issueUpdated.project.path_with_namespace,
         };
@@ -121,12 +138,12 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'inviteNewMembers_' + new Date(issueUpdated.object_attributes.updated_at).getTime(),
+                redisKey: 'inviteNewMembers_' + fakeTimestamp,
                 funcName: 'inviteNewMembers',
                 data: inviteNewMembersData,
             },
             {
-                redisKey: 'postIssueUpdates_' + new Date(issueUpdated.object_attributes.updated_at).getTime(),
+                redisKey: 'postIssueUpdates_' + fakeTimestamp,
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
             },
@@ -138,20 +155,23 @@ describe('Gitlab actions', () => {
     });
 
     it('should return create room for issue created hook', () => {
+        const createRoomData = {
+            issue: {
+                key: issueCreated.project.path_with_namespace + '-' + issueCreated.object_attributes.iid,
+                descriptionFields: undefined,
+                hookLabels: issueCreated.labels,
+                projectKey: issueCreated.project.path_with_namespace,
+                summary: issueCreated.object_attributes.title,
+            },
+            projectKey: issueCreated.project.path_with_namespace,
+        };
         const expected: { redisKey: typeof REDIS_ROOM_KEY; createRoomData: CreateRoomData }[] = [
             {
                 redisKey: REDIS_ROOM_KEY,
-                createRoomData: {
-                    issue: {
-                        key: issueCreated.project.path_with_namespace + '-' + issueCreated.object_attributes.iid,
-                        descriptionFields: undefined,
-                        projectKey: issueCreated.project.path_with_namespace,
-                        summary: issueCreated.object_attributes.title,
-                    },
-                    projectKey: issueCreated.project.path_with_namespace,
-                },
+                createRoomData,
             },
         ];
+        //         (hookLabels || []).map(label => label.color);
 
         const res = hookParser.getFuncAndBody(issueCreated);
 
@@ -165,6 +185,7 @@ describe('Gitlab actions', () => {
                 descriptionFields: undefined,
                 projectKey: uploadHook.project.path_with_namespace,
                 summary: uploadHook.issue.title,
+                hookLabels: uploadHook.issue.labels,
             },
             projectKey: uploadHook.project.path_with_namespace,
         };
@@ -179,7 +200,7 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'upload_' + new Date(uploadHook.object_attributes.updated_at).getTime(),
+                redisKey: 'upload_' + fakeTimestamp,
                 funcName: 'upload',
                 data,
             },
@@ -197,6 +218,7 @@ describe('Gitlab actions', () => {
                 descriptionFields: undefined,
                 projectKey: uploadHookBin.project.path_with_namespace,
                 summary: uploadHookBin.issue.title,
+                hookLabels: [],
             },
             projectKey: uploadHookBin.project.path_with_namespace,
         };
@@ -214,7 +236,7 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'upload_' + new Date(uploadHookBin.object_attributes.updated_at).getTime(),
+                redisKey: 'upload_' + fakeTimestamp,
                 funcName: 'upload',
                 data,
             },
@@ -242,8 +264,9 @@ describe('Gitlab actions', () => {
                 gitlabClosedIssue.project.path_with_namespace +
                 '/issues/' +
                 gitlabClosedIssue.object_attributes.iid +
+                ';' +
                 ';',
-
+            hookLabels: [],
             changes: [{ field: 'status', newValue: IssueStateEnum.close }],
         };
         const createRoomData: CreateRoomData = {
@@ -252,6 +275,7 @@ describe('Gitlab actions', () => {
                 descriptionFields: undefined,
                 projectKey: gitlabClosedIssue.project.path_with_namespace,
                 summary: gitlabClosedIssue.object_attributes.title,
+                hookLabels: [],
             },
             projectKey: gitlabClosedIssue.project.path_with_namespace,
         };
@@ -261,7 +285,7 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'postIssueUpdates_' + new Date(gitlabClosedIssue.object_attributes.updated_at).getTime(),
+                redisKey: 'postIssueUpdates_' + fakeTimestamp,
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
             },
@@ -289,8 +313,9 @@ describe('Gitlab actions', () => {
                 gitlabReopenedIssue.project.path_with_namespace +
                 '/issues/' +
                 gitlabReopenedIssue.object_attributes.iid +
+                ';' +
                 ';',
-
+            hookLabels: gitlabReopenedIssue.labels,
             changes: [{ field: 'status', newValue: IssueStateEnum.open }],
         };
         const createRoomData: CreateRoomData = {
@@ -298,6 +323,7 @@ describe('Gitlab actions', () => {
                 key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
                 descriptionFields: undefined,
                 projectKey: gitlabReopenedIssue.project.path_with_namespace,
+                hookLabels: gitlabReopenedIssue.labels,
                 summary: gitlabReopenedIssue.object_attributes.title,
             },
             projectKey: gitlabReopenedIssue.project.path_with_namespace,
@@ -313,12 +339,12 @@ describe('Gitlab actions', () => {
                 createRoomData,
             },
             {
-                redisKey: 'inviteNewMembers_' + new Date(gitlabReopenedIssue.object_attributes.updated_at).getTime(),
+                redisKey: 'inviteNewMembers_' + fakeTimestamp,
                 funcName: 'inviteNewMembers',
                 data: inviteNewMembersData,
             },
             {
-                redisKey: 'postIssueUpdates_' + new Date(gitlabReopenedIssue.object_attributes.updated_at).getTime(),
+                redisKey: 'postIssueUpdates_' + fakeTimestamp,
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
             },
@@ -383,7 +409,7 @@ describe('Gitlab actions', () => {
                 createRoomData: false,
             },
             {
-                redisKey: 'postPipeline_' + new Date(pipelineHook.object_attributes.created_at).getTime(),
+                redisKey: 'postPipeline_' + fakeTimestamp,
                 funcName: 'postPipeline',
                 data: postPipelineData,
             },

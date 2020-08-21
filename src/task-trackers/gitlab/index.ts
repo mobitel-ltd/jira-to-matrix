@@ -16,6 +16,7 @@ import {
     HookUser,
     GitlabLabel,
     HookTypes,
+    GitlabLabelHook,
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
@@ -134,8 +135,14 @@ export class Gitlab implements TaskTracker {
 
     // async getLabels();
 
-    getStatusColor({ issueKey }): Promise<string[]> {
-        return this.getCurrentIssueColor(issueKey);
+    getStatusColor({
+        issueKey,
+        hookLabels = [],
+    }: {
+        issueKey: string;
+        hookLabels?: GitlabLabelHook[];
+    }): Promise<string[]> {
+        return this.getCurrentIssueColor(issueKey, hookLabels);
     }
 
     requestPost(url: string, options: AxiosRequestConfig, contentType?: string): Promise<any> {
@@ -151,6 +158,16 @@ export class Gitlab implements TaskTracker {
         const project = await this.getBaseProject(namespaceWithProjectName);
 
         return project.id as number;
+    }
+
+    private async getGroupIdByNamespace(namespaceWithProjectName: string): Promise<number | undefined> {
+        const [groupName] = namespaceWithProjectName.split('/');
+        const groupUrl = this.getRestUrl('groups?per_page=100');
+        const groups = await this.request(groupUrl);
+
+        const group = groups.find(el => el.path === groupName);
+
+        return group?.id;
     }
 
     // key is like namespace/project-123
@@ -252,18 +269,16 @@ export class Gitlab implements TaskTracker {
     }
 
     private async getBaseProject(namespaceWithProjectName: string): Promise<GitlabProject> {
-        const queryPararms = querystring.stringify({ search: namespaceWithProjectName });
+        const queryPararms = namespaceWithProjectName.split('/').join('%2F');
         // TODO make correct query params passing
-        const url = this.getRestUrl('projects?' + queryPararms);
-        const foundProjects: GitlabProject[] = await this.request(url);
-        const project: GitlabProject | undefined = foundProjects.find(
-            el => el.path_with_namespace === namespaceWithProjectName,
-        );
+        const url = this.getRestUrl('projects/' + queryPararms);
+        const foundProjects: GitlabProject = await this.request(url);
+        const project: boolean = foundProjects.path_with_namespace === namespaceWithProjectName;
         if (!project) {
             throw new Error(`Not found project by namespace ${namespaceWithProjectName}`);
         }
 
-        return project;
+        return foundProjects;
     }
 
     private async getProjectMembers(projectId): Promise<GitlabUserData[]> {
@@ -365,21 +380,47 @@ export class Gitlab implements TaskTracker {
         };
     }
 
-    async getProjectLabels(namespaceWithProject): Promise<GitlabLabel[]> {
+    async getProjectLabels(namespaceWithProject: string): Promise<GitlabLabel[]> {
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
-        const url = this.getRestUrl('projects', projectId, 'labels');
+        const url = this.getRestUrl('projects', projectId, 'labels?per_page=100');
 
         return await this.request(url);
     }
 
-    async getCurrentIssueColor(key: string): Promise<string[]> {
-        const { namespaceWithProject } = this.selectors.transformFromKey(key);
+    async getGroupLabels(namespaceWithProject: string): Promise<GitlabLabel[]> {
+        const groupId = await this.getGroupIdByNamespace(namespaceWithProject);
+        if (!groupId) {
+            logger.warn(
+                `Group by id with namespace ${namespaceWithProject} is not found. Return empty array of labels`,
+            );
+
+            return [];
+        }
+        const url = this.getRestUrl('groups', groupId, 'labels?per_page=100');
+
+        return await this.request(url);
+    }
+
+    async getAllAvailalbleLabels(namespaceWithProject): Promise<GitlabLabel[]> {
+        const projectLabels = await this.getProjectLabels(namespaceWithProject);
+        const groupLabels = await this.getGroupLabels(namespaceWithProject);
+
+        return [...projectLabels, ...groupLabels];
+    }
+
+    async getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string[]> {
         const issue = await this.getIssue(key);
         if (issue.state === 'closed') {
             return ['gray'];
         }
-        const projectLabels = await this.getProjectLabels(namespaceWithProject);
-        const colors = projectLabels.filter(el => issue.labels.includes(el.name)).map(el => el.color);
+        if (!hookLabels) {
+            const { namespaceWithProject } = this.selectors.transformFromKey(key);
+            const labels = await this.getAllAvailalbleLabels(namespaceWithProject);
+            const colors = labels.filter(label => issue.labels.includes(label.name)).map(label => label.color);
+
+            return [...new Set(colors)];
+        }
+        const colors = (hookLabels || []).map(label => label.color).sort();
 
         return [...new Set(colors)];
     }

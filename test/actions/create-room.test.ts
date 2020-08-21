@@ -1,3 +1,4 @@
+import querystring from 'querystring';
 import { pipe, set, clone } from 'lodash/fp';
 import nock from 'nock';
 import { CreateRoom } from '../../src/bot/actions/create-room';
@@ -387,6 +388,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     key:
                         gitlabCommentCreatedHook.project.path_with_namespace + '-' + gitlabCommentCreatedHook.issue.iid,
                     descriptionFields: undefined,
+                    hookLabels: gitlabCommentCreatedHook.issue.labels,
                     projectKey: gitlabCommentCreatedHook.project.path_with_namespace,
                     summary: gitlabCommentCreatedHook.issue.description,
                 },
@@ -398,14 +400,13 @@ describe('Create room test with gitlab as task tracker', () => {
         describe('Room is exists', () => {
             beforeEach(() => {
                 nock(gitlabTracker.getRestUrl())
-                    .get(`/projects`)
-                    .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
+                    .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(3)
                     .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
                     .times(2)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/labels`)
+                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 
@@ -436,6 +437,8 @@ describe('Create room test with gitlab as task tracker', () => {
                     gitlabCommentCreatedHook.project.path_with_namespace +
                     '/issues/' +
                     gitlabCommentCreatedHook.issue.iid +
+                    ';' +
+                    gitlabIssueJson.milestone.title +
                     ';';
 
                 expectedIssueRoomOptions = {
@@ -448,16 +451,15 @@ describe('Create room test with gitlab as task tracker', () => {
                     purpose: gitlabIssueJson.title,
                 };
                 nock(gitlabTracker.getRestUrl())
-                    .get(`/projects`)
-                    .query({ search: gitlabCommentCreatedHook.project.path_with_namespace })
+                    .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(5)
                     .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
                     .times(3)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/members/all`)
+                    .get(`/projects/${gitlabProjectsJson.id}/members/all`)
                     .reply(200, projectMembersJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/labels`)
+                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 
@@ -495,6 +497,7 @@ describe('Create room test with gitlab as task tracker', () => {
                         '-' +
                         gitlabIssueCreatedJson.object_attributes.iid,
                     descriptionFields: undefined,
+                    hookLabels: gitlabIssueCreatedJson.labels,
                     projectKey: gitlabIssueCreatedJson.project.path_with_namespace,
                     summary: gitlabIssueCreatedJson.object_attributes.title,
                 },
@@ -506,14 +509,13 @@ describe('Create room test with gitlab as task tracker', () => {
         describe('Room is exists', () => {
             beforeEach(() => {
                 nock(gitlabTracker.getRestUrl())
-                    .get(`/projects`)
-                    .query({ search: gitlabIssueCreatedJson.project.path_with_namespace })
+                    .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(3)
                     .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
+                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
                     .times(2)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/labels`)
+                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 
@@ -547,6 +549,8 @@ describe('Create room test with gitlab as task tracker', () => {
                     gitlabIssueCreatedJson.project.path_with_namespace +
                     '/issues/' +
                     gitlabIssueCreatedJson.object_attributes.iid +
+                    ';' +
+                    gitlabIssueJson.milestone.title +
                     ';';
 
                 expectedIssueRoomOptions = {
@@ -561,16 +565,15 @@ describe('Create room test with gitlab as task tracker', () => {
                     purpose: gitlabIssueJson.title,
                 };
                 nock(gitlabTracker.getRestUrl())
-                    .get(`/projects`)
-                    .query({ search: gitlabIssueCreatedJson.project.path_with_namespace })
+                    .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(5)
                     .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
+                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
                     .times(3)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/members/all`)
+                    .get(`/projects/${gitlabProjectsJson.id}/members/all`)
                     .reply(200, projectMembersJson)
-                    .get(`/projects/${gitlabProjectsJson[0].id}/labels`)
+                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 

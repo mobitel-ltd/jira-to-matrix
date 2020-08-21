@@ -43,6 +43,7 @@ interface BaseGetters<T> {
 }
 
 interface BodyGetters<T = unknown> extends BaseGetters<T> {
+    getIssueLabels(body: T): GitlabLabelHook[] | string[];
     getProjectKey(body: T): string;
     getFullKey(body: T): string;
     /**
@@ -96,7 +97,7 @@ const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind
 
 const getTypeEvent = body => body?.object_attributes?.action;
 
-const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) => {
+const composeRoomName = (key: string, { summary, state = IssueStateEnum.open, milestone = '' }) => {
     const data = transformFromKey(key);
 
     return [
@@ -104,6 +105,7 @@ const composeRoomName = (key: string, { summary, state = IssueStateEnum.open }) 
         summary.slice(0, 60),
         state,
         [data.namespaceWithProject, 'issues', data.issueId].join('/'),
+        milestone,
     ]
         .join(';')
         .concat(';');
@@ -183,6 +185,7 @@ const handlers: {
 } = {
     issue: {
         getProjectKey: body => body.project.path_with_namespace,
+        getIssueLabels: body => body.labels,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.object_attributes.iid),
         keysForCheckIgnore: body => handlers.issue.getFullKey(body),
         getDisplayName: body => body.user.name,
@@ -200,31 +203,36 @@ const handlers: {
                 return [{ field: 'status', newValue: IssueStateEnum.open }];
             }
 
-            return Object.entries(body.changes)
-
-                .filter(([el]) => !el.includes('_'))
-                .map(([field, value]) => {
-                    switch (field) {
-                        case 'description':
-                            return { field, newValue: marked(value.current as string) };
-                        case 'assignees':
-                            return { field, newValue: value.current[0]?.name };
-                        case 'labels':
-                            return {
-                                field,
-                                newValue: getCurrentLabelsMsg(
-                                    value.previous as GitlabLabelHook[],
-                                    value.current as GitlabLabelHook[],
-                                ),
-                            };
-                        default:
-                            return { field, newValue: value.current };
-                    }
-                });
+            return (
+                Object.entries(body.changes)
+                    .filter(([el]) => !(el.includes('_at') || el.includes('_by') || el.includes('_position')))
+                    //.filter(([el]) => !['_position', '_at', '_by'].includes(el))
+                    .map(([field, value]) => {
+                        switch (field) {
+                            case 'description':
+                                return { field, newValue: marked(value.current as string) };
+                            case 'assignees':
+                                return { field, newValue: value.current[0]?.name };
+                            case 'labels':
+                                return {
+                                    field,
+                                    newValue: getCurrentLabelsMsg(
+                                        value.previous as GitlabLabelHook[],
+                                        value.current as GitlabLabelHook[],
+                                    ),
+                                };
+                            case 'milestone_id':
+                                return { field, newValue: value.current };
+                            default:
+                                return { field, newValue: value.current };
+                        }
+                    })
+            );
         },
         // getBodyTimestamp: body => body.object_attributes.created_at,
     },
     note: {
+        getIssueLabels: body => body.issue.labels,
         keysForCheckIgnore: body => handlers.note.getFullKey(body),
         getIssueChanges: () => undefined,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.issue.iid),
@@ -293,11 +301,13 @@ const handlers: {
 };
 
 const issueRequestHandlers: IssueGetters<GitlabIssue> = {
+    getIssueLabels: body => body.labels,
     getRoomName: body => {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);
+        const milestone = body.milestone === null ? '' : body.milestone.title;
         const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
-        return composeRoomName(key, { summary, state });
+        return composeRoomName(key, { summary, state, milestone });
     },
     keysForCheckIgnore: body => issueRequestHandlers.getFullKey(body),
     getIssueChanges: () => undefined,
@@ -371,13 +381,9 @@ const getDisplayName = body => runMethod(body, 'getDisplayName');
 
 const getProjectKey = body => runMethod(body, 'getProjectKey') || issueRequestHandlers.getProjectKey(body);
 
-const getBodyTimestamp = body => {
-    const time: string | undefined = body?.object_attributes?.updated_at || body?.object_attributes?.created_at;
-    if (!time) {
-        return new Date().getTime();
-    }
-
-    return new Date(time).getTime() || time.split(' ').join();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getBodyTimestamp = (body): number => {
+    return Date.now();
 };
 
 const getRedisKey = (funcName: string, body: any): string => [funcName, getBodyTimestamp(body)].join('_');
@@ -398,6 +404,8 @@ const getIssueChanges = body => runMethod(body, 'getIssueChanges');
 
 const isUploadBody = handlers.note.isUploadBody;
 
+const getIssueLabels = body => runMethod(body, 'getIssueLabels');
+
 const getUploadUrl = handlers.note.getUploadUrl;
 
 const getUploadInfo = body => {
@@ -414,6 +422,7 @@ const isPipelineHook = (body: unknown) =>
 export const selectors: GitlabSelectors = {
     getPostKeys: handlers.pipeline.getIssueKeys,
     isPipelineHook,
+    getIssueLabels,
     getFullNameWithId: body => {
         const handler = getHandler(body as any);
 

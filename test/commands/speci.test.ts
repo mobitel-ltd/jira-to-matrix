@@ -37,7 +37,7 @@ describe('spec test', () => {
     const roomName = 'BBCOM-123';
     const roomId = getRoomId();
 
-    before(() => {
+    beforeEach(() => {
         nock(taskTracker.getRestUrl())
             .post(`/issue/${roomName}/watchers`, schemas.watcher(userB.accountId))
             .times(2)
@@ -64,14 +64,11 @@ describe('spec test', () => {
             .get('/user/search')
             .query({ query: 'fake' })
             .reply(200, []);
-    });
-
-    beforeEach(() => {
         chatApi = getChatClass().chatApiSingle;
         baseOptions = { roomId, roomName, chatApi };
     });
 
-    after(() => {
+    afterEach(() => {
         nock.cleanAll();
     });
 
@@ -103,7 +100,7 @@ describe('spec test', () => {
     });
 
     it('should be error (invite throw)', async () => {
-        const post = translate('errorMatrixCommands');
+        const errorMessage = 'Error!!!';
         chatApi.invite.throws('Error!!!');
         let result;
         try {
@@ -111,9 +108,10 @@ describe('spec test', () => {
         } catch (err) {
             result = err;
         }
+        const message = utils.errorTracing('Spec command', errorMessage);
 
         expect(result).to.be.undefined;
-        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, post, post);
+        expect(chatApi.sendHtmlMessage).to.have.been.calledOnceWithExactly(roomId, message, message);
     });
 
     it('should be sent msg about adding admin status if 403 error got in request', async () => {

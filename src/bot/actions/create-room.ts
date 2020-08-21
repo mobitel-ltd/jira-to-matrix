@@ -125,13 +125,14 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async getCheckedIssue(keyOrId): Promise<CreateIssueRoomOptions | false> {
+    async getCheckedIssue(keyOrId, hookLabels): Promise<CreateIssueRoomOptions | false> {
         const issueBody = await this.taskTracker.getIssueSafety(keyOrId);
         if (!issueBody) {
             return false;
         }
 
-        const statusColors = (await this.taskTracker.getCurrentIssueColor(keyOrId)) || this.defaultAvatarColor;
+        const statusColors =
+            (await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels)) || this.defaultAvatarColor;
 
         return {
             key: this.taskTracker.selectors.getIssueKey(issueBody)!,
@@ -151,7 +152,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         try {
             const keyOrId = issue.key || issue.id;
             if (issue && keyOrId) {
-                const checkedIssue = await this.getCheckedIssue(keyOrId);
+                const checkedIssue = await this.getCheckedIssue(keyOrId, issue.hookLabels);
                 if (!checkedIssue) {
                     logger.warn(`Issue ${keyOrId} is not exists`);
 

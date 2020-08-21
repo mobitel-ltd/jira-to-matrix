@@ -1,7 +1,8 @@
+import querystring from 'querystring';
 import nock from 'nock';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import issueJson from '../fixtures/gitlab-api-requests/issue.json';
-import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import projectJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import labelsJson from '../fixtures/gitlab-api-requests/labels.json';
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
 import * as chai from 'chai';
@@ -34,10 +35,9 @@ describe('Gitlab api testing', () => {
     describe('getIssue test', () => {
         beforeEach(() => {
             nock(gitlab.getRestUrl())
-                .get(`/projects`)
-                .query({ search: `${projectNamespace}/${projectKey}` })
-                .reply(200, projectsJson)
-                .get(`/projects/${projectsJson[0].id}/issues/${issueId}`)
+                .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
+                .reply(200, projectJson)
+                .get(`/projects/${projectJson.id}/issues/${issueId}`)
                 .reply(200, issueJson);
         });
 
@@ -54,10 +54,9 @@ describe('Gitlab api testing', () => {
 
         beforeEach(() => {
             nock(gitlab.getRestUrl())
-                .get(`/projects`)
-                .query({ search: `${projectNamespace}/${projectKey}` })
-                .reply(200, projectsJson)
-                .post(`/projects/${projectsJson[0].id}/issues/${issueId}/notes`)
+                .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
+                .reply(200, projectJson)
+                .post(`/projects/${projectJson.id}/issues/${issueId}/notes`)
                 .query({ body: gitlab.getPostCommentBody(sender, bodyText) })
                 .reply(201);
         });
@@ -72,27 +71,25 @@ describe('Gitlab api testing', () => {
     describe('getProject test', () => {
         beforeEach(() => {
             nock(gitlab.getRestUrl())
-                .get(`/projects`)
-                .query({ search: `${projectNamespace}/${projectKey}` })
-                .reply(200, projectsJson)
-                .get(`/projects/${projectsJson[0].id}/members/all`)
+                .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
+                .reply(200, projectJson)
+                .get(`/projects/${projectJson.id}/members/all`)
                 .reply(200, projectMembersJson);
         });
 
         it('should return project data', async () => {
             const res = await gitlab.getProject(`${projectNamespace}/${projectKey}`);
 
-            expect(res).to.be.deep.eq({ ...projectsJson[0], lead: projectMembersJson[1].name });
+            expect(res).to.be.deep.eq({ ...projectJson, lead: projectMembersJson[1].name });
         });
     });
 
     describe('getWatchers test', () => {
         beforeEach(() => {
             nock(gitlab.getRestUrl())
-                .get(`/projects`)
-                .query({ search: `${projectNamespace}/${projectKey}` })
-                .reply(200, projectsJson)
-                .get(`/projects/${projectsJson[0].id}/issues/${issueId}`)
+                .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
+                .reply(200, projectJson)
+                .get(`/projects/${projectJson.id}/issues/${issueId}`)
                 .reply(200, issueJson);
         });
 
@@ -106,13 +103,16 @@ describe('Gitlab api testing', () => {
     describe('getCurrentIssueColor', () => {
         it('should return correct color', async () => {
             nock(gitlab.getRestUrl())
-                .get(`/projects`)
-                .query({ search: `${projectNamespace}/${projectKey}` })
+                .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
                 .times(2)
-                .reply(200, projectsJson)
-                .get(`/projects/${projectsJson[0].id}/issues/${issueId}`)
+                .reply(200, projectJson)
+                .get(`/projects/${projectJson.id}/issues/${issueId}`)
                 .reply(200, issueJson)
-                .get('/projects/3032/labels')
+                .get(`/projects/${projectJson.id}/labels`)
+                .query({ per_page: 100 })
+                .reply(200, labelsJson)
+                .get('/groups')
+                .query({ per_page: 100 })
                 .reply(200, labelsJson);
 
             const res = await gitlab.getCurrentIssueColor(issueKey);
@@ -129,13 +129,16 @@ describe('Gitlab api testing', () => {
                 ),
             )(issueJson);
             nock(gitlab.getRestUrl())
-                .get(`/projects`)
-                .query({ search: `${projectNamespace}/${projectKey}` })
+                .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
                 .times(2)
-                .reply(200, projectsJson)
-                .get(`/projects/${projectsJson[0].id}/issues/${issueId}`)
+                .reply(200, projectJson)
+                .get(`/projects/${projectJson.id}/issues/${issueId}`)
                 .reply(200, issueJsonWithAllProjectLabels)
-                .get('/projects/3032/labels')
+                .get(`/projects/${projectJson.id}/labels`)
+                .query({ per_page: 100 })
+                .reply(200, labelsJson)
+                .get('/groups')
+                .query({ per_page: 100 })
                 .reply(200, labelsJson);
 
             const res = await gitlab.getCurrentIssueColor(issueKey);

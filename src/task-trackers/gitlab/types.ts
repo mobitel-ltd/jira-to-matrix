@@ -15,13 +15,13 @@ export interface GitlabLabelHook {
     id: number;
     title: string;
     color: string;
-    project_id: number;
+    project_id: number | null;
     created_at: string;
     updated_at: string;
     template: boolean;
-    description: string;
+    description: string | null;
     type: string;
-    group_id: number;
+    group_id: number | null;
 }
 
 export interface GitlabLabel {
@@ -87,7 +87,7 @@ export interface GitlabCommentHook extends GitlabHook {
         milestone_id: null | string;
         state: string;
         iid: number;
-        labels: GitlabLabel[];
+        labels: GitlabLabelHook[];
     };
 }
 
@@ -505,6 +505,7 @@ export interface GitlabSelectors extends Selectors {
     getCommitKeysBody(body: GitlabPushHook): Record<string, GitlabPushCommit[]>;
     getUploadUrl(body): string | null | undefined;
     isUploadBody(body): boolean;
+    getIssueLabels(body): GitlabLabelHook[];
     getUploadInfo(body): string;
     transformFromKey(key: string): { namespaceWithProject: string; issueId: number };
     transformToKey(namespaceWithProject: string, issueId: number): string;

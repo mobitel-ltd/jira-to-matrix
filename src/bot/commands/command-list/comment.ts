@@ -19,7 +19,8 @@ export class CommentCommand extends Command<TaskTracker> implements RunCommand {
             logger.error('Comment command error');
             logger.error(error);
 
-            return translate('errorCommentSend');
+            //return translate('errorCommentSend');
+            return error;
         }
     }
 }

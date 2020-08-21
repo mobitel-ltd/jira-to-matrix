@@ -10,7 +10,7 @@ export const infoBody = `
 
 export const noJiraConnection = 'No connection with Jira!!!';
 
-export const getRequestErrorLog = (url: string, status: number, method: any, text?: any) =>
+export const getRequestErrorLog = (url: string, status: number | undefined, method: any, text?: any) =>
     `Error in ${method} request ${url}, status is ${status}, error text: ${text}`;
 
 export const getNoIssueLinkLog = (id1, id2) =>
