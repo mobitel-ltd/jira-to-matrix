@@ -13,6 +13,10 @@ export class ChatFasade {
         this.worker = ramda.last(chatPool)!;
     }
 
+    getRoomLink(idOrAlias: string): string {
+        return this.worker.getRoomLink(idOrAlias);
+    }
+
     /**
      * @returns {string|undefined} room alias
      */

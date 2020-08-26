@@ -2,6 +2,7 @@
 /* eslint-disable camelcase */
 
 export const dict = Object.freeze({
+    roomCreatedMessage: '[Chat](%{link}) for issue is created',
     pushCommitInfo: '%{name} pushed commits:',
     errorCommentSend: 'Error sending comment to taskTracker, send info to admin',
     uploadInfo: '%{name} upload file',

@@ -26,6 +26,8 @@ import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.
 import gitlabIssueCreatedJson from '../fixtures/webhooks/gitlab/issue/created.json';
 import gitlabLabelJson from '../fixtures/gitlab-api-requests/labels.json';
 import { setSettingsData } from '../../src/bot/settings';
+import { translate } from '../../src/locales';
+import { schemas } from '../../src/task-trackers/jira/schemas';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -121,8 +123,11 @@ describe('Create room test', () => {
         });
         chatApi = chatClass.chatApiSingle;
         chatApi.uploadContent.resolves(messengerLink);
+        const roomId = chatClass.getRoomData().id;
 
         createRoom = new CreateRoom(config, taskTracker, chatClass.chatApi);
+
+        const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
 
         nock(taskTracker.getRestUrl())
             // comment created hook
@@ -131,9 +136,13 @@ describe('Create room test', () => {
             .reply(200, issueBodyJSON)
             .get(`/issue/${issueBodyJSON.key}`)
             .reply(200, issueBodyJSON)
+            .post(`/issue/${issueBodyJSON.key}/comment`, schemas.info(roomCreatedMessage))
+            .reply(201)
             .get(`/issue/${notFoundUserIssueKey}`)
             .times(4)
             .reply(200, issueWithIncorrectCreator as any)
+            .post(`/issue/${notFoundUserIssueKey}/comment`, schemas.info(roomCreatedMessage))
+            .reply(201)
             .get(`/issue/${notFoundUserIssueKey}/watchers`)
             .reply(200, watchersBody)
             .get(`/issue/${notFoundUserIssueKey}`)
@@ -142,6 +151,8 @@ describe('Create room test', () => {
             .get(`/issue/${createRoomData.issue.key}`)
             .times(3)
             .reply(200, issueBodyJSON)
+            .post(`/issue/${issueKeyAvatar}/comment`, schemas.info(roomCreatedMessage))
+            .reply(201)
             .get(`/issue/${issueBodyJSON.key}/watchers`)
             .reply(200, watchersBody)
             .get(`/issue/${issueBodyJSON.key}`)
@@ -356,6 +367,7 @@ describe('Create room test with gitlab as task tracker', () => {
     let gitlabTracker: Gitlab;
     let chatApi;
     let createRoom: CreateRoom;
+    let roomId;
 
     beforeEach(() => {
         gitlabTracker = new Gitlab({
@@ -380,6 +392,7 @@ describe('Create room test with gitlab as task tracker', () => {
             });
             chatApi = chatClass.chatApiSingle;
             createRoom = new CreateRoom(config, gitlabTracker, chatClass.chatApi);
+            roomId = chatClass.getRoomData().id;
         });
 
         it('should return correct createRoomData', async () => {
@@ -450,6 +463,8 @@ describe('Create room test with gitlab as task tracker', () => {
                     topic: gitlabTracker.getViewUrl(issueKey),
                     purpose: gitlabIssueJson.title,
                 };
+
+                const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(5)
@@ -460,7 +475,12 @@ describe('Create room test with gitlab as task tracker', () => {
                     .get(`/projects/${gitlabProjectsJson.id}/members/all`)
                     .reply(200, projectMembersJson)
                     .get(`/projects/${gitlabProjectsJson.id}/labels`)
-                    .reply(200, gitlabLabelJson);
+                    .reply(200, gitlabLabelJson)
+                    .post(
+                        `/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}/notes`,
+                    )
+                    .query({ body: roomCreatedMessage })
+                    .reply(201);
             });
 
             it('should call room creation', async () => {
@@ -487,6 +507,7 @@ describe('Create room test with gitlab as task tracker', () => {
             chatFasade = chatClass.chatApi;
             chatApi.uploadContent.resolves(messengerLink);
             createRoom = new CreateRoom(config, gitlabTracker, chatFasade);
+            roomId = chatClass.getRoomData().id;
         });
 
         it('should return correct createRoomData', async () => {
@@ -564,6 +585,8 @@ describe('Create room test with gitlab as task tracker', () => {
                     topic: gitlabTracker.getViewUrl(issueKey),
                     purpose: gitlabIssueJson.title,
                 };
+                const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
+
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(5)
@@ -574,7 +597,12 @@ describe('Create room test with gitlab as task tracker', () => {
                     .get(`/projects/${gitlabProjectsJson.id}/members/all`)
                     .reply(200, projectMembersJson)
                     .get(`/projects/${gitlabProjectsJson.id}/labels`)
-                    .reply(200, gitlabLabelJson);
+                    .reply(200, gitlabLabelJson)
+                    .post(
+                        `/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}/notes`,
+                    )
+                    .query({ body: roomCreatedMessage })
+                    .reply(201);
             });
 
             it('should call room creation with no avatar', async () => {
