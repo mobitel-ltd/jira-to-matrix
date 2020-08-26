@@ -66,7 +66,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<void> {
+    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<string> {
         try {
             const { key, summary, projectKey, descriptionFields, roomName, statusColors } = issue;
 
@@ -99,6 +99,8 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
 
             await this.currentChatItem.sendHtmlMessage(roomId, body, htmlBody);
             await this.currentChatItem.sendHtmlMessage(roomId, infoBody, infoBody);
+
+            return roomId;
         } catch (err) {
             throw errorTracing('createIssueRoom', err);
         }
@@ -159,7 +161,11 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
                     return false;
                 }
                 if (!(await this.currentChatItem.getRoomIdByName(checkedIssue.key))) {
-                    await this.createIssueRoom(checkedIssue);
+                    const roomId = await this.createIssueRoom(checkedIssue);
+                    await this.taskTracker.sendMessage(
+                        checkedIssue.key,
+                        translate('roomCreatedMessage', { link: this.chatApi.getRoomLink(roomId) }),
+                    );
                 }
             }
             if (projectKey) {
