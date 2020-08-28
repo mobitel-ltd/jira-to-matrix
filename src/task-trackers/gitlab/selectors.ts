@@ -57,6 +57,10 @@ interface BodyGetters<T = unknown> extends BaseGetters<T> {
     getIssueChanges(body: T): IssueChanges[] | undefined;
 }
 
+interface IssueHookGetters<T = unknown> extends BodyGetters<T> {
+    getMilestoneId(body: T): number | null;
+}
+
 interface PushGetters<T> extends BaseGetters<T> {
     getCommitKeysBody(body: T): Record<string, GitlabPushCommit[]>;
     getFullNameWithId(body: T): string;
@@ -69,7 +73,7 @@ interface PipelineGetters extends BaseGetters<GitlabPipelineHook> {
     getIssueKeys(body: GitlabPipelineHook): string[];
 }
 
-interface CommentGetters<T> extends BodyGetters<T> {
+interface CommentGetters<T> extends IssueHookGetters<T> {
     getFullNameWithId(body: T): string;
     getCommentBody(
         body: T,
@@ -178,12 +182,13 @@ export const extractKeysFromCommitMessage = (message: string, nameSpaceWithProje
 const getFullName = (displayName: string, userId: string) => [userId, `${displayName}`].join(' ');
 
 const handlers: {
-    issue: BodyGetters<GitlabIssueHook>;
+    issue: IssueHookGetters<GitlabIssueHook>;
     note: CommentGetters<GitlabCommentHook>;
     push: PushGetters<GitlabPushHook>;
     pipeline: PipelineGetters;
 } = {
     issue: {
+        getMilestoneId: body => body.object_attributes.milestone_id,
         getProjectKey: body => body.project.path_with_namespace,
         getIssueLabels: body => body.labels,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.object_attributes.iid),
@@ -232,6 +237,7 @@ const handlers: {
         // getBodyTimestamp: body => body.object_attributes.created_at,
     },
     note: {
+        getMilestoneId: body => body.issue.milestone_id,
         getIssueLabels: body => body.issue.labels,
         keysForCheckIgnore: body => handlers.note.getFullKey(body),
         getIssueChanges: () => undefined,
@@ -357,7 +363,7 @@ const isIgnoreHookType = (body): boolean => {
     return !Boolean(type && handlers[type]);
 };
 
-const runMethod = (body: any, method: keyof BodyGetters): any => {
+const runMethod = (body: any, method: keyof IssueHookGetters): any => {
     const handler = getHandler(body);
 
     return handler && handler[method] && handler[method](body);
@@ -419,7 +425,10 @@ const keysForCheckIgnore = body => runMethod(body, 'keysForCheckIgnore');
 const isPipelineHook = (body: unknown) =>
     isCorrectWebhook(body, HookTypes.Pipeline) && handlers.pipeline.isFinalPipeline(body as GitlabPipelineHook);
 
+const getMilestoneId = (body): number | null => runMethod(body, 'getMilestoneId');
+
 export const selectors: GitlabSelectors = {
+    getMilestoneId,
     getPostKeys: handlers.pipeline.getIssueKeys,
     isPipelineHook,
     getIssueLabels,

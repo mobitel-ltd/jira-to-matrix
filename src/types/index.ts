@@ -620,6 +620,7 @@ export interface CreateRoomData {
         descriptionFields?: DescriptionFields;
     };
     projectKey?: string;
+    milestoneId?: number;
 }
 
 export interface InviteNewMembersData {

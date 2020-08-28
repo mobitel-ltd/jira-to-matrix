@@ -84,7 +84,7 @@ export interface GitlabCommentHook extends GitlabHook {
         position: number;
         branch_name: null | string;
         description: string;
-        milestone_id: null | string;
+        milestone_id: null | number;
         state: string;
         iid: number;
         labels: GitlabLabelHook[];
@@ -108,7 +108,7 @@ export interface GitlabIssueHook extends GitlabHook {
         last_edited_by_id: null | string;
         relative_position: number;
         description: string;
-        milestone_id: null | string;
+        milestone_id: null | number;
         state_id: number;
         confidential: boolean;
         discussion_locked: boolean;
@@ -498,6 +498,7 @@ export interface Notes {
 }
 
 export interface GitlabSelectors extends Selectors {
+    getMilestoneId(body): number | null;
     getPostKeys(body: GitlabPipelineHook): string[];
     isPipelineHook(body: any): boolean;
     getFullNameWithId(body: GitlabPushHook | GitlabPipelineHook): string;

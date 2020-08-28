@@ -130,10 +130,11 @@ export class GitlabParser implements Parser {
         const key = this.selectors.getIssueKey(body);
         const hookLabels = this.selectors.getIssueLabels(body);
         const descriptionFields = this.selectors.getDescriptionFields(body);
+        const milestoneId = this.selectors.getMilestoneId(body) || undefined;
 
         const parsedIssue = { key, summary, projectKey, descriptionFields, hookLabels };
 
-        return { issue: parsedIssue, projectKey };
+        return { issue: parsedIssue, projectKey, milestoneId };
     }
 
     getPostCommentData(body): PostCommentData {

@@ -20,6 +20,7 @@ import { translate } from '../../../src/locales';
 import uploadHook from '../../fixtures/webhooks/gitlab/upload.json';
 import gitlabClosedIssue from '../../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.json';
+import createdIssue from '../../fixtures/webhooks/gitlab/issue/created.json';
 import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
@@ -52,6 +53,31 @@ describe('Gitlab actions', () => {
         const result = gitlabApi.parser.getBotActions(issueUpdated);
         const expected = ['inviteNewMembers', 'postIssueUpdates'];
         assert.deepEqual(result, expected);
+    });
+
+    it('should return create room data with milestoneId if issue includes not null misestone', () => {
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: createdIssue.project.path_with_namespace + '-' + createdIssue.object_attributes.iid,
+                descriptionFields: undefined,
+                projectKey: createdIssue.project.path_with_namespace,
+                summary: createdIssue.object_attributes.title,
+                hookLabels: createdIssue.object_attributes.labels,
+            },
+            projectKey: createdIssue.project.path_with_namespace,
+            milestoneId: createdIssue.object_attributes.milestone_id,
+        };
+
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(createdIssue);
+
+        assert.deepEqual(res, expected);
     });
 
     it('should return create room and post comment for note hook', () => {
