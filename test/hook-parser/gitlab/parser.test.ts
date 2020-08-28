@@ -90,6 +90,7 @@ describe('Gitlab actions', () => {
                 hookLabels: commentHook.issue.labels,
             },
             projectKey: commentHook.project.path_with_namespace,
+            milestoneId: undefined,
         };
 
         const expected = [
@@ -157,6 +158,7 @@ describe('Gitlab actions', () => {
                 hookLabels: issueUpdated.labels,
             },
             projectKey: issueUpdated.project.path_with_namespace,
+            milestoneId: undefined,
         };
         const expected = [
             {
@@ -190,6 +192,7 @@ describe('Gitlab actions', () => {
                 summary: issueCreated.object_attributes.title,
             },
             projectKey: issueCreated.project.path_with_namespace,
+            milestoneId: issueCreated.object_attributes.milestone_id,
         };
         const expected: { redisKey: typeof REDIS_ROOM_KEY; createRoomData: CreateRoomData }[] = [
             {
@@ -214,6 +217,7 @@ describe('Gitlab actions', () => {
                 hookLabels: uploadHook.issue.labels,
             },
             projectKey: uploadHook.project.path_with_namespace,
+            milestoneId: undefined,
         };
         const data: UploadData = {
             issueKey: uploadHook.project.path_with_namespace + '-' + uploadHook.issue.iid,
@@ -247,6 +251,7 @@ describe('Gitlab actions', () => {
                 hookLabels: [],
             },
             projectKey: uploadHookBin.project.path_with_namespace,
+            milestoneId: undefined,
         };
         const data: UploadData = {
             issueKey: uploadHookBin.project.path_with_namespace + '-' + uploadHookBin.issue.iid,
@@ -304,6 +309,7 @@ describe('Gitlab actions', () => {
                 hookLabels: [],
             },
             projectKey: gitlabClosedIssue.project.path_with_namespace,
+            milestoneId: undefined,
         };
         const expected = [
             {
@@ -353,6 +359,7 @@ describe('Gitlab actions', () => {
                 summary: gitlabReopenedIssue.object_attributes.title,
             },
             projectKey: gitlabReopenedIssue.project.path_with_namespace,
+            milestoneId: undefined,
         };
         const inviteNewMembersData: InviteNewMembersData = {
             key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,

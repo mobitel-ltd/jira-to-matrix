@@ -393,6 +393,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     summary: gitlabCommentCreatedHook.issue.description,
                 },
                 projectKey: gitlabCommentCreatedHook.project.path_with_namespace,
+                milestoneId: undefined,
             };
             expect(createRoomData).to.be.deep.eq(expected);
         });
@@ -502,6 +503,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     summary: gitlabIssueCreatedJson.object_attributes.title,
                 },
                 projectKey: gitlabIssueCreatedJson.project.path_with_namespace,
+                milestoneId: gitlabIssueCreatedJson.object_attributes.milestone_id,
             };
             expect(createRoomData).to.be.deep.eq(expected);
         });
