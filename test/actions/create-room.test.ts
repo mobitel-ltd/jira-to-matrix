@@ -530,6 +530,7 @@ describe('Create room test with gitlab as task tracker', () => {
 
         describe('Room is not exists', () => {
             let expectedIssueRoomOptions: CreateRoomOpions;
+            let expectedMilestoneRoomOptions: CreateRoomOpions;
             beforeEach(() => {
                 const issueKey =
                     gitlabIssueCreatedJson.project.path_with_namespace +
@@ -566,6 +567,41 @@ describe('Create room test with gitlab as task tracker', () => {
                     topic: gitlabTracker.getViewUrl(issueKey),
                     purpose: gitlabIssueJson.title,
                 };
+
+                //////////////////////////////////////////////////////////////////////
+
+                const MilestoneKey =
+                    gitlabIssueCreatedJson.project.path_with_namespace +
+                    '-' +
+                    gitlabIssueCreatedJson.object_attributes.iid;
+                const MilestoneMembers = [
+                    getUserIdByDisplayName(gitlabIssueJson.assignee.name),
+                    getUserIdByDisplayName(gitlabIssueJson.author.name),
+                ].map(name => getChatClass().chatApiSingle.getChatUserId(name));
+
+                const MilestoneRoomName =
+                    '#' +
+                    gitlabIssueCreatedJson.object_attributes.milestone_id +
+                    ';' +
+                    gitlabIssueJson.milestone.title +
+                    ';' +
+                    gitlabIssueJson.milestone.web_url.replace('https://', '') +
+                    ';';
+
+                expectedMilestoneRoomOptions = {
+                    invite: MilestoneMembers,
+                    name: MilestoneRoomName,
+                    room_alias_name:
+                        gitlabIssueCreatedJson.project.path_with_namespace +
+                        '-' +
+                        gitlabIssueCreatedJson.object_attributes.iid,
+                    avatarUrl: undefined,
+                    topic: gitlabTracker.getViewUrl(MilestoneKey),
+                    purpose: gitlabIssueJson.title,
+                };
+
+                ////////////////////////////////////////////////////////////////////////////////////
+
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(5)
@@ -584,6 +620,7 @@ describe('Create room test with gitlab as task tracker', () => {
                 chatApi.getRoomIdByName.resolves(false);
                 const result = await createRoom.run(createRoomData);
                 expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptions);
+                expect(chatApi.createRoom).to.be.calledWithExactly(expectedMilestoneRoomOptions);
                 expect(result).to.be.true;
             });
 
