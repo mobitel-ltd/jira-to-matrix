@@ -256,7 +256,7 @@ export class Gitlab implements TaskTracker {
         }
     }
 
-    async getIssueSafety(key: string): Promise<Issue | boolean> {
+    async getIssueSafety(key: string): Promise<Issue | false> {
         try {
             const issue = await this.getIssue(key);
 

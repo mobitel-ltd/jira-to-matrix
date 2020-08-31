@@ -124,5 +124,5 @@ export class BaseAction<T extends ChatFasade, Task extends TaskTracker> {
 }
 
 export interface RunAction {
-    run(data): Promise<boolean | undefined | string[]>;
+    run(data): Promise<boolean | undefined | string[] | string>;
 }

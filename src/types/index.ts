@@ -17,6 +17,7 @@ export interface Config {
         postComments: boolean;
         postEachComments?: boolean;
         postIssueUpdates: boolean;
+        postMilestoneUpdates: boolean;
         epicUpdates: {
             newIssuesInEpic: 'on' | 'off';
             issuesStatusChanged: 'on' | 'off';
@@ -180,7 +181,7 @@ export enum IssueStateEnum {
 }
 
 export interface Selectors {
-    getMilestoneKey(body): string | undefined;
+    getMilestoneKey(body: Issue): string | undefined;
 
     getRoomName(body): string;
 
@@ -383,7 +384,7 @@ export interface TaskTracker {
     /**
      * Get issue without throw on error
      */
-    getIssueSafety(keyOrId: string): Promise<Issue | boolean>;
+    getIssueSafety(keyOrId: string): Promise<Issue | false>;
 
     /**
      * Check if issue exists
@@ -668,6 +669,19 @@ export interface PostEpicUpdatesData {
     data: { key: string; summary: string; id: string; name: string; status?: string };
 }
 
+export enum MilestoneUpdateStatus {
+    Created = 'created',
+    Closed = 'closed',
+    Deleted = 'deleted',
+}
+
+export interface PostMilestoneUpdatesData {
+    milestoneId: number;
+    issueKey: string;
+    user: string;
+    status: MilestoneUpdateStatus;
+    summary: string;
+}
 export interface PostProjectUpdatesData {
     typeEvent: 'issue_created' | 'issue_generic';
     projectKey: string;
@@ -771,6 +785,7 @@ export enum ActionNames {
     Upload = 'upload',
     PostCommit = 'postPushCommit',
     Pipeline = 'postPipeline',
+    PostMilestoneUpdates = 'postMilestoneUpdates',
 }
 
 export interface Parser {

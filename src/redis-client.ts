@@ -8,6 +8,7 @@ const logger = getLogger(module);
 export const REDIS_ROOM_KEY = 'newrooms';
 export const REDIS_LINK_PREFIX = 'link';
 export const REDIS_EPIC_PREFIX = 'epic';
+export const MILESTONE_PREFIX = 'milestone';
 
 export const DELIMITER = '|';
 
@@ -59,6 +60,7 @@ export const redis = {
     delAsync: promisify(client.del).bind(client),
     keysAsync: promisify(client.keys).bind(client),
     isInEpic: (redisEpicKey, issueId) => sismemberAsync(redisEpicKey, issueId),
+    isInMilestone: (milestoneKey, issueId) => sismemberAsync(milestoneKey, issueId),
     addToList: (list, id) => saddAsync(list, id),
     getList: promisify(client.smembers).bind(client),
     isNewLink: id => setnxAsync(getRedisLinkKey(id), '1'),
@@ -66,5 +68,6 @@ export const redis = {
 };
 
 export const getRedisEpicKey = id => [REDIS_EPIC_PREFIX, DELIMITER, id].join('');
+export const getRedisMilestoneKey = id => [MILESTONE_PREFIX, DELIMITER, id].join('');
 
 export const isIgnoreKey = key => !KEYS_TO_IGNORE.some(val => key.includes(val));

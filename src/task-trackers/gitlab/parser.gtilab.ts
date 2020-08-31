@@ -10,6 +10,8 @@ import {
     PushCommitData,
     ActionNames,
     PostPipelineData,
+    PostMilestoneUpdatesData,
+    MilestoneUpdateStatus,
 } from '../../types';
 import { GitlabSelectors, HookTypes, GitlabPushHook, GitlabPipelineHook, PipelineBuild } from './types';
 import Lo from 'lodash/fp';
@@ -152,6 +154,43 @@ export class GitlabParser implements Parser {
         );
     }
 
+    isPostMilestoneUpdates(body) {
+        return Boolean(
+            (this.features.postMilestoneUpdates &&
+                this.selectors.getMilestoneId(body) &&
+                this.selectors.getIssueChanges(body) &&
+                this.selectors.isCorrectWebhook(body, 'update')) ||
+                this.selectors.isCorrectWebhook(body, 'close'),
+        );
+    }
+
+    getPostMilestoneUpdatesData(body): PostMilestoneUpdatesData {
+        const isMilestoneDeleted = data => {
+            const changes = this.selectors.getIssueChanges(data);
+            if (changes) {
+                const newMilestone = changes.find(el => el.field === 'milestone_id');
+
+                return Boolean(newMilestone && newMilestone.newValue);
+            }
+
+            return false;
+        };
+
+        const status = Lo.cond([
+            [isMilestoneDeleted, Lo.always(MilestoneUpdateStatus.Deleted)],
+            [el => this.selectors.isCorrectWebhook(el, 'close'), Lo.always(MilestoneUpdateStatus.Closed)],
+            [Lo.T, Lo.always(MilestoneUpdateStatus.Created)],
+        ])(body);
+
+        return {
+            issueKey: this.selectors.getIssueKey(body),
+            milestoneId: this.selectors.getMilestoneId(body)!,
+            summary: this.selectors.getSummary(body)!,
+            user: this.selectors.getDisplayName(body)!,
+            status,
+        };
+    }
+
     getInviteNewMembersData(body): InviteNewMembersData {
         const key = this.selectors.getIssueKey(body);
         const descriptionFields = this.selectors.getDescriptionFields(body);
@@ -186,6 +225,7 @@ export class GitlabParser implements Parser {
         upload: this.isUpload,
         [ActionNames.PostCommit]: this.isPostPushCommit,
         [ActionNames.Pipeline]: this.isPostPipeline,
+        [ActionNames.PostMilestoneUpdates]: this.isPostMilestoneUpdates,
     };
 
     getBotActions(body) {

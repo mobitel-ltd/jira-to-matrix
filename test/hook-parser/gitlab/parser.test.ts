@@ -12,6 +12,8 @@ import {
     UploadData,
     IssueStateEnum,
     PostPipelineData,
+    PostMilestoneUpdatesData,
+    MilestoneUpdateStatus,
 } from '../../../src/types';
 import { HookParser } from '../../../src/hook-parser';
 import { getTaskTracker } from '../../../src/task-trackers';
@@ -309,7 +311,14 @@ describe('Gitlab actions', () => {
                 hookLabels: [],
             },
             projectKey: gitlabClosedIssue.project.path_with_namespace,
-            milestoneId: undefined,
+            milestoneId: gitlabClosedIssue.object_attributes.milestone_id,
+        };
+        const postMisestoneUpdatesData: PostMilestoneUpdatesData = {
+            issueKey: gitlabClosedIssue.project.path_with_namespace + '-' + gitlabClosedIssue.object_attributes.iid,
+            milestoneId: gitlabClosedIssue.object_attributes.milestone_id,
+            status: MilestoneUpdateStatus.Closed,
+            summary: gitlabClosedIssue.object_attributes.title,
+            user: gitlabClosedIssue.user.name,
         };
         const expected = [
             {
@@ -320,6 +329,11 @@ describe('Gitlab actions', () => {
                 redisKey: 'postIssueUpdates_' + fakeTimestamp,
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
+            },
+            {
+                redisKey: 'postMilestoneUpdates_' + fakeTimestamp,
+                funcName: 'postMilestoneUpdates',
+                data: postMisestoneUpdatesData,
             },
         ];
 
