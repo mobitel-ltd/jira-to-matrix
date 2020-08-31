@@ -15,21 +15,45 @@ import { translate } from '../../locales';
 import { DescriptionFields, IssueChanges, IssueStateEnum } from '../../types';
 import { URL } from 'url';
 
-/**
- * @example namespace/project-123
- */
-const transformFromKey = (key: string): { namespaceWithProject: string; issueId: number } => {
-    const [issueId, ...keyReversedParts] = key
+export enum KeyType {
+    Issue,
+    Milestone,
+}
+
+export const milestonePart = 'milestone';
+
+const getIdType = (formatedId: string): KeyType =>
+    formatedId.includes(milestonePart) ? KeyType.Milestone : KeyType.Issue;
+
+const transformFromKey = (
+    key: string,
+):
+    | { namespaceWithProject: string; issueId: number; milestoneId?: number }
+    | { namespaceWithProject: string; milestoneId: number; issueId?: number } => {
+    const [id, ...keyReversedParts] = key
         .toLowerCase()
         .split('-')
         .reverse();
     const namespaceWithProject = keyReversedParts.reverse().join('-');
+    const type = getIdType(id);
 
-    return { namespaceWithProject, issueId: Number(issueId) };
+    return type === KeyType.Issue
+        ? { namespaceWithProject, issueId: Number(id) }
+        : { namespaceWithProject, milestoneId: Number(id.replace(milestonePart, '')) };
 };
 
-export const transformToKey = (namespaceWithProject: string, issueId: number): string =>
-    [namespaceWithProject, issueId].join('-');
+/**
+ * @example namespace/project-123
+ */
+const transformFromIssueKey = (key: string): { namespaceWithProject: string; issueId: number } => {
+    return transformFromKey(key) as { namespaceWithProject: string; issueId: number };
+};
+
+export const transformToKey = (namespaceWithProject: string, id: number, type = KeyType.Issue): string => {
+    const formatedId = type === KeyType.Issue ? '' + id : milestonePart + id;
+
+    return [namespaceWithProject, formatedId].join('-');
+};
 
 interface BaseGetters<T> {
     getDisplayName(body: T): string;
@@ -87,6 +111,8 @@ interface CommentGetters<T> extends IssueHookGetters<T> {
 
 interface IssueGetters<T> extends BodyGetters<T> {
     getRoomName(body: T): string;
+    getMilestoneKey(body: T): string | undefined;
+    getMilestoneSummary(body: T): string | undefined;
 }
 
 const missField = translate('miss');
@@ -103,16 +129,21 @@ const getTypeEvent = body => body?.object_attributes?.action;
 
 const composeRoomName = (key: string, { summary, state = IssueStateEnum.open, milestone = '' }) => {
     const data = transformFromKey(key);
+    const optionTypes: Record<KeyType, (project: string, id: number) => string[]> = {
+        [KeyType.Issue]: (project, id) => [
+            '#' + id,
+            summary.slice(0, 60),
+            state,
+            [project, 'issues', id].join('/'),
+            milestone,
+        ],
+        [KeyType.Milestone]: (project, id) => ['#' + id, summary.slice(0, 60), [project, 'milestones', id].join('/')],
+    };
+    const type = data.issueId ? KeyType.Issue : KeyType.Milestone;
 
-    return [
-        '#' + data.issueId,
-        summary.slice(0, 60),
-        state,
-        [data.namespaceWithProject, 'issues', data.issueId].join('/'),
-        milestone,
-    ]
-        .join(';')
-        .concat(';');
+    const options = optionTypes[type](data.namespaceWithProject, (data.issueId || data.milestoneId)!);
+
+    return options.join(';').concat(';');
 };
 
 const isCorrectWebhook = (body: any, hookName: any): boolean =>
@@ -307,12 +338,20 @@ const handlers: {
 };
 
 const issueRequestHandlers: IssueGetters<GitlabIssue> = {
+    getMilestoneSummary: body => body.milestone.title,
+    getMilestoneKey: body => {
+        const milestoneId = body.milestone.iid;
+        const projectKey = issueRequestHandlers.getProjectKey(body);
+
+        return transformToKey(projectKey, milestoneId, KeyType.Milestone);
+    },
     getIssueLabels: body => body.labels,
     getRoomName: body => {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);
         const milestone = body.milestone === null ? '' : body.milestone.title;
         const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
+
         return composeRoomName(key, { summary, state, milestone });
     },
     keysForCheckIgnore: body => issueRequestHandlers.getFullKey(body),
@@ -427,7 +466,12 @@ const isPipelineHook = (body: unknown) =>
 
 const getMilestoneId = (body): number | null => runMethod(body, 'getMilestoneId');
 
+const getMilestoneKey = (body): string | undefined => issueRequestHandlers.getMilestoneKey(body);
+
 export const selectors: GitlabSelectors = {
+    getMilestoneSummary: issueRequestHandlers.getMilestoneSummary,
+    transformFromKey,
+    getMilestoneKey,
     getMilestoneId,
     getPostKeys: handlers.pipeline.getIssueKeys,
     isPipelineHook,
@@ -443,7 +487,7 @@ export const selectors: GitlabSelectors = {
     getUploadInfo,
     getUploadUrl,
     isUploadBody,
-    transformFromKey,
+    transformFromIssueKey,
     composeRoomName,
     getIssueChanges,
     getCreator,

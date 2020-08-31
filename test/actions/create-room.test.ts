@@ -26,6 +26,7 @@ import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.
 import gitlabIssueCreatedJson from '../fixtures/webhooks/gitlab/issue/created.json';
 import gitlabLabelJson from '../fixtures/gitlab-api-requests/labels.json';
 import { setSettingsData } from '../../src/bot/settings';
+import { KeyType, milestonePart } from '../../src/task-trackers/gitlab/selectors';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -480,9 +481,15 @@ describe('Create room test with gitlab as task tracker', () => {
         let chatFasade;
         beforeEach(() => {
             createRoomData = gitlabTracker.parser.getCreateRoomData(gitlabIssueCreatedJson);
+            const milestoneKey = gitlabTracker.selectors.transformToKey(
+                createRoomData.projectKey!,
+                createRoomData.milestoneId!,
+                KeyType.Milestone,
+            );
+
             const chatClass = getChatClass({
-                alias: [createRoomData.issue.key, createRoomData.projectKey!],
-                roomId: [createRoomData.issue.key, createRoomData.projectKey!],
+                alias: [createRoomData.issue.key, createRoomData.projectKey!, milestoneKey],
+                roomId: [createRoomData.issue.key, createRoomData.projectKey!, milestoneKey],
             });
             chatApi = chatClass.chatApiSingle;
             chatFasade = chatClass.chatApi;
@@ -515,7 +522,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     .times(3)
                     .reply(200, gitlabProjectsJson)
                     .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
-                    .times(2)
+                    .times(3)
                     .reply(200, gitlabIssueJson)
                     .get(`/projects/${gitlabProjectsJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
@@ -570,34 +577,30 @@ describe('Create room test with gitlab as task tracker', () => {
 
                 //////////////////////////////////////////////////////////////////////
 
-                const MilestoneKey =
+                const milestoneKey =
                     gitlabIssueCreatedJson.project.path_with_namespace +
                     '-' +
-                    gitlabIssueCreatedJson.object_attributes.iid;
-                const MilestoneMembers = [
-                    getUserIdByDisplayName(gitlabIssueJson.assignee.name),
-                    getUserIdByDisplayName(gitlabIssueJson.author.name),
-                ].map(name => getChatClass().chatApiSingle.getChatUserId(name));
+                    milestonePart +
+                    gitlabIssueCreatedJson.object_attributes.milestone_id;
+                const milestoneMembers = [getUserIdByDisplayName(gitlabIssueJson.author.name)].map(name =>
+                    getChatClass().chatApiSingle.getChatUserId(name),
+                );
 
-                const MilestoneRoomName =
+                const milestoneRoomName =
                     '#' +
                     gitlabIssueCreatedJson.object_attributes.milestone_id +
                     ';' +
                     gitlabIssueJson.milestone.title +
                     ';' +
-                    gitlabIssueJson.milestone.web_url.replace('https://', '') +
+                    gitlabIssueJson.milestone.web_url.replace('https://gitlab.example.com/', '').replace('/-', '') +
                     ';';
 
                 expectedMilestoneRoomOptions = {
-                    invite: MilestoneMembers,
-                    name: MilestoneRoomName,
-                    room_alias_name:
-                        gitlabIssueCreatedJson.project.path_with_namespace +
-                        '-' +
-                        gitlabIssueCreatedJson.object_attributes.iid,
-                    avatarUrl: undefined,
-                    topic: gitlabTracker.getViewUrl(MilestoneKey),
-                    purpose: gitlabIssueJson.title,
+                    invite: milestoneMembers,
+                    name: milestoneRoomName,
+                    room_alias_name: milestoneKey,
+                    topic: gitlabTracker.getViewUrl(milestoneKey),
+                    purpose: gitlabIssueJson.milestone.title,
                 };
 
                 ////////////////////////////////////////////////////////////////////////////////////
@@ -607,7 +610,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     .times(5)
                     .reply(200, gitlabProjectsJson)
                     .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
-                    .times(3)
+                    .times(4)
                     .reply(200, gitlabIssueJson)
                     .get(`/projects/${gitlabProjectsJson.id}/members/all`)
                     .reply(200, projectMembersJson)

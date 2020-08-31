@@ -19,7 +19,7 @@ export class PostPipeline extends BaseAction<ChatFasade, Gitlab> implements RunA
     async sendPipelineData(key: string, author: string, pipelineData: GitlabPipeline) {
         try {
             const roomId = await this.chatApi.getRoomId(key);
-            const keyData = this.taskTracker.selectors.transformFromKey(key);
+            const keyData = this.taskTracker.selectors.transformFromIssueKey(key);
             const repoName = keyData.namespaceWithProject.split('/').reverse()[0];
             const res = PostPipeline.getMessage(pipelineData, repoName);
             await this.chatApi.sendTextMessage(roomId, res);

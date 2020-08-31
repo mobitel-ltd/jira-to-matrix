@@ -180,7 +180,11 @@ export enum IssueStateEnum {
 }
 
 export interface Selectors {
+    getMilestoneKey(body): string | undefined;
+
     getRoomName(body): string;
+
+    // getMilestoneRoomName(body): string;
 
     composeRoomName(key: string, options: { summary: string; state?: IssueStateEnum; milestone?: string }): string;
 
@@ -235,6 +239,8 @@ export interface Selectors {
     // getDestinationRelation(body): string | undefined;
 
     getSummary(body): string | undefined;
+
+    getMilestoneSummary(body): string | undefined;
 
     getBodyTimestamp(body): string | number | undefined;
 

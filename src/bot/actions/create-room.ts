@@ -26,6 +26,13 @@ interface CreateIssueRoomOptions {
     statusColors: string[] | string;
 }
 
+interface CreateMilestoneRoomOptions {
+    key: string;
+    summary: string;
+    roomName: string;
+    issueCreator: string;
+}
+
 export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
     getEpicInfo(epicLink) {
         epicLink === translate('miss')
@@ -63,6 +70,30 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
             return { body, htmlBody };
         } catch (err) {
             throw errorTracing('getDescription', err);
+        }
+    }
+
+    async createMilestoneRoom({ key, summary, roomName, issueCreator }: CreateMilestoneRoomOptions): Promise<void> {
+        try {
+            const issueWatchersChatIds = await this.currentChatItem.getUserIdByDisplayName(issueCreator);
+
+            const topic = this.taskTracker.getViewUrl(key);
+
+            const options = {
+                room_alias_name: key,
+                invite: [issueWatchersChatIds],
+                name: roomName,
+                topic,
+                purpose: summary,
+            };
+
+            const roomId = await this.currentChatItem.createRoom(options);
+
+            logger.info(`Created room for ${key}: ${roomId}`);
+
+            await this.currentChatItem.sendHtmlMessage(roomId, infoBody, infoBody);
+        } catch (err) {
+            throw errorTracing('createIssueRoom', err);
         }
     }
 
@@ -125,12 +156,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async getCheckedIssue(keyOrId, hookLabels): Promise<CreateIssueRoomOptions | false> {
-        const issueBody = await this.taskTracker.getIssueSafety(keyOrId);
-        if (!issueBody) {
-            return false;
-        }
-
+    async getCreateIsueOptions(keyOrId, hookLabels, issueBody): Promise<CreateIssueRoomOptions> {
         const statusColors =
             (await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels)) || this.defaultAvatarColor;
 
@@ -148,18 +174,34 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         return !Object.values(issue).find(el => !el);
     }
 
-    async run({ issue, projectKey }: CreateRoomData): Promise<boolean> {
+    async run({ issue, projectKey, milestoneId }: CreateRoomData): Promise<boolean> {
         try {
             const keyOrId = issue.key || issue.id;
             if (issue && keyOrId) {
-                const checkedIssue = await this.getCheckedIssue(keyOrId, issue.hookLabels);
-                if (!checkedIssue) {
+                const issueBody = await this.taskTracker.getIssueSafety(keyOrId);
+                if (!issueBody) {
                     logger.warn(`Issue ${keyOrId} is not exists`);
 
                     return false;
                 }
+                const checkedIssue = await this.getCreateIsueOptions(keyOrId, issue.hookLabels, issueBody);
                 if (!(await this.currentChatItem.getRoomIdByName(checkedIssue.key))) {
                     await this.createIssueRoom(checkedIssue);
+                }
+
+                if (milestoneId) {
+                    const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issueBody);
+                    if (milestoneKey && !(await this.currentChatItem.getRoomIdByName(milestoneKey))) {
+                        const options: CreateMilestoneRoomOptions = {
+                            key: milestoneKey,
+                            summary: this.taskTracker.selectors.getMilestoneSummary(issueBody)!,
+                            roomName: this.taskTracker.selectors.composeRoomName(milestoneKey, {
+                                summary: this.taskTracker.selectors.getMilestoneSummary(issueBody)!,
+                            }),
+                            issueCreator: this.taskTracker.selectors.getDisplayName(issueBody)!,
+                        };
+                        await this.createMilestoneRoom(options);
+                    }
                 }
             }
             if (projectKey) {

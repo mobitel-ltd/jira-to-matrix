@@ -1,4 +1,5 @@
 import { Project, Selectors } from '../../types';
+import { KeyType } from './selectors';
 
 export interface GitlabUserData extends GitlabUserDataShort {
     access_level: number;
@@ -508,8 +509,13 @@ export interface GitlabSelectors extends Selectors {
     isUploadBody(body): boolean;
     getIssueLabels(body): GitlabLabelHook[];
     getUploadInfo(body): string;
-    transformFromKey(key: string): { namespaceWithProject: string; issueId: number };
-    transformToKey(namespaceWithProject: string, issueId: number): string;
+    transformFromIssueKey(key: string): { namespaceWithProject: string; issueId: number };
+    transformFromKey(
+        key: string,
+    ):
+        | { namespaceWithProject: string; issueId: number; milestoneId?: number }
+        | { namespaceWithProject: string; milestoneId: number; issueId?: number };
+    transformToKey(namespaceWithProject: string, issueId: number, type?: KeyType): string;
     // true if hook should be ignored
     isIgnoreHookType(body): boolean;
 }

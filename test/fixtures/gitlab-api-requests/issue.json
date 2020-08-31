@@ -20,8 +20,8 @@
         "ToDo"
     ],
     "milestone": {
-        "id": 86,
-        "iid": 2,
+        "id": 103,
+        "iid": 10,
         "project_id": 3032,
         "title": "Тест интеграции",
         "description": "Данный milestone заведен для тестирования интеграции gitlab - matrix",
@@ -30,7 +30,7 @@
         "updated_at": "2020-05-26T12:05:30.775Z",
         "due_date": null,
         "start_date": null,
-        "web_url": "https://gitlab.example.com/indev/gitlabtomatrix/-/milestones/2"
+        "web_url": "https://gitlab.example.com/indev/gitlabtomatrix/-/milestones/10"
     },
     "assignees": [
         {

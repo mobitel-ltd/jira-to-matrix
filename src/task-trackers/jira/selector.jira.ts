@@ -268,6 +268,8 @@ const getRoomName = body => {
 };
 
 export const selectors: JiraSelectors = {
+    getMilestoneSummary: () => undefined,
+    getMilestoneKey: () => undefined,
     getIssueColor: (body: JiraIssue) => body.fields.status.statusCategory.colorName,
     getRoomName,
     composeRoomName,

@@ -172,7 +172,7 @@ export class Gitlab implements TaskTracker {
 
     // key is like namespace/project-123
     async getIssue(key: string): Promise<Issue & GitlabIssue> {
-        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(key);
+        const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(key);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const url = this.getRestUrl('projects', projectId, 'issues', issueId);
@@ -233,7 +233,7 @@ export class Gitlab implements TaskTracker {
     }
 
     async postComment(gitlabIssueKey: string, { sender }, bodyText: string): Promise<string> {
-        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(gitlabIssueKey);
+        const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(gitlabIssueKey);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const body = this.getPostCommentBody(sender, bodyText);
@@ -311,14 +311,17 @@ export class Gitlab implements TaskTracker {
         return members.filter(Boolean).map(el => el!.name);
     }
 
+    // TODO fix for projects
     getViewUrl(key: string) {
         const keyData = this.selectors.transformFromKey(key);
 
-        return [this.url, keyData.namespaceWithProject, 'issues', keyData.issueId].join('/');
+        return keyData.issueId
+            ? [this.url, keyData.namespaceWithProject, 'issues', keyData.issueId].join('/')
+            : [this.url, keyData.namespaceWithProject, 'milestones', keyData.milestoneId].join('/');
     }
 
     async getIssueComments(key): Promise<IssueWithComments> {
-        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(key);
+        const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(key);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes');
@@ -364,7 +367,7 @@ export class Gitlab implements TaskTracker {
     ): Promise<{ fullUrl: string; markdown: string }> {
         const response = await axios.get(fileOptions.url, { responseType: 'arraybuffer' });
         const imageType = response.headers['content-type'];
-        const { namespaceWithProject } = this.selectors.transformFromKey(issueKey);
+        const { namespaceWithProject } = this.selectors.transformFromIssueKey(issueKey);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const projects = new Projects({ token: this.password, host: this.url });
@@ -414,7 +417,7 @@ export class Gitlab implements TaskTracker {
             return ['gray'];
         }
         if (!hookLabels) {
-            const { namespaceWithProject } = this.selectors.transformFromKey(key);
+            const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
             const labels = await this.getAllAvailalbleLabels(namespaceWithProject);
             const colors = labels.filter(label => issue.labels.includes(label.name)).map(label => label.color);
 
