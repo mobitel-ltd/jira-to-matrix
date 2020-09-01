@@ -113,6 +113,7 @@ interface IssueGetters<T> extends BodyGetters<T> {
     getRoomName(body: T): string;
     getMilestoneKey(body: T): string | undefined;
     getMilestoneSummary(body: T): string | undefined;
+    getAssigneeDisplayName(body: T): string[];
 }
 
 const missField = translate('miss');
@@ -357,6 +358,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
     keysForCheckIgnore: body => issueRequestHandlers.getFullKey(body),
     getIssueChanges: () => undefined,
     getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
+    getAssigneeDisplayName: body => [body.assignee?.name].filter(Boolean) as string[],
     getUserId: body => body.author.username,
     getDisplayName: body => body.author.name,
     getIssueId: body => body.iid,
@@ -469,6 +471,7 @@ const getMilestoneId = (body): number | null => runMethod(body, 'getMilestoneId'
 const getMilestoneKey = (body): string | undefined => issueRequestHandlers.getMilestoneKey(body);
 
 export const selectors: GitlabSelectors = {
+    getAssigneeDisplayName: issueRequestHandlers.getAssigneeDisplayName,
     getMilestoneSummary: issueRequestHandlers.getMilestoneSummary,
     transformFromKey,
     getMilestoneKey,

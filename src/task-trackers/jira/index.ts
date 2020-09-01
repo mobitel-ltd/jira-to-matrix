@@ -62,6 +62,8 @@ export class Jira implements TaskTracker {
 
     static expandParams = { expand: 'renderedFields' };
 
+    getMilestoneWatchers = () => [] as any;
+
     /**
      * Create jira url
      */

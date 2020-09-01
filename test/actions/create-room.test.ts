@@ -603,8 +603,6 @@ describe('Create room test with gitlab as task tracker', () => {
                     purpose: gitlabIssueJson.milestone.title,
                 };
 
-                ////////////////////////////////////////////////////////////////////////////////////
-
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(5)

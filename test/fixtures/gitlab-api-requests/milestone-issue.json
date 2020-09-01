@@ -1,0 +1,203 @@
+[
+    {
+        "id": 1931,
+        "iid": 69,
+        "project_id": 3229,
+        "title": "DEBUG!",
+        "description": "DEBUG!DEBUG!DEBUG!DEBUG!DEBUG!",
+        "state": "opened",
+        "created_at": "2020-08-12T13:53:13.071+03:00",
+        "updated_at": "2020-08-12T13:54:29.693+03:00",
+        "closed_at": null,
+        "closed_by": null,
+        "labels": ["123312", "autolable099"],
+        "milestone": {
+            "id": 106,
+            "iid": 3,
+            "project_id": 3229,
+            "title": "Mailstone_for_test",
+            "description": "Test description for mailstone!!!\r\nTest description for mailstone!!!\r\nTest description for mailstone!!!",
+            "state": "active",
+            "created_at": "2020-08-04T20:05:32.277+03:00",
+            "updated_at": "2020-08-31T11:57:57.405+03:00",
+            "due_date": null,
+            "start_date": null,
+            "web_url": "https://vcs.bingo-boom.ru/indev/application/taskmanagment2chat/testing-gitlab-issues/-/milestones/3"
+        },
+        "assignees": [
+            {
+                "id": 324,
+                "name": "Евсюков Владислав Геннадьевич",
+                "username": "vg_evsyukov",
+                "state": "active",
+                "avatar_url": "https://vcs.bingo-boom.ru/uploads/-/system/user/avatar/324/avatar.png",
+                "web_url": "https://vcs.bingo-boom.ru/vg_evsyukov"
+            }
+        ],
+        "author": {
+            "id": 399,
+            "name": "jira_test",
+            "username": "jira_test",
+            "state": "active",
+            "avatar_url": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?s=80\u0026d=identicon",
+            "web_url": "https://vcs.bingo-boom.ru/jira_test"
+        },
+        "assignee": {
+            "id": 324,
+            "name": "Евсюков Владислав Геннадьевич",
+            "username": "vg_evsyukov",
+            "state": "active",
+            "avatar_url": "https://vcs.bingo-boom.ru/uploads/-/system/user/avatar/324/avatar.png",
+            "web_url": "https://vcs.bingo-boom.ru/vg_evsyukov"
+        },
+        "user_notes_count": 2,
+        "merge_requests_count": 0,
+        "upvotes": 0,
+        "downvotes": 0,
+        "due_date": "2020-08-20",
+        "confidential": false,
+        "discussion_locked": null,
+        "web_url": "https://vcs.bingo-boom.ru/indev/application/taskmanagment2chat/testing-gitlab-issues/-/issues/69",
+        "time_stats": {
+            "time_estimate": 0,
+            "total_time_spent": 3600,
+            "human_time_estimate": null,
+            "human_total_time_spent": "1h"
+        },
+        "task_completion_status": { "count": 0, "completed_count": 0 }
+    },
+    {
+        "id": 1925,
+        "iid": 67,
+        "project_id": 3229,
+        "title": "Test with milestone",
+        "description": "text",
+        "state": "opened",
+        "created_at": "2020-08-11T18:15:45.842+03:00",
+        "updated_at": "2020-08-21T11:56:11.141+03:00",
+        "closed_at": null,
+        "closed_by": null,
+        "labels": ["TEst21", "Test"],
+        "milestone": {
+            "id": 106,
+            "iid": 3,
+            "project_id": 3229,
+            "title": "Mailstone_for_test",
+            "description": "Test description for mailstone!!!\r\nTest description for mailstone!!!\r\nTest description for mailstone!!!",
+            "state": "active",
+            "created_at": "2020-08-04T20:05:32.277+03:00",
+            "updated_at": "2020-08-31T11:57:57.405+03:00",
+            "due_date": null,
+            "start_date": null,
+            "web_url": "https://vcs.bingo-boom.ru/indev/application/taskmanagment2chat/testing-gitlab-issues/-/milestones/3"
+        },
+        "assignees": [
+            {
+                "id": 324,
+                "name": "Евсюков Владислав Геннадьевич",
+                "username": "vg_evsyukov",
+                "state": "active",
+                "avatar_url": "https://vcs.bingo-boom.ru/uploads/-/system/user/avatar/324/avatar.png",
+                "web_url": "https://vcs.bingo-boom.ru/vg_evsyukov"
+            }
+        ],
+        "author": {
+            "id": 399,
+            "name": "jira_test",
+            "username": "jira_test",
+            "state": "active",
+            "avatar_url": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?s=80\u0026d=identicon",
+            "web_url": "https://vcs.bingo-boom.ru/jira_test"
+        },
+        "assignee": {
+            "id": 324,
+            "name": "Евсюков Владислав Геннадьевич",
+            "username": "vg_evsyukov",
+            "state": "active",
+            "avatar_url": "https://vcs.bingo-boom.ru/uploads/-/system/user/avatar/324/avatar.png",
+            "web_url": "https://vcs.bingo-boom.ru/vg_evsyukov"
+        },
+        "user_notes_count": 7,
+        "merge_requests_count": 0,
+        "upvotes": 0,
+        "downvotes": 0,
+        "due_date": null,
+        "confidential": false,
+        "discussion_locked": null,
+        "web_url": "https://vcs.bingo-boom.ru/indev/application/taskmanagment2chat/testing-gitlab-issues/-/issues/67",
+        "time_stats": {
+            "time_estimate": 0,
+            "total_time_spent": 0,
+            "human_time_estimate": null,
+            "human_total_time_spent": null
+        },
+        "task_completion_status": { "count": 0, "completed_count": 0 }
+    },
+    {
+        "id": 1924,
+        "iid": 66,
+        "project_id": 3229,
+        "title": "Test without milestone",
+        "description": "Test without milestone",
+        "state": "opened",
+        "created_at": "2020-08-11T18:14:31.352+03:00",
+        "updated_at": "2020-08-11T18:16:06.078+03:00",
+        "closed_at": null,
+        "closed_by": null,
+        "labels": ["123312", "autolable99"],
+        "milestone": {
+            "id": 106,
+            "iid": 3,
+            "project_id": 3229,
+            "title": "Mailstone_for_test",
+            "description": "Test description for mailstone!!!\r\nTest description for mailstone!!!\r\nTest description for mailstone!!!",
+            "state": "active",
+            "created_at": "2020-08-04T20:05:32.277+03:00",
+            "updated_at": "2020-08-31T11:57:57.405+03:00",
+            "due_date": null,
+            "start_date": null,
+            "web_url": "https://vcs.bingo-boom.ru/indev/application/taskmanagment2chat/testing-gitlab-issues/-/milestones/3"
+        },
+        "assignees": [
+            {
+                "id": 324,
+                "name": "Евсюков Владислав Геннадьевич",
+                "username": "vg_evsyukov",
+                "state": "active",
+                "avatar_url": "https://vcs.bingo-boom.ru/uploads/-/system/user/avatar/324/avatar.png",
+                "web_url": "https://vcs.bingo-boom.ru/vg_evsyukov"
+            }
+        ],
+        "author": {
+            "id": 399,
+            "name": "jira_test",
+            "username": "jira_test",
+            "state": "active",
+            "avatar_url": "https://secure.gravatar.com/avatar/bf49e7a02172919ca56c9c10cedd2c56?s=80\u0026d=identicon",
+            "web_url": "https://vcs.bingo-boom.ru/jira_test"
+        },
+        "assignee": {
+            "id": 324,
+            "name": "Евсюков Владислав Геннадьевич",
+            "username": "vg_evsyukov",
+            "state": "active",
+            "avatar_url": "https://vcs.bingo-boom.ru/uploads/-/system/user/avatar/324/avatar.png",
+            "web_url": "https://vcs.bingo-boom.ru/vg_evsyukov"
+        },
+        "user_notes_count": 0,
+        "merge_requests_count": 0,
+        "upvotes": 0,
+        "downvotes": 0,
+        "due_date": null,
+        "confidential": false,
+        "discussion_locked": null,
+        "web_url": "https://vcs.bingo-boom.ru/indev/application/taskmanagment2chat/testing-gitlab-issues/-/issues/66",
+        "time_stats": {
+            "time_estimate": 0,
+            "total_time_spent": 3600,
+            "human_time_estimate": null,
+            "human_total_time_spent": "1h"
+        },
+        "task_completion_status": { "count": 0, "completed_count": 0 }
+    }
+]

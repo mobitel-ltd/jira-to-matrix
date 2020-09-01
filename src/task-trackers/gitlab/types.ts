@@ -499,6 +499,7 @@ export interface Notes {
 }
 
 export interface GitlabSelectors extends Selectors {
+    getAssigneeDisplayName(body: GitlabIssue): string[];
     getMilestoneId(body): number | null;
     getPostKeys(body: GitlabPipelineHook): string[];
     isPipelineHook(body: any): boolean;

@@ -30,7 +30,7 @@ interface CreateMilestoneRoomOptions {
     key: string;
     summary: string;
     roomName: string;
-    issueCreator: string;
+    members: string[];
 }
 
 export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
@@ -73,15 +73,17 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async createMilestoneRoom({ key, summary, roomName, issueCreator }: CreateMilestoneRoomOptions): Promise<void> {
+    async createMilestoneRoom({ key, summary, roomName, members }: CreateMilestoneRoomOptions): Promise<void> {
         try {
-            const issueWatchersChatIds = await this.currentChatItem.getUserIdByDisplayName(issueCreator);
+            const issueWatchersChatIds = await Promise.all(
+                members.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
+            );
 
             const topic = this.taskTracker.getViewUrl(key);
 
             const options = {
                 room_alias_name: key,
-                invite: [issueWatchersChatIds],
+                invite: issueWatchersChatIds,
                 name: roomName,
                 topic,
                 purpose: summary,
@@ -198,7 +200,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
                             roomName: this.taskTracker.selectors.composeRoomName(milestoneKey, {
                                 summary: this.taskTracker.selectors.getMilestoneSummary(issueBody)!,
                             }),
-                            issueCreator: this.taskTracker.selectors.getDisplayName(issueBody)!,
+                            members: await this.taskTracker.getMilestoneWatchers(milestoneKey)!,
                         };
                         await this.createMilestoneRoom(options);
                     }

@@ -263,6 +263,7 @@ export interface TaskTracker {
     selectors: Selectors;
 
     parser: Parser;
+    getMilestoneWatchers(key): Promise<string[]>;
 
     getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string | string[]>;
 

@@ -181,6 +181,26 @@ export class Gitlab implements TaskTracker {
         return { ...issue, key };
     }
 
+    async getMilestoneIssues(key: string): Promise<Array<GitlabIssue>> {
+        const { namespaceWithProject, milestoneId } = this.selectors.transformFromKey(key);
+        if (!milestoneId) {
+            throw new Error(`Key ${key} not have milestoneId`);
+        }
+
+        const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
+        const url = this.getRestUrl('projects', projectId, 'milestones', milestoneId, 'issues');
+        const issues: GitlabIssue[] = await this.request(url);
+
+        return issues;
+    }
+
+    async getMilestoneWatchers(key): Promise<string[]> {
+        const issues = await this.getMilestoneIssues(key);
+        const milestoneMembers = issues.map(el => this.selectors.getAssigneeDisplayName(el)).flat();
+
+        return milestoneMembers;
+    }
+
     getRestUrl(...args: (string | number)[]) {
         return [this.url, this.restVersion, ...args].join('/');
     }
