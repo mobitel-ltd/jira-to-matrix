@@ -194,11 +194,11 @@ export class ChatFasade {
      * @param {{roomId: (string|undefined), name: string}} data - chat room id and name
      * @returns {Promise<string[]>} - chat room members
      */
-    async getRoomMembers(data) {
+    async getRoomMembers(data: { roomId: string; name?: string } | { roomId?: string; name: string }) {
         const id = data.roomId || (await this.getRoomId(data.name));
         const client = await this._getTargetClient(id);
 
-        return client.getRoomMembers(data);
+        return client.getRoomMembers(data as any);
     }
 
     /**

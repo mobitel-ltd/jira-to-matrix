@@ -14,6 +14,7 @@ import issueClosed from '../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import { PostMilestoneUpdates } from '../../src/bot/actions/post-milestone-updates';
 import gitlabProjectJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import milestoneIssuesJson from '../fixtures/gitlab-api-requests/milestone-issue.json';
 
 const { expect } = chai;
 
@@ -43,8 +44,13 @@ describe('PostMilestoneUpdates', () => {
     describe('Issue added', () => {
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
-                .get(`/projects/${querystring.escape(createdIssue.project.path_with_namespace)}`)
+                .get(
+                    `/projects/${gitlabProjectJson.id}/milestones/${createdIssue.object_attributes.milestone_id}/issues`,
+                )
                 .times(2)
+                .reply(200, milestoneIssuesJson)
+                .get(`/projects/${querystring.escape(createdIssue.project.path_with_namespace)}`)
+                .times(4)
                 .reply(200, gitlabProjectJson)
                 .get(`/projects/${gitlabProjectJson.id}/issues/${createdIssue.object_attributes.iid}`)
                 .times(2)

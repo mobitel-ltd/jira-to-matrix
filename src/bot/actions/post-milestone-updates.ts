@@ -1,3 +1,4 @@
+import * as R from 'ramda';
 import marked from 'marked';
 import { translate } from '../../locales';
 import { getLogger } from '../../modules/log';
@@ -73,12 +74,39 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         return message;
     }
 
+    async inviteNewMembers(roomId: string, milestoneKey: string): Promise<string[]> {
+        const chatRoomMembers = await this.chatApi.getRoomMembers({ roomId });
+
+        const milestoneWatchers = await this.taskTracker.getMilestoneWatchers(milestoneKey);
+        const milestoneWatchersChatIds = await Promise.all(
+            milestoneWatchers.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
+        );
+        const {
+            messenger: { bots },
+        } = this.config;
+
+        const botsChatIds = bots.map(({ user }) => user).map(user => this.chatApi.getChatUserId(user));
+
+        const newMembers = R.difference(milestoneWatchersChatIds, [...chatRoomMembers, ...botsChatIds]).filter(Boolean);
+
+        await Promise.all(
+            newMembers.map(async userID => {
+                await this.chatApi.invite(roomId, userID);
+                logger.debug(`New member ${userID} invited to ${milestoneKey}`);
+            }),
+        );
+
+        return newMembers;
+    }
+
     async run({ issueKey, milestoneId, status, user, summary }: PostMilestoneUpdatesData): Promise<string> {
         try {
             const issue = await this.taskTracker.getIssue(issueKey);
 
             const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issue)!;
             const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
+
+            await this.inviteNewMembers(milestoneRoomId, milestoneKey);
 
             const actionsByStatus = {
                 [MilestoneUpdateStatus.Created]: this.postNewIssue,

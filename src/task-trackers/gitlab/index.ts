@@ -198,7 +198,7 @@ export class Gitlab implements TaskTracker {
         const issues = await this.getMilestoneIssues(key);
         const milestoneMembers = issues.map(el => this.selectors.getAssigneeDisplayName(el)).flat();
 
-        return milestoneMembers;
+        return R.uniq(milestoneMembers);
     }
 
     getRestUrl(...args: (string | number)[]) {

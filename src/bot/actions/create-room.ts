@@ -75,7 +75,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
 
     async createMilestoneRoom({ key, summary, roomName, members }: CreateMilestoneRoomOptions): Promise<void> {
         try {
-            const issueWatchersChatIds = await Promise.all(
+            const milestoneWatchersChatIds = await Promise.all(
                 members.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
             );
 
@@ -83,7 +83,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
 
             const options = {
                 room_alias_name: key,
-                invite: issueWatchersChatIds,
+                invite: milestoneWatchersChatIds,
                 name: roomName,
                 topic,
                 purpose: summary,
