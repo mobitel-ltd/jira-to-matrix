@@ -49,6 +49,12 @@ const transformFromIssueKey = (key: string): { namespaceWithProject: string; iss
     return transformFromKey(key) as { namespaceWithProject: string; issueId: number };
 };
 
+const isIssueRoomName = (key: string): boolean => {
+    const data = transformFromKey(key);
+
+    return Boolean(data.issueId);
+};
+
 export const transformToKey = (namespaceWithProject: string, id: number, type = KeyType.Issue): string => {
     const formatedId = type === KeyType.Issue ? '' + id : milestonePart + id;
 
@@ -341,7 +347,7 @@ const handlers: {
 const issueRequestHandlers: IssueGetters<GitlabIssue> = {
     getMilestoneSummary: body => body.milestone.title,
     getMilestoneKey: body => {
-        const milestoneId = body.milestone.iid;
+        const milestoneId = body.milestone.id;
         const projectKey = issueRequestHandlers.getProjectKey(body);
 
         return transformToKey(projectKey, milestoneId, KeyType.Milestone);
@@ -471,6 +477,7 @@ const getMilestoneId = (body): number | null => runMethod(body, 'getMilestoneId'
 const getMilestoneKey = (body): string | undefined => issueRequestHandlers.getMilestoneKey(body);
 
 export const selectors: GitlabSelectors = {
+    isIssueRoomName,
     getAssigneeDisplayName: issueRequestHandlers.getAssigneeDisplayName,
     getMilestoneSummary: issueRequestHandlers.getMilestoneSummary,
     transformFromKey,
