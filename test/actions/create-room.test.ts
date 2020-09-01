@@ -22,6 +22,7 @@ import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
 import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
+import milestoneIssuesJson from '../fixtures/gitlab-api-requests/milestone-issue.json';
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
 import gitlabIssueCreatedJson from '../fixtures/webhooks/gitlab/issue/created.json';
 import gitlabLabelJson from '../fixtures/gitlab-api-requests/labels.json';
@@ -582,7 +583,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     '-' +
                     milestonePart +
                     gitlabIssueCreatedJson.object_attributes.milestone_id;
-                const milestoneMembers = [getUserIdByDisplayName(gitlabIssueJson.author.name)].map(name =>
+                const milestoneMembers = [gitlabIssueJson.assignee.username].map(name =>
                     getChatClass().chatApiSingle.getChatUserId(name),
                 );
 
@@ -607,6 +608,10 @@ describe('Create room test with gitlab as task tracker', () => {
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(5)
                     .reply(200, gitlabProjectsJson)
+                    .get(
+                        `/projects/${gitlabProjectsJson.id}/milestones/${gitlabIssueCreatedJson.object_attributes.milestone_id}/issues`,
+                    )
+                    .reply(200, milestoneIssuesJson)
                     .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
                     .times(4)
                     .reply(200, gitlabIssueJson)
