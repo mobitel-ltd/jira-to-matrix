@@ -17,7 +17,7 @@ export interface Config {
         postComments: boolean;
         postEachComments?: boolean;
         postIssueUpdates: boolean;
-        postMilestoneUpdates: boolean;
+        postMilestoneUpdates?: boolean;
         epicUpdates: {
             newIssuesInEpic: 'on' | 'off';
             issuesStatusChanged: 'on' | 'off';

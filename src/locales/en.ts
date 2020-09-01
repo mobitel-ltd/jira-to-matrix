@@ -23,6 +23,8 @@ export const dict = Object.freeze({
     newIssueInEpic: 'New issue in epic',
     issueAddedToEpic: 'An issue [%{key} %{summary}](%{viewUrl}) was added to the epic',
     issueAddedToMilestone: 'User %{user} added an issue [%{summary}](%{viewUrl}) to the milestone',
+    issueDeletedFromMilestone: 'User %{user} delete an issue [%{summary}](%{viewUrl}) from the milestone',
+    issueClosedInMilestone: 'User %{user} closed an issue [%{summary}](%{viewUrl})',
     newLink: 'New link',
     newLinkMessage: 'A new link. This issue **%{relation}** [%{key} "%{summary}"](%{viewUrl})',
     deleteLink: 'Delete link',

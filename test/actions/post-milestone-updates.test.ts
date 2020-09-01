@@ -6,9 +6,11 @@ import * as chai from 'chai';
 import { translate } from '../../src/locales';
 import sinonChai from 'sinon-chai';
 import { getChatClass, cleanRedis } from '../test-utils';
-import { PostMilestoneUpdatesData } from '../../src/types';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import createdIssue from '../fixtures/webhooks/gitlab/issue/created.json';
+import milestoneDeleted from '../fixtures/webhooks/gitlab/issue/milestone-deleted.json';
+import milestoneUpdated from '../fixtures/webhooks/gitlab/issue/milestone-updated.json';
+import issueClosed from '../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import { PostMilestoneUpdates } from '../../src/bot/actions/post-milestone-updates';
 import gitlabProjectJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
@@ -22,7 +24,6 @@ describe('PostMilestoneUpdates', () => {
     let chatApi;
     let chatSingle;
     let postMilestoneUpdates: PostMilestoneUpdates;
-    let updateData: PostMilestoneUpdatesData;
     const roomId = '!abcdefg:matrix';
 
     beforeEach(() => {
@@ -40,25 +41,17 @@ describe('PostMilestoneUpdates', () => {
     });
 
     describe('Issue added', () => {
-        let expectedData;
-        let message;
-
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
                 .get(`/projects/${querystring.escape(createdIssue.project.path_with_namespace)}`)
-                .times(3)
+                .times(2)
                 .reply(200, gitlabProjectJson)
                 .get(`/projects/${gitlabProjectJson.id}/issues/${createdIssue.object_attributes.iid}`)
-                .times(3)
+                .times(2)
+                .reply(200, gitlabIssueJson)
+                .get(`/projects/${gitlabProjectJson.id}/issues/${issueClosed.object_attributes.iid}`)
                 .reply(200, gitlabIssueJson);
 
-            message = translate('issueAddedToMilestone', {
-                viewUrl: gitlabTracker.getViewUrl(gitlabTracker.selectors.getIssueKey(gitlabIssueJson)!),
-                summary: createdIssue.object_attributes.title,
-                user: createdIssue.user.name,
-            });
-            expectedData = [roomId, marked(message), marked(message)];
-            updateData = gitlabTracker.parser.getPostMilestoneUpdatesData(createdIssue);
             const chatClass = getChatClass({ roomId });
             chatApi = chatClass.chatApi;
             chatSingle = chatClass.chatApiSingle;
@@ -68,7 +61,73 @@ describe('PostMilestoneUpdates', () => {
         });
 
         it('Should send message to milestone room with info about added issue', async () => {
+            const updateData = gitlabTracker.parser.getPostMilestoneUpdatesData(createdIssue);
             const result = await postMilestoneUpdates.run(updateData);
+
+            const message = translate('issueAddedToMilestone', {
+                viewUrl: gitlabTracker.getViewUrl(updateData.issueKey),
+                summary: createdIssue.object_attributes.title,
+                user: createdIssue.user.name,
+            });
+            const expectedData = [roomId, marked(message), marked(message)];
+
+            expect(result).to.be.eq(message);
+            expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
+        });
+
+        it('Should not send message to milestone room with info about added issue if it was already post', async () => {
+            const updateData = gitlabTracker.parser.getPostMilestoneUpdatesData(createdIssue);
+            await postMilestoneUpdates.run(updateData);
+            const result = await postMilestoneUpdates.run(updateData);
+
+            const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(
+                updateData.issueKey,
+                updateData.milestoneId,
+            );
+
+            expect(result).to.be.eq(message);
+        });
+
+        it('Should send message to milestone room with info about added issue if milestone updated', async () => {
+            const updateData = gitlabTracker.parser.getPostMilestoneUpdatesData(milestoneUpdated);
+            const result = await postMilestoneUpdates.run(updateData);
+
+            const message = translate('issueAddedToMilestone', {
+                viewUrl: gitlabTracker.getViewUrl(updateData.issueKey),
+                summary: milestoneUpdated.object_attributes.title,
+                user: milestoneUpdated.user.name,
+            });
+            const expectedData = [roomId, marked(message), marked(message)];
+
+            expect(result).to.be.eq(message);
+            expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
+        });
+
+        it('Should send message to milestone room with info about deleted issue', async () => {
+            const updateData = gitlabTracker.parser.getPostMilestoneUpdatesData(milestoneDeleted);
+            const result = await postMilestoneUpdates.run(updateData);
+
+            const message = translate('issueDeletedFromMilestone', {
+                viewUrl: gitlabTracker.getViewUrl(updateData.issueKey),
+                summary: milestoneDeleted.object_attributes.title,
+                user: milestoneDeleted.user.name,
+            });
+            const expectedData = [roomId, marked(message), marked(message)];
+
+            expect(result).to.be.eq(message);
+            expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
+        });
+
+        it('Should send message to milestone room with info about closed issue', async () => {
+            const updateData = gitlabTracker.parser.getPostMilestoneUpdatesData(issueClosed);
+            const result = await postMilestoneUpdates.run(updateData);
+
+            const message = translate('issueClosedInMilestone', {
+                viewUrl: gitlabTracker.getViewUrl(updateData.issueKey),
+                summary: issueClosed.object_attributes.title,
+                user: issueClosed.user.name,
+            });
+            const expectedData = [roomId, marked(message), marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);

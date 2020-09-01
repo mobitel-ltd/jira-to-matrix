@@ -155,22 +155,36 @@ export class GitlabParser implements Parser {
     }
 
     isPostMilestoneUpdates(body) {
-        return Boolean(
-            (this.features.postMilestoneUpdates &&
-                this.selectors.getMilestoneId(body) &&
-                this.selectors.getIssueChanges(body) &&
-                this.selectors.isCorrectWebhook(body, 'update')) ||
-                this.selectors.isCorrectWebhook(body, 'close'),
-        );
+        const isMilestoneIssue =
+            this.selectors.getMilestoneId(body) ||
+            this.selectors.getIssueChanges(body)?.some(el => el.field === 'milestone_id');
+
+        return Boolean(this.features.postMilestoneUpdates && isMilestoneIssue);
     }
 
     getPostMilestoneUpdatesData(body): PostMilestoneUpdatesData {
+        // TODO milestone add deleting from removed milestone
+        // const isMilestoneUpdated = data => {
+        //     const changes = this.selectors.getIssueChanges(data);
+        //     if (changes) {
+        //         const newMilestone = changes.find(el => el.field === 'milestone_id');
+
+        //         const res = newMilestone && !newMilestone.newValue;
+
+        //         return Boolean(res);
+        //     }
+
+        //     return false;
+        // };
+
         const isMilestoneDeleted = data => {
             const changes = this.selectors.getIssueChanges(data);
             if (changes) {
                 const newMilestone = changes.find(el => el.field === 'milestone_id');
 
-                return Boolean(newMilestone && newMilestone.newValue);
+                const res = newMilestone && !newMilestone.newValue;
+
+                return Boolean(res);
             }
 
             return false;

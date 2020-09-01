@@ -30,6 +30,7 @@ const schema = obj({
         postComments: boolean,
         postIssueUpdates: boolean,
         postEachComments: Joi.boolean().optional(),
+        postMilestoneUpdates: Joi.boolean().optional(),
         epicUpdates: obj({
             newIssuesInEpic: ['on', 'off'],
             issuesStatusChanged: ['on', 'off'],

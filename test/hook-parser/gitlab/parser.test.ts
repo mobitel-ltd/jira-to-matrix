@@ -27,6 +27,7 @@ import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
 import { HookTypes } from '../../../src/task-trackers/gitlab/types';
+import milestoneUpdated from '../../fixtures/webhooks/gitlab/issue/milestone-updated.json';
 
 describe('Gitlab actions', () => {
     const fakeTimestamp = 1596049533906;
@@ -69,11 +70,22 @@ describe('Gitlab actions', () => {
             projectKey: createdIssue.project.path_with_namespace,
             milestoneId: createdIssue.object_attributes.milestone_id,
         };
-
+        const postMisestoneUpdatesData: PostMilestoneUpdatesData = {
+            issueKey: createdIssue.project.path_with_namespace + '-' + createdIssue.object_attributes.iid,
+            milestoneId: createdIssue.object_attributes.milestone_id,
+            status: MilestoneUpdateStatus.Created,
+            summary: createdIssue.object_attributes.title,
+            user: createdIssue.user.name,
+        };
         const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
                 createRoomData,
+            },
+            {
+                redisKey: 'postMilestoneUpdates_' + fakeTimestamp,
+                funcName: 'postMilestoneUpdates',
+                data: postMisestoneUpdatesData,
             },
         ];
 
@@ -196,13 +208,24 @@ describe('Gitlab actions', () => {
             projectKey: issueCreated.project.path_with_namespace,
             milestoneId: issueCreated.object_attributes.milestone_id,
         };
-        const expected: { redisKey: typeof REDIS_ROOM_KEY; createRoomData: CreateRoomData }[] = [
+        const postMisestoneUpdatesData: PostMilestoneUpdatesData = {
+            issueKey: issueCreated.project.path_with_namespace + '-' + issueCreated.object_attributes.iid,
+            milestoneId: issueCreated.object_attributes.milestone_id,
+            status: MilestoneUpdateStatus.Created,
+            summary: issueCreated.object_attributes.title,
+            user: issueCreated.user.name,
+        };
+        const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
                 createRoomData,
             },
+            {
+                redisKey: 'postMilestoneUpdates_' + fakeTimestamp,
+                funcName: 'postMilestoneUpdates',
+                data: postMisestoneUpdatesData,
+            },
         ];
-        //         (hookLabels || []).map(label => label.color);
 
         const res = hookParser.getFuncAndBody(issueCreated);
 
@@ -338,6 +361,80 @@ describe('Gitlab actions', () => {
         ];
 
         const res = hookParser.getFuncAndBody(gitlabClosedIssue);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('should return create room, postIssueUpdate and postMilestoneUpdates for issue updated hook with milestone', () => {
+        const postIssueUpdateData: PostIssueUpdatesData = {
+            oldKey: milestoneUpdated.project.path_with_namespace + '-' + milestoneUpdated.object_attributes.iid,
+            projectKey: milestoneUpdated.project.path_with_namespace,
+            author: milestoneUpdated.user.name,
+            isNewStatus: false,
+            newRoomName:
+                '#' +
+                milestoneUpdated.object_attributes.iid +
+                ';' +
+                milestoneUpdated.object_attributes.title +
+                ';' +
+                IssueStateEnum.open +
+                ';' +
+                milestoneUpdated.project.path_with_namespace +
+                '/issues/' +
+                milestoneUpdated.object_attributes.iid +
+                ';' +
+                milestoneUpdated.object_attributes.milestone_id +
+                ';',
+            hookLabels: [],
+            changes: [{ field: 'milestone_id', newValue: milestoneUpdated.changes.milestone_id.current as any }],
+        };
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: milestoneUpdated.project.path_with_namespace + '-' + milestoneUpdated.object_attributes.iid,
+                descriptionFields: undefined,
+                projectKey: milestoneUpdated.project.path_with_namespace,
+                summary: milestoneUpdated.object_attributes.title,
+                hookLabels: [],
+            },
+            projectKey: milestoneUpdated.project.path_with_namespace,
+            milestoneId: milestoneUpdated.object_attributes.milestone_id,
+        };
+        const postMisestoneUpdatesData: PostMilestoneUpdatesData = {
+            issueKey: milestoneUpdated.project.path_with_namespace + '-' + milestoneUpdated.object_attributes.iid,
+            milestoneId: milestoneUpdated.object_attributes.milestone_id,
+            status: MilestoneUpdateStatus.Created,
+            summary: milestoneUpdated.object_attributes.title,
+            user: milestoneUpdated.user.name,
+        };
+        const inviteNewMembersData: InviteNewMembersData = {
+            key: milestoneUpdated.project.path_with_namespace + '-' + milestoneUpdated.object_attributes.iid,
+            projectKey: gitlabReopenedIssue.project.path_with_namespace,
+            typeName: undefined,
+        };
+
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData,
+            },
+            {
+                redisKey: 'inviteNewMembers_' + fakeTimestamp,
+                funcName: 'inviteNewMembers',
+                data: inviteNewMembersData,
+            },
+            {
+                redisKey: 'postIssueUpdates_' + fakeTimestamp,
+                funcName: 'postIssueUpdates',
+                data: postIssueUpdateData,
+            },
+            {
+                redisKey: 'postMilestoneUpdates_' + fakeTimestamp,
+                funcName: 'postMilestoneUpdates',
+                data: postMisestoneUpdatesData,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(milestoneUpdated);
 
         assert.deepEqual(res, expected);
     });

@@ -10,6 +10,9 @@ import { Gitlab } from '../../task-trackers/gitlab';
 const logger = getLogger(module);
 
 export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> implements RunAction {
+    static alreadyAddedToMilestoneMessage = (issueKey, milestoneId) =>
+        `Issue ${issueKey} is already added to milestone ${milestoneId}`;
+
     getMessage = ({ summary, key, user }, status: MilestoneUpdateStatus): string => {
         const viewUrl = this.taskTracker.getViewUrl(key);
         const messageMap: Record<
@@ -17,8 +20,8 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
             (options: { viewUrl: string; summary: string; user: string }) => string
         > = {
             [MilestoneUpdateStatus.Created]: options => translate('issueAddedToMilestone', options),
-            [MilestoneUpdateStatus.Closed]: options => translate('issueAddedToMilestone', options),
-            [MilestoneUpdateStatus.Deleted]: options => translate('issueAddedToMilestone', options),
+            [MilestoneUpdateStatus.Closed]: options => translate('issueClosedInMilestone', options),
+            [MilestoneUpdateStatus.Deleted]: options => translate('issueDeletedFromMilestone', options),
         };
 
         return messageMap[status]({ viewUrl, summary, user });
@@ -30,9 +33,10 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
     ): Promise<string | undefined> {
         const redisEpicKey = getRedisMilestoneKey(milestone.id);
         if (await redis.isInEpic(redisEpicKey, issue.key)) {
-            logger.debug(`Issue ${issue.key} already saved in Redis by milestone ${milestone.key}`);
+            const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(issue.key, milestone.id);
+            logger.debug(message);
 
-            return;
+            return message;
         }
 
         await redis.addToList(redisEpicKey, issue.key);
