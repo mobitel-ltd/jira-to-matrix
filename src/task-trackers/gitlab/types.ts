@@ -130,6 +130,10 @@ export interface GitlabIssueHook extends GitlabHook {
     assignees: HookUser[];
     labels: GitlabLabelHook[];
     changes: {
+        milestone_id: {
+            previous: null | number;
+            current: number;
+        };
         author_id: {
             previous: null | number;
             current: number;
@@ -338,7 +342,7 @@ export interface GitlabIssue {
         updated_at: string;
         start_date?: string | null;
         closed_at?: string | null;
-    };
+    } | null;
     author: GitlabUserDataShort;
     description: string;
     state: string;

@@ -28,6 +28,7 @@ import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
 import { HookTypes } from '../../../src/task-trackers/gitlab/types';
 import milestoneUpdated from '../../fixtures/webhooks/gitlab/issue/milestone-updated.json';
+import milestoneDeleted from '../../fixtures/webhooks/gitlab/issue/milestone-deleted.json';
 
 describe('Gitlab actions', () => {
     const fakeTimestamp = 1596049533906;
@@ -435,6 +436,79 @@ describe('Gitlab actions', () => {
         ];
 
         const res = hookParser.getFuncAndBody(milestoneUpdated);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('should return create room, postIssueUpdate and postMilestoneUpdates for issue deleted milestone hook', () => {
+        const postIssueUpdateData: PostIssueUpdatesData = {
+            oldKey: milestoneDeleted.project.path_with_namespace + '-' + milestoneDeleted.object_attributes.iid,
+            projectKey: milestoneDeleted.project.path_with_namespace,
+            author: milestoneDeleted.user.name,
+            isNewStatus: false,
+            newRoomName:
+                '#' +
+                milestoneDeleted.object_attributes.iid +
+                ';' +
+                milestoneDeleted.object_attributes.title +
+                ';' +
+                IssueStateEnum.open +
+                ';' +
+                milestoneDeleted.project.path_with_namespace +
+                '/issues/' +
+                milestoneDeleted.object_attributes.iid +
+                ';' +
+                ';',
+            hookLabels: [],
+            changes: [{ field: 'milestone_id', newValue: milestoneDeleted.changes.milestone_id.current as any }],
+        };
+        const createRoomData: CreateRoomData = {
+            issue: {
+                key: milestoneDeleted.project.path_with_namespace + '-' + milestoneDeleted.object_attributes.iid,
+                descriptionFields: undefined,
+                projectKey: milestoneDeleted.project.path_with_namespace,
+                summary: milestoneDeleted.object_attributes.title,
+                hookLabels: [],
+            },
+            projectKey: milestoneDeleted.project.path_with_namespace,
+            milestoneId: milestoneDeleted.changes.milestone_id.previous,
+        };
+        const postMisestoneUpdatesData: PostMilestoneUpdatesData = {
+            issueKey: milestoneDeleted.project.path_with_namespace + '-' + milestoneDeleted.object_attributes.iid,
+            milestoneId: milestoneDeleted.changes.milestone_id.previous,
+            status: MilestoneUpdateStatus.Deleted,
+            summary: milestoneDeleted.object_attributes.title,
+            user: milestoneDeleted.user.name,
+        };
+        const inviteNewMembersData: InviteNewMembersData = {
+            key: milestoneDeleted.project.path_with_namespace + '-' + milestoneDeleted.object_attributes.iid,
+            projectKey: gitlabReopenedIssue.project.path_with_namespace,
+            typeName: undefined,
+        };
+
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData,
+            },
+            {
+                redisKey: 'inviteNewMembers_' + fakeTimestamp,
+                funcName: 'inviteNewMembers',
+                data: inviteNewMembersData,
+            },
+            {
+                redisKey: 'postIssueUpdates_' + fakeTimestamp,
+                funcName: 'postIssueUpdates',
+                data: postIssueUpdateData,
+            },
+            {
+                redisKey: 'postMilestoneUpdates_' + fakeTimestamp,
+                funcName: 'postMilestoneUpdates',
+                data: postMisestoneUpdatesData,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(milestoneDeleted);
 
         assert.deepEqual(res, expected);
     });

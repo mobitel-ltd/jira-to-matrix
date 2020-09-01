@@ -183,7 +183,7 @@ export enum IssueStateEnum {
 export interface Selectors {
     isIssueRoomName(name: string): boolean;
 
-    getMilestoneKey(body: Issue): string | undefined;
+    getMilestoneKey(body: Issue, milestoneId?: number): string | undefined;
 
     getRoomName(body): string;
 

@@ -51,6 +51,7 @@ client.on('error', err => {
 const setnxAsync = promisify(client.setnx).bind(client);
 const sismemberAsync = promisify(client.sismember).bind(client);
 const saddAsync = promisify(client.sadd).bind(client);
+const sremAsync = promisify(client.srem).bind(client);
 
 export const getRedisLinkKey = id => [REDIS_LINK_PREFIX, DELIMITER, id].join('');
 
@@ -62,6 +63,7 @@ export const redis = {
     isInEpic: (redisEpicKey, issueId) => sismemberAsync(redisEpicKey, issueId),
     isInMilestone: (milestoneKey, issueId) => sismemberAsync(milestoneKey, issueId),
     addToList: (list, id) => saddAsync(list, id),
+    remFromList: (list, id) => sremAsync(list, id),
     getList: promisify(client.smembers).bind(client),
     isNewLink: id => setnxAsync(getRedisLinkKey(id), '1'),
     srem: promisify(client.srem).bind(client),

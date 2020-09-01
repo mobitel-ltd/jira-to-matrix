@@ -117,7 +117,7 @@ interface CommentGetters<T> extends IssueHookGetters<T> {
 
 interface IssueGetters<T> extends BodyGetters<T> {
     getRoomName(body: T): string;
-    getMilestoneKey(body: T): string | undefined;
+    getMilestoneKey(body: T, id?: number): string | undefined;
     getMilestoneSummary(body: T): string | undefined;
     getAssigneeDisplayName(body: T): string[];
 }
@@ -226,7 +226,31 @@ const handlers: {
     pipeline: PipelineGetters;
 } = {
     issue: {
-        getMilestoneId: body => body.object_attributes.milestone_id,
+        getMilestoneId: body => {
+            const isMilestoneDeleted = data => {
+                const changes = handlers.issue.getIssueChanges(data);
+                if (changes) {
+                    const newMilestone = changes.find(el => el.field === 'milestone_id');
+
+                    const res = newMilestone && !newMilestone.newValue;
+
+                    return Boolean(res);
+                }
+
+                return false;
+            };
+
+            const deletedStatus = isMilestoneDeleted(body);
+
+            if (deletedStatus) {
+                const previos = body.changes.milestone_id?.previous;
+
+                return previos ? previos : null;
+            }
+
+            return body.object_attributes.milestone_id;
+        },
+
         getProjectKey: body => body.project.path_with_namespace,
         getIssueLabels: body => body.labels,
         getFullKey: body => transformToKey(body.project.path_with_namespace, body.object_attributes.iid),
@@ -345,12 +369,14 @@ const handlers: {
 };
 
 const issueRequestHandlers: IssueGetters<GitlabIssue> = {
-    getMilestoneSummary: body => body.milestone.title,
-    getMilestoneKey: body => {
-        const milestoneId = body.milestone.id;
-        const projectKey = issueRequestHandlers.getProjectKey(body);
+    getMilestoneSummary: body => body.milestone?.title,
+    getMilestoneKey: (body, id) => {
+        const milestoneId = id || body.milestone?.id;
+        if (milestoneId) {
+            const projectKey = issueRequestHandlers.getProjectKey(body);
 
-        return transformToKey(projectKey, milestoneId, KeyType.Milestone);
+            return transformToKey(projectKey, milestoneId, KeyType.Milestone);
+        }
     },
     getIssueLabels: body => body.labels,
     getRoomName: body => {
@@ -474,7 +500,8 @@ const isPipelineHook = (body: unknown) =>
 
 const getMilestoneId = (body): number | null => runMethod(body, 'getMilestoneId');
 
-const getMilestoneKey = (body): string | undefined => issueRequestHandlers.getMilestoneKey(body);
+const getMilestoneKey = (body, milestoneId?: number): string | undefined =>
+    issueRequestHandlers.getMilestoneKey(body, milestoneId);
 
 export const selectors: GitlabSelectors = {
     isIssueRoomName,

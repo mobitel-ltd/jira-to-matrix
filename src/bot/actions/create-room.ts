@@ -192,7 +192,8 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
                 }
 
                 if (milestoneId) {
-                    const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issueBody);
+                    const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issueBody, milestoneId);
+                    // it checks if issue has no milestone
                     if (milestoneKey && !(await this.currentChatItem.getRoomIdByName(milestoneKey))) {
                         const options: CreateMilestoneRoomOptions = {
                             key: milestoneKey,

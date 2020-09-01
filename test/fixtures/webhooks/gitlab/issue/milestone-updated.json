@@ -34,7 +34,7 @@
         "iid": 17,
         "last_edited_at": null,
         "last_edited_by_id": null,
-        "milestone_id": 10,
+        "milestone_id": 103,
         "moved_to_id": null,
         "duplicated_to_id": null,
         "project_id": 3032,
@@ -60,7 +60,7 @@
     "changes": {
         "milestone_id": {
             "previous": 106,
-            "current": 10
+            "current": 103
         },
         "updated_at": {
             "previous": "2020-08-31 16:37:54 +0300",

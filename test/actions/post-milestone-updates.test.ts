@@ -47,13 +47,13 @@ describe('PostMilestoneUpdates', () => {
                 .get(
                     `/projects/${gitlabProjectJson.id}/milestones/${createdIssue.object_attributes.milestone_id}/issues`,
                 )
-                .times(2)
+                .times(3)
                 .reply(200, milestoneIssuesJson)
                 .get(`/projects/${querystring.escape(createdIssue.project.path_with_namespace)}`)
-                .times(4)
+                .times(6)
                 .reply(200, gitlabProjectJson)
                 .get(`/projects/${gitlabProjectJson.id}/issues/${createdIssue.object_attributes.iid}`)
-                .times(2)
+                .times(3)
                 .reply(200, gitlabIssueJson)
                 .get(`/projects/${gitlabProjectJson.id}/issues/${issueClosed.object_attributes.iid}`)
                 .reply(200, gitlabIssueJson);
@@ -92,6 +92,24 @@ describe('PostMilestoneUpdates', () => {
             );
 
             expect(result).to.be.eq(message);
+        });
+
+        it('Should send message to milestone room with info about added issue if it was added again', async () => {
+            const updateData = gitlabTracker.parser.getPostMilestoneUpdatesData(createdIssue);
+            const deletedData = gitlabTracker.parser.getPostMilestoneUpdatesData(milestoneDeleted);
+            await postMilestoneUpdates.run(updateData);
+            await postMilestoneUpdates.run(deletedData);
+            const result = await postMilestoneUpdates.run(updateData);
+
+            const message = translate('issueAddedToMilestone', {
+                viewUrl: gitlabTracker.getViewUrl(updateData.issueKey),
+                summary: createdIssue.object_attributes.title,
+                user: createdIssue.user.name,
+            });
+            const expectedData = [roomId, marked(message), marked(message)];
+
+            expect(result).to.be.eq(message);
+            expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
         });
 
         it('Should send message to milestone room with info about added issue if milestone updated', async () => {

@@ -198,7 +198,10 @@ export class GitlabParser implements Parser {
 
         return {
             issueKey: this.selectors.getIssueKey(body),
-            milestoneId: this.selectors.getMilestoneId(body)!,
+            milestoneId:
+                status === MilestoneUpdateStatus.Deleted
+                    ? body?.changes?.milestone_id?.previous
+                    : this.selectors.getMilestoneId(body)!,
             summary: this.selectors.getSummary(body)!,
             user: this.selectors.getDisplayName(body)!,
             status,

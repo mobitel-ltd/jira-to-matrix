@@ -54,6 +54,12 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         milestone: { id: number; key: string; roomId: string },
         issue: { key: string; summary: string; user: string },
     ): Promise<string> {
+        const redisEpicKey = getRedisMilestoneKey(milestone.id);
+        if (await redis.isInEpic(redisEpicKey, issue.key)) {
+            await redis.remFromList(redisEpicKey, issue.key);
+            logger.debug(`Removed issue key ${issue.key} from milestone ${milestone.id} in redis`);
+        }
+
         const message = this.getMessage(issue, MilestoneUpdateStatus.Deleted);
 
         await this.chatApi.sendHtmlMessage(milestone.roomId, marked(message));
@@ -103,7 +109,7 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         try {
             const issue = await this.taskTracker.getIssue(issueKey);
 
-            const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issue)!;
+            const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issue, milestoneId)!;
             const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
 
             await this.inviteNewMembers(milestoneRoomId, milestoneKey);
