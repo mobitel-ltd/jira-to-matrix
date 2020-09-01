@@ -378,7 +378,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
             return transformToKey(projectKey, milestoneId, KeyType.Milestone);
         }
     },
-    getIssueLabels: body => body.labels,
+    getIssueLabels: body => body.labels || [],
     getRoomName: body => {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);

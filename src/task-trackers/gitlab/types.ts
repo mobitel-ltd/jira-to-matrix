@@ -332,7 +332,8 @@ export interface GitlabIssue {
     project_id: number;
     milestone: {
         due_date: string | null;
-        project_id: number;
+        project_id?: number;
+        group_id?: number;
         state: string;
         description: string;
         iid: number;
@@ -342,6 +343,7 @@ export interface GitlabIssue {
         updated_at: string;
         start_date?: string | null;
         closed_at?: string | null;
+        web_url: string;
     } | null;
     author: GitlabUserDataShort;
     description: string;
@@ -349,7 +351,7 @@ export interface GitlabIssue {
     iid: number;
     assignees: GitlabUserDataShort[];
     assignee: GitlabUserDataShort | null;
-    labels: string[];
+    labels?: string[];
     upvotes: number;
     downvotes: number;
     merge_requests_count: number;

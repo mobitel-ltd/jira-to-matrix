@@ -80,29 +80,34 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         return message;
     }
 
-    async inviteNewMembers(roomId: string, milestoneKey: string): Promise<string[]> {
+    async inviteNewMembers(roomId: string, milestoneKey: string, issueBody): Promise<string[] | undefined> {
         const chatRoomMembers = await this.chatApi.getRoomMembers({ roomId });
 
-        const milestoneWatchers = await this.taskTracker.getMilestoneWatchers(milestoneKey);
-        const milestoneWatchersChatIds = await Promise.all(
-            milestoneWatchers.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
-        );
-        const {
-            messenger: { bots },
-        } = this.config;
+        const milestoneUrl = this.taskTracker.getMilestoneUrl(issueBody);
+        if (milestoneUrl) {
+            const milestoneWatchers = await this.taskTracker.getMilestoneWatchers(milestoneUrl);
+            const milestoneWatchersChatIds = await Promise.all(
+                milestoneWatchers.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
+            );
+            const {
+                messenger: { bots },
+            } = this.config;
 
-        const botsChatIds = bots.map(({ user }) => user).map(user => this.chatApi.getChatUserId(user));
+            const botsChatIds = bots.map(({ user }) => user).map(user => this.chatApi.getChatUserId(user));
 
-        const newMembers = R.difference(milestoneWatchersChatIds, [...chatRoomMembers, ...botsChatIds]).filter(Boolean);
+            const newMembers = R.difference(milestoneWatchersChatIds, [...chatRoomMembers, ...botsChatIds]).filter(
+                Boolean,
+            );
 
-        await Promise.all(
-            newMembers.map(async userID => {
-                await this.chatApi.invite(roomId, userID);
-                logger.debug(`New member ${userID} invited to ${milestoneKey}`);
-            }),
-        );
+            await Promise.all(
+                newMembers.map(async userID => {
+                    await this.chatApi.invite(roomId, userID);
+                    logger.debug(`New member ${userID} invited to ${milestoneKey}`);
+                }),
+            );
 
-        return newMembers;
+            return newMembers;
+        }
     }
 
     async run({ issueKey, milestoneId, status, user, summary }: PostMilestoneUpdatesData): Promise<string> {
@@ -112,7 +117,7 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
             const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issue, milestoneId)!;
             const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
 
-            await this.inviteNewMembers(milestoneRoomId, milestoneKey);
+            await this.inviteNewMembers(milestoneRoomId, milestoneKey, issue);
 
             const actionsByStatus = {
                 [MilestoneUpdateStatus.Created]: this.postNewIssue,

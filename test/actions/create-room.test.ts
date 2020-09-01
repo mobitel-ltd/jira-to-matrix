@@ -20,7 +20,7 @@ import { CreateRoomData, CreateRoomOpions, IssueStateEnum, Config } from '../../
 import { getDefaultErrorLog } from '../../src/lib/utils';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
-import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import gitlabProjectJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import milestoneIssuesJson from '../fixtures/gitlab-api-requests/milestone-issue.json';
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
@@ -405,11 +405,11 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(3)
-                    .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+                    .reply(200, gitlabProjectJson)
+                    .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
                     .times(2)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
+                    .get(`/projects/${gitlabProjectJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 
@@ -456,13 +456,13 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(5)
-                    .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+                    .reply(200, gitlabProjectJson)
+                    .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
                     .times(3)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/members/all`)
+                    .get(`/projects/${gitlabProjectJson.id}/members/all`)
                     .reply(200, projectMembersJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
+                    .get(`/projects/${gitlabProjectJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 
@@ -521,11 +521,11 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(3)
-                    .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
+                    .reply(200, gitlabProjectJson)
+                    .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
                     .times(3)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
+                    .get(`/projects/${gitlabProjectJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 
@@ -593,7 +593,9 @@ describe('Create room test with gitlab as task tracker', () => {
                     ';' +
                     gitlabIssueJson.milestone.title +
                     ';' +
-                    gitlabIssueJson.milestone.web_url.replace('https://gitlab.example.com/', '').replace('/-', '') +
+                    gitlabIssueJson.milestone.web_url
+                        .replace('https://gitlab.example.com/groups/', '')
+                        .replace('/-', '') +
                     ';';
 
                 expectedMilestoneRoomOptions = {
@@ -607,17 +609,17 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(5)
-                    .reply(200, gitlabProjectsJson)
+                    .reply(200, gitlabProjectJson)
                     .get(
-                        `/projects/${gitlabProjectsJson.id}/milestones/${gitlabIssueCreatedJson.object_attributes.milestone_id}/issues`,
+                        `/groups/${gitlabIssueJson.milestone.group_id}/milestones/${gitlabIssueJson.milestone.id}/issues`,
                     )
                     .reply(200, milestoneIssuesJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
+                    .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
                     .times(4)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/members/all`)
+                    .get(`/projects/${gitlabProjectJson.id}/members/all`)
                     .reply(200, projectMembersJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
+                    .get(`/projects/${gitlabProjectJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 

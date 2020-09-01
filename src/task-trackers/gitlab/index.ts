@@ -133,6 +133,18 @@ export class Gitlab implements TaskTracker {
         }
     }
 
+    getMilestoneUrl(body: GitlabIssue): string | undefined {
+        const milestone = body.milestone;
+        if (milestone) {
+            if (milestone.project_id) {
+                return this.getRestUrl('projects', milestone.project_id, 'milestones', milestone.id, 'issues');
+            }
+            if (milestone.group_id) {
+                return this.getRestUrl('groups', milestone.group_id, 'milestones', milestone.id, 'issues');
+            }
+        }
+    }
+
     // async getLabels();
 
     getStatusColor({
@@ -181,21 +193,14 @@ export class Gitlab implements TaskTracker {
         return { ...issue, key };
     }
 
-    async getMilestoneIssues(key: string): Promise<Array<GitlabIssue>> {
-        const { namespaceWithProject, milestoneId } = this.selectors.transformFromKey(key);
-        if (!milestoneId) {
-            throw new Error(`Key ${key} not have milestoneId`);
-        }
-
-        const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
-        const url = this.getRestUrl('projects', projectId, 'milestones', milestoneId, 'issues');
+    async getMilestoneIssues(url: string): Promise<Array<GitlabIssue>> {
         const issues: GitlabIssue[] = await this.request(url);
 
         return issues;
     }
 
-    async getMilestoneWatchers(key): Promise<string[]> {
-        const issues = await this.getMilestoneIssues(key);
+    async getMilestoneWatchers(url: string): Promise<string[]> {
+        const issues = await this.getMilestoneIssues(url);
         const milestoneMembers = issues.map(el => this.selectors.getAssigneeDisplayName(el)).flat();
 
         return R.uniq(milestoneMembers);
@@ -439,7 +444,7 @@ export class Gitlab implements TaskTracker {
         if (!hookLabels) {
             const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
             const labels = await this.getAllAvailalbleLabels(namespaceWithProject);
-            const colors = labels.filter(label => issue.labels.includes(label.name)).map(label => label.color);
+            const colors = labels.filter(label => issue.labels?.includes(label.name)).map(label => label.color);
 
             return [...new Set(colors)];
         }

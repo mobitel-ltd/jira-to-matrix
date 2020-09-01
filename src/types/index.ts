@@ -265,6 +265,8 @@ export interface TaskTracker {
     selectors: Selectors;
 
     parser: Parser;
+    getMilestoneUrl(body: any): string | undefined;
+
     getMilestoneWatchers(key): Promise<string[]>;
 
     getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string | string[]>;

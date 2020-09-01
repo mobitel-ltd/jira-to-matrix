@@ -64,6 +64,8 @@ export class Jira implements TaskTracker {
 
     getMilestoneWatchers = () => [] as any;
 
+    getMilestoneUrl = () => undefined;
+
     /**
      * Create jira url
      */

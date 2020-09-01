@@ -44,9 +44,7 @@ describe('PostMilestoneUpdates', () => {
     describe('Issue added', () => {
         beforeEach(() => {
             nock(gitlabTracker.getRestUrl())
-                .get(
-                    `/projects/${gitlabProjectJson.id}/milestones/${createdIssue.object_attributes.milestone_id}/issues`,
-                )
+                .get(`/groups/${gitlabIssueJson.milestone.group_id}/milestones/${gitlabIssueJson.milestone.id}/issues`)
                 .times(3)
                 .reply(200, milestoneIssuesJson)
                 .get(`/projects/${querystring.escape(createdIssue.project.path_with_namespace)}`)
