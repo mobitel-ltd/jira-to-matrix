@@ -258,7 +258,14 @@ export class Gitlab implements TaskTracker {
     }
 
     async postComment(gitlabIssueKey: string, { sender }, bodyText: string): Promise<string> {
+        const body = this.getPostCommentBody(sender, bodyText);
+
+        return await this.sendMessage(gitlabIssueKey, body);
+    }
+
+    async sendMessage(gitlabIssueKey: string, body: string): Promise<string> {
         const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(gitlabIssueKey);
+        const params = querystring.stringify({ body });
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         // TODO make correct query params passing
