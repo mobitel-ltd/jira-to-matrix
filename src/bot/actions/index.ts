@@ -17,6 +17,7 @@ import { Upload } from './upload';
 import { Gitlab } from '../../task-trackers/gitlab';
 import { PostCommit } from './post-commit';
 import { PostPipeline } from './post-pipeline';
+import { PostMilestoneUpdates } from './post-milestone-updates';
 
 export class Actions {
     commandsDict: Record<ActionNames, RunAction>;
@@ -38,10 +39,11 @@ export class Actions {
             [ActionNames.Upload]: new Upload(config, taskTracker as Gitlab, chatApi),
             [ActionNames.PostCommit]: new PostCommit(config, taskTracker as Gitlab, chatApi),
             [ActionNames.Pipeline]: new PostPipeline(config, taskTracker as Gitlab, chatApi),
+            [ActionNames.PostMilestoneUpdates]: new PostMilestoneUpdates(config, taskTracker as Gitlab, chatApi),
         };
     }
 
-    async run(commandName: ActionNames, commandOptions: any): Promise<boolean | string[] | undefined> {
+    async run(commandName: ActionNames, commandOptions: any): Promise<boolean | string[] | undefined | string> {
         const command: RunAction | undefined = this.commandsDict[commandName];
 
         if (command) {

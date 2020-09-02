@@ -1,4 +1,4 @@
-import * as Ramda from 'ramda';
+import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
 import { errorTracing } from '../../lib/utils';
 import { BaseAction, RunAction } from './base-action';
@@ -29,11 +29,11 @@ export class InviteNewMembers extends BaseAction<ChatFasade, TaskTracker> implem
 
             const autoinviteUsers = projectKey && typeName ? await this.getAutoinviteUsers(projectKey, typeName) : [];
 
-            const jiraUsers = Ramda.uniq([...issueWatchersChatIds, ...autoinviteUsers]);
+            const jiraUsers = R.uniq([...issueWatchersChatIds, ...autoinviteUsers]);
 
             const botsChatIds = bots.map(({ user }) => user).map(user => this.chatApi.getChatUserId(user));
 
-            const newMembers = Ramda.difference(jiraUsers, [...chatRoomMembers, ...botsChatIds]).filter(Boolean);
+            const newMembers = R.difference(jiraUsers, [...chatRoomMembers, ...botsChatIds]).filter(Boolean);
 
             await Promise.all(
                 newMembers.map(async userID => {

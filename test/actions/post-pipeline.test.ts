@@ -37,7 +37,7 @@ describe('Post pipeline', () => {
     // });
 
     it('Expect postPipeline works correct with push hook and', async () => {
-        const keyData = gitlabTracker.selectors.transformFromKey(postPipelineData.issueKeys[0]);
+        const keyData = gitlabTracker.selectors.transformFromIssueKey(postPipelineData.issueKeys[0]);
         const repoName = keyData.namespaceWithProject.split('/').reverse()[0];
         const res = PostPipeline.getMessage(postPipelineData.pipelineData, repoName);
         const result = await postPipeline.run(postPipelineData);

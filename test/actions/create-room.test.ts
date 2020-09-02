@@ -20,14 +20,14 @@ import { CreateRoomData, CreateRoomOpions, IssueStateEnum, Config } from '../../
 import { getDefaultErrorLog } from '../../src/lib/utils';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
-import gitlabProjectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import gitlabProjectJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
+import milestoneIssuesJson from '../fixtures/gitlab-api-requests/milestone-issue.json';
 import projectMembersJson from '../fixtures/gitlab-api-requests/project-members.json';
 import gitlabIssueCreatedJson from '../fixtures/webhooks/gitlab/issue/created.json';
 import gitlabLabelJson from '../fixtures/gitlab-api-requests/labels.json';
 import { setSettingsData } from '../../src/bot/settings';
-import { translate } from '../../src/locales';
-import { schemas } from '../../src/task-trackers/jira/schemas';
+import { KeyType, milestonePart } from '../../src/task-trackers/gitlab/selectors';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -406,6 +406,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     summary: gitlabCommentCreatedHook.issue.description,
                 },
                 projectKey: gitlabCommentCreatedHook.project.path_with_namespace,
+                milestoneId: undefined,
             };
             expect(createRoomData).to.be.deep.eq(expected);
         });
@@ -415,11 +416,11 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(3)
-                    .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+                    .reply(200, gitlabProjectJson)
+                    .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
                     .times(2)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
+                    .get(`/projects/${gitlabProjectJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 
@@ -468,19 +469,14 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(5)
-                    .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
+                    .reply(200, gitlabProjectJson)
+                    .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabCommentCreatedHook.issue.iid}`)
                     .times(3)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/members/all`)
+                    .get(`/projects/${gitlabProjectJson.id}/members/all`)
                     .reply(200, projectMembersJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
-                    .reply(200, gitlabLabelJson)
-                    .post(
-                        `/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}/notes`,
-                    )
-                    .query({ body: roomCreatedMessage })
-                    .reply(201);
+                    .get(`/projects/${gitlabProjectJson.id}/labels`)
+                    .reply(200, gitlabLabelJson);
             });
 
             it('should call room creation', async () => {
@@ -499,9 +495,15 @@ describe('Create room test with gitlab as task tracker', () => {
         let chatFasade;
         beforeEach(() => {
             createRoomData = gitlabTracker.parser.getCreateRoomData(gitlabIssueCreatedJson);
+            const milestoneKey = gitlabTracker.selectors.transformToKey(
+                createRoomData.projectKey!,
+                createRoomData.milestoneId!,
+                KeyType.Milestone,
+            );
+
             const chatClass = getChatClass({
-                alias: [createRoomData.issue.key, createRoomData.projectKey!],
-                roomId: [createRoomData.issue.key, createRoomData.projectKey!],
+                alias: [createRoomData.issue.key, createRoomData.projectKey!, milestoneKey],
+                roomId: [createRoomData.issue.key, createRoomData.projectKey!, milestoneKey],
             });
             chatApi = chatClass.chatApiSingle;
             chatFasade = chatClass.chatApi;
@@ -523,6 +525,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     summary: gitlabIssueCreatedJson.object_attributes.title,
                 },
                 projectKey: gitlabIssueCreatedJson.project.path_with_namespace,
+                milestoneId: gitlabIssueCreatedJson.object_attributes.milestone_id,
             };
             expect(createRoomData).to.be.deep.eq(expected);
         });
@@ -532,11 +535,11 @@ describe('Create room test with gitlab as task tracker', () => {
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(3)
-                    .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
-                    .times(2)
+                    .reply(200, gitlabProjectJson)
+                    .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
+                    .times(3)
                     .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
+                    .get(`/projects/${gitlabProjectJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
 
@@ -549,6 +552,7 @@ describe('Create room test with gitlab as task tracker', () => {
 
         describe('Room is not exists', () => {
             let expectedIssueRoomOptions: CreateRoomOpions;
+            let expectedMilestoneRoomOptions: CreateRoomOpions;
             beforeEach(() => {
                 const issueKey =
                     gitlabIssueCreatedJson.project.path_with_namespace +
@@ -585,24 +589,52 @@ describe('Create room test with gitlab as task tracker', () => {
                     topic: gitlabTracker.getViewUrl(issueKey),
                     purpose: gitlabIssueJson.title,
                 };
-                const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
+
+                //////////////////////////////////////////////////////////////////////
+
+                const milestoneKey =
+                    gitlabIssueCreatedJson.project.path_with_namespace +
+                    '-' +
+                    milestonePart +
+                    gitlabIssueCreatedJson.object_attributes.milestone_id;
+                const milestoneMembers = [gitlabIssueJson.assignee.username].map(name =>
+                    getChatClass().chatApiSingle.getChatUserId(name),
+                );
+
+                const milestoneRoomName =
+                    '#' +
+                    gitlabIssueCreatedJson.object_attributes.milestone_id +
+                    ';' +
+                    gitlabIssueJson.milestone.title +
+                    ';' +
+                    gitlabIssueJson.milestone.web_url
+                        .replace('https://gitlab.example.com/groups/', '')
+                        .replace('/-', '') +
+                    ';';
+
+                expectedMilestoneRoomOptions = {
+                    invite: milestoneMembers,
+                    name: milestoneRoomName,
+                    room_alias_name: milestoneKey,
+                    topic: gitlabTracker.getViewUrl(milestoneKey),
+                    purpose: gitlabIssueJson.milestone.title,
+                };
 
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(5)
-                    .reply(200, gitlabProjectsJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
-                    .times(3)
-                    .reply(200, gitlabIssueJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/members/all`)
-                    .reply(200, projectMembersJson)
-                    .get(`/projects/${gitlabProjectsJson.id}/labels`)
-                    .reply(200, gitlabLabelJson)
-                    .post(
-                        `/projects/${gitlabProjectsJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}/notes`,
+                    .reply(200, gitlabProjectJson)
+                    .get(
+                        `/groups/${gitlabIssueJson.milestone.group_id}/milestones/${gitlabIssueJson.milestone.id}/issues`,
                     )
-                    .query({ body: roomCreatedMessage })
-                    .reply(201);
+                    .reply(200, milestoneIssuesJson)
+                    .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
+                    .times(4)
+                    .reply(200, gitlabIssueJson)
+                    .get(`/projects/${gitlabProjectJson.id}/members/all`)
+                    .reply(200, projectMembersJson)
+                    .get(`/projects/${gitlabProjectJson.id}/labels`)
+                    .reply(200, gitlabLabelJson);
             });
 
             it('should call room creation with no avatar', async () => {
@@ -610,6 +642,7 @@ describe('Create room test with gitlab as task tracker', () => {
                 chatApi.getRoomIdByName.resolves(false);
                 const result = await createRoom.run(createRoomData);
                 expect(chatApi.createRoom).to.be.calledWithExactly(expectedIssueRoomOptions);
+                expect(chatApi.createRoom).to.be.calledWithExactly(expectedMilestoneRoomOptions);
                 expect(result).to.be.true;
             });
 

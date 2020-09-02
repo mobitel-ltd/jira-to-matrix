@@ -26,6 +26,13 @@ interface CreateIssueRoomOptions {
     statusColors: string[] | string;
 }
 
+interface CreateMilestoneRoomOptions {
+    key: string;
+    summary: string;
+    roomName: string;
+    members: string[];
+}
+
 export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
     getEpicInfo(epicLink) {
         epicLink === translate('miss')
@@ -66,7 +73,33 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<string> {
+    async createMilestoneRoom({ key, summary, roomName, members }: CreateMilestoneRoomOptions): Promise<void> {
+        try {
+            const milestoneWatchersChatIds = await Promise.all(
+                members.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
+            );
+
+            const topic = this.taskTracker.getViewUrl(key);
+
+            const options = {
+                room_alias_name: key,
+                invite: milestoneWatchersChatIds,
+                name: roomName,
+                topic,
+                purpose: summary,
+            };
+
+            const roomId = await this.currentChatItem.createRoom(options);
+
+            logger.info(`Created room for ${key}: ${roomId}`);
+
+            await this.currentChatItem.sendHtmlMessage(roomId, infoBody, infoBody);
+        } catch (err) {
+            throw errorTracing('createIssueRoom', err);
+        }
+    }
+
+    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<void> {
         try {
             const { key, summary, projectKey, descriptionFields, roomName, statusColors } = issue;
 
@@ -127,12 +160,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async getCheckedIssue(keyOrId, hookLabels): Promise<CreateIssueRoomOptions | false> {
-        const issueBody = await this.taskTracker.getIssueSafety(keyOrId);
-        if (!issueBody) {
-            return false;
-        }
-
+    async getCreateIsueOptions(keyOrId, hookLabels, issueBody): Promise<CreateIssueRoomOptions> {
         const statusColors =
             (await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels)) || this.defaultAvatarColor;
 
@@ -150,22 +178,42 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         return !Object.values(issue).find(el => !el);
     }
 
-    async run({ issue, projectKey }: CreateRoomData): Promise<boolean> {
+    async run({ issue, projectKey, milestoneId }: CreateRoomData): Promise<boolean> {
         try {
             const keyOrId = issue.key || issue.id;
             if (issue && keyOrId) {
-                const checkedIssue = await this.getCheckedIssue(keyOrId, issue.hookLabels);
-                if (!checkedIssue) {
+                const issueBody = await this.taskTracker.getIssueSafety(keyOrId);
+                if (!issueBody) {
                     logger.warn(`Issue ${keyOrId} is not exists`);
 
                     return false;
                 }
+                const checkedIssue = await this.getCreateIsueOptions(keyOrId, issue.hookLabels, issueBody);
                 if (!(await this.currentChatItem.getRoomIdByName(checkedIssue.key))) {
                     const roomId = await this.createIssueRoom(checkedIssue);
                     await this.taskTracker.sendMessage(
                         checkedIssue.key,
                         translate('roomCreatedMessage', { link: this.chatApi.getRoomLink(roomId) }),
                     );
+                }
+
+                if (milestoneId) {
+                    const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issueBody, milestoneId);
+                    // it checks if issue has no milestone
+                    if (milestoneKey && !(await this.currentChatItem.getRoomIdByName(milestoneKey))) {
+                        const milestoneUrl = this.taskTracker.getMilestoneUrl(issueBody);
+                        const members = await this.taskTracker.getMilestoneWatchers(milestoneUrl);
+
+                        const options: CreateMilestoneRoomOptions = {
+                            key: milestoneKey,
+                            summary: this.taskTracker.selectors.getMilestoneSummary(issueBody)!,
+                            roomName: this.taskTracker.selectors.composeRoomName(milestoneKey, {
+                                summary: this.taskTracker.selectors.getMilestoneSummary(issueBody)!,
+                            }),
+                            members,
+                        };
+                        await this.createMilestoneRoom(options);
+                    }
                 }
             }
             if (projectKey) {

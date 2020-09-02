@@ -17,6 +17,7 @@ export interface Config {
         postComments: boolean;
         postEachComments?: boolean;
         postIssueUpdates: boolean;
+        postMilestoneUpdates?: boolean;
         epicUpdates: {
             newIssuesInEpic: 'on' | 'off';
             issuesStatusChanged: 'on' | 'off';
@@ -180,7 +181,13 @@ export enum IssueStateEnum {
 }
 
 export interface Selectors {
+    isIssueRoomName(name: string): boolean;
+
+    getMilestoneKey(body: Issue, milestoneId?: number): string | undefined;
+
     getRoomName(body): string;
+
+    // getMilestoneRoomName(body): string;
 
     composeRoomName(key: string, options: { summary: string; state?: IssueStateEnum; milestone?: string }): string;
 
@@ -236,6 +243,8 @@ export interface Selectors {
 
     getSummary(body): string | undefined;
 
+    getMilestoneSummary(body): string | undefined;
+
     getBodyTimestamp(body): string | number | undefined;
 
     getRedisKey(funcName: string, body: any): string;
@@ -256,6 +265,9 @@ export interface TaskTracker {
     selectors: Selectors;
 
     parser: Parser;
+    getMilestoneUrl(body: any): string | undefined;
+
+    getMilestoneWatchers(key): Promise<string[]>;
 
     sendMessage(key: string, body: string): Promise<any>;
 
@@ -379,7 +391,7 @@ export interface TaskTracker {
     /**
      * Get issue without throw on error
      */
-    getIssueSafety(keyOrId: string): Promise<Issue | boolean>;
+    getIssueSafety(keyOrId: string): Promise<Issue | false>;
 
     /**
      * Check if issue exists
@@ -627,6 +639,7 @@ export interface CreateRoomData {
         descriptionFields?: DescriptionFields;
     };
     projectKey?: string;
+    milestoneId?: number;
 }
 
 export interface InviteNewMembersData {
@@ -668,6 +681,19 @@ export interface PostEpicUpdatesData {
     data: { key: string; summary: string; id: string; name: string; status?: string };
 }
 
+export enum MilestoneUpdateStatus {
+    Created = 'created',
+    Closed = 'closed',
+    Deleted = 'deleted',
+}
+
+export interface PostMilestoneUpdatesData {
+    milestoneId: number;
+    issueKey: string;
+    user: string;
+    status: MilestoneUpdateStatus;
+    summary: string;
+}
 export interface PostProjectUpdatesData {
     typeEvent: 'issue_created' | 'issue_generic';
     projectKey: string;
@@ -771,6 +797,7 @@ export enum ActionNames {
     Upload = 'upload',
     PostCommit = 'postPushCommit',
     Pipeline = 'postPipeline',
+    PostMilestoneUpdates = 'postMilestoneUpdates',
 }
 
 export interface Parser {

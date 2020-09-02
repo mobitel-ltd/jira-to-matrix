@@ -15,6 +15,7 @@ export const config = {
         // noIssueRooms: true,
         createRoom: true,
         inviteNewMembers: true,
+        postMilestoneUpdates: true,
         postComments: true,
         postIssueUpdates: true,
         epicUpdates: {

@@ -93,7 +93,7 @@ export class QueueHandler {
     /**
      * @returns {Promise<object[]>} createRoomData
      */
-    async getRedisRooms(): Promise<object[] | null> {
+    async getRedisRooms(): Promise<CreateRoomData[] | null> {
         try {
             const roomsKeyValue = await redis.getAsync(REDIS_ROOM_KEY);
             const createRoomData = JSON.parse(roomsKeyValue);
