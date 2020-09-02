@@ -28,6 +28,8 @@ import gitlabIssueCreatedJson from '../fixtures/webhooks/gitlab/issue/created.js
 import gitlabLabelJson from '../fixtures/gitlab-api-requests/labels.json';
 import { setSettingsData } from '../../src/bot/settings';
 import { KeyType, milestonePart } from '../../src/task-trackers/gitlab/selectors';
+import { translate } from '../../src/locales';
+import { schemas } from '../../src/task-trackers/jira/schemas';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -475,6 +477,11 @@ describe('Create room test with gitlab as task tracker', () => {
                     .reply(200, gitlabIssueJson)
                     .get(`/projects/${gitlabProjectJson.id}/members/all`)
                     .reply(200, projectMembersJson)
+                    .post(
+                        `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}/notes`,
+                    )
+                    .query({ body: roomCreatedMessage })
+                    .reply(201)
                     .get(`/projects/${gitlabProjectJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
             });
@@ -619,7 +626,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     topic: gitlabTracker.getViewUrl(milestoneKey),
                     purpose: gitlabIssueJson.milestone.title,
                 };
-
+                const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     .times(5)
@@ -634,7 +641,12 @@ describe('Create room test with gitlab as task tracker', () => {
                     .get(`/projects/${gitlabProjectJson.id}/members/all`)
                     .reply(200, projectMembersJson)
                     .get(`/projects/${gitlabProjectJson.id}/labels`)
-                    .reply(200, gitlabLabelJson);
+                    .reply(200, gitlabLabelJson)
+                    .post(
+                        `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}/notes`,
+                    )
+                    .query({ body: roomCreatedMessage })
+                    .reply(201);
             });
 
             it('should call room creation with no avatar', async () => {

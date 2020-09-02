@@ -99,7 +99,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<void> {
+    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<string> {
         try {
             const { key, summary, projectKey, descriptionFields, roomName, statusColors } = issue;
 
