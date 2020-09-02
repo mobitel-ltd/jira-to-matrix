@@ -269,6 +269,8 @@ export interface TaskTracker {
 
     getMilestoneWatchers(key): Promise<string[]>;
 
+    sendMessage(key: string, body: string): Promise<any>;
+
     getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string | string[]>;
 
     getIssueFieldsValues(key: string, fields: string[]): Promise<any>;
@@ -519,6 +521,11 @@ export interface CreateRoomOpions {
 }
 
 export interface MessengerApi extends CommonMessengerApi, BaseChatApi {
+    /**
+     * Get link for room by id or alias
+     */
+    getRoomLink(idOrAlias: string): string;
+
     /**
      * Upload content to messenger
      */

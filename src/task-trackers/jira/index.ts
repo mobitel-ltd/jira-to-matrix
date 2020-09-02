@@ -128,6 +128,12 @@ export class Jira implements TaskTracker {
         return displayName.toLowerCase().includes(expectedName.toLowerCase());
     }
 
+    async sendMessage(keyOrId: string, bodyText: string): Promise<void> {
+        const url = this.getUrl('issue', keyOrId, 'comment');
+
+        await this.requestPost(url, schemas.info(bodyText));
+    }
+
     /**
      * Post comment to issue
      */

@@ -132,6 +132,8 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
 
             await this.currentChatItem.sendHtmlMessage(roomId, body, htmlBody);
             await this.currentChatItem.sendHtmlMessage(roomId, infoBody, infoBody);
+
+            return roomId;
         } catch (err) {
             throw errorTracing('createIssueRoom', err);
         }
@@ -188,7 +190,11 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
                 }
                 const checkedIssue = await this.getCreateIsueOptions(keyOrId, issue.hookLabels, issueBody);
                 if (!(await this.currentChatItem.getRoomIdByName(checkedIssue.key))) {
-                    await this.createIssueRoom(checkedIssue);
+                    const roomId = await this.createIssueRoom(checkedIssue);
+                    await this.taskTracker.sendMessage(
+                        checkedIssue.key,
+                        translate('roomCreatedMessage', { link: this.chatApi.getRoomLink(roomId) }),
+                    );
                 }
 
                 if (milestoneId) {

@@ -261,8 +261,6 @@ export class Gitlab implements TaskTracker {
         const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(gitlabIssueKey);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
-        const body = this.getPostCommentBody(sender, bodyText);
-        const params = querystring.stringify({ body });
         // TODO make correct query params passing
         const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes?' + params);
 
