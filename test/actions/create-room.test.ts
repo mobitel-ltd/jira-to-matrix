@@ -603,27 +603,25 @@ describe('Create room test with gitlab as task tracker', () => {
                     gitlabIssueCreatedJson.project.path_with_namespace +
                     '-' +
                     milestonePart +
-                    gitlabIssueCreatedJson.object_attributes.milestone_id;
+                    gitlabIssueJson.milestone.id;
                 const milestoneMembers = [gitlabIssueJson.assignee.username].map(name =>
                     getChatClass().chatApiSingle.getChatUserId(name),
                 );
 
                 const milestoneRoomName =
                     '#' +
-                    gitlabIssueCreatedJson.object_attributes.milestone_id +
+                    gitlabIssueJson.milestone.id +
                     ';' +
                     gitlabIssueJson.milestone.title +
                     ';' +
-                    gitlabIssueJson.milestone.web_url
-                        .replace('https://gitlab.example.com/groups/', '')
-                        .replace('/-', '') +
+                    gitlabIssueJson.milestone.web_url.replace('https://gitlab.example.com/', '').replace('/-', '') +
                     ';';
 
                 expectedMilestoneRoomOptions = {
                     invite: milestoneMembers,
                     name: milestoneRoomName,
                     room_alias_name: milestoneKey,
-                    topic: gitlabTracker.getViewUrl(milestoneKey),
+                    topic: gitlabIssueJson.milestone.web_url,
                     purpose: gitlabIssueJson.milestone.title,
                 };
                 const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });

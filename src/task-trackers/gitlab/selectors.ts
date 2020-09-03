@@ -120,6 +120,8 @@ interface IssueGetters<T> extends BodyGetters<T> {
     getMilestoneKey(body: T, id?: number): string | undefined;
     getMilestoneSummary(body: T): string | undefined;
     getAssigneeDisplayName(body: T): string[];
+    getMilestoneRoomName(body: T): string | undefined;
+    getMilestoneViewUrl(body: T): string;
 }
 
 const missField = translate('miss');
@@ -369,6 +371,7 @@ const handlers: {
 };
 
 const issueRequestHandlers: IssueGetters<GitlabIssue> = {
+    getMilestoneViewUrl: body => body.milestone!.web_url,
     getMilestoneSummary: body => body.milestone?.title,
     getMilestoneKey: (body, id) => {
         const milestoneId = id || body.milestone?.id;
@@ -386,6 +389,16 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
         const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
 
         return composeRoomName(key, { summary, state, milestone });
+    },
+    getMilestoneRoomName: body => {
+        if (body.milestone) {
+            const mil = body.milestone;
+            const linkPart = new URL(mil.web_url).pathname.replace('/-/', '/').slice(1);
+
+            const data = ['#' + mil.id, mil.title.slice(0, 60), linkPart];
+
+            return data.join(';').concat(';');
+        }
     },
     keysForCheckIgnore: body => issueRequestHandlers.getFullKey(body),
     getIssueChanges: () => undefined,
@@ -504,6 +517,7 @@ const getMilestoneKey = (body, milestoneId?: number): string | undefined =>
     issueRequestHandlers.getMilestoneKey(body, milestoneId);
 
 export const selectors: GitlabSelectors = {
+    getMilestoneViewUrl: issueRequestHandlers.getMilestoneViewUrl,
     isIssueRoomName,
     getAssigneeDisplayName: issueRequestHandlers.getAssigneeDisplayName,
     getMilestoneSummary: issueRequestHandlers.getMilestoneSummary,
@@ -521,6 +535,7 @@ export const selectors: GitlabSelectors = {
     keysForCheckIgnore,
     getCommitKeysBody: handlers['push'].getCommitKeysBody,
     getRoomName: issueRequestHandlers.getRoomName,
+    getMilestoneRoomName: issueRequestHandlers.getMilestoneRoomName,
     getUploadInfo,
     getUploadUrl,
     isUploadBody,

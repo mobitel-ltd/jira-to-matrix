@@ -268,6 +268,8 @@ const getRoomName = body => {
 };
 
 export const selectors: JiraSelectors = {
+    getMilestoneViewUrl: () => '',
+    getMilestoneRoomName: () => undefined,
     isIssueRoomName: key => key.includes('-'),
     getMilestoneSummary: () => undefined,
     getMilestoneKey: () => undefined,
