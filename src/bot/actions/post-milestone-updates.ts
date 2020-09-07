@@ -7,7 +7,7 @@ import { PostMilestoneUpdatesData, MilestoneUpdateStatus } from '../../types';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { BaseAction, RunAction } from './base-action';
 import { Gitlab } from '../../task-trackers/gitlab';
-import { GitlabIssue } from '../../task-trackers/gitlab/types';
+import { GitlabIssue, Milestone } from '../../task-trackers/gitlab/types';
 
 const logger = getLogger(module);
 
@@ -28,6 +28,16 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
 
         return messageMap[status]({ viewUrl, summary, user });
     };
+
+    async getNewAvatarUrl(issueKey: string, milestone: Milestone) {
+        if (!this.config.colors) {
+            logger.warn(`No color links is passed to update avatar for room ${issueKey}`);
+
+            return;
+        }
+        const colors = this.taskTracker.getMilestoneColors(milestone);
+        return await this.getAvatarLink(issueKey, colors);
+    }
 
     async postNewIssue(
         milestone: { id: number; key: string; roomId: string },
@@ -114,28 +124,37 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         // }
     }
 
-    async run({ issueKey, milestoneId, status, user, summary }: PostMilestoneUpdatesData): Promise<string> {
+    async run({ issueKey, milestoneId, status, user, summary }: PostMilestoneUpdatesData): Promise<string | undefined> {
         try {
             const issue = await this.taskTracker.getIssue(issueKey);
+            if (issue.milestone) {
+                const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issue, milestoneId)!;
+                const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
 
-            const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issue, milestoneId)!;
-            const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
+                await this.inviteNewMembers(milestoneRoomId, milestoneKey, issue);
 
-            await this.inviteNewMembers(milestoneRoomId, milestoneKey, issue);
+                const newAvatarUrl = await this.getNewAvatarUrl(issueKey, issue.milestone);
 
-            const actionsByStatus = {
-                [MilestoneUpdateStatus.Created]: this.postNewIssue,
-                [MilestoneUpdateStatus.Closed]: this.postIssueClosedInfo,
-                [MilestoneUpdateStatus.Deleted]: this.postIssueDeletedInfo,
-            };
+                if (newAvatarUrl) {
+                    await this.chatApi.setRoomAvatar(milestoneRoomId, newAvatarUrl);
 
-            const action = actionsByStatus[status].bind(this);
-            const res = await action(
-                { id: milestoneId, key: milestoneKey, roomId: milestoneRoomId },
-                { key: issueKey, summary, user },
-            );
+                    logger.debug(`Room ${milestoneRoomId} have got new avatar ${newAvatarUrl}`);
+                }
 
-            return res;
+                const actionsByStatus = {
+                    [MilestoneUpdateStatus.Created]: this.postNewIssue,
+                    [MilestoneUpdateStatus.Closed]: this.postIssueClosedInfo,
+                    [MilestoneUpdateStatus.Deleted]: this.postIssueDeletedInfo,
+                };
+
+                const action = actionsByStatus[status].bind(this);
+                const res = await action(
+                    { id: milestoneId, key: milestoneKey, roomId: milestoneRoomId },
+                    { key: issueKey, summary, user },
+                );
+
+                return res;
+            }
         } catch (err) {
             throw ['Error in PostMilestoneUpdates', err].join('\n');
         }
