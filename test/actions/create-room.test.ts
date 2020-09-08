@@ -599,11 +599,7 @@ describe('Create room test with gitlab as task tracker', () => {
 
                 //////////////////////////////////////////////////////////////////////
 
-                const milestoneKey =
-                    gitlabIssueCreatedJson.project.path_with_namespace +
-                    '-' +
-                    milestonePart +
-                    gitlabIssueJson.milestone.id;
+                const milestoneKey = milestonePart + gitlabIssueJson.milestone.id;
                 const milestoneMembers = [gitlabIssueJson.assignee.username].map(name =>
                     getChatClass().chatApiSingle.getChatUserId(name),
                 );

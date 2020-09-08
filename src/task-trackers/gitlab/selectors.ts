@@ -56,9 +56,12 @@ const isIssueRoomName = (key: string): boolean => {
 };
 
 export const transformToKey = (namespaceWithProject: string, id: number, type = KeyType.Issue): string => {
-    const formatedId = type === KeyType.Issue ? '' + id : milestonePart + id;
+    if (type === KeyType.Issue) {
+        return [namespaceWithProject, id].join('-');
+    }
+    const formatedId = milestonePart + id;
 
-    return [namespaceWithProject, formatedId].join('-');
+    return formatedId;
 };
 
 interface BaseGetters<T> {

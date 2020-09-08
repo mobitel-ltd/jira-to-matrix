@@ -86,7 +86,7 @@ describe('PostMilestoneUpdates', () => {
 
             const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(
                 updateData.issueKey,
-                updateData.milestoneId,
+                gitlabTracker.selectors.getMilestoneKey(gitlabIssueJson as any, updateData.milestoneId),
             );
 
             expect(result).to.be.eq(message);
