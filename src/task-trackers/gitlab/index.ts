@@ -17,9 +17,12 @@ import {
     GitlabLabel,
     HookTypes,
     GitlabLabelHook,
+    Milestone,
+    Colors,
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
+import { DateTime } from 'luxon';
 
 const logger = getLogger(module);
 
@@ -93,6 +96,7 @@ export class Gitlab implements TaskTracker {
     expandParams: { expand: string };
     public selectors: GitlabSelectors;
     public parser: GitlabParser;
+    milestone: Milestone;
 
     constructor(options: {
         url: string;
@@ -130,6 +134,45 @@ export class Gitlab implements TaskTracker {
             // TODO remove it
             // logger.error(err);
             throw messages.getRequestErrorLog(url, err?.response?.status, options.method, err?.response?.statusText);
+        }
+    }
+
+    getMilestoneColors(milestone: Milestone): string[] {
+        if (!milestone.due_date || !milestone.start_date) {
+            return [Colors.gray];
+        }
+        if (milestone.state === 'closed') {
+            return [Colors.gray];
+        }
+        const currentDate = DateTime.local();
+        const startDate = DateTime.fromISO(milestone.start_date!);
+        const endDate = DateTime.fromISO(milestone.due_date!);
+
+        // https://stackoverflow.com/questions/60058489/compare-only-dates-with-luxon-datetime
+        if (startDate.startOf('day') > currentDate.startOf('day')) {
+            return [Colors.yellow];
+        }
+
+        if (currentDate.startOf('day') > endDate.startOf('day')) {
+            return [Colors.gray];
+        }
+
+        const allDays = endDate.diff(startDate, ['days']).days + 1;
+        const grayDays = Math.floor(currentDate.diff(startDate, ['days']).days);
+        const futureDays = allDays - grayDays;
+
+        return [...Array(grayDays).fill(Colors.gray), ...Array(futureDays).fill(Colors.green)];
+    }
+
+    getMilestoneUrl(body: GitlabIssue): string | undefined {
+        const milestone = body.milestone;
+        if (milestone) {
+            if (milestone.project_id) {
+                return this.getRestUrl('projects', milestone.project_id, 'milestones', milestone.id, 'issues');
+            }
+            if (milestone.group_id) {
+                return this.getRestUrl('groups', milestone.group_id, 'milestones', milestone.id, 'issues');
+            }
         }
     }
 
@@ -172,13 +215,26 @@ export class Gitlab implements TaskTracker {
 
     // key is like namespace/project-123
     async getIssue(key: string): Promise<Issue & GitlabIssue> {
-        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(key);
+        const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(key);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const url = this.getRestUrl('projects', projectId, 'issues', issueId);
         const issue: GitlabIssue = await this.request(url);
 
         return { ...issue, key };
+    }
+
+    async getMilestoneIssues(url: string): Promise<Array<GitlabIssue>> {
+        const issues: GitlabIssue[] = await this.request(url);
+
+        return issues;
+    }
+
+    async getMilestoneWatchers(url: string): Promise<string[]> {
+        const issues = await this.getMilestoneIssues(url);
+        const milestoneMembers = issues.map(el => this.selectors.getAssigneeDisplayName(el)).flat();
+
+        return R.uniq(milestoneMembers);
     }
 
     getRestUrl(...args: (string | number)[]) {
@@ -233,11 +289,16 @@ export class Gitlab implements TaskTracker {
     }
 
     async postComment(gitlabIssueKey: string, { sender }, bodyText: string): Promise<string> {
-        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(gitlabIssueKey);
+        const body = this.getPostCommentBody(sender, bodyText);
+
+        return await this.sendMessage(gitlabIssueKey, body);
+    }
+
+    async sendMessage(gitlabIssueKey: string, body: string): Promise<string> {
+        const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(gitlabIssueKey);
+        const params = querystring.stringify({ body });
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
-        const body = this.getPostCommentBody(sender, bodyText);
-        const params = querystring.stringify({ body });
         // TODO make correct query params passing
         const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes?' + params);
 
@@ -256,7 +317,7 @@ export class Gitlab implements TaskTracker {
         }
     }
 
-    async getIssueSafety(key: string): Promise<Issue | boolean> {
+    async getIssueSafety(key: string): Promise<Issue | false> {
         try {
             const issue = await this.getIssue(key);
 
@@ -311,14 +372,17 @@ export class Gitlab implements TaskTracker {
         return members.filter(Boolean).map(el => el!.name);
     }
 
+    // TODO fix for projects
     getViewUrl(key: string) {
         const keyData = this.selectors.transformFromKey(key);
 
-        return [this.url, keyData.namespaceWithProject, 'issues', keyData.issueId].join('/');
+        return keyData.issueId
+            ? [this.url, keyData.namespaceWithProject, 'issues', keyData.issueId].join('/')
+            : [this.url, keyData.namespaceWithProject, 'milestones', keyData.milestoneId].join('/');
     }
 
     async getIssueComments(key): Promise<IssueWithComments> {
-        const { namespaceWithProject, issueId } = this.selectors.transformFromKey(key);
+        const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(key);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes');
@@ -364,7 +428,7 @@ export class Gitlab implements TaskTracker {
     ): Promise<{ fullUrl: string; markdown: string }> {
         const response = await axios.get(fileOptions.url, { responseType: 'arraybuffer' });
         const imageType = response.headers['content-type'];
-        const { namespaceWithProject } = this.selectors.transformFromKey(issueKey);
+        const { namespaceWithProject } = this.selectors.transformFromIssueKey(issueKey);
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
 
         const projects = new Projects({ token: this.password, host: this.url });
@@ -414,9 +478,9 @@ export class Gitlab implements TaskTracker {
             return ['gray'];
         }
         if (!hookLabels) {
-            const { namespaceWithProject } = this.selectors.transformFromKey(key);
+            const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
             const labels = await this.getAllAvailalbleLabels(namespaceWithProject);
-            const colors = labels.filter(label => issue.labels.includes(label.name)).map(label => label.color);
+            const colors = labels.filter(label => issue.labels?.includes(label.name)).map(label => label.color);
 
             return [...new Set(colors)];
         }

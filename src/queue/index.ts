@@ -93,7 +93,7 @@ export class QueueHandler {
     /**
      * @returns {Promise<object[]>} createRoomData
      */
-    async getRedisRooms(): Promise<object[] | null> {
+    async getRedisRooms(): Promise<CreateRoomData[] | null> {
         try {
             const roomsKeyValue = await redis.getAsync(REDIS_ROOM_KEY);
             const createRoomData = JSON.parse(roomsKeyValue);
@@ -178,17 +178,22 @@ export class QueueHandler {
                             logger.error(`Error in ${redisKey}\n`, err);
 
                             if (isNoRoomError(errBody)) {
-                                if (await this.taskTracker.getIssueSafety(getKeyFromError(errBody))) {
-                                    const key = getKeyFromError(errBody);
-                                    logger.warn(`Room with key ${key} is not found, trying to create it again`);
-                                    const newRoomRecord = key.includes('-') ? { issue: { key } } : { projectKey: key };
+                                const key = getKeyFromError(errBody);
+                                if (this.taskTracker.selectors.isIssueRoomName(key)) {
+                                    if (await this.taskTracker.getIssueSafety(key)) {
+                                        logger.warn(`Room with key ${key} is not found, trying to create it again`);
+                                        const newRoomRecord = { issue: { key } };
 
-                                    return { redisKey, newRoomRecord, success: false };
+                                        return { redisKey, newRoomRecord, success: false };
+                                    }
+
+                                    logger.debug(`Issue for key ${key} is not found, delete key from redis`);
+                                    await redis.delAsync(redisKey);
+
+                                    return { redisKey, success: true };
                                 }
 
-                                await redis.delAsync(redisKey);
-
-                                return { redisKey, success: true };
+                                logger.warn(`Room for key ${key} is not found, keep ${redisKey}`);
                             }
 
                             return { redisKey, success: false };

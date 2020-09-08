@@ -146,6 +146,7 @@ export const getChatClass = (options?: {
         getRoomMembers: stub(),
         uploadContent: stub(),
         upload: stub().resolves(matrixUrl),
+        getRoomLink: stub().callsFake(el => realChatApi.getRoomLink(el)),
     });
 
     const chatApi = new ChatFasade([(chatApiSingle as any) as MessengerApi]);
@@ -206,7 +207,7 @@ export const getChatClass = (options?: {
     });
     const getRoomData = (data?: { alias: string; roomId: string; name: string }): RoomData => ({
         alias: data?.alias || defaultAlias,
-        id: data?.roomId || defaultRoomId,
+        id: data?.roomId || defRoomId,
         name: data?.name || 'some name',
         members: allMembersWithPower,
     });

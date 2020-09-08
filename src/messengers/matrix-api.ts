@@ -80,6 +80,12 @@ export class MatrixApi extends BaseChatApi implements MessengerApi {
         this.baseUrl = `https://${this.config.messenger.domain}`;
     }
 
+    getRoomLink(idOrAlias: string) {
+        const endpoint = idOrAlias.startsWith('!') ? idOrAlias : this._getMatrixRoomAlias(idOrAlias);
+
+        return [this.baseUrl, '#', 'room', endpoint].join('/');
+    }
+
     get postfix() {
         return `:${this.config.messenger.domain}`.length;
     }

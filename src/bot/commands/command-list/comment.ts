@@ -9,6 +9,10 @@ export class CommentCommand extends Command<TaskTracker> implements RunCommand {
     async run({ bodyText, sender, roomName, senderDisplayName }: CommandOptions) {
         try {
             if (bodyText && roomName) {
+                if (!this.taskTracker.selectors.isIssueRoomName(roomName)) {
+                    logger.warn('Skip commenting in not issue room ' + roomName);
+                    return;
+                }
                 await this.taskTracker.postComment(roomName, { sender, senderDisplayName }, bodyText);
 
                 return;

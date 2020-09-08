@@ -11,7 +11,7 @@ describe('command handler test', () => {
     describe('simple post comment', () => {
         const commands = createSinonStubInstance(Commands);
         const chatConfig: ChatConfig = { ...config, ...config.messenger.bots[0] };
-        const matrix = new MatrixApi(commands, chatConfig, getLogger('matrix'), {});
+        const matrix = new MatrixApi(commands, chatConfig, getLogger('matrix'), {} as any);
 
         it('expect success parse correct command name', () => {
             const body = '!help';
@@ -75,7 +75,7 @@ describe('command handler test', () => {
             ...config.messenger.bots[0],
             features: { ...config.features, postEachComments: true },
         };
-        const matrix = new MatrixApi(commands, chatConfig, getLogger('matrix'), {});
+        const matrix = new MatrixApi(commands, chatConfig, getLogger('matrix'), {} as any);
 
         it('should return command comment and body even if no command was made', () => {
             const body = CommandNames.Help;

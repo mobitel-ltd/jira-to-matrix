@@ -4,6 +4,7 @@ import Ramda from 'ramda';
 import names from 'ru-names';
 
 export const dict = Object.freeze({
+    roomCreatedMessage: 'Для задачи создан [чат](%{link})',
     pushCommitInfo: '%{name} упомянул задачу в следующих коммитах:',
     errorCommentSend: 'Ошибка отправки сообщения в taskTracker, обратитесь к администратору',
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',
@@ -20,6 +21,9 @@ export const dict = Object.freeze({
         '%{name} изменил%{f} статус связанной задачи [%{key} "%{summary}"](%{viewUrl}) на **%{status}**',
     newIssueInEpic: 'Новая задача в эпике',
     issueAddedToEpic: 'К эпику добавлена задача [%{key} %{summary}](%{viewUrl})',
+    issueAddedToMilestone: '%{user} добавил задачу [%{summary}](%{viewUrl}) в текущий майлстоун',
+    issueDeletedFromMilestone: '%{user} удалил задачу [%{summary}](%{viewUrl}) из текущем майлстоуне',
+    issueClosedInMilestone: '%{user} закрыл задачу [%{summary}](%{viewUrl}) в текущем майлстоуне',
     newLink: 'Новый линк',
     newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{viewUrl})',
     deleteLink: 'Связь удалена',

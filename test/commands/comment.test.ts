@@ -11,6 +11,7 @@ import { config } from '../../src/config';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import { getRequestErrorLog } from '../../src/lib/messages';
+import { KeyType } from '../../src/task-trackers/gitlab/selectors';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -68,9 +69,10 @@ describe('gitlab comment test', () => {
     const commands = new Commands(config, gitlabTracker);
     const projectNamespace = 'indev';
     const projectKey = 'gitlabtomatrix';
-    const issueId = '123';
+    const issueId = 123;
 
-    const roomName = projectNamespace + '/' + projectKey + '-' + issueId;
+    const projectWithNamespace = projectNamespace + '/' + projectKey;
+    const roomName = projectWithNamespace + '-' + issueId;
 
     const commandName = CommandNames.Comment;
     const sender = 'user';
@@ -89,7 +91,7 @@ describe('gitlab comment test', () => {
         const result = await commands.run(commandName, baseOptions);
         expect(result).to.be.eq(
             getRequestErrorLog(
-                gitlabTracker.getRestUrl('projects', querystring.escape(`${projectNamespace}/${projectKey}`)),
+                gitlabTracker.getRestUrl('projects', querystring.escape(`${projectWithNamespace}`)),
                 undefined,
                 'GET',
             ),
@@ -112,6 +114,19 @@ describe('gitlab comment test', () => {
             const result = await commands.run(commandName, baseOptions);
             expect(chatApi.sendHtmlMessage).not.to.be.called;
             expect(result).to.be.undefined;
+        });
+
+        it('Expect comment not to be sent and return undefined if command made is not issue room', async () => {
+            baseOptions = {
+                roomId,
+                roomName: gitlabTracker.selectors.transformToKey(projectWithNamespace, issueId, KeyType.Milestone),
+                sender,
+                chatApi,
+                bodyText: 'lalalla',
+            };
+            const result = await commands.run(commandName, baseOptions);
+            expect(result).to.be.undefined;
+            expect(chatApi.sendHtmlMessage).not.to.be.called;
         });
     });
 });

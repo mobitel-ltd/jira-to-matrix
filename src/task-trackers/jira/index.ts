@@ -62,6 +62,10 @@ export class Jira implements TaskTracker {
 
     static expandParams = { expand: 'renderedFields' };
 
+    getMilestoneWatchers = () => [] as any;
+
+    getMilestoneUrl = () => undefined;
+
     /**
      * Create jira url
      */
@@ -122,6 +126,12 @@ export class Jira implements TaskTracker {
      */
     checkUser(displayName: string, expectedName: string): boolean {
         return displayName.toLowerCase().includes(expectedName.toLowerCase());
+    }
+
+    async sendMessage(keyOrId: string, bodyText: string): Promise<void> {
+        const url = this.getUrl('issue', keyOrId, 'comment');
+
+        await this.requestPost(url, schemas.info(bodyText));
     }
 
     /**

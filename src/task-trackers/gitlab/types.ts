@@ -1,4 +1,5 @@
 import { Project, Selectors } from '../../types';
+import { KeyType } from './selectors';
 
 export interface GitlabUserData extends GitlabUserDataShort {
     access_level: number;
@@ -84,7 +85,7 @@ export interface GitlabCommentHook extends GitlabHook {
         position: number;
         branch_name: null | string;
         description: string;
-        milestone_id: null | string;
+        milestone_id: null | number;
         state: string;
         iid: number;
         labels: GitlabLabelHook[];
@@ -108,7 +109,7 @@ export interface GitlabIssueHook extends GitlabHook {
         last_edited_by_id: null | string;
         relative_position: number;
         description: string;
-        milestone_id: null | string;
+        milestone_id: null | number;
         state_id: number;
         confidential: boolean;
         discussion_locked: boolean;
@@ -129,6 +130,10 @@ export interface GitlabIssueHook extends GitlabHook {
     assignees: HookUser[];
     labels: GitlabLabelHook[];
     changes: {
+        milestone_id: {
+            previous: null | number;
+            current: number;
+        };
         author_id: {
             previous: null | number;
             current: number;
@@ -323,28 +328,32 @@ export interface GitlabUserDataShort {
     name: string;
 }
 
+export interface Milestone {
+    due_date: string | null;
+    project_id?: number;
+    group_id?: number;
+    state: string;
+    description: string;
+    iid: number;
+    id: number;
+    title: string;
+    created_at: string;
+    updated_at: string;
+    start_date?: string | null;
+    closed_at?: string | null;
+    web_url: string;
+}
+
 export interface GitlabIssue {
     project_id: number;
-    milestone: {
-        due_date: string | null;
-        project_id: number;
-        state: string;
-        description: string;
-        iid: number;
-        id: number;
-        title: string;
-        created_at: string;
-        updated_at: string;
-        start_date?: string | null;
-        closed_at?: string | null;
-    };
+    milestone: Milestone | null;
     author: GitlabUserDataShort;
     description: string;
     state: string;
     iid: number;
     assignees: GitlabUserDataShort[];
     assignee: GitlabUserDataShort | null;
-    labels: string[];
+    labels?: string[];
     upvotes: number;
     downvotes: number;
     merge_requests_count: number;
@@ -498,6 +507,10 @@ export interface Notes {
 }
 
 export interface GitlabSelectors extends Selectors {
+    getMilestoneViewUrl(body): string;
+    getMilestoneRoomName(body): string | undefined;
+    getAssigneeDisplayName(body: GitlabIssue): string[];
+    getMilestoneId(body): number | null;
     getPostKeys(body: GitlabPipelineHook): string[];
     isPipelineHook(body: any): boolean;
     getFullNameWithId(body: GitlabPushHook | GitlabPipelineHook): string;
@@ -507,8 +520,20 @@ export interface GitlabSelectors extends Selectors {
     isUploadBody(body): boolean;
     getIssueLabels(body): GitlabLabelHook[];
     getUploadInfo(body): string;
-    transformFromKey(key: string): { namespaceWithProject: string; issueId: number };
-    transformToKey(namespaceWithProject: string, issueId: number): string;
+    transformFromIssueKey(key: string): { namespaceWithProject: string; issueId: number };
+    transformFromKey(
+        key: string,
+    ):
+        | { namespaceWithProject: string; issueId: number; milestoneId?: number }
+        | { namespaceWithProject: string; milestoneId: number; issueId?: number };
+    transformToKey(namespaceWithProject: string, issueId: number, type?: KeyType): string;
     // true if hook should be ignored
     isIgnoreHookType(body): boolean;
+}
+
+export enum Colors {
+    green = '#69d100',
+    gray = 'gray',
+    white = 'white',
+    yellow = '#F0AD4E',
 }

@@ -10,6 +10,9 @@ import sinonChai from 'sinon-chai';
 import { config } from '../../src/config';
 import { pipe, set, clone } from 'lodash/fp';
 import { extractKeysFromCommitMessage, transformToKey } from '../../src/task-trackers/gitlab/selectors';
+import { Milestone, Colors } from '../../src/task-trackers/gitlab/types';
+import { DateTime } from 'luxon';
+import { useFakeTimers } from 'sinon';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -98,6 +101,90 @@ describe('Gitlab api testing', () => {
             const expected = [(issueJson.assignee as any).name as string, issueJson.author.name];
             expect(res).to.be.deep.eq(expected);
         });
+    });
+
+    describe('getMilestonesColors test', () => {
+        const body: Milestone = {
+            id: 103,
+            iid: 10,
+            group_id: 736,
+            title: 'Тест интеграции',
+            description: 'Данный milestone заведен для тестирования интеграции gitlab - matrix',
+            state: 'active',
+            created_at: '2020-05-26T12:05:30.775Z',
+            updated_at: '2020-05-26T12:05:30.775Z',
+            due_date: '2020-09-10',
+            start_date: '2020-09-01',
+            web_url: 'https://gitlab.example.com/groups/indev/gitlabtomatrix/-/milestones/10',
+        };
+
+        let clock;
+
+        afterEach(() => {
+            clock.restore();
+        });
+
+        it('should return only yellow if current date is before start date (upcoming)', async () => {
+            const date = DateTime.fromISO(body.start_date!)
+                .minus({ days: 2 })
+                .toISO();
+            clock = useFakeTimers(new Date(date).getTime());
+            const res = gitlab.getMilestoneColors(body);
+            const expected = [Colors.yellow];
+            expect(res).to.be.deep.eq(expected);
+        });
+
+        it('should return gray and yellow if current date is between start and end date', async () => {
+            const date = DateTime.fromISO(body.start_date!)
+                .plus({ days: 3 })
+                .toISO();
+            clock = useFakeTimers(new Date(date).getTime());
+            const res = gitlab.getMilestoneColors(body);
+            const expected = Array.from({ length: 10 }, (val, ind) => (ind > 2 ? Colors.green : Colors.gray));
+            expect(res).to.be.deep.eq(expected);
+        });
+
+        it('should return only gray if current date is after end date', async () => {
+            const date = DateTime.fromISO(body.due_date!)
+                .plus({ days: 2 })
+                .toISO();
+            clock = useFakeTimers(new Date(date).getTime());
+
+            const res = gitlab.getMilestoneColors(body);
+            const expected = [Colors.gray];
+            expect(res).to.be.deep.eq(expected);
+        });
+
+        it('should return only gray if current state close', async () => {
+            const closedMilestone: Milestone = { ...body, state: 'closed' };
+            const res = gitlab.getMilestoneColors(closedMilestone);
+            const expected = [Colors.gray];
+            expect(res).to.be.deep.eq(expected);
+        });
+
+        // beforeEach(() => {
+        //     var end = DateTime.fromISO('2017-03-13');
+        //     var start = DateTime.fromISO('2017-02-13');
+
+        //     var diffInMonths = end.diff(start, 'months');
+        //     diffInMonths.toObject(); //=> { months: 1 }
+
+        //     // it's always May 25
+        //     Settings.now = () => new Date(2018, 4, 25).valueOf();
+        //     DateTime.local().toISO(); //=> "2018-05-25T00:00:00.000-04:00"
+        // });
+
+        // it('should return MilestoneDaysAllocated', async () => {
+        //     const res = await gitlab.getMilestoneAllocatedDays(issueKey);
+        //     const expected = // [(issueJson.assignee as any).name as string, issueJson.author.name];
+        //     expect(res).to.be.deep.eq(expected);
+        // });
+
+        // it('should return MilestoneCurrentDays', async () => {
+        //     const res = await gitlab.getMilestoneCurrentDays(issueKey);
+        //     const expected = ''
+        //     expect(res).to.be.deep.eq(expected);
+        // });
     });
 
     describe('getCurrentIssueColor', () => {

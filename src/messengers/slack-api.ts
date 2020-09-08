@@ -523,4 +523,7 @@ export class SlackApi extends BaseChatApi {
     getAllEventsFromRoom() {
         return undefined;
     }
+    getRoomLink(idOrAlias: string) {
+        return idOrAlias;
+    }
 }
