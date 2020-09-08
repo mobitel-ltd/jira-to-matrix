@@ -328,23 +328,25 @@ export interface GitlabUserDataShort {
     name: string;
 }
 
+export interface Milestone {
+    due_date: string | null;
+    project_id?: number;
+    group_id?: number;
+    state: string;
+    description: string;
+    iid: number;
+    id: number;
+    title: string;
+    created_at: string;
+    updated_at: string;
+    start_date?: string | null;
+    closed_at?: string | null;
+    web_url: string;
+}
+
 export interface GitlabIssue {
     project_id: number;
-    milestone: {
-        due_date: string | null;
-        project_id?: number;
-        group_id?: number;
-        state: string;
-        description: string;
-        iid: number;
-        id: number;
-        title: string;
-        created_at: string;
-        updated_at: string;
-        start_date?: string | null;
-        closed_at?: string | null;
-        web_url: string;
-    } | null;
+    milestone: Milestone | null;
     author: GitlabUserDataShort;
     description: string;
     state: string;
