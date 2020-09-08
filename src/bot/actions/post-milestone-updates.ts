@@ -40,12 +40,12 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
     }
 
     async postNewIssue(
-        milestone: { id: number; key: string; roomId: string },
+        milestone: { key: string; roomId: string },
         issue: { key: string; summary: string; user: string },
     ): Promise<string | undefined> {
-        const redisEpicKey = getRedisMilestoneKey(milestone.id);
-        if (await redis.isInEpic(redisEpicKey, issue.key)) {
-            const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(issue.key, milestone.id);
+        const redisEpicKey = getRedisMilestoneKey(milestone.key);
+        if (await redis.isInMilestone(redisEpicKey, issue.key)) {
+            const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(issue.key, milestone.key);
             logger.debug(message);
 
             return message;
@@ -62,13 +62,13 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
     }
 
     private async postIssueDeletedInfo(
-        milestone: { id: number; key: string; roomId: string },
+        milestone: { key: string; roomId: string },
         issue: { key: string; summary: string; user: string },
     ): Promise<string> {
-        const redisEpicKey = getRedisMilestoneKey(milestone.id);
-        if (await redis.isInEpic(redisEpicKey, issue.key)) {
+        const redisEpicKey = getRedisMilestoneKey(milestone.key);
+        if (await redis.isInMilestone(redisEpicKey, issue.key)) {
             await redis.remFromList(redisEpicKey, issue.key);
-            logger.debug(`Removed issue key ${issue.key} from milestone ${milestone.id} in redis`);
+            logger.debug(`Removed issue key ${issue.key} from milestone ${milestone.key} in redis`);
         }
 
         const message = this.getMessage(issue, MilestoneUpdateStatus.Deleted);
@@ -80,7 +80,7 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
     }
 
     private async postIssueClosedInfo(
-        milestone: { id: number; key: string; roomId: string },
+        milestone: { key: string; roomId: string },
         issue: { key: string; summary: string; user: string },
     ): Promise<string> {
         const message = this.getMessage(issue, MilestoneUpdateStatus.Closed);
@@ -127,34 +127,30 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
     async run({ issueKey, milestoneId, status, user, summary }: PostMilestoneUpdatesData): Promise<string | undefined> {
         try {
             const issue = await this.taskTracker.getIssue(issueKey);
+            const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issue, milestoneId)!;
+            const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
+
+            await this.inviteNewMembers(milestoneRoomId, milestoneKey, issue);
+
             if (issue.milestone) {
-                const milestoneKey = this.taskTracker.selectors.getMilestoneKey(issue, milestoneId)!;
-                const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
-
-                await this.inviteNewMembers(milestoneRoomId, milestoneKey, issue);
-
                 const newAvatarUrl = await this.getNewAvatarUrl(issueKey, issue.milestone);
-
                 if (newAvatarUrl) {
                     await this.chatApi.setRoomAvatar(milestoneRoomId, newAvatarUrl);
 
                     logger.debug(`Room ${milestoneRoomId} have got new avatar ${newAvatarUrl}`);
                 }
-
-                const actionsByStatus = {
-                    [MilestoneUpdateStatus.Created]: this.postNewIssue,
-                    [MilestoneUpdateStatus.Closed]: this.postIssueClosedInfo,
-                    [MilestoneUpdateStatus.Deleted]: this.postIssueDeletedInfo,
-                };
-
-                const action = actionsByStatus[status].bind(this);
-                const res = await action(
-                    { id: milestoneId, key: milestoneKey, roomId: milestoneRoomId },
-                    { key: issueKey, summary, user },
-                );
-
-                return res;
             }
+
+            const actionsByStatus = {
+                [MilestoneUpdateStatus.Created]: this.postNewIssue,
+                [MilestoneUpdateStatus.Closed]: this.postIssueClosedInfo,
+                [MilestoneUpdateStatus.Deleted]: this.postIssueDeletedInfo,
+            };
+
+            const action = actionsByStatus[status].bind(this);
+            const res = await action({ key: milestoneKey, roomId: milestoneRoomId }, { key: issueKey, summary, user });
+
+            return res;
         } catch (err) {
             throw ['Error in PostMilestoneUpdates', err].join('\n');
         }
