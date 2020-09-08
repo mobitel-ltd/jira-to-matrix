@@ -180,6 +180,11 @@ export enum IssueStateEnum {
     open = 'open',
 }
 
+export enum MilestoneStateEnum {
+    close = 'close',
+    open = 'active',
+}
+
 export interface Selectors {
     getMilestoneViewUrl(body: Issue): string;
 

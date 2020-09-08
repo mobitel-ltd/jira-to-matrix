@@ -123,6 +123,12 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
             const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
 
             await this.inviteNewMembers(milestoneRoomId, milestoneKey, issue);
+            const roomData = await this.chatApi.getRoomDataById(milestoneRoomId);
+            const roomName = await this.taskTracker.selectors.getMilestoneRoomName(issue);
+
+            if (roomName && roomData !== roomData?.name) {
+                await this.chatApi.updateRoomName(milestoneRoomId, roomName);
+            }
 
             const res = await this.getMessageByStatus(status, { key: milestoneKey }, { key: issueKey, summary, user });
 
