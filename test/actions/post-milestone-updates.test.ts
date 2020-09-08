@@ -73,7 +73,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: createdIssue.object_attributes.title,
                 user: createdIssue.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
@@ -104,7 +104,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: createdIssue.object_attributes.title,
                 user: createdIssue.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
@@ -119,7 +119,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: milestoneUpdated.object_attributes.title,
                 user: milestoneUpdated.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
@@ -134,7 +134,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: milestoneDeleted.object_attributes.title,
                 user: milestoneDeleted.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
@@ -149,7 +149,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: issueClosed.object_attributes.title,
                 user: issueClosed.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);

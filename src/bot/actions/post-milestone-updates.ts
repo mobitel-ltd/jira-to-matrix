@@ -39,58 +39,6 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         return await this.getAvatarLink(issueKey, colors);
     }
 
-    async postNewIssue(
-        milestone: { key: string; roomId: string },
-        issue: { key: string; summary: string; user: string },
-    ): Promise<string | undefined> {
-        const redisEpicKey = getRedisMilestoneKey(milestone.key);
-        if (await redis.isInMilestone(redisEpicKey, issue.key)) {
-            const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(issue.key, milestone.key);
-            logger.debug(message);
-
-            return message;
-        }
-
-        await redis.addToList(redisEpicKey, issue.key);
-
-        const message = this.getMessage(issue, MilestoneUpdateStatus.Created);
-
-        await this.chatApi.sendHtmlMessage(milestone.roomId, marked(message));
-        logger.info(`Info about issue ${issue.key} added to milestone ${milestone.key}`);
-
-        return message;
-    }
-
-    private async postIssueDeletedInfo(
-        milestone: { key: string; roomId: string },
-        issue: { key: string; summary: string; user: string },
-    ): Promise<string> {
-        const redisEpicKey = getRedisMilestoneKey(milestone.key);
-        if (await redis.isInMilestone(redisEpicKey, issue.key)) {
-            await redis.remFromList(redisEpicKey, issue.key);
-            logger.debug(`Removed issue key ${issue.key} from milestone ${milestone.key} in redis`);
-        }
-
-        const message = this.getMessage(issue, MilestoneUpdateStatus.Deleted);
-
-        await this.chatApi.sendHtmlMessage(milestone.roomId, marked(message));
-        logger.info(`Info about issue ${issue.key} deleting is added to milestone ${milestone.key}`);
-
-        return message;
-    }
-
-    private async postIssueClosedInfo(
-        milestone: { key: string; roomId: string },
-        issue: { key: string; summary: string; user: string },
-    ): Promise<string> {
-        const message = this.getMessage(issue, MilestoneUpdateStatus.Closed);
-
-        await this.chatApi.sendHtmlMessage(milestone.roomId, marked(message));
-        logger.info(`Info about issue ${issue.key} closing is added to milestone ${milestone.key}`);
-
-        return message;
-    }
-
     async inviteNewMembers(
         roomId: string,
         milestoneKey: string,
@@ -124,6 +72,50 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         // }
     }
 
+    async getMessageByStatus(
+        status: MilestoneUpdateStatus,
+        milestone: { key: string },
+        issue: { key: string; summary: string; user: string },
+    ): Promise<{ send: boolean; message: string }> {
+        const actionsByStatus = {
+            [MilestoneUpdateStatus.Created]: async () => {
+                const redisEpicKey = getRedisMilestoneKey(milestone.key);
+                if (await redis.isInMilestone(redisEpicKey, issue.key)) {
+                    const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(issue.key, milestone.key);
+                    logger.debug(message);
+
+                    return { send: false, message };
+                }
+
+                await redis.addToList(redisEpicKey, issue.key);
+
+                const message = this.getMessage(issue, MilestoneUpdateStatus.Created);
+
+                return { message, send: true };
+            },
+            [MilestoneUpdateStatus.Closed]: () => {
+                const message = this.getMessage(issue, MilestoneUpdateStatus.Closed);
+
+                return { message, send: true };
+            },
+            [MilestoneUpdateStatus.Deleted]: async () => {
+                const redisEpicKey = getRedisMilestoneKey(milestone.key);
+                if (await redis.isInMilestone(redisEpicKey, issue.key)) {
+                    await redis.remFromList(redisEpicKey, issue.key);
+                    logger.debug(`Removed issue key ${issue.key} from milestone ${milestone.key} in redis`);
+                }
+
+                const message = this.getMessage(issue, MilestoneUpdateStatus.Deleted);
+
+                return { message, send: true };
+            },
+        };
+
+        const action = actionsByStatus[status];
+
+        return await action();
+    }
+
     async run({ issueKey, milestoneId, status, user, summary }: PostMilestoneUpdatesData): Promise<string | undefined> {
         try {
             const issue = await this.taskTracker.getIssue(issueKey);
@@ -132,25 +124,22 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
 
             await this.inviteNewMembers(milestoneRoomId, milestoneKey, issue);
 
-            if (issue.milestone) {
-                const newAvatarUrl = await this.getNewAvatarUrl(issueKey, issue.milestone);
-                if (newAvatarUrl) {
-                    await this.chatApi.setRoomAvatar(milestoneRoomId, newAvatarUrl);
+            const res = await this.getMessageByStatus(status, { key: milestoneKey }, { key: issueKey, summary, user });
 
-                    logger.debug(`Room ${milestoneRoomId} have got new avatar ${newAvatarUrl}`);
+            if (res.send) {
+                await this.chatApi.sendHtmlMessage(milestoneRoomId, res.message, marked(res.message));
+
+                if (issue.milestone) {
+                    const newAvatarUrl = await this.getNewAvatarUrl(issueKey, issue.milestone);
+                    if (newAvatarUrl) {
+                        await this.chatApi.setRoomAvatar(milestoneRoomId, newAvatarUrl);
+
+                        logger.debug(`Room ${milestoneRoomId} have got new avatar ${newAvatarUrl}`);
+                    }
                 }
             }
 
-            const actionsByStatus = {
-                [MilestoneUpdateStatus.Created]: this.postNewIssue,
-                [MilestoneUpdateStatus.Closed]: this.postIssueClosedInfo,
-                [MilestoneUpdateStatus.Deleted]: this.postIssueDeletedInfo,
-            };
-
-            const action = actionsByStatus[status].bind(this);
-            const res = await action({ key: milestoneKey, roomId: milestoneRoomId }, { key: issueKey, summary, user });
-
-            return res;
+            return res.message;
         } catch (err) {
             throw ['Error in PostMilestoneUpdates', err].join('\n');
         }
