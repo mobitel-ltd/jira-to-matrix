@@ -10,7 +10,7 @@ import sinonChai from 'sinon-chai';
 import { config } from '../../src/config';
 import { pipe, set, clone } from 'lodash/fp';
 import { extractKeysFromCommitMessage, transformToKey } from '../../src/task-trackers/gitlab/selectors';
-import { Milestone } from 'src/task-trackers/gitlab/types';
+import { Milestone, Colors } from '../../src/task-trackers/gitlab/types';
 import { DateTime } from 'luxon';
 import { useFakeTimers } from 'sinon';
 
@@ -124,13 +124,13 @@ describe('Gitlab api testing', () => {
             clock.restore();
         });
 
-        it('should return only white if current date is before start date', async () => {
+        it('should return only yellow if current date is before start date (upcoming)', async () => {
             const date = DateTime.fromISO(body.start_date!)
                 .minus({ days: 2 })
                 .toISO();
             clock = useFakeTimers(new Date(date).getTime());
             const res = gitlab.getMilestoneColors(body);
-            const expected = ['white'];
+            const expected = [Colors.yellow];
             expect(res).to.be.deep.eq(expected);
         });
 
@@ -140,7 +140,7 @@ describe('Gitlab api testing', () => {
                 .toISO();
             clock = useFakeTimers(new Date(date).getTime());
             const res = gitlab.getMilestoneColors(body);
-            const expected = Array.from({ length: 10 }, (val, ind) => (ind > 2 ? 'yellow' : 'gray'));
+            const expected = Array.from({ length: 10 }, (val, ind) => (ind > 2 ? Colors.green : Colors.gray));
             expect(res).to.be.deep.eq(expected);
         });
 
@@ -151,14 +151,14 @@ describe('Gitlab api testing', () => {
             clock = useFakeTimers(new Date(date).getTime());
 
             const res = gitlab.getMilestoneColors(body);
-            const expected = ['gray'];
+            const expected = [Colors.gray];
             expect(res).to.be.deep.eq(expected);
         });
 
         it('should return only gray if current state close', async () => {
             const closedMilestone: Milestone = { ...body, state: 'closed' };
             const res = gitlab.getMilestoneColors(closedMilestone);
-            const expected = ['gray'];
+            const expected = [Colors.gray];
             expect(res).to.be.deep.eq(expected);
         });
 

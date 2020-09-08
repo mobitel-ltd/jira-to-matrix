@@ -530,3 +530,10 @@ export interface GitlabSelectors extends Selectors {
     // true if hook should be ignored
     isIgnoreHookType(body): boolean;
 }
+
+export enum Colors {
+    green = '#69d100',
+    gray = 'gray',
+    white = 'white',
+    yellow = '#F0AD4E',
+}
