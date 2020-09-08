@@ -18,6 +18,7 @@ import {
     HookTypes,
     GitlabLabelHook,
     Milestone,
+    Colors,
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
@@ -138,10 +139,10 @@ export class Gitlab implements TaskTracker {
 
     getMilestoneColors(milestone: Milestone): string[] {
         if (!milestone.due_date || !milestone.start_date) {
-            return ['gray'];
+            return [Colors.gray];
         }
         if (milestone.state === 'closed') {
-            return ['gray'];
+            return [Colors.gray];
         }
         const currentDate = DateTime.local();
         const startDate = DateTime.fromISO(milestone.start_date!);
@@ -149,18 +150,18 @@ export class Gitlab implements TaskTracker {
 
         // https://stackoverflow.com/questions/60058489/compare-only-dates-with-luxon-datetime
         if (startDate.startOf('day') > currentDate.startOf('day')) {
-            return ['white'];
+            return [Colors.yellow];
         }
 
         if (currentDate.startOf('day') > endDate.startOf('day')) {
-            return ['gray'];
+            return [Colors.gray];
         }
 
         const allDays = endDate.diff(startDate, ['days']).days + 1;
         const grayDays = Math.floor(currentDate.diff(startDate, ['days']).days);
-        const yellowDays = allDays - grayDays;
+        const futureDays = allDays - grayDays;
 
-        return [...Array(grayDays).fill('gray'), ...Array(yellowDays).fill('yellow')];
+        return [...Array(grayDays).fill(Colors.gray), ...Array(futureDays).fill(Colors.green)];
     }
 
     getMilestoneUrl(body: GitlabIssue): string | undefined {
