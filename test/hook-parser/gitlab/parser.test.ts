@@ -535,6 +535,14 @@ describe('Gitlab actions', () => {
             hookLabels: gitlabReopenedIssue.labels,
             changes: [{ field: 'status', newValue: IssueStateEnum.open }],
         };
+        const postMisestoneUpdatesData: PostMilestoneUpdatesData = {
+            issueKey: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
+            milestoneId: gitlabReopenedIssue.object_attributes.milestone_id,
+            status: MilestoneUpdateStatus.Reopen,
+            summary: gitlabReopenedIssue.object_attributes.title,
+            user: gitlabReopenedIssue.user.name,
+        };
+
         const createRoomData: CreateRoomData = {
             issue: {
                 key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
@@ -544,7 +552,7 @@ describe('Gitlab actions', () => {
                 summary: gitlabReopenedIssue.object_attributes.title,
             },
             projectKey: gitlabReopenedIssue.project.path_with_namespace,
-            milestoneId: undefined,
+            milestoneId: gitlabReopenedIssue.object_attributes.milestone_id,
         };
         const inviteNewMembersData: InviteNewMembersData = {
             key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
@@ -565,6 +573,11 @@ describe('Gitlab actions', () => {
                 redisKey: 'postIssueUpdates_' + fakeTimestamp,
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
+            },
+            {
+                redisKey: 'postMilestoneUpdates_' + fakeTimestamp,
+                funcName: 'postMilestoneUpdates',
+                data: postMisestoneUpdatesData,
             },
         ];
 

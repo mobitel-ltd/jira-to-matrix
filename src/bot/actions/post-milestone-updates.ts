@@ -11,6 +11,8 @@ import { GitlabIssue, Milestone } from '../../task-trackers/gitlab/types';
 
 const logger = getLogger(module);
 
+type MessageWithSendStatus = { send: boolean; message: string };
+
 export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> implements RunAction {
     static alreadyAddedToMilestoneMessage = (issueKey, milestoneId) =>
         `Issue ${issueKey} is already added to milestone ${milestoneId}`;
@@ -24,6 +26,7 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
             [MilestoneUpdateStatus.Created]: options => translate('issueAddedToMilestone', options),
             [MilestoneUpdateStatus.Closed]: options => translate('issueClosedInMilestone', options),
             [MilestoneUpdateStatus.Deleted]: options => translate('issueDeletedFromMilestone', options),
+            [MilestoneUpdateStatus.Reopen]: options => translate('issueReopenInMilestone', options),
         };
 
         return messageMap[status]({ viewUrl, summary, user });
@@ -76,8 +79,11 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         status: MilestoneUpdateStatus,
         milestone: { key: string },
         issue: { key: string; summary: string; user: string },
-    ): Promise<{ send: boolean; message: string }> {
-        const actionsByStatus = {
+    ): Promise<MessageWithSendStatus> {
+        const actionsByStatus: Record<
+            MilestoneUpdateStatus,
+            () => Promise<MessageWithSendStatus> | MessageWithSendStatus
+        > = {
             [MilestoneUpdateStatus.Created]: async () => {
                 const redisEpicKey = getRedisMilestoneKey(milestone.key);
                 if (await redis.isInMilestone(redisEpicKey, issue.key)) {
@@ -95,6 +101,11 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
             },
             [MilestoneUpdateStatus.Closed]: () => {
                 const message = this.getMessage(issue, MilestoneUpdateStatus.Closed);
+
+                return { message, send: true };
+            },
+            [MilestoneUpdateStatus.Reopen]: () => {
+                const message = this.getMessage(issue, MilestoneUpdateStatus.Reopen);
 
                 return { message, send: true };
             },

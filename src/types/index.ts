@@ -689,6 +689,7 @@ export enum MilestoneUpdateStatus {
     Created = 'created',
     Closed = 'closed',
     Deleted = 'deleted',
+    Reopen = 'reopen',
 }
 
 export interface PostMilestoneUpdatesData {
