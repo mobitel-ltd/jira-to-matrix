@@ -9,6 +9,11 @@ export class UploadCommand extends Command<Gitlab> implements RunCommand {
         if (!url || !roomData.alias) {
             return;
         }
+        if (!this.taskTracker.selectors.isIssueRoomName(roomData.alias)) {
+            logger.warn('Skip commenting in not issue room ' + roomData.alias);
+
+            return;
+        }
 
         const { fullUrl, markdown } = await this.taskTracker.upload(roomData.alias, {
             url,
