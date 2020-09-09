@@ -26,6 +26,7 @@ export const dict = Object.freeze({
     issueAddedToMilestone: 'User %{user} added an issue [%{summary}](%{viewUrl}) to the milestone',
     issueDeletedFromMilestone: 'User %{user} delete an issue [%{summary}](%{viewUrl}) from the milestone',
     issueClosedInMilestone: 'User %{user} closed an issue [%{summary}](%{viewUrl})',
+    issueReopenInMilestone: 'User %{user} reopen an issue [%{summary}](%{viewUrl})',
     newLink: 'New link',
     newLinkMessage: 'A new link. This issue **%{relation}** [%{key} "%{summary}"](%{viewUrl})',
     deleteLink: 'Delete link',

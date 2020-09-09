@@ -24,6 +24,7 @@ export const dict = Object.freeze({
     issueAddedToMilestone: '%{user} добавил задачу [%{summary}](%{viewUrl}) в текущий майлстоун',
     issueDeletedFromMilestone: '%{user} удалил задачу [%{summary}](%{viewUrl}) из текущем майлстоуне',
     issueClosedInMilestone: '%{user} закрыл задачу [%{summary}](%{viewUrl}) в текущем майлстоуне',
+    issueReopenInMilestone: '%{user} переоткрыл задачу [%{summary}](%{viewUrl}) в текущем майлстоуне',
     newLink: 'Новый линк',
     newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{viewUrl})',
     deleteLink: 'Связь удалена',

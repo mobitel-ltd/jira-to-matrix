@@ -193,6 +193,7 @@ export class GitlabParser implements Parser {
         const status = Lo.cond([
             [isMilestoneDeleted, Lo.always(MilestoneUpdateStatus.Deleted)],
             [el => this.selectors.isCorrectWebhook(el, 'close'), Lo.always(MilestoneUpdateStatus.Closed)],
+            [el => this.selectors.isCorrectWebhook(el, 'reopen'), Lo.always(MilestoneUpdateStatus.Reopen)],
             [Lo.T, Lo.always(MilestoneUpdateStatus.Created)],
         ])(body);
 
