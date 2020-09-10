@@ -398,7 +398,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
             const mil = body.milestone;
             const linkPart = new URL(mil.web_url).pathname.replace('/-/', '/').slice(1);
 
-            const data = ['#' + mil.id, mil.title.slice(0, 60), linkPart];
+            const data = ['#' + mil.id, mil.title.slice(0, 60), mil.state, linkPart];
 
             return data.join(';').concat(';');
         }

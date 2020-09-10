@@ -16,7 +16,7 @@ import watchersBody from '../fixtures/jira-api-requests/watchers.json';
 import projectData from '../fixtures/jira-api-requests/project.json';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
 import { Jira } from '../../src/task-trackers/jira';
-import { CreateRoomData, CreateRoomOpions, IssueStateEnum, Config } from '../../src/types';
+import { CreateRoomData, CreateRoomOpions, IssueStateEnum, Config, MilestoneStateEnum } from '../../src/types';
 import { getDefaultErrorLog } from '../../src/lib/utils';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
@@ -597,8 +597,6 @@ describe('Create room test with gitlab as task tracker', () => {
                     purpose: gitlabIssueJson.title,
                 };
 
-                //////////////////////////////////////////////////////////////////////
-
                 const milestoneKey = milestonePart + gitlabIssueJson.milestone.id;
                 const milestoneMembers = [gitlabIssueJson.assignee.username].map(name =>
                     getChatClass().chatApiSingle.getChatUserId(name),
@@ -609,6 +607,8 @@ describe('Create room test with gitlab as task tracker', () => {
                     gitlabIssueJson.milestone.id +
                     ';' +
                     gitlabIssueJson.milestone.title +
+                    ';' +
+                    MilestoneStateEnum.open +
                     ';' +
                     gitlabIssueJson.milestone.web_url.replace('https://gitlab.example.com/', '').replace('/-', '') +
                     ';';
