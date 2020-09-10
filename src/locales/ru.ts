@@ -77,6 +77,7 @@ export const dict = Object.freeze({
     keyAlreadyExistForAdd: 'Ключ "%{typeTaskFromUser}" уже добавлен в настройки для проекта "%{projectKey}"',
     commandNotFound: 'Неправильная команда.',
     issueNameExist: 'Не найдено название задачи.<br>Используйте команду !create ТИП_ЗАДАЧИ  название задачи в Jira',
+    issueLabelNotExist: 'ВНИМАНИЕ! Необходимо установить лэйбл для задачи!',
     issueNameTooLong:
         'Название задачи слишком длинное или содержит управляющие символы<br>Пожалуйста используйте максимум 255 символов и не используйте управляющие символы',
     ignoreKeyAdded: 'Ключ "%{typeTaskFromUser}" был добавлен для проекта "%{projectKey}".',

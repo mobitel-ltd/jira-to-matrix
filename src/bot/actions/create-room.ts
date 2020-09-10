@@ -131,6 +131,10 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
 
             await this.currentChatItem.sendHtmlMessage(roomId, body, htmlBody);
             await this.currentChatItem.sendHtmlMessage(roomId, infoBody, infoBody);
+            if (statusColors.length === 0) {
+                const issueLabelExist = translate('issueLabelNotExist');
+                await this.currentChatItem.sendHtmlMessage(roomId, issueLabelExist, issueLabelExist);
+            }
 
             return roomId;
         } catch (err) {

@@ -397,22 +397,6 @@ describe('Create room test with gitlab as task tracker', () => {
             roomId = chatClass.getRoomData().id;
         });
 
-        it('should return correct createRoomData', async () => {
-            const expected: CreateRoomData = {
-                issue: {
-                    key:
-                        gitlabCommentCreatedHook.project.path_with_namespace + '-' + gitlabCommentCreatedHook.issue.iid,
-                    descriptionFields: undefined,
-                    hookLabels: gitlabCommentCreatedHook.issue.labels,
-                    projectKey: gitlabCommentCreatedHook.project.path_with_namespace,
-                    summary: gitlabCommentCreatedHook.issue.description,
-                },
-                projectKey: gitlabCommentCreatedHook.project.path_with_namespace,
-                milestoneId: undefined,
-            };
-            expect(createRoomData).to.be.deep.eq(expected);
-        });
-
         describe('Room is exists', () => {
             beforeEach(() => {
                 nock(gitlabTracker.getRestUrl())
@@ -652,18 +636,41 @@ describe('Create room test with gitlab as task tracker', () => {
                 expect(result).to.be.true;
             });
 
-            it('should call room creation with avatar if config color projects is set to "all"', async () => {
-                chatApi.getRoomIdByName.reset();
-                chatApi.getRoomIdByName.resolves(false);
-                const configAllProjectsColors: Config = pipe(clone, set('colors.projects', 'all'))(config) as Config;
-                createRoom = new CreateRoom(configAllProjectsColors, gitlabTracker, chatFasade);
-
-                const result = await createRoom.run(createRoomData);
-                expect(chatApi.createRoom).to.be.calledWithExactly({
-                    ...expectedIssueRoomOptions,
-                    avatarUrl: messengerLink,
+            describe('config color projects is set to "all"', () => {
+                beforeEach(() => {
+                    chatApi.getRoomIdByName.reset();
+                    chatApi.getRoomIdByName.resolves(false);
+                    const configAllProjectsColors: Config = pipe(
+                        clone,
+                        set('colors.projects', 'all'),
+                    )(config) as Config;
+                    createRoom = new CreateRoom(configAllProjectsColors, gitlabTracker, chatFasade);
                 });
-                expect(result).to.be.true;
+
+                it('should call room creation with avatar if ', async () => {
+                    const result = await createRoom.run(createRoomData);
+                    expect(chatApi.createRoom).to.be.calledWithExactly({
+                        ...expectedIssueRoomOptions,
+                        avatarUrl: messengerLink,
+                    });
+                    expect(result).to.be.true;
+                });
+
+                it('should call room creation with DEFAULT avatar and send NO DEBUG message if issue have no label', async () => {
+                    const noLabelIssueHook = pipe(clone, set('labels', []))(gitlabIssueCreatedJson);
+                    const noLabellData = gitlabTracker.parser.getCreateRoomData(noLabelIssueHook);
+                    const result = await createRoom.run(noLabellData);
+                    expect(chatApi.createRoom).to.be.calledWithExactly({
+                        ...expectedIssueRoomOptions,
+                        avatarUrl: messengerLink,
+                    });
+                    expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(
+                        roomId,
+                        translate('issueLabelNotExist'),
+                        translate('issueLabelNotExist'),
+                    );
+                    expect(result).to.be.true;
+                });
             });
         });
     });
