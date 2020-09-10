@@ -71,6 +71,7 @@ export const dict = Object.freeze({
     keyAlreadyExistForAdd: 'Key "%{typeTaskFromUser}" already exist in project "%{projectKey}"',
     commandNotFound: 'Command not found.',
     issueNameExist: 'Issue name exist.<br>Use !create typeTask name task for jira',
+    issueLabelNotExist: 'WARNING! Issue label not exists',
     issueNameTooLong:
         'Issue too long or contains control characters.<br>Please use max 255 characters and do not use control characters',
     ignoreKeyAdded: 'Key "%{typeTaskFromUser}" was added for project "%{projectKey}".',
