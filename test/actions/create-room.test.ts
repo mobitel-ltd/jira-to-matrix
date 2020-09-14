@@ -689,7 +689,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     expect(result).to.be.true;
                 });
 
-                it('should call room creation with UNSORTED label if project has such label', async () => {
+                it.skip('should call room creation with UNSORTED label if project has such label', async () => {
                     nock(gitlabTracker.getRestUrl())
                         .get(`/projects/${gitlabProjectJson.id}/labels`)
                         .query({ per_page: 100 })

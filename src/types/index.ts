@@ -1,6 +1,12 @@
 import { BaseChatApi } from '../messengers/base-api';
 import { GitlabPushCommit, GitlabPipeline, GitlabLabelHook } from '../task-trackers/gitlab/types';
 
+export interface DefaultLabel {
+    name: string;
+    description: string;
+    color: string;
+}
+
 export interface Config {
     port: string;
     lang: 'en' | 'ru';
@@ -10,6 +16,7 @@ export interface Config {
         url: string;
         user: string;
         password: string;
+        defaultLabel?: DefaultLabel;
     };
     features: {
         createRoom: boolean;

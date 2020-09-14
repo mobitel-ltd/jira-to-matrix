@@ -2,7 +2,7 @@ import { Projects } from '@gitbeaker/node';
 import * as R from 'ramda';
 import axios, { AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
-import { TaskTracker, Issue, Project, Config, IssueWithComments } from '../../types';
+import { TaskTracker, Issue, Project, Config, IssueWithComments, DefaultLabel } from '../../types';
 import { TIMEOUT } from '../../lib/consts';
 import * as messages from '../../lib/messages';
 import { getLogger } from '../../modules/log';
@@ -98,6 +98,7 @@ export class Gitlab implements TaskTracker {
     public selectors: GitlabSelectors;
     public parser: GitlabParser;
     milestone: Milestone;
+    defaultLabel?: DefaultLabel;
 
     constructor(options: {
         url: string;
@@ -107,6 +108,7 @@ export class Gitlab implements TaskTracker {
         features: Config['features'];
         interval?: number;
         count?: number;
+        defaultLabel?: DefaultLabel;
     }) {
         this.url = options.url;
         this.user = options.user;
@@ -116,6 +118,7 @@ export class Gitlab implements TaskTracker {
         this.pingCount = options.count || 10;
         this.selectors = selectors;
         this.parser = new GitlabParser(options.features, selectors);
+        this.defaultLabel = options.defaultLabel;
     }
 
     async request(url: string, newOptions?: AxiosRequestConfig, contentType = 'application/json'): Promise<any> {
