@@ -16,7 +16,14 @@ import watchersBody from '../fixtures/jira-api-requests/watchers.json';
 import projectData from '../fixtures/jira-api-requests/project.json';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
 import { Jira } from '../../src/task-trackers/jira';
-import { CreateRoomData, CreateRoomOpions, IssueStateEnum, Config, MilestoneStateEnum } from '../../src/types';
+import {
+    CreateRoomData,
+    CreateRoomOpions,
+    IssueStateEnum,
+    Config,
+    MilestoneStateEnum,
+    DefaultLabel,
+} from '../../src/types';
 import { getDefaultErrorLog } from '../../src/lib/utils';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
@@ -32,6 +39,7 @@ import { translate } from '../../src/locales';
 import { schemas } from '../../src/task-trackers/jira/schemas';
 import { GitlabLabel } from '../../src/task-trackers/gitlab/types';
 import gitlabGroups from '../fixtures/gitlab-api-requests/groups.json';
+import { getTaskTracker } from '../../src/task-trackers';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -372,14 +380,19 @@ describe('Create room test with gitlab as task tracker', () => {
     let chatApi;
     let createRoom: CreateRoom;
     let roomId;
+    let gitlabConfig: Config;
 
     beforeEach(() => {
-        gitlabTracker = new Gitlab({
-            url: 'https://gitlab.test-example.ru',
-            user: 'gitlab_bot',
-            password: 'fakepasswprd',
-            features: config.features,
-        });
+        gitlabConfig = pipe(
+            clone,
+            set('taskTracker', {
+                type: 'gitlab',
+                url: 'https://gitlab.test-example.ru',
+                user: 'gitlab_bot',
+                password: 'fakepasswprd',
+            }),
+        )(config) as Config;
+        gitlabTracker = getTaskTracker(gitlabConfig) as Gitlab;
     });
 
     afterEach(() => {
@@ -395,7 +408,7 @@ describe('Create room test with gitlab as task tracker', () => {
                 roomId: [createRoomData.issue.key, createRoomData.projectKey!],
             });
             chatApi = chatClass.chatApiSingle;
-            createRoom = new CreateRoom(config, gitlabTracker, chatClass.chatApi);
+            createRoom = new CreateRoom(gitlabConfig, gitlabTracker, chatClass.chatApi);
             roomId = chatClass.getRoomData().id;
         });
 
@@ -662,7 +675,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     const configAllProjectsColors: Config = pipe(
                         clone,
                         set('colors.projects', 'all'),
-                    )(config) as Config;
+                    )(gitlabConfig) as Config;
                     createRoom = new CreateRoom(configAllProjectsColors, gitlabTracker, chatFasade);
                 });
 
@@ -675,7 +688,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     expect(result).to.be.true;
                 });
 
-                it('should call room creation with DEFAULT avatar and send NO DEBUG message if issue have no label', async () => {
+                it('should call room creation with DEFAULT avatar and send NO DEBUG message if issue have no label and config has no default label', async () => {
                     const result = await createRoom.run(noLabellData);
                     expect(chatApi.createRoom).to.be.calledWithExactly({
                         ...expectedIssueRoomOptions,
@@ -689,45 +702,79 @@ describe('Create room test with gitlab as task tracker', () => {
                     expect(result).to.be.true;
                 });
 
-                it.skip('should call room creation with UNSORTED label if project has such label', async () => {
-                    nock(gitlabTracker.getRestUrl())
-                        .get(`/projects/${gitlabProjectJson.id}/labels`)
-                        .query({ per_page: 100 })
-                        .reply(200, giltabLabelsWithUnsorted);
+                describe('Config includes default label', () => {
+                    const defaultLabel: DefaultLabel = {
+                        color: 'purple',
+                        description: 'default label',
+                        name: 'defaultLabel',
+                    };
+                    beforeEach(() => {
+                        const configAllProjectsColors: Config = pipe(
+                            clone,
+                            set('colors.projects', 'all'),
+                            set('taskTracker.defaultLabel', defaultLabel),
+                        )(gitlabConfig) as Config;
 
-                    const result = await createRoom.run(noLabellData);
-                    expect(chatApi.createRoom).to.be.calledWithExactly({
-                        ...expectedIssueRoomOptions,
-                        avatarUrl: messengerLink,
+                        const gitlabTracker = getTaskTracker(configAllProjectsColors) as Gitlab;
+                        const chatClass = getChatClass({
+                            alias: [createRoomData.issue.key, createRoomData.projectKey!],
+                            roomId: [createRoomData.issue.key, createRoomData.projectKey!],
+                        });
+                        chatApi = chatClass.chatApiSingle;
+                        const chatFasade = chatClass.chatApi;
+                        chatApi.uploadContent.resolves(messengerLink);
+                        chatApi.getRoomIdByName.reset();
+                        chatApi.getRoomIdByName.resolves(false);
+
+                        createRoom = new CreateRoom(configAllProjectsColors, gitlabTracker, chatFasade);
                     });
-                    expect(chatApi.sendHtmlMessage).not.to.be.calledWithExactly(
-                        roomId,
-                        translate('issueLabelNotExist'),
-                        translate('issueLabelNotExist'),
-                    );
-                    expect(result).to.be.true;
-                });
 
-                it('should call room creation with UNSORTED label if project not has such label but group has', async () => {
-                    nock(gitlabTracker.getRestUrl())
-                        .get(`/projects/${gitlabProjectJson.id}/labels`)
-                        .query({ per_page: 100 })
-                        .reply(200, gitlabLabelJson)
-                        .get(`/groups/${gitlabProjectJson.namespace.id}/labels`)
-                        .query({ per_page: 100 })
-                        .reply(200, giltabLabelsWithUnsorted);
+                    it('should call room creation with UNSORTED label if group has such label', async () => {
+                        nock(gitlabTracker.getRestUrl())
+                            .get(`/groups/${gitlabProjectJson.namespace.id}/labels`)
+                            .query({ per_page: 100 })
+                            .reply(200, giltabLabelsWithUnsorted);
 
-                    const result = await createRoom.run(noLabellData);
-                    expect(chatApi.createRoom).to.be.calledWithExactly({
-                        ...expectedIssueRoomOptions,
-                        avatarUrl: messengerLink,
+                        const result = await createRoom.run(noLabellData);
+                        expect(chatApi.createRoom).to.be.calledWithExactly({
+                            ...expectedIssueRoomOptions,
+                            avatarUrl: messengerLink,
+                        });
+                        expect(chatApi.sendHtmlMessage).not.to.be.calledWithExactly(
+                            roomId,
+                            translate('issueLabelNotExist'),
+                            translate('issueLabelNotExist'),
+                        );
+                        expect(result).to.be.true;
                     });
-                    expect(chatApi.sendHtmlMessage).not.to.be.calledWithExactly(
-                        roomId,
-                        translate('issueLabelNotExist'),
-                        translate('issueLabelNotExist'),
-                    );
-                    expect(result).to.be.true;
+
+                    it('should call room creation with setting UNSORTED label if group doesnt have such label but label was added by additional request', async () => {
+                        nock(gitlabTracker.getRestUrl())
+                            .get(`/groups/${gitlabProjectJson.namespace.id}/labels`)
+                            .query({ per_page: 100 })
+                            .reply(200, gitlabLabelJson)
+
+                            .post(`/groups/${gitlabProjectJson.namespace.id}/labels`, defaultLabel as any)
+                            .reply(201)
+
+                            .put(
+                                `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`,
+                            )
+                            .query({ labels: defaultLabel.name })
+                            .reply(200);
+
+                        const result = await createRoom.run(noLabellData);
+                        expect(chatApi.createRoom).to.be.calledWithExactly({
+                            ...expectedIssueRoomOptions,
+                            avatarUrl: messengerLink,
+                        });
+                        expect(chatApi.sendHtmlMessage).not.to.be.calledWithExactly(
+                            roomId,
+                            translate('issueLabelNotExist'),
+                            translate('issueLabelNotExist'),
+                        );
+                        expect(result).to.be.true;
+                    });
                 });
             });
         });
