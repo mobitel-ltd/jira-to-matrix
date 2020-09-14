@@ -19,6 +19,7 @@ import {
     GitlabLabelHook,
     Milestone,
     Colors,
+    Groups,
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
@@ -205,8 +206,8 @@ export class Gitlab implements TaskTracker {
 
     private async getGroupIdByNamespace(namespaceWithProjectName: string): Promise<number | undefined> {
         const [groupName] = namespaceWithProjectName.split('/');
-        const groupUrl = this.getRestUrl('groups?per_page=100');
-        const groups = await this.request(groupUrl);
+        const groupUrl = this.getRestUrl(`groups?search=${groupName}`);
+        const groups: Groups[] = await this.request(groupUrl);
 
         const group = groups.find(el => el.path === groupName);
 
@@ -477,14 +478,16 @@ export class Gitlab implements TaskTracker {
         if (issue.state === 'closed') {
             return ['gray'];
         }
-        if (!hookLabels) {
-            const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
-            const labels = await this.getAllAvailalbleLabels(namespaceWithProject);
-            const colors = labels.filter(label => issue.labels?.includes(label.name)).map(label => label.color);
+        // if (!hookLabels?.length) {
+        if (hookLabels) {
+            const colors = (hookLabels || []).map(label => label.color).sort();
 
             return [...new Set(colors)];
         }
-        const colors = (hookLabels || []).map(label => label.color).sort();
+
+        const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
+        const labels = await this.getAllAvailalbleLabels(namespaceWithProject);
+        const colors = labels.filter(label => issue.labels?.includes(label.name)).map(label => label.color);
 
         return [...new Set(colors)];
     }

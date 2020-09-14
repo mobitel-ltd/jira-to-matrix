@@ -12,6 +12,31 @@ export interface HookUser {
     avatar_url: string;
 }
 
+export interface Groups {
+    id: number;
+    web_url: string;
+    name: string;
+    path: string;
+    description: string | null;
+    visibility: string;
+    share_with_group_lock: boolean;
+    require_two_factor_authentication: boolean;
+    two_factor_grace_period: number;
+    project_creation_level: string;
+    auto_devops_enabled: null | string;
+    subgroup_creation_level: string;
+    emails_disabled: null | string;
+    mentions_disabled: null | string;
+    lfs_enabled: boolean;
+    default_branch_protection: number;
+    avatar_url: string | null;
+    request_access_enabled: boolean;
+    full_name: string;
+    full_path: string;
+    created_at: string;
+    parent_id: null | number;
+}
+
 export interface GitlabLabelHook {
     id: number;
     title: string;
@@ -29,7 +54,7 @@ export interface GitlabLabel {
     id: number;
     name: string;
     color: string;
-    description: string;
+    description: string | null;
     description_html: string;
     text_color: string;
     subscribed: boolean;
