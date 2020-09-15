@@ -101,7 +101,7 @@ export abstract class BaseAction<T extends ChatFasade, Task extends TaskTracker>
         return canvas.toBuffer();
     }
 
-    async getAvatarLink(key: string, statusColors?: string[] | string): Promise<string | undefined> {
+    async getAvatarLink(key: string, statusColors: string[] | string): Promise<string | undefined> {
         const { colors } = this.config;
         if (!colors) {
             return;
