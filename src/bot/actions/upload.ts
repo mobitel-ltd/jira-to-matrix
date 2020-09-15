@@ -1,6 +1,6 @@
 import { getLogger } from '../../modules/log';
 import { UploadData } from '../../types';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { Gitlab } from '../../task-trackers/gitlab';
 import marked from 'marked';
@@ -10,7 +10,7 @@ const logger = getLogger(module);
 
 export const getCommentHTMLBody = (headerText, commentBody) => `${headerText}: <br>${commentBody}`;
 
-export class Upload extends BaseAction<ChatFasade, Gitlab> implements RunAction {
+export class Upload extends BaseAction<ChatFasade, Gitlab> {
     async run({ issueKey, uploadInfo: headerText, uploadUrl }: UploadData) {
         try {
             const roomId = await this.chatApi.getRoomId(issueKey);

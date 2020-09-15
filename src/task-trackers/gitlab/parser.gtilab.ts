@@ -237,10 +237,10 @@ export class GitlabParser implements Parser {
     }
 
     actionFuncs = {
-        postComment: this.isPostComment,
-        inviteNewMembers: this.isMemberInvite,
-        postIssueUpdates: this.isPostIssueUpdates,
-        upload: this.isUpload,
+        [ActionNames.PostComment]: this.isPostComment,
+        [ActionNames.InviteNewMembers]: this.isMemberInvite,
+        [ActionNames.PostIssueUpdates]: this.isPostIssueUpdates,
+        [ActionNames.Upload]: this.isUpload,
         [ActionNames.PostCommit]: this.isPostPushCommit,
         [ActionNames.Pipeline]: this.isPostPipeline,
         [ActionNames.PostMilestoneUpdates]: this.isPostMilestoneUpdates,

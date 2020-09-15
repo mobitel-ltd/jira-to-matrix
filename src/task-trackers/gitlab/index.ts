@@ -1,6 +1,7 @@
+import { setupCache } from 'axios-cache-adapter';
 import { Projects } from '@gitbeaker/node';
 import * as R from 'ramda';
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, AxiosInstance } from 'axios';
 import querystring from 'querystring';
 import { TaskTracker, Issue, Project, Config, IssueWithComments } from '../../types';
 import { TIMEOUT } from '../../lib/consts';
@@ -97,16 +98,19 @@ export class Gitlab implements TaskTracker {
     public selectors: GitlabSelectors;
     public parser: GitlabParser;
     milestone: Milestone;
+    api: AxiosInstance;
 
-    constructor(options: {
-        url: string;
-        user: string;
-        inviteIgnoreUsers?: string[];
-        password: string;
-        features: Config['features'];
-        interval?: number;
-        count?: number;
-    }) {
+    constructor(
+        private options: {
+            url: string;
+            user: string;
+            inviteIgnoreUsers?: string[];
+            password: string;
+            features: Config['features'];
+            interval?: number;
+            count?: number;
+        },
+    ) {
         this.url = options.url;
         this.user = options.user;
         this.password = options.password;
@@ -115,6 +119,16 @@ export class Gitlab implements TaskTracker {
         this.pingCount = options.count || 10;
         this.selectors = selectors;
         this.parser = new GitlabParser(options.features, selectors);
+        const cache = setupCache({
+            maxAge: 5 * 1000,
+        });
+        this.api = axios.create({
+            adapter: cache.adapter,
+        });
+    }
+
+    init() {
+        return new Gitlab(this.options);
     }
 
     async request(url: string, newOptions?: AxiosRequestConfig, contentType = 'application/json'): Promise<any> {
@@ -126,8 +140,8 @@ export class Gitlab implements TaskTracker {
             url,
         };
         try {
-            const response = await axios(options);
-            logger.debug(`${options.method} request to jira with Url ${url} suceeded`);
+            const response = await this.api(options);
+            logger.debug(`${options.method} request to gitlab with Url ${url} suceeded`);
 
             return response.data;
         } catch (err) {

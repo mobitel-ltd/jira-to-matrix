@@ -274,6 +274,9 @@ export interface TaskTracker {
     selectors: Selectors;
 
     parser: Parser;
+
+    init(): TaskTracker;
+
     getMilestoneUrl(body: any): string | undefined;
 
     getMilestoneWatchers(key): Promise<string[]>;

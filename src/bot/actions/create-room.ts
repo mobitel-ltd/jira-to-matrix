@@ -6,7 +6,7 @@ import { infoBody } from '../../lib/messages';
 import { CreateRoomData, TaskTracker, DescriptionFields } from '../../types';
 import { errorTracing } from '../../lib/utils';
 import { LINE_BREAKE_TAG, INDENT } from '../../lib/consts';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
@@ -34,7 +34,7 @@ interface CreateMilestoneRoomOptions {
     topic: string;
 }
 
-export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
+export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> {
     getEpicInfo(epicLink) {
         epicLink === translate('miss')
             ? ''

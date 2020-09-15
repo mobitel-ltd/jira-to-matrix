@@ -2,13 +2,13 @@ import * as utils from '../../lib/utils';
 import { getLogger } from '../../modules/log';
 import { redis } from '../../redis-client';
 import { PostNewLinksData } from '../../types';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { Jira } from '../../task-trackers/jira';
 
 const logger = getLogger(module);
 
-export class PostNewLinks extends BaseAction<ChatFasade, Jira> implements RunAction {
+export class PostNewLinks extends BaseAction<ChatFasade, Jira> {
     async postLink(key, relations): Promise<void> {
         const issue = await this.taskTracker.getIssueSafety(key);
         if (issue) {
