@@ -2,7 +2,7 @@ import { Projects } from '@gitbeaker/node';
 import * as R from 'ramda';
 import axios, { AxiosRequestConfig } from 'axios';
 import querystring from 'querystring';
-import { TaskTracker, Issue, Project, Config, IssueWithComments } from '../../types';
+import { TaskTracker, Issue, Project, Config, IssueWithComments, DefaultLabel } from '../../types';
 import { TIMEOUT } from '../../lib/consts';
 import * as messages from '../../lib/messages';
 import { getLogger } from '../../modules/log';
@@ -19,6 +19,7 @@ import {
     GitlabLabelHook,
     Milestone,
     Colors,
+    Groups,
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
@@ -97,6 +98,7 @@ export class Gitlab implements TaskTracker {
     public selectors: GitlabSelectors;
     public parser: GitlabParser;
     milestone: Milestone;
+    defaultLabel?: DefaultLabel;
 
     constructor(options: {
         url: string;
@@ -106,6 +108,7 @@ export class Gitlab implements TaskTracker {
         features: Config['features'];
         interval?: number;
         count?: number;
+        defaultLabel?: DefaultLabel;
     }) {
         this.url = options.url;
         this.user = options.user;
@@ -115,6 +118,7 @@ export class Gitlab implements TaskTracker {
         this.pingCount = options.count || 10;
         this.selectors = selectors;
         this.parser = new GitlabParser(options.features, selectors);
+        this.defaultLabel = options.defaultLabel;
     }
 
     async request(url: string, newOptions?: AxiosRequestConfig, contentType = 'application/json'): Promise<any> {
@@ -197,6 +201,15 @@ export class Gitlab implements TaskTracker {
         return this.request(url, _options, contentType);
     }
 
+    requestPut(url: string, options: AxiosRequestConfig, contentType?: string): Promise<any> {
+        const _options: AxiosRequestConfig = {
+            ...options,
+            method: 'PUT',
+        };
+
+        return this.request(url, _options, contentType);
+    }
+
     private async getProjectIdByNamespace(namespaceWithProjectName: string): Promise<number> {
         const project = await this.getBaseProject(namespaceWithProjectName);
 
@@ -205,8 +218,8 @@ export class Gitlab implements TaskTracker {
 
     private async getGroupIdByNamespace(namespaceWithProjectName: string): Promise<number | undefined> {
         const [groupName] = namespaceWithProjectName.split('/');
-        const groupUrl = this.getRestUrl('groups?per_page=100');
-        const groups = await this.request(groupUrl);
+        const groupUrl = this.getRestUrl(`groups?search=${groupName}`);
+        const groups: Groups[] = await this.request(groupUrl);
 
         const group = groups.find(el => el.path === groupName);
 
@@ -472,18 +485,85 @@ export class Gitlab implements TaskTracker {
         return [...projectLabels, ...groupLabels];
     }
 
+    async setDefaultLabelForIssue(gitlabIssueKey: string, labelName: string): Promise<string> {
+        const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(gitlabIssueKey);
+        const params = querystring.stringify({ labels: labelName });
+        const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
+
+        // TODO make correct query params passing
+        const url = this.getRestUrl('projects', projectId, 'issues', `${issueId}?${params}`);
+
+        try {
+            await this.requestPut(url, {});
+
+            return labelName;
+        } catch (error) {
+            if (typeof error === 'string' && this.isBadRequest(error)) {
+                // https://gitlab.com/gitlab-org/gitlab/-/issues/35627
+                logger.warn('Post command has got 400 status, but it will be skipped because of gitlab bug');
+                return labelName;
+            }
+
+            throw error;
+        }
+    }
+
+    async createDefaultLabelInGroup(groupId: number): Promise<string | undefined> {
+        if (!this.defaultLabel) {
+            return;
+        }
+        // TODO make correct query params passing
+        const url = this.getRestUrl('groups', groupId, 'labels');
+
+        try {
+            const data = await this.requestPost(url, { data: this.defaultLabel });
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getOrCreateDefaultLabelInGroup(namespaceWithProject): Promise<string | undefined> {
+        if (this.defaultLabel) {
+            const groupLabels = await this.getGroupLabels(namespaceWithProject);
+            const defaultLabelData = groupLabels.find(el => el.name === this.defaultLabel?.name);
+            if (!defaultLabelData) {
+                // create lables unsorte
+                const groupId = await this.getGroupIdByNamespace(namespaceWithProject);
+                if (!groupId) {
+                    return;
+                }
+
+                await this.createDefaultLabelInGroup(groupId);
+
+                return this.defaultLabel?.color;
+            }
+            return defaultLabelData.color;
+        }
+    }
+
     async getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string[]> {
         const issue = await this.getIssue(key);
+        const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
         if (issue.state === 'closed') {
             return ['gray'];
         }
         if (!hookLabels) {
-            const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
             const labels = await this.getAllAvailalbleLabels(namespaceWithProject);
             const colors = labels.filter(label => issue.labels?.includes(label.name)).map(label => label.color);
 
             return [...new Set(colors)];
         }
+        if (hookLabels.length == 0) {
+            const labelColor = await this.getOrCreateDefaultLabelInGroup(namespaceWithProject);
+
+            if (labelColor && this.defaultLabel?.name) {
+                await this.setDefaultLabelForIssue(key, this.defaultLabel?.name);
+
+                return [labelColor];
+            }
+        }
+
         const colors = (hookLabels || []).map(label => label.color).sort();
 
         return [...new Set(colors)];

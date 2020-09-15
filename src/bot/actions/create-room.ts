@@ -98,13 +98,18 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<string> {
+    async createIssueRoom({
+        key,
+        summary,
+        projectKey,
+        descriptionFields,
+        roomName,
+        statusColors,
+    }: CreateIssueRoomOptions): Promise<string> {
         try {
-            const { key, summary, projectKey, descriptionFields, roomName, statusColors } = issue;
-
             const autoinviteUsers = await this.getAutoinviteUsers(projectKey, descriptionFields.typeName);
 
-            const issueWatchers = await this.taskTracker.getIssueWatchers(issue.key);
+            const issueWatchers = await this.taskTracker.getIssueWatchers(key);
             const issueWatchersChatIds = await Promise.all(
                 issueWatchers.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
             );
@@ -131,7 +136,8 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
 
             await this.currentChatItem.sendHtmlMessage(roomId, body, htmlBody);
             await this.currentChatItem.sendHtmlMessage(roomId, infoBody, infoBody);
-            if (statusColors.length === 0) {
+
+            if (statusColors === this.defaultAvatarColor) {
                 const issueLabelExist = translate('issueLabelNotExist');
                 await this.currentChatItem.sendHtmlMessage(roomId, issueLabelExist, issueLabelExist);
             }
@@ -164,8 +170,8 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
     }
 
     async getCreateIsueOptions(keyOrId, hookLabels, issueBody): Promise<CreateIssueRoomOptions> {
-        const statusColors =
-            (await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels)) || this.defaultAvatarColor;
+        const currentIssueColor = await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels);
+        const statusColors = currentIssueColor.length ? currentIssueColor : this.defaultAvatarColor;
 
         return {
             key: this.taskTracker.selectors.getIssueKey(issueBody)!,

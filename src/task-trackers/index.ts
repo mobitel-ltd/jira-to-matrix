@@ -28,6 +28,7 @@ export const getTaskTracker = (config: Config): TaskTracker => {
                 interval: config.ping && config.ping.interval,
                 features: config.features,
                 inviteIgnoreUsers: config.inviteIgnoreUsers,
+                defaultLabel: config.taskTracker.defaultLabel,
             });
     }
 };
