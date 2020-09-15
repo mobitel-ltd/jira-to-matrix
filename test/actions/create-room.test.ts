@@ -634,6 +634,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     .get(`/projects/${gitlabProjectJson.id}/members/all`)
                     .reply(200, projectMembersJson)
                     .get(`/groups`)
+                    .times(2)
                     .query({ search: gitlabProjectJson.namespace.path })
                     .reply(200, gitlabGroups)
                     .post(
@@ -688,7 +689,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     expect(result).to.be.true;
                 });
 
-                it('should call room creation with DEFAULT avatar and send NO DEBUG message if issue have no label and config has no default label', async () => {
+                it('should call room creation with DEFAULT avatar and send message "LABEL NOT INSTALL" if issue have no Llabel and config has no default label', async () => {
                     const result = await createRoom.run(noLabellData);
                     expect(chatApi.createRoom).to.be.calledWithExactly({
                         ...expectedIssueRoomOptions,
@@ -706,7 +707,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     const defaultLabel: DefaultLabel = {
                         color: 'purple',
                         description: 'default label',
-                        name: 'defaultLabel',
+                        name: unsortedLabel.name,
                     };
                     beforeEach(() => {
                         const configAllProjectsColors: Config = pipe(
@@ -733,7 +734,12 @@ describe('Create room test with gitlab as task tracker', () => {
                         nock(gitlabTracker.getRestUrl())
                             .get(`/groups/${gitlabProjectJson.namespace.id}/labels`)
                             .query({ per_page: 100 })
-                            .reply(200, giltabLabelsWithUnsorted);
+                            .reply(200, giltabLabelsWithUnsorted)
+                            .put(
+                                `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`,
+                            )
+                            .query({ labels: defaultLabel.name })
+                            .reply(200);
 
                         const result = await createRoom.run(noLabellData);
                         expect(chatApi.createRoom).to.be.calledWithExactly({
