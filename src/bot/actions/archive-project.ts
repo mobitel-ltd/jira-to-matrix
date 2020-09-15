@@ -6,7 +6,7 @@ import { kick } from '../commands/command-list/common-actions';
 import { exportEvents } from '../../lib/git-lib';
 import { ArchiveProjectData, MessengerApi, RoomData } from '../../types';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { Jira } from '../../task-trackers/jira';
 
 const logger = getLogger(module);
@@ -55,7 +55,7 @@ export interface ArchiveOptions {
     status?: string;
 }
 
-export class ArchiveProject extends BaseAction<ChatFasade, Jira> implements RunAction {
+export class ArchiveProject extends BaseAction<ChatFasade, Jira> {
     static getLastMessageTimestamp = events =>
         events
             .filter(isMessage)

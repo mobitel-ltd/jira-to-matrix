@@ -622,14 +622,14 @@ describe('Create room test with gitlab as task tracker', () => {
                 const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
-                    .times(6)
+                    // .times(5)
                     .reply(200, gitlabProjectJson)
                     .get(
                         `/groups/${gitlabIssueJson.milestone.group_id}/milestones/${gitlabIssueJson.milestone.id}/issues`,
                     )
                     .reply(200, milestoneIssuesJson)
                     .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
-                    .times(4)
+                    // .times(4)
                     .reply(200, gitlabIssueJson)
                     .get(`/projects/${gitlabProjectJson.id}/members/all`)
                     .reply(200, projectMembersJson)

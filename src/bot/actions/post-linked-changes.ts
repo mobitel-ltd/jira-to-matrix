@@ -1,10 +1,10 @@
 import * as utils from '../../lib/utils';
 import { PostLinkedChangesData } from '../../types';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { Jira } from '../../task-trackers/jira';
 
-export class PostLinkedChanges extends BaseAction<ChatFasade, Jira> implements RunAction {
+export class PostLinkedChanges extends BaseAction<ChatFasade, Jira> {
     async handler(data, roomID) {
         const { body, htmlBody } = this.getPostStatusData(data)!;
 

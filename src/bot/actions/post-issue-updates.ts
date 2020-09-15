@@ -6,7 +6,7 @@ import { PostIssueUpdatesData, IssueChanges, TaskTracker } from '../../types';
 import { isRepoExists, getRepoLink, exportEvents } from '../../lib/git-lib';
 import { kick } from '../commands/command-list/common-actions';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { LAST_STATUS_COLOR } from '../../redis-client';
 import { GitlabLabelHook } from 'src/task-trackers/gitlab/types';
 
@@ -14,7 +14,7 @@ const logger = getLogger(module);
 
 // usingPojects: 'all' | [string] | undefined
 
-export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
+export class PostIssueUpdates extends BaseAction<ChatFasade, TaskTracker> {
     async getNewAvatarUrl(issueKey, { statusId, isNewStatus, hookLabels }) {
         if (!this.config.colors) {
             logger.warn(`No color links is passed to update avatar for room ${issueKey}`);

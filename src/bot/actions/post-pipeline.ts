@@ -1,7 +1,7 @@
 import * as toYaml from 'js-yaml';
 import { getLogger } from '../../modules/log';
 import { PostPipelineData } from '../../types';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { Gitlab } from '../../task-trackers/gitlab';
 import { GitlabPipeline } from '../../task-trackers/gitlab/types';
@@ -9,7 +9,7 @@ import { errorTracing } from '../../lib/utils';
 
 const logger = getLogger(module);
 
-export class PostPipeline extends BaseAction<ChatFasade, Gitlab> implements RunAction {
+export class PostPipeline extends BaseAction<ChatFasade, Gitlab> {
     async run({ author, issueKeys, pipelineData }: PostPipelineData) {
         const res = await Promise.all(issueKeys.map(key => this.sendPipelineData(key, author, pipelineData)));
 
