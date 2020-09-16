@@ -3,7 +3,7 @@ import { Projects } from '@gitbeaker/node';
 import * as R from 'ramda';
 import axios, { AxiosRequestConfig, AxiosInstance } from 'axios';
 import querystring from 'querystring';
-import { TaskTracker, Issue, Project, Config, IssueWithComments, DefaultLabel } from '../../types';
+import { TaskTracker, Issue, Project, Config, IssueWithComments, DefaultLabel, IssueStateEnum } from '../../types';
 import { TIMEOUT } from '../../lib/consts';
 import * as messages from '../../lib/messages';
 import { getLogger } from '../../modules/log';
@@ -159,7 +159,7 @@ export class Gitlab implements TaskTracker {
         if (!milestone.due_date || !milestone.start_date) {
             return [Colors.gray];
         }
-        if (milestone.state === 'closed') {
+        if (milestone.state === IssueStateEnum.close) {
             return [Colors.gray];
         }
         const currentDate = DateTime.local();
@@ -537,31 +537,20 @@ export class Gitlab implements TaskTracker {
         }
     }
 
-    async getOrCreateDefaultLabelInGroup(namespaceWithProject): Promise<string | undefined> {
-        if (this.defaultLabel) {
-            const groupLabels = await this.getGroupLabels(namespaceWithProject);
-            const defaultLabelData = groupLabels.find(el => el.name === this.defaultLabel?.name);
-            if (!defaultLabelData) {
-                // create lables unsorte
-                const groupId = await this.getGroupIdByNamespace(namespaceWithProject);
-                if (!groupId) {
-                    return;
-                }
+    async getLabelColorInGroup(namespaceWithProject: string, labelName: string): Promise<string | undefined> {
+        const groupLabels = await this.getGroupLabels(namespaceWithProject);
+        const labelData = groupLabels.find(el => el.name === labelName);
 
-                await this.createDefaultLabelInGroup(groupId);
-
-                return this.defaultLabel?.color;
-            }
-            return defaultLabelData.color;
-        }
+        return labelData?.color;
     }
 
     async getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string[]> {
         const issue = await this.getIssue(key);
-        const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
-        if (issue.state === 'closed') {
-            return ['gray'];
+        if (issue.state === IssueStateEnum.close) {
+            return [Colors.gray];
         }
+
+        const { namespaceWithProject } = this.selectors.transformFromIssueKey(key);
         if (!hookLabels) {
             const labels = await this.getAllAvailalbleLabels(namespaceWithProject);
             const colors = labels.filter(label => issue.labels?.includes(label.name)).map(label => label.color);
@@ -569,16 +558,18 @@ export class Gitlab implements TaskTracker {
             return [...new Set(colors)];
         }
         if (hookLabels.length == 0) {
-            const labelColor = await this.getOrCreateDefaultLabelInGroup(namespaceWithProject);
+            if (this.defaultLabel) {
+                const labelColor = await this.getLabelColorInGroup(namespaceWithProject, this.defaultLabel.name);
 
-            if (labelColor && this.defaultLabel?.name) {
-                await this.setDefaultLabelForIssue(key, this.defaultLabel?.name);
+                if (labelColor) {
+                    await this.setDefaultLabelForIssue(key, this.defaultLabel.name);
 
-                return [labelColor];
+                    return [labelColor];
+                }
             }
         }
 
-        const colors = (hookLabels || []).map(label => label.color).sort();
+        const colors = hookLabels.map(label => label.color).sort();
 
         return [...new Set(colors)];
     }

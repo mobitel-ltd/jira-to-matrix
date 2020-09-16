@@ -389,7 +389,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);
         const milestone = body.milestone === null ? '' : body.milestone.title;
-        const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
+        const state = body.state === IssueStateEnum.close ? IssueStateEnum.close : IssueStateEnum.open;
 
         return composeRoomName(key, { summary, state, milestone });
     },
