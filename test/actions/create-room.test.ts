@@ -754,27 +754,26 @@ describe('Create room test with gitlab as task tracker', () => {
                         expect(result).to.be.true;
                     });
 
-                    it('should call room creation with setting UNSORTED label if group doesnt have such label but label was added by additional request', async () => {
+                    it('should call room creation with sending INFO if group doesnt have such label', async () => {
                         nock(gitlabTracker.getRestUrl())
                             .get(`/groups/${gitlabProjectJson.namespace.id}/labels`)
                             .query({ per_page: 100 })
-                            .reply(200, gitlabLabelJson)
+                            .reply(200, gitlabLabelJson);
+                        // .post(`/groups/${gitlabProjectJson.namespace.id}/labels`, defaultLabel as any)
+                        // .reply(201)
 
-                            .post(`/groups/${gitlabProjectJson.namespace.id}/labels`, defaultLabel as any)
-                            .reply(201)
-
-                            .put(
-                                `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`,
-                            )
-                            .query({ labels: defaultLabel.name })
-                            .reply(200);
+                        // .put(
+                        //     `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`,
+                        // )
+                        // .query({ labels: defaultLabel.name })
+                        // .reply(200);
 
                         const result = await createRoom.run(noLabellData);
                         expect(chatApi.createRoom).to.be.calledWithExactly({
                             ...expectedIssueRoomOptions,
                             avatarUrl: messengerLink,
                         });
-                        expect(chatApi.sendHtmlMessage).not.to.be.calledWithExactly(
+                        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(
                             roomId,
                             translate('issueLabelNotExist'),
                             translate('issueLabelNotExist'),
