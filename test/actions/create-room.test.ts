@@ -705,8 +705,8 @@ describe('Create room test with gitlab as task tracker', () => {
 
                 describe('Config includes default label', () => {
                     const defaultLabel: DefaultLabel = {
-                        color: 'purple',
-                        description: 'default label',
+                        // color: 'purple',
+                        // description: 'default label',
                         name: unsortedLabel.name,
                     };
                     beforeEach(() => {
