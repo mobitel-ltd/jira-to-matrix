@@ -24,8 +24,8 @@ const schema = obj({
         password: string,
         defaultLabel: objOptional({
             name: string,
-            description: string,
-            color: string,
+            // description: string,
+            // color: string,
         }),
     }),
     features: obj({

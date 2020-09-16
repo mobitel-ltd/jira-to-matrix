@@ -3,8 +3,8 @@ import { GitlabPushCommit, GitlabPipeline, GitlabLabelHook } from '../task-track
 
 export interface DefaultLabel {
     name: string;
-    description: string;
-    color: string;
+    // description: string;
+    // color: string;
 }
 
 export interface Config {
