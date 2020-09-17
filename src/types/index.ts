@@ -182,7 +182,7 @@ export interface DescriptionFields {
     priority: string;
 }
 
-export enum IssueStateEnum {
+export enum RoomViewStateEnum {
     close = 'close',
     open = 'open',
 }
@@ -205,7 +205,7 @@ export interface Selectors {
 
     // getMilestoneRoomName(body): string;
 
-    composeRoomName(key: string, options: { summary: string; state?: IssueStateEnum; milestone?: string }): string;
+    composeRoomName(key: string, options: { summary: string; state?: RoomViewStateEnum; milestone?: string }): string;
 
     getIssueChanges(body): IssueChanges[] | undefined;
 

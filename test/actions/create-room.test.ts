@@ -19,7 +19,7 @@ import { Jira } from '../../src/task-trackers/jira';
 import {
     CreateRoomData,
     CreateRoomOpions,
-    IssueStateEnum,
+    RoomViewStateEnum,
     Config,
     MilestoneStateEnum,
     DefaultLabel,
@@ -447,7 +447,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     ';' +
                     gitlabIssueJson.title +
                     ';' +
-                    IssueStateEnum.open +
+                    RoomViewStateEnum.open +
                     ';' +
                     gitlabCommentCreatedHook.project.path_with_namespace +
                     '/issues/' +
@@ -575,7 +575,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     ';' +
                     gitlabIssueJson.title +
                     ';' +
-                    IssueStateEnum.open +
+                    RoomViewStateEnum.open +
                     ';' +
                     gitlabIssueCreatedJson.project.path_with_namespace +
                     '/issues/' +

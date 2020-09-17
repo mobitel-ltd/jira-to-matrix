@@ -6,7 +6,7 @@ import {
     InviteNewMembersData,
     PostIssueUpdatesData,
     UploadData,
-    IssueStateEnum,
+    RoomViewStateEnum,
     PushCommitData,
     ActionNames,
     PostPipelineData,
@@ -99,13 +99,13 @@ export class GitlabParser implements Parser {
         if (this.selectors.isCorrectWebhook(body, 'close')) {
             newRoomName = this.selectors.composeRoomName(oldKey, {
                 summary: this.selectors.getSummary(body)!,
-                state: IssueStateEnum.close,
+                state: RoomViewStateEnum.close,
             });
         }
         if (this.selectors.isCorrectWebhook(body, 'reopen')) {
             newRoomName = this.selectors.composeRoomName(oldKey, {
                 summary: this.selectors.getSummary(body)!,
-                state: IssueStateEnum.open,
+                state: RoomViewStateEnum.open,
             });
         }
         const isNewStatus = Boolean(changes.find(data => data.field === 'labels' || data.field === 'status'));

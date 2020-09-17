@@ -17,7 +17,7 @@ import { pipe, set, clone } from 'lodash/fp';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
 import { Jira } from '../../src/task-trackers/jira';
 import { LAST_STATUS_COLOR } from '../../src/redis-client';
-import { Config, PostIssueUpdatesData, IssueStateEnum } from '../../src/types';
+import { Config, PostIssueUpdatesData, RoomViewStateEnum } from '../../src/types';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabIssueUpdated from '../fixtures/webhooks/gitlab/issue/updated.json';
 import gitlabIssueNewAssign from '../fixtures/webhooks/gitlab/issue/new-assign.json';
@@ -395,7 +395,7 @@ describe('PostIssueUpdates in Gitlab', () => {
     });
 
     describe('Issue closed', () => {
-        const changes = `<br>status: ${IssueStateEnum.close}`;
+        const changes = `<br>status: ${RoomViewStateEnum.close}`;
         const expectedData = [
             roomId,
             translate('issueHasChanged'),
@@ -434,7 +434,7 @@ describe('PostIssueUpdates in Gitlab', () => {
     });
 
     describe('Issue reopened', () => {
-        const changes = `<br>status: ${IssueStateEnum.open}`;
+        const changes = `<br>status: ${RoomViewStateEnum.open}`;
         const expectedData = [
             roomId,
             translate('issueHasChanged'),

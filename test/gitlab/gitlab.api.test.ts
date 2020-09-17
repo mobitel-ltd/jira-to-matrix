@@ -13,7 +13,6 @@ import { extractKeysFromCommitMessage, transformToKey } from '../../src/task-tra
 import { Milestone, Colors } from '../../src/task-trackers/gitlab/types';
 import { DateTime } from 'luxon';
 import { useFakeTimers } from 'sinon';
-import { IssueStateEnum } from '../../src/types';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -157,7 +156,7 @@ describe('Gitlab api testing', () => {
         });
 
         it('should return only gray if current state close', async () => {
-            const closedMilestone: Milestone = { ...body, state: IssueStateEnum.close };
+            const closedMilestone: Milestone = { ...body, state: 'closed' };
             const res = gitlab.getMilestoneColors(closedMilestone);
             const expected = [Colors.gray];
             expect(res).to.be.deep.eq(expected);
