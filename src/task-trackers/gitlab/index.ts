@@ -3,7 +3,7 @@ import { Projects } from '@gitbeaker/node';
 import * as R from 'ramda';
 import axios, { AxiosRequestConfig, AxiosInstance } from 'axios';
 import querystring from 'querystring';
-import { TaskTracker, Issue, Project, Config, IssueWithComments, DefaultLabel, IssueStateEnum } from '../../types';
+import { TaskTracker, Issue, Project, Config, IssueWithComments, DefaultLabel } from '../../types';
 import { TIMEOUT } from '../../lib/consts';
 import * as messages from '../../lib/messages';
 import { getLogger } from '../../modules/log';
@@ -159,7 +159,7 @@ export class Gitlab implements TaskTracker {
         if (!milestone.due_date || !milestone.start_date) {
             return [Colors.gray];
         }
-        if (milestone.state === IssueStateEnum.close) {
+        if (milestone.state === 'close') {
             return [Colors.gray];
         }
         const currentDate = DateTime.local();
@@ -546,7 +546,7 @@ export class Gitlab implements TaskTracker {
 
     async getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string[]> {
         const issue = await this.getIssue(key);
-        if (issue.state === IssueStateEnum.close) {
+        if (issue.state === 'close') {
             return [Colors.gray];
         }
 

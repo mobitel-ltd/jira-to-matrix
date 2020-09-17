@@ -12,7 +12,7 @@ import {
 } from './types';
 import marked from 'marked';
 import { translate } from '../../locales';
-import { DescriptionFields, IssueChanges, IssueStateEnum } from '../../types';
+import { DescriptionFields, IssueChanges, RoomViewStateEnum } from '../../types';
 import { URL } from 'url';
 
 export enum KeyType {
@@ -139,7 +139,7 @@ const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind
 
 const getTypeEvent = body => body?.object_attributes?.action;
 
-const composeRoomName = (key: string, { summary, state = IssueStateEnum.open, milestone = '' }) => {
+const composeRoomName = (key: string, { summary, state = RoomViewStateEnum.open, milestone = '' }) => {
     const data = transformFromKey(key);
     const optionTypes: Record<KeyType, (project: string, id: number) => string[]> = {
         [KeyType.Issue]: (project, id) => [
@@ -269,10 +269,10 @@ const handlers: {
         getDescriptionFields: () => undefined,
         getIssueChanges: (body): any[] => {
             if (isCorrectWebhook(body, 'close')) {
-                return [{ field: 'status', newValue: IssueStateEnum.close }];
+                return [{ field: 'status', newValue: RoomViewStateEnum.close }];
             }
             if (isCorrectWebhook(body, 'reopen')) {
-                return [{ field: 'status', newValue: IssueStateEnum.open }];
+                return [{ field: 'status', newValue: RoomViewStateEnum.open }];
             }
 
             return (
@@ -389,7 +389,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);
         const milestone = body.milestone === null ? '' : body.milestone.title;
-        const state = body.state === IssueStateEnum.close ? IssueStateEnum.close : IssueStateEnum.open;
+        const state = body.state === RoomViewStateEnum.close ? RoomViewStateEnum.close : RoomViewStateEnum.open;
 
         return composeRoomName(key, { summary, state, milestone });
     },
