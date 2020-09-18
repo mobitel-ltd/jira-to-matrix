@@ -159,7 +159,7 @@ export class Gitlab implements TaskTracker {
         if (!milestone.due_date || !milestone.start_date) {
             return [Colors.gray];
         }
-        if (milestone.state === 'close') {
+        if (milestone.state === 'closed') {
             return [Colors.gray];
         }
         const currentDate = DateTime.local();
@@ -546,7 +546,7 @@ export class Gitlab implements TaskTracker {
 
     async getCurrentIssueColor(key: string, hookLabels?: GitlabLabelHook[]): Promise<string[]> {
         const issue = await this.getIssue(key);
-        if (issue.state === 'close') {
+        if (issue.state === 'closed') {
             return [Colors.gray];
         }
 
