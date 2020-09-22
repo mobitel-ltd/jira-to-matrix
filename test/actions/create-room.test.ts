@@ -139,7 +139,9 @@ describe('Create room test', () => {
 
         createRoom = new CreateRoom(config, taskTracker, chatClass.chatApi);
 
-        const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
+        const roomCreatedMessage = translate('roomCreatedMessage', {
+            link: taskTracker.createLink(chatApi.getRoomLink(roomId), translate('chat')),
+        });
 
         nock(taskTracker.getRestUrl())
             // comment created hook
@@ -466,7 +468,9 @@ describe('Create room test with gitlab as task tracker', () => {
                     purpose: gitlabIssueJson.title,
                 };
 
-                const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
+                const roomCreatedMessage = translate('roomCreatedMessage', {
+                    link: gitlabTracker.createLink(chatApi.getRoomLink(roomId), translate('chat')),
+                });
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(5)
@@ -619,7 +623,9 @@ describe('Create room test with gitlab as task tracker', () => {
                     topic: gitlabIssueJson.milestone.web_url,
                     purpose: gitlabIssueJson.milestone.title,
                 };
-                const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
+                const roomCreatedMessage = translate('roomCreatedMessage', {
+                    link: gitlabTracker.createLink(chatApi.getRoomLink(roomId), translate('chat')),
+                });
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
                     // .times(5)

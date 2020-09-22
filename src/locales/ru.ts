@@ -4,7 +4,7 @@ import Ramda from 'ramda';
 import names from 'ru-names';
 
 export const dict = Object.freeze({
-    roomCreatedMessage: 'Для задачи создан [чат](%{link})',
+    roomCreatedMessage: 'Для задачи создан %{link}',
     pushCommitInfo: '%{name} упомянул задачу в следующих коммитах:',
     errorCommentSend: 'Ошибка отправки сообщения в taskTracker, обратитесь к администратору',
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',

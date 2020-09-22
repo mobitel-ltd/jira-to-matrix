@@ -284,6 +284,8 @@ export interface TaskTracker {
 
     init(): TaskTracker;
 
+    createLink(urlRoom: string, body: string);
+
     getMilestoneUrl(body: any): string | undefined;
 
     getMilestoneWatchers(key): Promise<string[]>;

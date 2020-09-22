@@ -202,7 +202,9 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> {
                     const roomId = await this.createIssueRoom(checkedIssue);
                     await this.taskTracker.sendMessage(
                         checkedIssue.key,
-                        translate('roomCreatedMessage', { link: this.chatApi.getRoomLink(roomId) }),
+                        translate('roomCreatedMessage', {
+                            link: this.taskTracker.createLink(this.chatApi.getRoomLink(roomId), translate('chat')),
+                        }),
                     );
                 }
 

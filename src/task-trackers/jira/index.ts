@@ -140,6 +140,10 @@ export class Jira implements TaskTracker {
         await this.requestPost(url, schemas.info(bodyText));
     }
 
+    createLink(urlRoom: string, body: string): string {
+        return `[${body}|${urlRoom}]`;
+    }
+
     /**
      * Post comment to issue
      */
