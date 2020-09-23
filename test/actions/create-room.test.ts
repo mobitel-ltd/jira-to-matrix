@@ -35,6 +35,7 @@ const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Create room test', () => {
+    let chatClass;
     let chatApi;
     let createRoom: CreateRoom;
     const messengerLink = 'lalala';
@@ -119,7 +120,7 @@ describe('Create room test', () => {
     };
 
     beforeEach(() => {
-        const chatClass = getChatClass({
+        chatClass = getChatClass({
             alias: [createRoomData.issue.key, createRoomData.projectKey!],
             roomId: [createRoomData.issue.key, createRoomData.projectKey!],
         });
@@ -363,6 +364,30 @@ describe('Create room test', () => {
         expect(result).to.be.true;
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedOptions);
     });
+    describe('Create Project features is empty', () => {
+        beforeEach(() => {
+            const configCreateProjectRoom: Config = pipe(
+                clone,
+                set('features.createProjectRoom', false),
+            )(config) as Config;
+            createRoom = new CreateRoom(configCreateProjectRoom, taskTracker, chatClass.chatApi);
+        });
+
+        it('Expect project and epic rooms should be created if Epic body we get and no rooms exists and createProjectRoom is Flase', async () => {
+            chatApi.getRoomIdByName.reset();
+            chatApi.getRoomIdByName.resolves(false);
+            const result = await createRoom.run(taskTracker.parser.getCreateRoomData(epicJSON));
+            expect(chatApi.createRoom).to.be.calledOnceWithExactly(expectedEpicRoomOptions);
+            expect(result).to.be.true;
+        });
+
+        it('Expect project should be created if project_created hook we get and no project room exists and createProjectRoom is False', async () => {
+            chatApi.getRoomId.throws();
+            const result = await createRoom.run(taskTracker.parser.getCreateRoomData(projectJSON));
+            expect(chatApi.createRoom).not.to.be.called;
+            expect(result).to.be.true;
+        });
+    });
 });
 
 describe('Create room test with gitlab as task tracker', () => {
@@ -370,6 +395,7 @@ describe('Create room test with gitlab as task tracker', () => {
     let chatApi;
     let createRoom: CreateRoom;
     let roomId;
+    let chatClass;
 
     beforeEach(() => {
         gitlabTracker = new Gitlab({
@@ -388,7 +414,7 @@ describe('Create room test with gitlab as task tracker', () => {
         let createRoomData: CreateRoomData;
         beforeEach(() => {
             createRoomData = gitlabTracker.parser.getCreateRoomData(gitlabCommentCreatedHook);
-            const chatClass = getChatClass({
+            chatClass = getChatClass({
                 alias: [createRoomData.issue.key, createRoomData.projectKey!],
                 roomId: [createRoomData.issue.key, createRoomData.projectKey!],
             });

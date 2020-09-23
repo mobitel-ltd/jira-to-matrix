@@ -218,7 +218,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
                     }
                 }
             }
-            if (projectKey) {
+            if (projectKey && this.config.features.createProjectRoom) {
                 (await this.currentChatItem.getRoomIdByName(projectKey)) || (await this.createProjectRoom(projectKey));
             }
 
