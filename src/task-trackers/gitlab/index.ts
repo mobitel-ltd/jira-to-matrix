@@ -315,6 +315,10 @@ export class Gitlab implements TaskTracker {
         return errMessage.includes(badRequestErrorPart);
     }
 
+    createLink(urlRoom: string, body: string): string {
+        return `[${body}](${urlRoom})`;
+    }
+
     async postComment(gitlabIssueKey: string, { sender }, bodyText: string): Promise<string> {
         const body = this.getPostCommentBody(sender, bodyText);
 
