@@ -13,6 +13,7 @@ export interface Config {
     };
     features: {
         createRoom: boolean;
+        createProjectRoom?: boolean;
         inviteNewMembers: boolean;
         postComments: boolean;
         postEachComments?: boolean;
