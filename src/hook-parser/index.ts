@@ -21,6 +21,12 @@ export class HookParser {
         this.parser = taskTracker.parser;
     }
 
+    init(): HookParser {
+        const taskTracker = this.taskTracker.init();
+
+        return new HookParser(taskTracker, this.config, this.queueHandler);
+    }
+
     getParserName(func) {
         return `get${func[0].toUpperCase()}${func.slice(1)}Data`;
     }
@@ -47,6 +53,8 @@ export class HookParser {
      */
     async getParsedAndSaveToRedis(body: any): Promise<boolean> {
         try {
+            this.taskTracker = this.taskTracker.init();
+
             if (await this.isIgnore(body)) {
                 return false;
             }

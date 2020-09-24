@@ -199,7 +199,7 @@ describe('Gitlab api testing', () => {
                 .query({ per_page: 100 })
                 .reply(200, labelsJson)
                 .get('/groups')
-                .query({ per_page: 100 })
+                .query({ search: projectJson.namespace.path })
                 .reply(200, labelsJson);
 
             const res = await gitlab.getCurrentIssueColor(issueKey);
@@ -225,7 +225,7 @@ describe('Gitlab api testing', () => {
                 .query({ per_page: 100 })
                 .reply(200, labelsJson)
                 .get('/groups')
-                .query({ per_page: 100 })
+                .query({ search: projectJson.namespace.path })
                 .reply(200, labelsJson);
 
             const res = await gitlab.getCurrentIssueColor(issueKey);

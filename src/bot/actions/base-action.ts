@@ -8,13 +8,15 @@ import { REDIS_INVITE_PREFIX, redis } from '../../redis-client';
 
 const logger = getLogger(module);
 
-export class BaseAction<T extends ChatFasade, Task extends TaskTracker> {
+export abstract class BaseAction<T extends ChatFasade, Task extends TaskTracker> {
+    public taskTracker: Task;
     currentChatItem: MessengerApi;
     defaultAvatarColor = 'white';
     static line = Array.from({ length: 40 }, () => '-').join('');
 
-    constructor(public config: Config, public taskTracker: Task, public chatApi: T) {
+    constructor(public config: Config, taskTracker: Task, public chatApi: T) {
         this.currentChatItem = this.chatApi.getCurrentClient();
+        this.taskTracker = taskTracker.init() as Task;
     }
 
     getPostStatusData = (data): { body: string; htmlBody: string } | undefined => {
@@ -99,7 +101,7 @@ export class BaseAction<T extends ChatFasade, Task extends TaskTracker> {
         return canvas.toBuffer();
     }
 
-    async getAvatarLink(key: string, statusColors?: string[] | string): Promise<string | undefined> {
+    async getAvatarLink(key: string, statusColors: string[] | string): Promise<string | undefined> {
         const { colors } = this.config;
         if (!colors) {
             return;
@@ -121,8 +123,6 @@ export class BaseAction<T extends ChatFasade, Task extends TaskTracker> {
 
         return autoinviteUsers.map((el: string) => this.chatApi.getChatUserId(el));
     }
-}
 
-export interface RunAction {
-    run(data): Promise<boolean | undefined | string[] | string>;
+    abstract run(data): Promise<boolean | undefined | string[] | string>;
 }

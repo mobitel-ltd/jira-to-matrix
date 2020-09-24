@@ -40,15 +40,17 @@ export class Jira implements TaskTracker {
     public selectors: JiraSelectors;
     public parser: JiraParser;
 
-    constructor(options: {
-        url: string;
-        user: string;
-        inviteIgnoreUsers: string[];
-        password: string;
-        interval: number;
-        count: number;
-        features: Config['features'];
-    }) {
+    constructor(
+        private options: {
+            url: string;
+            user: string;
+            inviteIgnoreUsers: string[];
+            password: string;
+            interval: number;
+            count: number;
+            features: Config['features'];
+        },
+    ) {
         this.url = options.url;
         this.user = options.user;
         this.password = options.password;
@@ -61,6 +63,10 @@ export class Jira implements TaskTracker {
     }
 
     static expandParams = { expand: 'renderedFields' };
+
+    init(): Jira {
+        return new Jira(this.options);
+    }
 
     getMilestoneWatchers = () => [] as any;
 
@@ -132,6 +138,10 @@ export class Jira implements TaskTracker {
         const url = this.getUrl('issue', keyOrId, 'comment');
 
         await this.requestPost(url, schemas.info(bodyText));
+    }
+
+    createLink(urlRoom: string, body: string): string {
+        return `[${body}|${urlRoom}]`;
     }
 
     /**
