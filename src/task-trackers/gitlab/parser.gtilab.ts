@@ -136,7 +136,11 @@ export class GitlabParser implements Parser {
 
         const parsedIssue = { key, summary, projectKey, descriptionFields, hookLabels };
 
-        return { issue: parsedIssue, projectKey, milestoneId };
+        return {
+            issue: parsedIssue,
+            projectKey: this.features.createProjectRoom ? projectKey : undefined,
+            milestoneId,
+        };
     }
 
     getPostCommentData(body): PostCommentData {

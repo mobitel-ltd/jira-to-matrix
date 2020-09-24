@@ -31,6 +31,7 @@ const schema = obj({
     features: obj({
         // noIssueRooms: Joi.boolean().optional(),
         createRoom: boolean,
+        createProjectRoom: Joi.boolean().optional(),
         inviteNewMembers: boolean,
         postComments: boolean,
         postIssueUpdates: boolean,

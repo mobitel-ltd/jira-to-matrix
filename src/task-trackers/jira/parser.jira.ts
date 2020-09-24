@@ -51,7 +51,7 @@ export class JiraParser implements Parser {
 
         const parsedIssue = { key, id, summary, projectKey, descriptionFields };
 
-        return { issue: parsedIssue, projectKey };
+        return { issue: parsedIssue, projectKey: this.features.createProjectRoom ? projectKey : undefined };
     }
 
     getInviteNewMembersData(body): InviteNewMembersData {
