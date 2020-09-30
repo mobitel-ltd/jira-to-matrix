@@ -728,7 +728,7 @@ export interface PostNewLinksData {
 export interface UploadData {
     issueKey: string;
     uploadInfo: string;
-    uploadUrl: string;
+    uploadUrls: string[];
 }
 
 export interface PostCommentData {
