@@ -225,7 +225,7 @@ export class GitlabParser implements Parser {
         return {
             uploadInfo: this.selectors.getUploadInfo(body)!,
             issueKey: this.selectors.getIssueKey(body),
-            uploadUrl: this.selectors.getUploadUrl(body)!,
+            uploadUrls: this.selectors.getUploadUrl(body)!,
         };
     }
 

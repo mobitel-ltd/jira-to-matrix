@@ -115,7 +115,7 @@ interface CommentGetters<T> extends IssueHookGetters<T> {
         body: string;
     };
     isUploadBody(body: T): boolean;
-    getUploadUrl(body: T): string | undefined | null;
+    getUploadUrl(body: T): string[] | undefined | null;
 }
 
 interface IssueGetters<T> extends BodyGetters<T> {
@@ -129,10 +129,16 @@ interface IssueGetters<T> extends BodyGetters<T> {
 
 const missField = translate('miss');
 
-const extractUrl = (text?: string): string | undefined | null => {
-    const res = text && text.match(/\[.*?\]\((.*?)\)/);
+// const extractUrl = (text?: string): string | undefined | null => {
+//     const res = text && text.match(/\[.*?\]\((.*?)\)/);
 
-    return res && res[1];
+//     return res && res[1];
+// };
+
+const extractUrl = (text: string): string[] | undefined | null => {
+    const regexp = /\[.*?\]\((.*?)\)/g;
+    const array = [...text.matchAll(regexp)].map(matched => matched[1]);
+    return array;
 };
 
 const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind;
@@ -328,7 +334,7 @@ const handlers: {
             }
 
             const base = body.object_attributes.description.split('(');
-            return body.project.web_url + base[1].slice(0, -1);
+            return [body.project.web_url + base[1].slice(0, -1)];
         },
         isUploadBody: body => body.object_attributes.note.includes('](/uploads/'),
         getFullNameWithId: body => getFullName(handlers.note.getDisplayName(body), handlers.note.getUserId(body)),

@@ -33,9 +33,10 @@ describe('Upload test', () => {
         upload = new Upload(config, gitlabTracker, chatApi);
 
         const result = await upload.run(uploadData);
-
         expect(result).to.be.true;
-        expect(chatSingle.upload).to.be.calledWithExactly(defaultRoomId, uploadData.uploadUrl);
+        uploadData.uploadUrls.forEach(element => {
+            expect(chatSingle.upload).to.be.calledWithExactly(defaultRoomId, element);
+        });
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(
             defaultRoomId,
             uploadData.uploadInfo,
@@ -56,11 +57,13 @@ describe('Upload test', () => {
         const result = await upload.run(uploadData);
 
         expect(result).to.be.true;
-        expect(chatSingle.upload).to.be.calledWithExactly(defaultRoomId, uploadData.uploadUrl);
+        uploadData.uploadUrls.forEach(element => {
+            expect(chatSingle.upload).to.be.calledWithExactly(defaultRoomId, element);
+        });
         expect(chatSingle.sendHtmlMessage).to.be.calledWithExactly(
             defaultRoomId,
-            translate('uploadLink', { url: uploadData.uploadUrl, headerText: uploadData.uploadInfo }),
-            marked(translate('uploadLink', { url: uploadData.uploadUrl, headerText: uploadData.uploadInfo })),
+            translate('uploadLink', { url: uploadData.uploadUrls, headerText: uploadData.uploadInfo }),
+            marked(translate('uploadLink', { url: uploadData.uploadUrls, headerText: uploadData.uploadInfo })),
         );
     });
 });

@@ -541,7 +541,7 @@ export interface GitlabSelectors extends Selectors {
     getFullNameWithId(body: GitlabPushHook | GitlabPipelineHook): string;
     keysForCheckIgnore(body): string | string[];
     getCommitKeysBody(body: GitlabPushHook): Record<string, GitlabPushCommit[]>;
-    getUploadUrl(body): string | null | undefined;
+    getUploadUrl(body): string[] | null | undefined;
     isUploadBody(body): boolean;
     getIssueLabels(body): GitlabLabelHook[];
     getUploadInfo(body): string;

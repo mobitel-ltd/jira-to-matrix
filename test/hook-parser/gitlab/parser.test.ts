@@ -247,7 +247,7 @@ describe('Gitlab actions', () => {
         };
         const data: UploadData = {
             issueKey: uploadHook.project.path_with_namespace + '-' + uploadHook.issue.iid,
-            uploadUrl: uploadHook.object_attributes.description.slice(8, -1),
+            uploadUrls: [uploadHook.object_attributes.description.slice(8, -1)],
             uploadInfo: translate('uploadInfo', { name: `${uploadHook.user.username} ${uploadHook.user.name}` }),
         };
         const expected = [
@@ -281,7 +281,7 @@ describe('Gitlab actions', () => {
         };
         const data: UploadData = {
             issueKey: uploadHookBin.project.path_with_namespace + '-' + uploadHookBin.issue.iid,
-            uploadUrl: uploadHookBin.project.web_url + uploadHookBin.object_attributes.description.slice(19, -1),
+            uploadUrls: [uploadHookBin.project.web_url + uploadHookBin.object_attributes.description.slice(19, -1)],
             uploadInfo: translate('uploadInfo', {
                 name: `${uploadHookBin.user.username} ${uploadHookBin.user.name}`,
             }),
