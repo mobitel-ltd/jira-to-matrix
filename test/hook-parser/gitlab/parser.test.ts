@@ -586,7 +586,7 @@ describe('Gitlab actions', () => {
         assert.deepEqual(res, expected);
     });
 
-    it.skip('should post pipeline data for pipeline hook', () => {
+    it('should post pipeline data for pipeline hook', () => {
         const postPipelineData: PostPipelineData = {
             author: `${pipelineHook.user.username} ${pipelineHook.user.name}`,
             // issue id is extracted pipelineHook.commit.message
@@ -604,31 +604,35 @@ describe('Gitlab actions', () => {
                     url: pipelineHook.project.web_url + '/pipelines/' + pipelineHook.object_attributes.id,
                     stages: [
                         {
-                            validate: {
-                                'lint-dockerfile': 'success',
-                                'node-gitignore-validate': 'success',
-                                'dockerignore-validate': 'success',
-                                'scan-sonarqube': 'success',
-                                'node-docs-validate': 'success',
-                            },
+                            validate: [
+                                { 'lint-dockerfile': 'success' },
+                                { 'node-gitignore-validate': 'success' },
+                                { 'dockerignore-validate': 'success' },
+                                { 'scan-sonarqube': 'success' },
+                                { 'node-docs-validate': 'success' },
+                            ],
                         },
                         {
-                            'build-release': {
-                                'release-image-dind': 'success',
-                            },
+                            'build-release': [
+                                {
+                                    'release-image-dind': 'success',
+                                },
+                            ],
                         },
                         {
-                            'build-debug': {
-                                'debug-image-dind': 'success',
-                            },
+                            'build-debug': [
+                                {
+                                    'debug-image-dind': 'success',
+                                },
+                            ],
                         },
                         {
-                            test: {
-                                'node-coverage': 'success',
-                                'node-unit': 'success',
-                                'node-lint': 'success',
-                                'security-todo': 'success',
-                            },
+                            test: [
+                                { 'node-coverage': 'success' },
+                                { 'node-unit': 'success' },
+                                { 'node-lint': 'success' },
+                                { 'security-todo': 'success' },
+                            ],
                         },
                     ],
                 },

@@ -340,7 +340,7 @@ export interface GitlabPipeline {
         status: string;
         created_at: string;
         duration: number;
-        stages: Record<string, Record<string, string>>[];
+        stages: Record<string, Record<string, string>[]>[];
     };
 }
 
