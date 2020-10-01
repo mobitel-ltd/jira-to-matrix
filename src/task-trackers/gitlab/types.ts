@@ -339,15 +339,16 @@ interface BaseAttributes {
     ref: string;
 }
 
-export type SuccessStatus = 'manual' | 'success';
+// https://stackoverflow.com/questions/44497388/typescript-array-to-string-literal-type
+export const successStatus = ['manual', 'success'] as const;
 
 export interface SuccessAttributes extends BaseAttributes {
-    status: SuccessStatus;
+    status: typeof successStatus[number];
 }
 
 export interface FaileAttributes extends BaseAttributes {
     username: string;
-    status: Exclude<string, SuccessStatus>;
+    status: Exclude<string, typeof successStatus[number]>;
     tag: boolean;
     sha: string;
     created_at: string;

@@ -27,7 +27,7 @@ import pipelineHookSuccess from '../../fixtures/webhooks/gitlab/pipe-success.jso
 import pipelineHookFail from '../../fixtures/webhooks/gitlab/pipe-failed.json';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
-import { HookTypes, SuccessStatus } from '../../../src/task-trackers/gitlab/types';
+import { HookTypes, successStatus } from '../../../src/task-trackers/gitlab/types';
 import milestoneUpdated from '../../fixtures/webhooks/gitlab/issue/milestone-updated.json';
 import milestoneDeleted from '../../fixtures/webhooks/gitlab/issue/milestone-deleted.json';
 
@@ -596,7 +596,7 @@ describe('Gitlab actions', () => {
                 object_kind: HookTypes.Pipeline,
                 object_attributes: {
                     ref: pipelineHookSuccess.object_attributes.ref,
-                    status: pipelineHookSuccess.object_attributes.status as SuccessStatus,
+                    status: pipelineHookSuccess.object_attributes.status as typeof successStatus[number],
                     url: pipelineHookSuccess.project.web_url + '/pipelines/' + pipelineHookSuccess.object_attributes.id,
                 },
             },

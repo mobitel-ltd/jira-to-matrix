@@ -20,7 +20,7 @@ import {
     GitlabPipelineHook,
     PipelineBuild,
     GitlabPipeline,
-    SuccessStatus,
+    successStatus,
     SuccessAttributes,
 } from './types';
 import Lo from 'lodash/fp';
@@ -34,15 +34,9 @@ export class GitlabParser implements Parser {
         return Boolean(this.features.postIssueUpdates && this.selectors.isPipelineHook(body));
     }
 
-    private isSuccessAttributes = (baseAtributes: {
-        url: string;
-        status: string;
-        ref: string;
-    }): baseAtributes is SuccessAttributes => {
-        const successStatuses: SuccessStatus[] = ['manual', 'success'];
-
-        return successStatuses.some(el => el === baseAtributes.status);
-    };
+    private isSuccessAttributes = (
+        attrributes: Omit<SuccessAttributes, 'status'> & { status: string },
+    ): attrributes is SuccessAttributes => successStatus.some(el => el === attrributes.status);
 
     private getPipelineData = (body: GitlabPipelineHook): GitlabPipeline => {
         const groupedBuilds = Lo.pipe(
