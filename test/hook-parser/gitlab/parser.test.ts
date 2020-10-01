@@ -23,10 +23,11 @@ import uploadHook from '../../fixtures/webhooks/gitlab/upload.json';
 import gitlabClosedIssue from '../../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.json';
 import createdIssue from '../../fixtures/webhooks/gitlab/issue/created.json';
-import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
+import pipelineHookSuccess from '../../fixtures/webhooks/gitlab/pipe-success.json';
+import pipelineHookFail from '../../fixtures/webhooks/gitlab/pipe-failed.json';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
-import { HookTypes } from '../../../src/task-trackers/gitlab/types';
+import { HookTypes, SuccessStatus } from '../../../src/task-trackers/gitlab/types';
 import milestoneUpdated from '../../fixtures/webhooks/gitlab/issue/milestone-updated.json';
 import milestoneDeleted from '../../fixtures/webhooks/gitlab/issue/milestone-deleted.json';
 
@@ -586,22 +587,53 @@ describe('Gitlab actions', () => {
         assert.deepEqual(res, expected);
     });
 
-    it('should post pipeline data for pipeline hook', () => {
+    it('should post pipeline data for success pipeline hook', () => {
         const postPipelineData: PostPipelineData = {
-            author: `${pipelineHook.user.username} ${pipelineHook.user.name}`,
+            author: `${pipelineHookSuccess.user.username} ${pipelineHookSuccess.user.name}`,
             // issue id is extracted pipelineHook.commit.message
-            issueKeys: [pipelineHook.project.path_with_namespace + '-' + 2],
+            issueKeys: [pipelineHookSuccess.project.path_with_namespace + '-' + 2],
             pipelineData: {
                 object_kind: HookTypes.Pipeline,
                 object_attributes: {
-                    created_at: pipelineHook.object_attributes.created_at,
-                    duration: pipelineHook.object_attributes.duration,
-                    ref: pipelineHook.object_attributes.ref,
-                    sha: pipelineHook.object_attributes.sha,
-                    status: pipelineHook.object_attributes.status,
-                    tag: pipelineHook.object_attributes.tag,
-                    username: pipelineHook.user.username,
-                    url: pipelineHook.project.web_url + '/pipelines/' + pipelineHook.object_attributes.id,
+                    ref: pipelineHookSuccess.object_attributes.ref,
+                    status: pipelineHookSuccess.object_attributes.status as SuccessStatus,
+                    url: pipelineHookSuccess.project.web_url + '/pipelines/' + pipelineHookSuccess.object_attributes.id,
+                },
+            },
+        };
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData: false,
+            },
+            {
+                redisKey: 'postPipeline_' + fakeTimestamp,
+                funcName: 'postPipeline',
+                data: postPipelineData,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(pipelineHookSuccess);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('should post pipeline data for failed pipeline hook', () => {
+        const postPipelineData: PostPipelineData = {
+            author: `${pipelineHookFail.user.username} ${pipelineHookFail.user.name}`,
+            // issue id is extracted pipelineHookFail.commit.message
+            issueKeys: [pipelineHookFail.project.path_with_namespace + '-' + 2],
+            pipelineData: {
+                object_kind: HookTypes.Pipeline,
+                object_attributes: {
+                    created_at: pipelineHookFail.object_attributes.created_at,
+                    duration: pipelineHookFail.object_attributes.duration,
+                    ref: pipelineHookFail.object_attributes.ref,
+                    sha: pipelineHookFail.object_attributes.sha,
+                    status: pipelineHookFail.object_attributes.status,
+                    tag: pipelineHookFail.object_attributes.tag,
+                    username: pipelineHookFail.user.username,
+                    url: pipelineHookFail.project.web_url + '/pipelines/' + pipelineHookFail.object_attributes.id,
                     stages: [
                         {
                             validate: [
@@ -628,7 +660,7 @@ describe('Gitlab actions', () => {
                         },
                         {
                             test: [
-                                { 'node-coverage': 'success' },
+                                { 'node-coverage': 'fail' },
                                 { 'node-unit': 'success' },
                                 { 'node-lint': 'success' },
                                 { 'security-todo': 'success' },
@@ -650,7 +682,7 @@ describe('Gitlab actions', () => {
             },
         ];
 
-        const res = hookParser.getFuncAndBody(pipelineHook);
+        const res = hookParser.getFuncAndBody(pipelineHookFail);
 
         assert.deepEqual(res, expected);
     });

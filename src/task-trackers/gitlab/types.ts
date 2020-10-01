@@ -331,17 +331,28 @@ export interface GitlabPipelineHook {
 
 export interface GitlabPipeline {
     object_kind: HookTypes.Pipeline;
-    object_attributes: {
-        url: string;
-        username: string;
-        ref: string;
-        tag: boolean;
-        sha: string;
-        status: string;
-        created_at: string;
-        duration: number;
-        stages: Record<string, Record<string, string>[]>[];
-    };
+    object_attributes: SuccessAttributes | FaileAttributes;
+}
+
+interface BaseAttributes {
+    url: string;
+    ref: string;
+}
+
+export type SuccessStatus = 'manual' | 'success';
+
+export interface SuccessAttributes extends BaseAttributes {
+    status: SuccessStatus;
+}
+
+export interface FaileAttributes extends BaseAttributes {
+    username: string;
+    status: string;
+    tag: boolean;
+    sha: string;
+    created_at: string;
+    duration: number;
+    stages: Record<string, Record<string, string>[]>[];
 }
 
 export interface GitlabUserDataShort {
