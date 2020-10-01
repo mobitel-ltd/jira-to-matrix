@@ -355,9 +355,6 @@ export interface FaileAttributes extends BaseAttributes {
     stages: Record<string, Record<string, string>[]>[];
 }
 
-const status: FaileAttributes['status'] = 'manual';
-console.log('status', status);
-
 export interface GitlabUserDataShort {
     state: string;
     web_url: string;
