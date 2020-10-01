@@ -347,13 +347,16 @@ export interface SuccessAttributes extends BaseAttributes {
 
 export interface FaileAttributes extends BaseAttributes {
     username: string;
-    status: string;
+    status: Exclude<string, SuccessStatus>;
     tag: boolean;
     sha: string;
     created_at: string;
     duration: number;
     stages: Record<string, Record<string, string>[]>[];
 }
+
+const status: FaileAttributes['status'] = 'manual';
+console.log('status', status);
 
 export interface GitlabUserDataShort {
     state: string;
