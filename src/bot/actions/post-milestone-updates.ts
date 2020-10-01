@@ -5,7 +5,7 @@ import { getLogger } from '../../modules/log';
 import { redis, getRedisMilestoneKey } from '../../redis-client';
 import { PostMilestoneUpdatesData, MilestoneUpdateStatus } from '../../types';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { Gitlab } from '../../task-trackers/gitlab';
 import { GitlabIssue, Milestone } from '../../task-trackers/gitlab/types';
 
@@ -13,7 +13,7 @@ const logger = getLogger(module);
 
 type MessageWithSendStatus = { send: boolean; message: string };
 
-export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> implements RunAction {
+export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> {
     static alreadyAddedToMilestoneMessage = (issueKey, milestoneId) =>
         `Issue ${issueKey} is already added to milestone ${milestoneId}`;
 

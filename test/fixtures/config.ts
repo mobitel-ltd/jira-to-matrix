@@ -14,6 +14,7 @@ export const config = {
     features: {
         // noIssueRooms: true,
         createRoom: true,
+        createProjectRoom: true,
         inviteNewMembers: true,
         postMilestoneUpdates: true,
         postComments: true,

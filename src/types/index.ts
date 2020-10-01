@@ -1,6 +1,12 @@
 import { BaseChatApi } from '../messengers/base-api';
 import { GitlabPushCommit, GitlabPipeline, GitlabLabelHook } from '../task-trackers/gitlab/types';
 
+export interface DefaultLabel {
+    name: string;
+    // description: string;
+    // color: string;
+}
+
 export interface Config {
     port: string;
     lang: 'en' | 'ru';
@@ -10,9 +16,11 @@ export interface Config {
         url: string;
         user: string;
         password: string;
+        defaultLabel?: DefaultLabel;
     };
     features: {
         createRoom: boolean;
+        createProjectRoom?: boolean;
         inviteNewMembers: boolean;
         postComments: boolean;
         postEachComments?: boolean;
@@ -175,7 +183,7 @@ export interface DescriptionFields {
     priority: string;
 }
 
-export enum IssueStateEnum {
+export enum RoomViewStateEnum {
     close = 'close',
     open = 'open',
 }
@@ -198,7 +206,7 @@ export interface Selectors {
 
     // getMilestoneRoomName(body): string;
 
-    composeRoomName(key: string, options: { summary: string; state?: IssueStateEnum; milestone?: string }): string;
+    composeRoomName(key: string, options: { summary: string; state?: RoomViewStateEnum; milestone?: string }): string;
 
     getIssueChanges(body): IssueChanges[] | undefined;
 
@@ -274,6 +282,11 @@ export interface TaskTracker {
     selectors: Selectors;
 
     parser: Parser;
+
+    init(): TaskTracker;
+
+    createLink(urlRoom: string, body: string);
+
     getMilestoneUrl(body: any): string | undefined;
 
     getMilestoneWatchers(key): Promise<string[]>;

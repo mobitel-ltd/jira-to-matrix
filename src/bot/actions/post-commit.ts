@@ -2,7 +2,7 @@ import * as toYaml from 'js-yaml';
 // import marked from 'marked';
 import { getLogger } from '../../modules/log';
 import { PushCommitData } from '../../types';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { Gitlab } from '../../task-trackers/gitlab';
 import { GitlabPushCommit } from '../../task-trackers/gitlab/types';
@@ -11,7 +11,7 @@ import { translate } from '../../locales';
 
 const logger = getLogger(module);
 
-export class PostCommit extends BaseAction<ChatFasade, Gitlab> implements RunAction {
+export class PostCommit extends BaseAction<ChatFasade, Gitlab> {
     async run({ author, keyAndCommits }: PushCommitData) {
         const res = await Promise.all(
             Object.entries(keyAndCommits).map(([key, commitInfo]) => this.sendCommitData(key, commitInfo, author)),

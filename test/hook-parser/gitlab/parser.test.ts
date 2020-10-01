@@ -10,7 +10,7 @@ import {
     PostIssueUpdatesData,
     InviteNewMembersData,
     UploadData,
-    IssueStateEnum,
+    RoomViewStateEnum,
     PostPipelineData,
     PostMilestoneUpdatesData,
     MilestoneUpdateStatus,
@@ -147,7 +147,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 issueUpdated.object_attributes.title +
                 ';' +
-                IssueStateEnum.open +
+                RoomViewStateEnum.open +
                 ';' +
                 issueUpdated.project.path_with_namespace +
                 '/issues/' +
@@ -316,7 +316,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 gitlabClosedIssue.object_attributes.title +
                 ';' +
-                IssueStateEnum.close +
+                RoomViewStateEnum.close +
                 ';' +
                 gitlabClosedIssue.project.path_with_namespace +
                 '/issues/' +
@@ -324,7 +324,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 ';',
             hookLabels: [],
-            changes: [{ field: 'status', newValue: IssueStateEnum.close }],
+            changes: [{ field: 'status', newValue: RoomViewStateEnum.close }],
         };
         const createRoomData: CreateRoomData = {
             issue: {
@@ -378,7 +378,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 milestoneUpdated.object_attributes.title +
                 ';' +
-                IssueStateEnum.open +
+                RoomViewStateEnum.open +
                 ';' +
                 milestoneUpdated.project.path_with_namespace +
                 '/issues/' +
@@ -452,7 +452,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 milestoneDeleted.object_attributes.title +
                 ';' +
-                IssueStateEnum.open +
+                RoomViewStateEnum.open +
                 ';' +
                 milestoneDeleted.project.path_with_namespace +
                 '/issues/' +
@@ -525,7 +525,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 gitlabReopenedIssue.object_attributes.title +
                 ';' +
-                IssueStateEnum.open +
+                RoomViewStateEnum.open +
                 ';' +
                 gitlabReopenedIssue.project.path_with_namespace +
                 '/issues/' +
@@ -533,7 +533,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 ';',
             hookLabels: gitlabReopenedIssue.labels,
-            changes: [{ field: 'status', newValue: IssueStateEnum.open }],
+            changes: [{ field: 'status', newValue: RoomViewStateEnum.open }],
         };
         const postMisestoneUpdatesData: PostMilestoneUpdatesData = {
             issueKey: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,

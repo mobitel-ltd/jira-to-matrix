@@ -22,10 +22,16 @@ const schema = obj({
         url: address,
         user: string,
         password: string,
+        defaultLabel: objOptional({
+            name: string,
+            // description: string,
+            // color: string,
+        }),
     }),
     features: obj({
         // noIssueRooms: Joi.boolean().optional(),
         createRoom: boolean,
+        createProjectRoom: Joi.boolean().optional(),
         inviteNewMembers: boolean,
         postComments: boolean,
         postIssueUpdates: boolean,
