@@ -49,6 +49,8 @@ export class GitlabParser implements Parser {
             url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
             status: body.object_attributes.status,
             ref: body.object_attributes.ref,
+            username: body.user.username,
+            sha: body.object_attributes.sha,
         };
 
         if (this.isSuccessAttributes(baseAtributes)) {

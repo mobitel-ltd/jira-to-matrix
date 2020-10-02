@@ -337,6 +337,8 @@ export interface GitlabPipeline {
 interface BaseAttributes {
     url: string;
     ref: string;
+    username: string;
+    sha: string;
 }
 
 // https://stackoverflow.com/questions/44497388/typescript-array-to-string-literal-type
@@ -347,10 +349,8 @@ export interface SuccessAttributes extends BaseAttributes {
 }
 
 export interface FaileAttributes extends BaseAttributes {
-    username: string;
     status: Exclude<string, typeof successStatus[number]>;
     tag: boolean;
-    sha: string;
     created_at: string;
     duration: number;
     stages: Record<string, Record<string, string>[]>[];

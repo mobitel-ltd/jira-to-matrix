@@ -598,6 +598,8 @@ describe('Gitlab actions', () => {
                     ref: pipelineHookSuccess.object_attributes.ref,
                     status: pipelineHookSuccess.object_attributes.status as typeof successStatus[number],
                     url: pipelineHookSuccess.project.web_url + '/pipelines/' + pipelineHookSuccess.object_attributes.id,
+                    username: pipelineHookSuccess.user.username,
+                    sha: pipelineHookSuccess.object_attributes.sha,
                 },
             },
         };
