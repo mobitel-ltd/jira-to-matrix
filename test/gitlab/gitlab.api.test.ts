@@ -60,7 +60,6 @@ describe('Gitlab api testing', () => {
                 .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
                 .reply(200, projectJson)
                 .post(`/projects/${projectJson.id}/issues/${issueId}/notes`)
-                .query({ body: gitlab.getPostCommentBody(sender, bodyText) })
                 .reply(201);
         });
 

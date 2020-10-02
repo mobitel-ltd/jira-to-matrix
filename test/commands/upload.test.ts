@@ -68,7 +68,6 @@ describe('gitlab upload test', () => {
                 .post(`/projects/${projectsJson.id}/uploads`)
                 .reply(201, body)
                 .post(`/projects/${projectsJson.id}/issues/${issueId}/notes`)
-                .query({ body: gitlabTracker.getPostCommentBody(sender, body.markdown) })
                 .reply(201);
         });
 
