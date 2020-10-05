@@ -52,9 +52,9 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> {
         // const milestoneUrl = this.taskTracker.getMilestoneUrl(issueBody);
         // if (milestoneUrl) {
         //     const milestoneWatchers = await this.taskTracker.getMilestoneWatchers(milestoneUrl);
-        const assignees = this.taskTracker.selectors.getAssigneeDisplayName(issueBody);
+        const assignees = this.taskTracker.selectors.getAssigneeUserId(issueBody);
         const milestoneWatchersChatIds = await Promise.all(
-            assignees.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
+            assignees.map(userId => this.currentChatItem.getChatUserId(userId)),
         );
         const {
             messenger: { bots },

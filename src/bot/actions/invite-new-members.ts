@@ -24,7 +24,9 @@ export class InviteNewMembers extends BaseAction<ChatFasade, TaskTracker> {
 
             const issueWatchers = await this.taskTracker.getIssueWatchers(key);
             const issueWatchersChatIds = await Promise.all(
-                issueWatchers.map(displayName => this.chatApi.getUserIdByDisplayName(displayName)),
+                issueWatchers.map(({ displayName, userId }) =>
+                    userId ? this.chatApi.getChatUserId(userId) : this.chatApi.getUserIdByDisplayName(displayName),
+                ),
             );
 
             const autoinviteUsers = projectKey && typeName ? await this.getAutoinviteUsers(projectKey, typeName) : [];

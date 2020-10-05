@@ -343,7 +343,7 @@ export interface TaskTracker {
     /**
      * Make jira request to get all watchers, assign, creator and reporter of issue from url
      */
-    getIssueWatchers(keyOrId: string): Promise<string[]>;
+    getIssueWatchers(keyOrId: string): Promise<{ displayName: string; userId?: string }[]>;
 
     // /**
     //  * Make GET request to jira by ID to get linked issues

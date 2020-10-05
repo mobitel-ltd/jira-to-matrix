@@ -126,12 +126,14 @@ describe('Jira request test', () => {
 
     it('expect getIssueWatchers works correct', async () => {
         const result = await jiraApi.getIssueWatchers(issue.key);
-        expect(result.sort()).to.be.deep.eq([...expectedWatchersUsers]);
+        expect(result).to.have.length(expectedWatchersUsers.length);
+        result.forEach(el => expect(expectedWatchersUsers.some(one => one === el.displayName)).to.be.true);
     });
 
     it('expect getIssueWatchers works correct with empty roomMembers', async () => {
         const result = await jiraApi.getIssueWatchers(issue.key);
-        expect(result.sort()).to.be.deep.eq(expectedWatchersUsers);
+        expect(result).to.have.length(expectedWatchersUsers.length);
+        result.forEach(el => expect(expectedWatchersUsers.some(one => one === el.displayName)).to.be.true);
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list', async () => {
@@ -148,7 +150,8 @@ describe('Jira request test', () => {
         const result = await jiraApi_.getIssueWatchers(issue.key);
 
         const expected = Ramda.difference(members, watchers);
-        expect(result.sort()).to.be.deep.eq(expected.sort());
+        expect(result).to.have.length(expected.length);
+        result.forEach(el => expect(expected.some(one => one === el.displayName)).to.be.true);
     });
 
     it('expect getIssueWatchers avoid users from ignore invite list2', async () => {
@@ -165,7 +168,8 @@ describe('Jira request test', () => {
         });
 
         const result = await jiraApi_.getIssueWatchers(issue.key);
-        expect(result.sort()).to.be.deep.eq(expected.sort());
+        expect(result).to.have.length(expected.length);
+        result.forEach(el => expect(expected.some(one => one === el.displayName)));
     });
 
     it('checkUser test', () => {

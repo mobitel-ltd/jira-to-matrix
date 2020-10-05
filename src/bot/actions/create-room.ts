@@ -111,7 +111,11 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> {
 
             const issueWatchers = await this.taskTracker.getIssueWatchers(key);
             const issueWatchersChatIds = await Promise.all(
-                issueWatchers.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
+                issueWatchers.map(({ displayName, userId }) =>
+                    userId
+                        ? this.currentChatItem.getChatUserId(userId)
+                        : this.currentChatItem.getUserIdByDisplayName(displayName),
+                ),
             );
 
             const invite = [...issueWatchersChatIds, ...autoinviteUsers];
