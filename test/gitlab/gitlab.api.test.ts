@@ -98,7 +98,10 @@ describe('Gitlab api testing', () => {
 
         it('should return issue author and watchers', async () => {
             const res = await gitlab.getIssueWatchers(issueKey);
-            const expected = [(issueJson.assignee as any).name as string, issueJson.author.name];
+            const expected = [
+                { displayName: issueJson.assignee.name, userId: issueJson.assignee.username },
+                { displayName: issueJson.author.name, userId: issueJson.author.username },
+            ];
             expect(res).to.be.deep.eq(expected);
         });
     });

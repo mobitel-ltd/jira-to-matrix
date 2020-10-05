@@ -21,6 +21,7 @@ import {
     Milestone,
     Colors,
     Groups,
+    GitlabUserDataShort,
 } from './types';
 import { GitlabParser } from './parser.gtilab';
 import { selectors } from './selectors';
@@ -396,11 +397,16 @@ export class Gitlab implements TaskTracker {
         return this.parseProject({ ...project, lead: projectLead.name });
     }
 
-    async getIssueWatchers(key): Promise<string[]> {
+    async getIssueWatchers(key): Promise<{ userId: string; displayName: string }[]> {
         const issue = await this.getIssue(key);
         const members = [issue.assignee, issue.author];
 
-        return members.filter(Boolean).map(el => el!.name);
+        return members
+            .filter((el): el is GitlabUserDataShort => Boolean(el))
+            .map(el => ({
+                displayName: el.name,
+                userId: el.username,
+            }));
     }
 
     // TODO fix for projects

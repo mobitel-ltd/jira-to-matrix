@@ -123,6 +123,7 @@ interface IssueGetters<T> extends BodyGetters<T> {
     getMilestoneKey(body: T, id?: number): string | undefined;
     getMilestoneSummary(body: T): string | undefined;
     getAssigneeDisplayName(body: T): string[];
+    getAssigneeUserId(body: T): string[];
     getMilestoneRoomName(body: T): string | undefined;
     getMilestoneViewUrl(body: T): string;
 }
@@ -413,6 +414,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
     getIssueChanges: () => undefined,
     getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
     getAssigneeDisplayName: body => [body.assignee?.name].filter(Boolean) as string[],
+    getAssigneeUserId: body => [body.assignee?.username].filter(Boolean) as string[],
     getUserId: body => body.author.username,
     getDisplayName: body => body.author.name,
     getIssueId: body => body.iid,
@@ -529,6 +531,7 @@ export const selectors: GitlabSelectors = {
     getMilestoneViewUrl: issueRequestHandlers.getMilestoneViewUrl,
     isIssueRoomName,
     getAssigneeDisplayName: issueRequestHandlers.getAssigneeDisplayName,
+    getAssigneeUserId: issueRequestHandlers.getAssigneeUserId,
     getMilestoneSummary: issueRequestHandlers.getMilestoneSummary,
     transformFromKey,
     getMilestoneKey,

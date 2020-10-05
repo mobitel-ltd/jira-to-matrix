@@ -220,7 +220,7 @@ export class Jira implements TaskTracker {
     /**
      * Make jira request to get all watchers, assign, creator and reporter of issue from url
      */
-    async getIssueWatchers(keyOrId: string): Promise<string[]> {
+    async getIssueWatchers(keyOrId: string): Promise<{ displayName: string }[]> {
         const url = this.getUrl('issue', keyOrId, 'watchers');
         const body = await this.request(url);
         const watchers =
@@ -229,12 +229,13 @@ export class Jira implements TaskTracker {
         const issue = await this.getIssue(keyOrId);
         const roomMembers = this.selectors.getIssueMembers(issue);
 
-        const allWatchersSet = new Set([...roomMembers, ...watchers]);
+        const allWatchersSet: Set<string> = new Set([...roomMembers, ...watchers]);
 
         return [...allWatchersSet]
             .filter(Boolean)
             .filter(user => this._isExpectedToInvite(user))
-            .filter(user => !user.includes(this.user));
+            .filter(user => !user.includes(this.user))
+            .map(displayName => ({ displayName }));
     }
 
     /**

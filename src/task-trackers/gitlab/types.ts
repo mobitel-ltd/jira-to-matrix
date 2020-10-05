@@ -547,6 +547,7 @@ export interface GitlabSelectors extends Selectors {
     getMilestoneViewUrl(body): string;
     getMilestoneRoomName(body): string | undefined;
     getAssigneeDisplayName(body: GitlabIssue): string[];
+    getAssigneeUserId(body: GitlabIssue): string[];
     getMilestoneId(body): number | null;
     getPostKeys(body: GitlabPipelineHook): string[];
     isPipelineHook(body: any): boolean;
