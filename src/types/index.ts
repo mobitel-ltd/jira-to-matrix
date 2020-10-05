@@ -688,8 +688,11 @@ export interface PostIssueUpdatesData {
 }
 
 export interface PostPipelineData {
-    issueKeys: string[];
-    pipelineData: GitlabPipeline;
+    pipelineData: {
+        header: string;
+        key: string;
+        pipeInfo: GitlabPipeline;
+    };
     author: string;
 }
 
