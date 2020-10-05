@@ -13,7 +13,16 @@ import {
     PostMilestoneUpdatesData,
     MilestoneUpdateStatus,
 } from '../../types';
-import { GitlabSelectors, HookTypes, GitlabPushHook, GitlabPipelineHook, PipelineBuild } from './types';
+import {
+    GitlabSelectors,
+    HookTypes,
+    GitlabPushHook,
+    GitlabPipelineHook,
+    PipelineBuild,
+    GitlabPipeline,
+    successStatus,
+    SuccessAttributes,
+} from './types';
 import Lo from 'lodash/fp';
 
 export class GitlabParser implements Parser {
@@ -25,30 +34,51 @@ export class GitlabParser implements Parser {
         return Boolean(this.features.postIssueUpdates && this.selectors.isPipelineHook(body));
     }
 
-    getPostPipelineData(body: GitlabPipelineHook): PostPipelineData {
+    private isSuccessAttributes = (
+        attrributes: Omit<SuccessAttributes, 'status'> & { status: string },
+    ): attrributes is SuccessAttributes => successStatus.some(el => el === attrributes.status);
+
+    private getPipelineData = (body: GitlabPipelineHook): GitlabPipeline => {
         const groupedBuilds = Lo.pipe(
             Lo.path('builds'),
             Lo.groupBy('stage'),
             Lo.mapValues(Lo.map((el: PipelineBuild) => ({ [el.name]: el.status }))),
         )(body);
 
+        const baseAtributes = {
+            url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
+            status: body.object_attributes.status,
+            ref: body.object_attributes.ref,
+            username: body.user.username,
+            sha: body.object_attributes.sha,
+        };
+
+        if (this.isSuccessAttributes(baseAtributes)) {
+            return {
+                object_kind: HookTypes.Pipeline,
+                object_attributes: baseAtributes,
+            };
+        }
+
+        return {
+            object_kind: HookTypes.Pipeline,
+            object_attributes: {
+                ...baseAtributes,
+                username: body.user.username,
+                created_at: body.object_attributes.created_at,
+                duration: body.object_attributes.duration,
+                sha: body.object_attributes.sha,
+                tag: body.object_attributes.tag,
+                stages: body.object_attributes.stages.map(el => ({ [el]: groupedBuilds[el] })) as any,
+            },
+        };
+    };
+
+    getPostPipelineData(body: GitlabPipelineHook): PostPipelineData {
         return {
             author: this.selectors.getFullNameWithId(body),
             issueKeys: this.selectors.getPostKeys(body),
-            pipelineData: {
-                object_kind: HookTypes.Pipeline,
-                object_attributes: {
-                    url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
-                    status: body.object_attributes.status,
-                    username: body.user.username,
-                    created_at: body.object_attributes.created_at,
-                    duration: body.object_attributes.duration,
-                    ref: body.object_attributes.ref,
-                    sha: body.object_attributes.sha,
-                    tag: body.object_attributes.tag,
-                    stages: body.object_attributes.stages.map(el => ({ [el]: groupedBuilds[el] })) as any,
-                },
-            },
+            pipelineData: this.getPipelineData(body),
         };
     }
 
