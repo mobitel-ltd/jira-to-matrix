@@ -330,12 +330,11 @@ export class Gitlab implements TaskTracker {
         const { namespaceWithProject, issueId } = this.selectors.transformFromIssueKey(gitlabIssueKey);
         const params = querystring.stringify({ body });
         const projectId = await this.getProjectIdByNamespace(namespaceWithProject);
-
         // TODO make correct query params passing
-        const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes?' + params);
+        const url = this.getRestUrl('projects', projectId, 'issues', issueId, 'notes');
 
         try {
-            await this.requestPost(url, {});
+            await this.requestPost(url, { data: params }, 'application/x-www-form-urlencoded');
 
             return body;
         } catch (error) {
