@@ -329,14 +329,10 @@ export interface GitlabPipelineHook {
     builds: PipelineBuild[];
 }
 
-export interface GitlabPipeline {
-    object_kind: HookTypes.Pipeline;
-    object_attributes: SuccessAttributes | FaileAttributes;
-}
+export type GitlabPipeline = SuccessAttributes | FaileAttributes;
 
 interface BaseAttributes {
     url: string;
-    ref: string;
     username: string;
     sha: string;
 }
@@ -350,9 +346,6 @@ export interface SuccessAttributes extends BaseAttributes {
 
 export interface FaileAttributes extends BaseAttributes {
     status: Exclude<string, typeof successStatus[number]>;
-    tag: boolean;
-    created_at: string;
-    duration: number;
     stages: Record<string, Record<string, string>[]>[];
 }
 
@@ -567,6 +560,7 @@ export interface GitlabSelectors extends Selectors {
     transformToKey(namespaceWithProject: string, issueId: number, type?: KeyType): string;
     // true if hook should be ignored
     isIgnoreHookType(body): boolean;
+    extractProjectNameFromIssueKey(key: string): string;
 }
 
 export enum Colors {

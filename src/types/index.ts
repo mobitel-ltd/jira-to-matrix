@@ -692,7 +692,7 @@ export interface PostPipelineData {
         header: string;
         key: string;
         pipeInfo: GitlabPipeline;
-    };
+    }[];
     author: string;
 }
 

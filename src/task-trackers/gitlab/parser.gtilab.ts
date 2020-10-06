@@ -42,43 +42,51 @@ export class GitlabParser implements Parser {
         const groupedBuilds = Lo.pipe(
             Lo.path('builds'),
             Lo.groupBy('stage'),
-            Lo.mapValues(Lo.map((el: PipelineBuild) => ({ [el.name]: el.status }))),
+            Lo.mapValues(
+                Lo.pipe(
+                    Lo.filter((el: PipelineBuild) => el.status !== 'success' && el.status !== 'skipped'),
+                    Lo.map((el: PipelineBuild) => ({ [el.name]: el.status })),
+                ),
+            ),
+            // Lo.filter(el => el.length === 0),
+            // Lo.tap(console.log),
         )(body);
 
         const baseAtributes = {
             url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
             status: body.object_attributes.status,
-            ref: body.object_attributes.ref,
             username: body.user.username,
             sha: body.object_attributes.sha,
         };
 
         if (this.isSuccessAttributes(baseAtributes)) {
-            return {
-                object_kind: HookTypes.Pipeline,
-                object_attributes: baseAtributes,
-            };
+            return baseAtributes;
         }
 
         return {
-            object_kind: HookTypes.Pipeline,
-            object_attributes: {
-                ...baseAtributes,
-                username: body.user.username,
-                created_at: body.object_attributes.created_at,
-                duration: body.object_attributes.duration,
-                sha: body.object_attributes.sha,
-                tag: body.object_attributes.tag,
-                stages: body.object_attributes.stages.map(el => ({ [el]: groupedBuilds[el] })) as any,
-            },
+            ...baseAtributes,
+            username: body.user.username,
+            sha: body.object_attributes.sha,
+            stages: body.object_attributes.stages.map(el => ({ [el]: groupedBuilds[el] })) as any,
         };
     };
+    static getHeader = (project: string, ref: string, status: string) => `${project} (${ref}): ${status}`;
 
     getPostPipelineData(body: GitlabPipelineHook): PostPipelineData {
+        const issueKeys = this.selectors.getPostKeys(body);
+        const pipelineData: PostPipelineData['pipelineData'] = issueKeys.map(key => {
+            const keyData = this.selectors.transformFromIssueKey(key);
+            const repoName = keyData.namespaceWithProject.split('/').reverse()[0];
+            return {
+                header: GitlabParser.getHeader(repoName, body.object_attributes.ref, body.object_attributes.status),
+                key: key,
+                pipeInfo: this.getPipelineData(body),
+            };
+        });
+
         return {
             author: this.selectors.getFullNameWithId(body),
-            issueKeys: this.selectors.getPostKeys(body),
-            pipelineData: this.getPipelineData(body),
+            pipelineData,
         };
     }
 
