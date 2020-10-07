@@ -27,9 +27,13 @@ import pipelineHookSuccess from '../../fixtures/webhooks/gitlab/pipe-success.jso
 import pipelineHookFail from '../../fixtures/webhooks/gitlab/pipe-failed.json';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
-import { HookTypes, successStatus } from '../../../src/task-trackers/gitlab/types';
 import milestoneUpdated from '../../fixtures/webhooks/gitlab/issue/milestone-updated.json';
 import milestoneDeleted from '../../fixtures/webhooks/gitlab/issue/milestone-deleted.json';
+import { GitlabParser } from '../../../src/task-trackers/gitlab/parser.gtilab';
+import {
+    extractKeysFromCommitMessage,
+    extractProjectNameFromIssueKey,
+} from '../../../src/task-trackers/gitlab/selectors';
 
 describe('Gitlab actions', () => {
     const fakeTimestamp = 1596049533906;
@@ -590,19 +594,27 @@ describe('Gitlab actions', () => {
     it('should post pipeline data for success pipeline hook', () => {
         const postPipelineData: PostPipelineData = {
             author: `${pipelineHookSuccess.user.username} ${pipelineHookSuccess.user.name}`,
+
             // issue id is extracted pipelineHook.commit.message
-            issueKeys: [pipelineHookSuccess.project.path_with_namespace + '-' + 2],
-            pipelineData: {
-                object_kind: HookTypes.Pipeline,
-                object_attributes: {
-                    ref: pipelineHookSuccess.object_attributes.ref,
-                    status: pipelineHookSuccess.object_attributes.status as typeof successStatus[number],
+            //issueKeys: [pipelineHookSuccess.project.path_with_namespace + '-' + 2],
+            pipelineData: extractKeysFromCommitMessage(
+                pipelineHookSuccess.commit.message,
+                pipelineHookSuccess.project.path_with_namespace,
+            ).map(key => ({
+                header: GitlabParser.getHeader(
+                    extractProjectNameFromIssueKey(key),
+                    pipelineHookSuccess.object_attributes.ref,
+                    pipelineHookSuccess.object_attributes.status,
+                ),
+                key,
+                pipeInfo: {
                     url: pipelineHookSuccess.project.web_url + '/pipelines/' + pipelineHookSuccess.object_attributes.id,
                     username: pipelineHookSuccess.user.username,
                     sha: pipelineHookSuccess.object_attributes.sha,
                 },
-            },
+            })),
         };
+
         const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
@@ -621,57 +633,45 @@ describe('Gitlab actions', () => {
     });
 
     it('should post pipeline data for failed pipeline hook', () => {
-        const postPipelineData: PostPipelineData = {
-            author: `${pipelineHookFail.user.username} ${pipelineHookFail.user.name}`,
-            // issue id is extracted pipelineHookFail.commit.message
-            issueKeys: [pipelineHookFail.project.path_with_namespace + '-' + 2],
-            pipelineData: {
-                object_kind: HookTypes.Pipeline,
-                object_attributes: {
-                    created_at: pipelineHookFail.object_attributes.created_at,
-                    duration: pipelineHookFail.object_attributes.duration,
-                    ref: pipelineHookFail.object_attributes.ref,
-                    sha: pipelineHookFail.object_attributes.sha,
-                    status: pipelineHookFail.object_attributes.status,
-                    tag: pipelineHookFail.object_attributes.tag,
-                    username: pipelineHookFail.user.username,
-                    url: pipelineHookFail.project.web_url + '/pipelines/' + pipelineHookFail.object_attributes.id,
-                    stages: [
-                        {
-                            validate: [
-                                { 'lint-dockerfile': 'success' },
-                                { 'node-gitignore-validate': 'success' },
-                                { 'dockerignore-validate': 'success' },
-                                { 'scan-sonarqube': 'success' },
-                                { 'node-docs-validate': 'success' },
-                            ],
-                        },
-                        {
-                            'build-release': [
-                                {
-                                    'release-image-dind': 'success',
-                                },
-                            ],
-                        },
-                        {
-                            'build-debug': [
-                                {
-                                    'debug-image-dind': 'success',
-                                },
-                            ],
-                        },
-                        {
-                            test: [
-                                { 'node-coverage': 'fail' },
-                                { 'node-unit': 'success' },
-                                { 'node-lint': 'success' },
-                                { 'security-todo': 'success' },
-                            ],
-                        },
-                    ],
-                },
+        const stages = [
+            {
+                'build-release': [
+                    {
+                        'release-image-dind': 'failed',
+                    },
+                ],
             },
+        ];
+
+        // const filteredOutput = stages.map(items => Lo.filter(items, el =>'failed'));
+        // console.log(filteredOutput);
+
+        const failOutput = {
+            sha: pipelineHookFail.object_attributes.sha,
+            username: pipelineHookFail.user.username,
+            url: pipelineHookFail.project.web_url + '/pipelines/' + pipelineHookFail.object_attributes.id,
+            stages: stages,
         };
+
+        const postPipelineData: PostPipelineData = {
+            author: `${pipelineHookSuccess.user.username} ${pipelineHookSuccess.user.name}`,
+
+            // issue id is extracted pipelineHook.commit.message
+            //issueKeys: [pipelineHookSuccess.project.path_with_namespace + '-' + 2],
+            pipelineData: extractKeysFromCommitMessage(
+                pipelineHookFail.commit.message,
+                pipelineHookFail.project.path_with_namespace,
+            ).map(key => ({
+                header: GitlabParser.getHeader(
+                    extractProjectNameFromIssueKey(key),
+                    pipelineHookFail.object_attributes.ref,
+                    pipelineHookFail.object_attributes.status,
+                ),
+                key,
+                pipeInfo: failOutput,
+            })) as any,
+        };
+
         const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
