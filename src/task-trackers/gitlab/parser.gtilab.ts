@@ -54,7 +54,7 @@ export class GitlabParser implements Parser {
             username: body.user.username,
             sha: body.object_attributes.sha,
         };
-        const isSucces = body => body.object_attributes.status === 'success';
+        const isSucces = body => body.object_attributes.status !== 'fail';
 
         if (isSucces(body)) {
             return baseAtributes;
