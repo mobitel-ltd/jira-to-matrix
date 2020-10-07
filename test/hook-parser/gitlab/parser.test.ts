@@ -27,7 +27,6 @@ import pipelineHookSuccess from '../../fixtures/webhooks/gitlab/pipe-success.jso
 import pipelineHookFail from '../../fixtures/webhooks/gitlab/pipe-failed.json';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
-import { successStatus } from '../../../src/task-trackers/gitlab/types';
 import milestoneUpdated from '../../fixtures/webhooks/gitlab/issue/milestone-updated.json';
 import milestoneDeleted from '../../fixtures/webhooks/gitlab/issue/milestone-deleted.json';
 import { GitlabParser } from '../../../src/task-trackers/gitlab/parser.gtilab';
@@ -609,7 +608,6 @@ describe('Gitlab actions', () => {
                 ),
                 key,
                 pipeInfo: {
-                    status: pipelineHookSuccess.object_attributes.status as typeof successStatus[number],
                     url: pipelineHookSuccess.project.web_url + '/pipelines/' + pipelineHookSuccess.object_attributes.id,
                     username: pipelineHookSuccess.user.username,
                     sha: pipelineHookSuccess.object_attributes.sha,
@@ -637,20 +635,11 @@ describe('Gitlab actions', () => {
     it('should post pipeline data for failed pipeline hook', () => {
         const stages = [
             {
-                validate: [],
-            },
-            {
                 'build-release': [
                     {
                         'release-image-dind': 'failed',
                     },
                 ],
-            },
-            {
-                'build-debug': [],
-            },
-            {
-                test: [],
             },
         ];
 
@@ -659,7 +648,6 @@ describe('Gitlab actions', () => {
 
         const failOutput = {
             sha: pipelineHookFail.object_attributes.sha,
-            status: pipelineHookFail.object_attributes.status,
             username: pipelineHookFail.user.username,
             url: pipelineHookFail.project.web_url + '/pipelines/' + pipelineHookFail.object_attributes.id,
             stages: stages,

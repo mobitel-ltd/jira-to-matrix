@@ -36,13 +36,13 @@ describe('Post pipeline', () => {
     //     expect(res).to.eq(expected);
     // });
 
-    it.skip('Expect postPipeline works correct with push hook and', async () => {
-        const keyData = gitlabTracker.selectors.transformFromIssueKey(postPipelineData.issueKeys[0]);
-        const repoName = keyData.namespaceWithProject.split('/').reverse()[0];
-        const res = PostPipeline.getMessage(postPipelineData.pipelineData, repoName);
-        const result = await postPipeline.run(postPipelineData);
+    // it.skip('Expect postPipeline works correct with push hook and', async () => {
+    //     const keyData = gitlabTracker.selectors.transformFromIssueKey(postPipelineData.issueKeys[0]);
+    //     const repoName = keyData.namespaceWithProject.split('/').reverse()[0];
+    //     const res = PostPipeline.getMessage(postPipelineData.pipelineData, repoName);
+    //     const result = await postPipeline.run(postPipelineData);
 
-        expect(result).to.be.deep.eq(postPipelineData.issueKeys);
-        expect(chatSingle.sendTextMessage).to.be.calledWithExactly(roomId, res);
-    });
+    //     expect(result).to.be.deep.eq(postPipelineData.issueKeys);
+    //     expect(chatSingle.sendTextMessage).to.be.calledWithExactly(roomId, res);
+    // });
 });

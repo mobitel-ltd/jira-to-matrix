@@ -331,7 +331,7 @@ export interface GitlabPipelineHook {
 
 export type GitlabPipeline = SuccessAttributes | FaileAttributes;
 
-interface BaseAttributes {
+interface SuccessAttributes {
     url: string;
     username: string;
     sha: string;
@@ -340,12 +340,11 @@ interface BaseAttributes {
 // https://stackoverflow.com/questions/44497388/typescript-array-to-string-literal-type
 export const successStatus = ['manual', 'success'] as const;
 
-export interface SuccessAttributes extends BaseAttributes {
-    status: typeof successStatus[number];
-}
+// export interface SuccessAttributes extends SuccessAttributes {
+//     status: typeof successStatus[number];
+// }
 
-export interface FaileAttributes extends BaseAttributes {
-    status: Exclude<string, typeof successStatus[number]>;
+export interface FaileAttributes extends SuccessAttributes {
     stages: Record<string, Record<string, string>[]>[];
 }
 
