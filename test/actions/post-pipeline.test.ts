@@ -22,7 +22,7 @@ describe('Post pipeline', () => {
     const postPipelineData = gitlabTracker.parser.getPostPipelineData(pipelineHook as GitlabPipelineHook);
 
     beforeEach(() => {
-        const chatClass = getChatClass({ alias: postPipelineData.issueKeys });
+        const chatClass = getChatClass({ alias: postPipelineData.pipelineData.map(el => el.key) });
         chatSingle = chatClass.chatApiSingle;
         chatApi = chatClass.chatApi;
 
@@ -37,12 +37,13 @@ describe('Post pipeline', () => {
     // });
 
     it('Expect postPipeline works correct with push hook and', async () => {
-        const keyData = gitlabTracker.selectors.transformFromIssueKey(postPipelineData.issueKeys[0]);
-        const repoName = keyData.namespaceWithProject.split('/').reverse()[0];
-        const res = PostPipeline.getMessage(postPipelineData.pipelineData, repoName);
+        const res = PostPipeline.getMessage(
+            postPipelineData.pipelineData[0].header,
+            postPipelineData.pipelineData[0].pipeInfo,
+        );
         const result = await postPipeline.run(postPipelineData);
 
-        expect(result).to.be.deep.eq(postPipelineData.issueKeys);
+        expect(result).to.be.deep.eq(postPipelineData.pipelineData.map(el => el.key));
         expect(chatSingle.sendTextMessage).to.be.calledWithExactly(roomId, res);
     });
 });
