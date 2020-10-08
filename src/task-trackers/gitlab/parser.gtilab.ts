@@ -13,7 +13,15 @@ import {
     PostMilestoneUpdatesData,
     MilestoneUpdateStatus,
 } from '../../types';
-import { GitlabSelectors, HookTypes, GitlabPushHook, GitlabPipelineHook, PipelineBuild, GitlabPipeline } from './types';
+import {
+    GitlabSelectors,
+    HookTypes,
+    GitlabPushHook,
+    GitlabPipelineHook,
+    PipelineBuild,
+    GitlabPipeline,
+    successStatus,
+} from './types';
 import Lo from 'lodash/fp';
 
 export class GitlabParser implements Parser {
@@ -38,6 +46,16 @@ export class GitlabParser implements Parser {
                 return acc;
             }, {});
 
+        const baseAtributes = {
+            url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
+            username: body.user.username,
+            sha: body.object_attributes.sha,
+        };
+
+        if (successStatus.some(el => el === body.object_attributes.status)) {
+            return baseAtributes;
+        }
+
         const groupedBuilds = Lo.pipe(
             Lo.path('builds'),
             Lo.groupBy('stage'),
@@ -47,24 +65,18 @@ export class GitlabParser implements Parser {
                     Lo.map((el: PipelineBuild) => ({ [el.name]: el.status })),
                 ),
             ),
+            stageFilter,
         )(body);
-        const stages = body.object_attributes.stages.map(el => ({ [el]: groupedBuilds[el] })) as any;
-        const baseAtributes = {
-            url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
-            username: body.user.username,
-            sha: body.object_attributes.sha,
-        };
-        const isSucces = body => body.object_attributes.status !== 'fail';
 
-        if (isSucces(body)) {
-            return baseAtributes;
-        }
+        const stages = body.object_attributes.stages
+            .filter(el => groupedBuilds[el])
+            .map(el => ({ [el]: groupedBuilds[el] })) as any;
 
         const failOutput = {
             ...baseAtributes,
             username: body.user.username,
             sha: body.object_attributes.sha,
-            stages: stages.map(el => stageFilter(el)).filter(value => Object.keys(value).length !== 0),
+            stages: stages,
         };
 
         return failOutput;
