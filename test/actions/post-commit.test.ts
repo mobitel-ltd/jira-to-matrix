@@ -28,9 +28,9 @@ describe('Post commit', () => {
     });
 
     it('should parse commit', async () => {
-        const res = PostCommit.getCommitLinks(gitlabPushHook.commits);
-        const expected = [`* ${gitlabPushHook.commits[0].id.slice(0, 8)} ${gitlabPushHook.commits[0].url}`];
-
+        const res = PostCommit.getCommitLinks(gitlabPushHook.commits, gitlabPushHook.project.path_with_namespace);
+        const header = `[${gitlabPushHook.project.path_with_namespace}@${gitlabPushHook.commits[0].id.slice(0, 8)}](${gitlabPushHook.commits[0].url})`;
+        const expected = [`* ${header}`];
         expect(res).to.be.deep.eq(expected);
     });
 
@@ -39,6 +39,7 @@ describe('Post commit', () => {
         const res = PostCommit.getCommitMessage(
             gitlabPushHook.user_username + ' ' + gitlabPushHook.user_name,
             commitData,
+            gitlabPushHook.project.path_with_namespace,
         );
         const result = await postCommit.run(postPushCommitData);
 

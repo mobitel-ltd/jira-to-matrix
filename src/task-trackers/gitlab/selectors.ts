@@ -97,6 +97,7 @@ interface IssueHookGetters<T = unknown> extends BodyGetters<T> {
 interface PushGetters<T> extends BaseGetters<T> {
     getCommitKeysBody(body: T): Record<string, GitlabPushCommit[]>;
     getFullNameWithId(body: T): string;
+    getProjectKey(body: T): string;
 }
 
 interface PipelineGetters extends BaseGetters<GitlabPipelineHook> {
@@ -341,6 +342,7 @@ const handlers: {
         getFullNameWithId: body => getFullName(handlers.note.getDisplayName(body), handlers.note.getUserId(body)),
     },
     push: {
+        getProjectKey: body => body.project.path_with_namespace,
         getDisplayName: body => body.user_name,
         getUserId: body => body.user_username,
         getCommitKeysBody: body => {
