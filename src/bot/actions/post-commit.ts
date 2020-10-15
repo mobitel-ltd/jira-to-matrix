@@ -1,5 +1,4 @@
 import * as toYaml from 'js-yaml';
-import marked from 'marked';
 import { getLogger } from '../../modules/log';
 import { PushCommitData } from '../../types';
 import { BaseAction } from './base-action';
@@ -8,32 +7,31 @@ import { Gitlab } from '../../task-trackers/gitlab';
 import { GitlabPushCommit } from '../../task-trackers/gitlab/types';
 import { errorTracing } from '../../lib/utils';
 import { translate } from '../../locales';
+import { GitlabParser } from '../../task-trackers/gitlab/parser.gtilab';
 const logger = getLogger(module);
 
 export class PostCommit extends BaseAction<ChatFasade, Gitlab> {
-    async run({ author, keyAndCommits, projectNamespace }: PushCommitData) {
+    async run({ author, keyAndCommits }: PushCommitData) {
         const res = await Promise.all(
-            Object.entries(keyAndCommits).map(([key, commitInfo]) =>
-                this.sendCommitData(key, commitInfo, author, projectNamespace),
-            ),
+            Object.entries(keyAndCommits).map(([key, commitInfo]) => this.sendCommitData(key, commitInfo, author)),
         );
 
         return res.filter(Boolean) as string[];
     }
 
-    static getCommitLinks = (data: GitlabPushCommit[], projectNamespace: string): string[] => {
-        return data.map(el => {
-            const text = el.id.slice(0, 8);
-            const link = el.url;
+    // static getCommitLinks = (data: GitlabPushCommit[], projectNamespace: string): string[] => {
+    //     return data.map(el => {
+    //         const text = el.id.slice(0, 8);
+    //         const link = el.url;
 
-            return `* [${projectNamespace}@${text}](${link})`;
-        });
-    };
+    //         return `* [${projectNamespace}@${text}](${link})`;
+    //     });
+    // };
 
-    async sendCommitData(key: string, commitInfo: GitlabPushCommit[], author: string, projectNamespace: string) {
+    async sendCommitData(key: string, commitInfo: GitlabPushCommit[], author: string) {
         try {
             const roomId = await this.chatApi.getRoomId(key);
-            const res = PostCommit.getCommitMessage(author, commitInfo, projectNamespace);
+            const res = PostCommit.getCommitMessage(author, commitInfo);
             await this.chatApi.sendTextMessage(roomId, res);
 
             logger.debug(`Posted comment with commit info to ${key} room with id ${roomId} from ${author}\n`);
@@ -47,15 +45,21 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> {
 
     static parseCommit = (commitInfo: GitlabPushCommit[]) => {
         const parseCommit = commitInfo.map(el => {
-            return {
+            const output = {
                 id: el.id,
                 message: el.message,
                 timestamp: el.timestamp,
+                url: el.url,
+            };
+            const filteredOutput = {
                 added: el.added,
                 modified: el.modified,
                 removed: el.removed,
             };
+
+            return [output, GitlabParser.stageFilter(filteredOutput)];
         });
+
         const ymlData = toYaml.safeDump(parseCommit, { lineWidth: -1 });
         return ymlData;
         // const jsonData = JSON.stringify(commitInfo, null, 2);
@@ -63,13 +67,17 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> {
         // return marked(['```', jsonData, '```'].join('\n'));
     };
 
-    static getCommitMessage = (name: string, commitInfo: GitlabPushCommit[], projectNamespace: string) => {
+    static getCommitMessage = (name: string, commitInfo: GitlabPushCommit[]) => {
+        // const commitsLinks = PostCommit.getCommitLinks(commitInfo, projectNamespace).join('\n');
         const email = commitInfo.map(el => el.author.email)[0];
-        const headerText = translate('pushCommitInfo', { name, email });
-        const commitsLinks = PostCommit.getCommitLinks(commitInfo, projectNamespace).join('\n');
+        // created by Vlad, check it please :)
+        const userName = name.split(' ', 1)[0];
+        const fullName = name.replace(userName + ' ', '');
+
+        const headerText = translate('pushCommitInfo', { userName, fullName, email });
         const commitData = PostCommit.parseCommit(commitInfo);
         const line = Array.from({ length: 40 }, () => '-').join('');
-        const text = [headerText, '', marked(commitsLinks), '', line, '', commitData, line].join('\n');
+        const text = [headerText, line, commitData, line].join('\n');
         return text;
     };
 }

@@ -6,7 +6,7 @@ import names from 'ru-names';
 export const dict = Object.freeze({
     chat: 'чат',
     roomCreatedMessage: 'Для задачи создан %{link}',
-    pushCommitInfo: '%{name} | %{email} | упомянул задачу:',
+    pushCommitInfo: '%{userName} | %{fullName} | %{email} | упомянул задачу:',
     errorCommentSend: 'Ошибка отправки сообщения в taskTracker, обратитесь к администратору',
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',
     uploadInfo: '%{name} загрузил%{f} файл',

@@ -697,7 +697,7 @@ export interface PostPipelineData {
 }
 
 export interface PushCommitData {
-    projectNamespace: string;
+    // projectNamespace: string;
     keyAndCommits: Record<string, GitlabPushCommit[]>;
     author: string;
 }
