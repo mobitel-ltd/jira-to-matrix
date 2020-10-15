@@ -51,13 +51,13 @@ export class PostCommit extends BaseAction<ChatFasade, Gitlab> {
                 timestamp: el.timestamp,
                 url: el.url,
             };
+
             const filteredOutput = {
                 added: el.added,
                 modified: el.modified,
                 removed: el.removed,
             };
-
-            return [output, GitlabParser.stageFilter(filteredOutput)];
+            return Object.assign(output, GitlabParser.stageFilter(filteredOutput));
         });
 
         const ymlData = toYaml.safeDump(parseCommit, { lineWidth: -1 });
