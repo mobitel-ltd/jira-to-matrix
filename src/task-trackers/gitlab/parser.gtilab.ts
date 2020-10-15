@@ -36,16 +36,15 @@ export class GitlabParser implements Parser {
     // private isSuccessAttributes = (
     //     attrributes: Omit<SuccessAttributes, 'status'> & { status: string },
     // ): attrributes is SuccessAttributes => successStatus.some(el => el === attrributes.status);
+    static stageFilter = object =>
+        Object.entries(object).reduce((acc, [key, value]) => {
+            if (Array.isArray(value) && value.length) {
+                acc[key] = value;
+            }
+            return acc;
+        }, {});
 
     private getPipelineData = (body: GitlabPipelineHook): GitlabPipeline => {
-        const stageFilter = object =>
-            Object.entries(object).reduce((acc, [key, value]) => {
-                if (Array.isArray(value) && value.length) {
-                    acc[key] = value;
-                }
-                return acc;
-            }, {});
-
         const baseAtributes = {
             url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
             username: body.user.username,
@@ -65,7 +64,7 @@ export class GitlabParser implements Parser {
                     Lo.map((el: PipelineBuild) => ({ [el.name]: el.status })),
                 ),
             ),
-            stageFilter,
+            GitlabParser.stageFilter,
         )(body);
 
         const stages = body.object_attributes.stages
@@ -110,6 +109,7 @@ export class GitlabParser implements Parser {
         const keyAndCommits = this.selectors.getCommitKeysBody(body);
 
         return {
+            // projectNamespace: this.selectors.getProjectKey(body)!,
             author,
             keyAndCommits,
         };

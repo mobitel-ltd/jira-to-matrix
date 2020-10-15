@@ -4,7 +4,7 @@
 export const dict = Object.freeze({
     chat: 'chat',
     roomCreatedMessage: '%{link} for issue is created',
-    pushCommitInfo: '%{name} pushed commits:',
+    pushCommitInfo: '%{userName} | %{fullName} | %{email} | pushed commits:',
     errorCommentSend: 'Error sending comment to taskTracker, send info to admin',
     uploadInfo: '%{name} upload file',
     uploadLink: '<br>%{headerText}: [Open link](%{url})',
