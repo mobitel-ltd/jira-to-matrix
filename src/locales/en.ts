@@ -2,8 +2,9 @@
 /* eslint-disable camelcase */
 
 export const dict = Object.freeze({
-    roomCreatedMessage: '[Chat](%{link}) for issue is created',
-    pushCommitInfo: '%{name} pushed commits:',
+    chat: 'chat',
+    roomCreatedMessage: '%{link} for issue is created',
+    pushCommitInfo: '%{userName} | %{fullName} | %{email} | pushed commits:',
     errorCommentSend: 'Error sending comment to taskTracker, send info to admin',
     uploadInfo: '%{name} upload file',
     uploadLink: '<br>%{headerText}: [Open link](%{url})',
@@ -26,6 +27,7 @@ export const dict = Object.freeze({
     issueAddedToMilestone: 'User %{user} added an issue [%{summary}](%{viewUrl}) to the milestone',
     issueDeletedFromMilestone: 'User %{user} delete an issue [%{summary}](%{viewUrl}) from the milestone',
     issueClosedInMilestone: 'User %{user} closed an issue [%{summary}](%{viewUrl})',
+    issueReopenInMilestone: 'User %{user} reopen an issue [%{summary}](%{viewUrl})',
     newLink: 'New link',
     newLinkMessage: 'A new link. This issue **%{relation}** [%{key} "%{summary}"](%{viewUrl})',
     deleteLink: 'Delete link',
@@ -70,6 +72,7 @@ export const dict = Object.freeze({
     keyAlreadyExistForAdd: 'Key "%{typeTaskFromUser}" already exist in project "%{projectKey}"',
     commandNotFound: 'Command not found.',
     issueNameExist: 'Issue name exist.<br>Use !create typeTask name task for jira',
+    issueLabelNotExist: 'WARNING! Issue label not exists',
     issueNameTooLong:
         'Issue too long or contains control characters.<br>Please use max 255 characters and do not use control characters',
     ignoreKeyAdded: 'Key "%{typeTaskFromUser}" was added for project "%{projectKey}".',

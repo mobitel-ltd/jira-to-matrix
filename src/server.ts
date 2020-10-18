@@ -25,7 +25,8 @@ export const getServer: getServerType = (handleFunc, hookParser): express.Applic
             logger.info('Webhook received! Start getting ignore status');
             logger.silly('Jira body', req.body);
 
-            const saveStatus = await hookParser.getParsedAndSaveToRedis(req.body);
+            const parser = hookParser.init();
+            const saveStatus = await parser.getParsedAndSaveToRedis(req.body);
 
             if (saveStatus) {
                 await handleFunc();

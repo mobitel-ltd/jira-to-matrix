@@ -4,8 +4,9 @@ import Ramda from 'ramda';
 import names from 'ru-names';
 
 export const dict = Object.freeze({
-    roomCreatedMessage: 'Для задачи создан [чат](%{link})',
-    pushCommitInfo: '%{name} упомянул задачу в следующих коммитах:',
+    chat: 'чат',
+    roomCreatedMessage: 'Для задачи создан %{link}',
+    pushCommitInfo: '%{userName} | %{fullName} | %{email} | упомянул задачу:',
     errorCommentSend: 'Ошибка отправки сообщения в taskTracker, обратитесь к администратору',
     notAdmin: 'Пользователь "%{sender}" не имеет прав администратора для данного действия',
     uploadInfo: '%{name} загрузил%{f} файл',
@@ -24,6 +25,7 @@ export const dict = Object.freeze({
     issueAddedToMilestone: '%{user} добавил задачу [%{summary}](%{viewUrl}) в текущий майлстоун',
     issueDeletedFromMilestone: '%{user} удалил задачу [%{summary}](%{viewUrl}) из текущем майлстоуне',
     issueClosedInMilestone: '%{user} закрыл задачу [%{summary}](%{viewUrl}) в текущем майлстоуне',
+    issueReopenInMilestone: '%{user} переоткрыл задачу [%{summary}](%{viewUrl}) в текущем майлстоуне',
     newLink: 'Новый линк',
     newLinkMessage: 'Новая связь, эта задача **%{relation}** [%{key} "%{summary}"](%{viewUrl})',
     deleteLink: 'Связь удалена',
@@ -76,6 +78,7 @@ export const dict = Object.freeze({
     keyAlreadyExistForAdd: 'Ключ "%{typeTaskFromUser}" уже добавлен в настройки для проекта "%{projectKey}"',
     commandNotFound: 'Неправильная команда.',
     issueNameExist: 'Не найдено название задачи.<br>Используйте команду !create ТИП_ЗАДАЧИ  название задачи в Jira',
+    issueLabelNotExist: 'ВНИМАНИЕ! Необходимо установить лэйбл для задачи!',
     issueNameTooLong:
         'Название задачи слишком длинное или содержит управляющие символы<br>Пожалуйста используйте максимум 255 символов и не используйте управляющие символы',
     ignoreKeyAdded: 'Ключ "%{typeTaskFromUser}" был добавлен для проекта "%{projectKey}".',

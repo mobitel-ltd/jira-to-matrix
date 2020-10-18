@@ -1,6 +1,12 @@
 import { BaseChatApi } from '../messengers/base-api';
 import { GitlabPushCommit, GitlabPipeline, GitlabLabelHook } from '../task-trackers/gitlab/types';
 
+export interface DefaultLabel {
+    name: string;
+    // description: string;
+    // color: string;
+}
+
 export interface Config {
     port: string;
     lang: 'en' | 'ru';
@@ -10,9 +16,11 @@ export interface Config {
         url: string;
         user: string;
         password: string;
+        defaultLabel?: DefaultLabel;
     };
     features: {
         createRoom: boolean;
+        createProjectRoom?: boolean;
         inviteNewMembers: boolean;
         postComments: boolean;
         postEachComments?: boolean;
@@ -175,9 +183,14 @@ export interface DescriptionFields {
     priority: string;
 }
 
-export enum IssueStateEnum {
+export enum RoomViewStateEnum {
     close = 'close',
     open = 'open',
+}
+
+export enum MilestoneStateEnum {
+    close = 'close',
+    open = 'active',
 }
 
 export interface Selectors {
@@ -193,7 +206,7 @@ export interface Selectors {
 
     // getMilestoneRoomName(body): string;
 
-    composeRoomName(key: string, options: { summary: string; state?: IssueStateEnum; milestone?: string }): string;
+    composeRoomName(key: string, options: { summary: string; state?: RoomViewStateEnum; milestone?: string }): string;
 
     getIssueChanges(body): IssueChanges[] | undefined;
 
@@ -269,6 +282,11 @@ export interface TaskTracker {
     selectors: Selectors;
 
     parser: Parser;
+
+    init(): TaskTracker;
+
+    createLink(urlRoom: string, body: string);
+
     getMilestoneUrl(body: any): string | undefined;
 
     getMilestoneWatchers(key): Promise<string[]>;
@@ -325,7 +343,7 @@ export interface TaskTracker {
     /**
      * Make jira request to get all watchers, assign, creator and reporter of issue from url
      */
-    getIssueWatchers(keyOrId: string): Promise<string[]>;
+    getIssueWatchers(keyOrId: string): Promise<{ displayName: string; userId?: string }[]>;
 
     // /**
     //  * Make GET request to jira by ID to get linked issues
@@ -670,12 +688,16 @@ export interface PostIssueUpdatesData {
 }
 
 export interface PostPipelineData {
-    issueKeys: string[];
-    pipelineData: GitlabPipeline;
+    pipelineData: {
+        header: string;
+        key: string;
+        pipeInfo: GitlabPipeline;
+    }[];
     author: string;
 }
 
 export interface PushCommitData {
+    // projectNamespace: string;
     keyAndCommits: Record<string, GitlabPushCommit[]>;
     author: string;
 }
@@ -689,6 +711,7 @@ export enum MilestoneUpdateStatus {
     Created = 'created',
     Closed = 'closed',
     Deleted = 'deleted',
+    Reopen = 'reopen',
 }
 
 export interface PostMilestoneUpdatesData {
@@ -722,7 +745,7 @@ export interface PostNewLinksData {
 export interface UploadData {
     issueKey: string;
     uploadInfo: string;
-    uploadUrl: string;
+    uploadUrls: string[];
 }
 
 export interface PostCommentData {

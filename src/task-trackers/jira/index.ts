@@ -40,15 +40,17 @@ export class Jira implements TaskTracker {
     public selectors: JiraSelectors;
     public parser: JiraParser;
 
-    constructor(options: {
-        url: string;
-        user: string;
-        inviteIgnoreUsers: string[];
-        password: string;
-        interval: number;
-        count: number;
-        features: Config['features'];
-    }) {
+    constructor(
+        private options: {
+            url: string;
+            user: string;
+            inviteIgnoreUsers: string[];
+            password: string;
+            interval: number;
+            count: number;
+            features: Config['features'];
+        },
+    ) {
         this.url = options.url;
         this.user = options.user;
         this.password = options.password;
@@ -61,6 +63,10 @@ export class Jira implements TaskTracker {
     }
 
     static expandParams = { expand: 'renderedFields' };
+
+    init(): Jira {
+        return new Jira(this.options);
+    }
 
     getMilestoneWatchers = () => [] as any;
 
@@ -132,6 +138,10 @@ export class Jira implements TaskTracker {
         const url = this.getUrl('issue', keyOrId, 'comment');
 
         await this.requestPost(url, schemas.info(bodyText));
+    }
+
+    createLink(urlRoom: string, body: string): string {
+        return `[${body}|${urlRoom}]`;
     }
 
     /**
@@ -210,7 +220,7 @@ export class Jira implements TaskTracker {
     /**
      * Make jira request to get all watchers, assign, creator and reporter of issue from url
      */
-    async getIssueWatchers(keyOrId: string): Promise<string[]> {
+    async getIssueWatchers(keyOrId: string): Promise<{ displayName: string }[]> {
         const url = this.getUrl('issue', keyOrId, 'watchers');
         const body = await this.request(url);
         const watchers =
@@ -219,12 +229,13 @@ export class Jira implements TaskTracker {
         const issue = await this.getIssue(keyOrId);
         const roomMembers = this.selectors.getIssueMembers(issue);
 
-        const allWatchersSet = new Set([...roomMembers, ...watchers]);
+        const allWatchersSet: Set<string> = new Set([...roomMembers, ...watchers]);
 
         return [...allWatchersSet]
             .filter(Boolean)
             .filter(user => this._isExpectedToInvite(user))
-            .filter(user => !user.includes(this.user));
+            .filter(user => !user.includes(this.user))
+            .map(displayName => ({ displayName }));
     }
 
     /**

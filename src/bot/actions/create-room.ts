@@ -6,7 +6,7 @@ import { infoBody } from '../../lib/messages';
 import { CreateRoomData, TaskTracker, DescriptionFields } from '../../types';
 import { errorTracing } from '../../lib/utils';
 import { LINE_BREAKE_TAG, INDENT } from '../../lib/consts';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 
 const logger = getLogger(module);
@@ -34,7 +34,7 @@ interface CreateMilestoneRoomOptions {
     topic: string;
 }
 
-export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
+export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> {
     getEpicInfo(epicLink) {
         epicLink === translate('miss')
             ? ''
@@ -98,15 +98,24 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
         }
     }
 
-    async createIssueRoom(issue: CreateIssueRoomOptions): Promise<string> {
+    async createIssueRoom({
+        key,
+        summary,
+        projectKey,
+        descriptionFields,
+        roomName,
+        statusColors,
+    }: CreateIssueRoomOptions): Promise<string> {
         try {
-            const { key, summary, projectKey, descriptionFields, roomName, statusColors } = issue;
-
             const autoinviteUsers = await this.getAutoinviteUsers(projectKey, descriptionFields.typeName);
 
-            const issueWatchers = await this.taskTracker.getIssueWatchers(issue.key);
+            const issueWatchers = await this.taskTracker.getIssueWatchers(key);
             const issueWatchersChatIds = await Promise.all(
-                issueWatchers.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
+                issueWatchers.map(({ displayName, userId }) =>
+                    userId
+                        ? this.currentChatItem.getChatUserId(userId)
+                        : this.currentChatItem.getUserIdByDisplayName(displayName),
+                ),
             );
 
             const invite = [...issueWatchersChatIds, ...autoinviteUsers];
@@ -131,6 +140,11 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
 
             await this.currentChatItem.sendHtmlMessage(roomId, body, htmlBody);
             await this.currentChatItem.sendHtmlMessage(roomId, infoBody, infoBody);
+
+            if (statusColors === this.defaultAvatarColor) {
+                const issueLabelExist = translate('issueLabelNotExist');
+                await this.currentChatItem.sendHtmlMessage(roomId, issueLabelExist, issueLabelExist);
+            }
 
             return roomId;
         } catch (err) {
@@ -160,8 +174,8 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
     }
 
     async getCreateIsueOptions(keyOrId, hookLabels, issueBody): Promise<CreateIssueRoomOptions> {
-        const statusColors =
-            (await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels)) || this.defaultAvatarColor;
+        const currentIssueColor = await this.taskTracker.getCurrentIssueColor(keyOrId, hookLabels);
+        const statusColors = currentIssueColor.length ? currentIssueColor : this.defaultAvatarColor;
 
         return {
             key: this.taskTracker.selectors.getIssueKey(issueBody)!,
@@ -192,7 +206,9 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
                     const roomId = await this.createIssueRoom(checkedIssue);
                     await this.taskTracker.sendMessage(
                         checkedIssue.key,
-                        translate('roomCreatedMessage', { link: this.chatApi.getRoomLink(roomId) }),
+                        translate('roomCreatedMessage', {
+                            link: this.taskTracker.createLink(this.chatApi.getRoomLink(roomId), translate('chat')),
+                        }),
                     );
                 }
 
@@ -214,7 +230,7 @@ export class CreateRoom extends BaseAction<ChatFasade, TaskTracker> implements R
                     }
                 }
             }
-            if (projectKey) {
+            if (projectKey && this.config.features.createProjectRoom) {
                 (await this.currentChatItem.getRoomIdByName(projectKey)) || (await this.createProjectRoom(projectKey));
             }
 

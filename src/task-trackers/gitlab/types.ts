@@ -12,6 +12,31 @@ export interface HookUser {
     avatar_url: string;
 }
 
+export interface Groups {
+    id: number;
+    web_url: string;
+    name: string;
+    path: string;
+    description: string | null;
+    visibility: string;
+    share_with_group_lock: boolean;
+    require_two_factor_authentication: boolean;
+    two_factor_grace_period: number;
+    project_creation_level: string;
+    auto_devops_enabled: null | string;
+    subgroup_creation_level: string;
+    emails_disabled: null | string;
+    mentions_disabled: null | string;
+    lfs_enabled: boolean;
+    default_branch_protection: number;
+    avatar_url: string | null;
+    request_access_enabled: boolean;
+    full_name: string;
+    full_path: string;
+    created_at: string;
+    parent_id: null | number;
+}
+
 export interface GitlabLabelHook {
     id: number;
     title: string;
@@ -29,7 +54,7 @@ export interface GitlabLabel {
     id: number;
     name: string;
     color: string;
-    description: string;
+    description: string | null;
     description_html: string;
     text_color: string;
     subscribed: boolean;
@@ -304,19 +329,23 @@ export interface GitlabPipelineHook {
     builds: PipelineBuild[];
 }
 
-export interface GitlabPipeline {
-    object_kind: HookTypes.Pipeline;
-    object_attributes: {
-        url: string;
-        username: string;
-        ref: string;
-        tag: boolean;
-        sha: string;
-        status: string;
-        created_at: string;
-        duration: number;
-        stages: Record<string, Record<string, string>>[];
-    };
+export type GitlabPipeline = SuccessAttributes | FaileAttributes;
+
+interface SuccessAttributes {
+    url: string;
+    username: string;
+    sha: string;
+}
+
+// https://stackoverflow.com/questions/44497388/typescript-array-to-string-literal-type
+export const successStatus = ['manual', 'success'] as const;
+
+// export interface SuccessAttributes extends SuccessAttributes {
+//     status: typeof successStatus[number];
+// }
+
+export interface FaileAttributes extends SuccessAttributes {
+    stages: Record<string, Record<string, string>[]>[];
 }
 
 export interface GitlabUserDataShort {
@@ -510,13 +539,14 @@ export interface GitlabSelectors extends Selectors {
     getMilestoneViewUrl(body): string;
     getMilestoneRoomName(body): string | undefined;
     getAssigneeDisplayName(body: GitlabIssue): string[];
+    getAssigneeUserId(body: GitlabIssue): string[];
     getMilestoneId(body): number | null;
     getPostKeys(body: GitlabPipelineHook): string[];
     isPipelineHook(body: any): boolean;
     getFullNameWithId(body: GitlabPushHook | GitlabPipelineHook): string;
     keysForCheckIgnore(body): string | string[];
     getCommitKeysBody(body: GitlabPushHook): Record<string, GitlabPushCommit[]>;
-    getUploadUrl(body): string | null | undefined;
+    getUploadUrl(body): string[] | null | undefined;
     isUploadBody(body): boolean;
     getIssueLabels(body): GitlabLabelHook[];
     getUploadInfo(body): string;
@@ -529,6 +559,7 @@ export interface GitlabSelectors extends Selectors {
     transformToKey(namespaceWithProject: string, issueId: number, type?: KeyType): string;
     // true if hook should be ignored
     isIgnoreHookType(body): boolean;
+    extractProjectNameFromIssueKey(key: string): string;
 }
 
 export enum Colors {

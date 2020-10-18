@@ -1,13 +1,13 @@
 import * as R from 'ramda';
 import { getLogger } from '../../modules/log';
 import { errorTracing } from '../../lib/utils';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { InviteNewMembersData, TaskTracker } from '../../types';
 
 const logger = getLogger(module);
 
-export class InviteNewMembers extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
+export class InviteNewMembers extends BaseAction<ChatFasade, TaskTracker> {
     async run({ key, typeName, projectKey }: InviteNewMembersData): Promise<string[] | false> {
         const {
             messenger: { bots },
@@ -24,7 +24,9 @@ export class InviteNewMembers extends BaseAction<ChatFasade, TaskTracker> implem
 
             const issueWatchers = await this.taskTracker.getIssueWatchers(key);
             const issueWatchersChatIds = await Promise.all(
-                issueWatchers.map(displayName => this.chatApi.getUserIdByDisplayName(displayName)),
+                issueWatchers.map(({ displayName, userId }) =>
+                    userId ? this.chatApi.getChatUserId(userId) : this.chatApi.getUserIdByDisplayName(displayName),
+                ),
             );
 
             const autoinviteUsers = projectKey && typeName ? await this.getAutoinviteUsers(projectKey, typeName) : [];

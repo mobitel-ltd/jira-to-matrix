@@ -224,7 +224,7 @@ export class ChatFasade {
      * @param {string} displayName - chat user id
      * @returns {Promise<string>} true if user invited
      */
-    getUserIdByDisplayName(displayName) {
+    getUserIdByDisplayName(displayName: string): Promise<string> {
         return this.worker.getUserIdByDisplayName(displayName);
     }
 

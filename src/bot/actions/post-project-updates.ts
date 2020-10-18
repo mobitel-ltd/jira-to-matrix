@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import marked from 'marked';
 import { translate } from '../../locales';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { ChatFasade } from '../../messengers/chat-fasade';
 import { TaskTracker } from '../../types';
 
-export class PostProjectUpdates extends BaseAction<ChatFasade, TaskTracker> implements RunAction {
+export class PostProjectUpdates extends BaseAction<ChatFasade, TaskTracker> {
     getMsg(type, data) {
         const dict = {
             issue_created: this.getNewEpicMessageBody.bind(this),

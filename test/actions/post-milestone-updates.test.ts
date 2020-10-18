@@ -15,6 +15,7 @@ import gitlabIssueJson from '../fixtures/gitlab-api-requests/issue.json';
 import { PostMilestoneUpdates } from '../../src/bot/actions/post-milestone-updates';
 import gitlabProjectJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
 import milestoneIssuesJson from '../fixtures/gitlab-api-requests/milestone-issue.json';
+import issueReopen from '../fixtures/webhooks/gitlab/issue/reopened.json';
 
 const { expect } = chai;
 
@@ -53,6 +54,8 @@ describe('PostMilestoneUpdates', () => {
                 .get(`/projects/${gitlabProjectJson.id}/issues/${createdIssue.object_attributes.iid}`)
                 .times(3)
                 .reply(200, gitlabIssueJson)
+                .get(`/projects/${gitlabProjectJson.id}/issues/${issueReopen.object_attributes.iid}`)
+                .reply(200, gitlabIssueJson)
                 .get(`/projects/${gitlabProjectJson.id}/issues/${issueClosed.object_attributes.iid}`)
                 .reply(200, gitlabIssueJson);
 
@@ -73,7 +76,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: createdIssue.object_attributes.title,
                 user: createdIssue.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
@@ -104,7 +107,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: createdIssue.object_attributes.title,
                 user: createdIssue.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
@@ -119,7 +122,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: milestoneUpdated.object_attributes.title,
                 user: milestoneUpdated.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
@@ -134,7 +137,7 @@ describe('PostMilestoneUpdates', () => {
                 summary: milestoneDeleted.object_attributes.title,
                 user: milestoneDeleted.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
@@ -149,7 +152,22 @@ describe('PostMilestoneUpdates', () => {
                 summary: issueClosed.object_attributes.title,
                 user: issueClosed.user.name,
             });
-            const expectedData = [roomId, marked(message), marked(message)];
+            const expectedData = [roomId, message, marked(message)];
+
+            expect(result).to.be.eq(message);
+            expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);
+        });
+
+        it('Should send message to milestone room with info about reopen issue', async () => {
+            const updateData = gitlabTracker.parser.getPostMilestoneUpdatesData(issueReopen);
+            const result = await postMilestoneUpdates.run(updateData);
+
+            const message = translate('issueReopenInMilestone', {
+                viewUrl: gitlabTracker.getViewUrl(updateData.issueKey),
+                summary: issueReopen.object_attributes.title,
+                user: issueReopen.user.name,
+            });
+            const expectedData = [roomId, message, marked(message)];
 
             expect(result).to.be.eq(message);
             expect(chatSingle.sendHtmlMessage).have.to.be.calledWithExactly(...expectedData);

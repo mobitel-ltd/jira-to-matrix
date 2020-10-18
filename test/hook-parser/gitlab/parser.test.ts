@@ -10,7 +10,7 @@ import {
     PostIssueUpdatesData,
     InviteNewMembersData,
     UploadData,
-    IssueStateEnum,
+    RoomViewStateEnum,
     PostPipelineData,
     PostMilestoneUpdatesData,
     MilestoneUpdateStatus,
@@ -23,12 +23,17 @@ import uploadHook from '../../fixtures/webhooks/gitlab/upload.json';
 import gitlabClosedIssue from '../../fixtures/webhooks/gitlab/issue/closed.json';
 import gitlabReopenedIssue from '../../fixtures/webhooks/gitlab/issue/reopened.json';
 import createdIssue from '../../fixtures/webhooks/gitlab/issue/created.json';
-import pipelineHook from '../../fixtures/webhooks/gitlab/pipe-success.json';
+import pipelineHookSuccess from '../../fixtures/webhooks/gitlab/pipe-success.json';
+import pipelineHookFail from '../../fixtures/webhooks/gitlab/pipe-failed.json';
 import uploadHookBin from '../../fixtures/webhooks/gitlab/upload-bin.json';
 import { stub } from 'sinon';
-import { HookTypes } from '../../../src/task-trackers/gitlab/types';
 import milestoneUpdated from '../../fixtures/webhooks/gitlab/issue/milestone-updated.json';
 import milestoneDeleted from '../../fixtures/webhooks/gitlab/issue/milestone-deleted.json';
+import { GitlabParser } from '../../../src/task-trackers/gitlab/parser.gtilab';
+import {
+    extractKeysFromCommitMessage,
+    extractProjectNameFromIssueKey,
+} from '../../../src/task-trackers/gitlab/selectors';
 
 describe('Gitlab actions', () => {
     const fakeTimestamp = 1596049533906;
@@ -147,7 +152,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 issueUpdated.object_attributes.title +
                 ';' +
-                IssueStateEnum.open +
+                RoomViewStateEnum.open +
                 ';' +
                 issueUpdated.project.path_with_namespace +
                 '/issues/' +
@@ -247,7 +252,7 @@ describe('Gitlab actions', () => {
         };
         const data: UploadData = {
             issueKey: uploadHook.project.path_with_namespace + '-' + uploadHook.issue.iid,
-            uploadUrl: uploadHook.object_attributes.description.slice(8, -1),
+            uploadUrls: [uploadHook.object_attributes.description.slice(8, -1)],
             uploadInfo: translate('uploadInfo', { name: `${uploadHook.user.username} ${uploadHook.user.name}` }),
         };
         const expected = [
@@ -281,7 +286,7 @@ describe('Gitlab actions', () => {
         };
         const data: UploadData = {
             issueKey: uploadHookBin.project.path_with_namespace + '-' + uploadHookBin.issue.iid,
-            uploadUrl: uploadHookBin.project.web_url + uploadHookBin.object_attributes.description.slice(19, -1),
+            uploadUrls: [uploadHookBin.project.web_url + uploadHookBin.object_attributes.description.slice(19, -1)],
             uploadInfo: translate('uploadInfo', {
                 name: `${uploadHookBin.user.username} ${uploadHookBin.user.name}`,
             }),
@@ -316,7 +321,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 gitlabClosedIssue.object_attributes.title +
                 ';' +
-                IssueStateEnum.close +
+                RoomViewStateEnum.close +
                 ';' +
                 gitlabClosedIssue.project.path_with_namespace +
                 '/issues/' +
@@ -324,7 +329,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 ';',
             hookLabels: [],
-            changes: [{ field: 'status', newValue: IssueStateEnum.close }],
+            changes: [{ field: 'status', newValue: RoomViewStateEnum.close }],
         };
         const createRoomData: CreateRoomData = {
             issue: {
@@ -378,7 +383,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 milestoneUpdated.object_attributes.title +
                 ';' +
-                IssueStateEnum.open +
+                RoomViewStateEnum.open +
                 ';' +
                 milestoneUpdated.project.path_with_namespace +
                 '/issues/' +
@@ -452,7 +457,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 milestoneDeleted.object_attributes.title +
                 ';' +
-                IssueStateEnum.open +
+                RoomViewStateEnum.open +
                 ';' +
                 milestoneDeleted.project.path_with_namespace +
                 '/issues/' +
@@ -525,7 +530,7 @@ describe('Gitlab actions', () => {
                 ';' +
                 gitlabReopenedIssue.object_attributes.title +
                 ';' +
-                IssueStateEnum.open +
+                RoomViewStateEnum.open +
                 ';' +
                 gitlabReopenedIssue.project.path_with_namespace +
                 '/issues/' +
@@ -533,8 +538,16 @@ describe('Gitlab actions', () => {
                 ';' +
                 ';',
             hookLabels: gitlabReopenedIssue.labels,
-            changes: [{ field: 'status', newValue: IssueStateEnum.open }],
+            changes: [{ field: 'status', newValue: RoomViewStateEnum.open }],
         };
+        const postMisestoneUpdatesData: PostMilestoneUpdatesData = {
+            issueKey: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
+            milestoneId: gitlabReopenedIssue.object_attributes.milestone_id,
+            status: MilestoneUpdateStatus.Reopen,
+            summary: gitlabReopenedIssue.object_attributes.title,
+            user: gitlabReopenedIssue.user.name,
+        };
+
         const createRoomData: CreateRoomData = {
             issue: {
                 key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
@@ -544,7 +557,7 @@ describe('Gitlab actions', () => {
                 summary: gitlabReopenedIssue.object_attributes.title,
             },
             projectKey: gitlabReopenedIssue.project.path_with_namespace,
-            milestoneId: undefined,
+            milestoneId: gitlabReopenedIssue.object_attributes.milestone_id,
         };
         const inviteNewMembersData: InviteNewMembersData = {
             key: gitlabReopenedIssue.project.path_with_namespace + '-' + gitlabReopenedIssue.object_attributes.iid,
@@ -566,6 +579,11 @@ describe('Gitlab actions', () => {
                 funcName: 'postIssueUpdates',
                 data: postIssueUpdateData,
             },
+            {
+                redisKey: 'postMilestoneUpdates_' + fakeTimestamp,
+                funcName: 'postMilestoneUpdates',
+                data: postMisestoneUpdatesData,
+            },
         ];
 
         const res = hookParser.getFuncAndBody(gitlabReopenedIssue);
@@ -573,54 +591,30 @@ describe('Gitlab actions', () => {
         assert.deepEqual(res, expected);
     });
 
-    it.skip('should post pipeline data for pipeline hook', () => {
+    it('should post pipeline data for success pipeline hook', () => {
         const postPipelineData: PostPipelineData = {
-            author: `${pipelineHook.user.username} ${pipelineHook.user.name}`,
+            author: `${pipelineHookSuccess.user.username} ${pipelineHookSuccess.user.name}`,
+
             // issue id is extracted pipelineHook.commit.message
-            issueKeys: [pipelineHook.project.path_with_namespace + '-' + 2],
-            pipelineData: {
-                object_kind: HookTypes.Pipeline,
-                object_attributes: {
-                    created_at: pipelineHook.object_attributes.created_at,
-                    duration: pipelineHook.object_attributes.duration,
-                    ref: pipelineHook.object_attributes.ref,
-                    sha: pipelineHook.object_attributes.sha,
-                    status: pipelineHook.object_attributes.status,
-                    tag: pipelineHook.object_attributes.tag,
-                    username: pipelineHook.user.username,
-                    url: pipelineHook.project.web_url + '/pipelines/' + pipelineHook.object_attributes.id,
-                    stages: [
-                        {
-                            validate: {
-                                'lint-dockerfile': 'success',
-                                'node-gitignore-validate': 'success',
-                                'dockerignore-validate': 'success',
-                                'scan-sonarqube': 'success',
-                                'node-docs-validate': 'success',
-                            },
-                        },
-                        {
-                            'build-release': {
-                                'release-image-dind': 'success',
-                            },
-                        },
-                        {
-                            'build-debug': {
-                                'debug-image-dind': 'success',
-                            },
-                        },
-                        {
-                            test: {
-                                'node-coverage': 'success',
-                                'node-unit': 'success',
-                                'node-lint': 'success',
-                                'security-todo': 'success',
-                            },
-                        },
-                    ],
+            //issueKeys: [pipelineHookSuccess.project.path_with_namespace + '-' + 2],
+            pipelineData: extractKeysFromCommitMessage(
+                pipelineHookSuccess.commit.message,
+                pipelineHookSuccess.project.path_with_namespace,
+            ).map(key => ({
+                header: GitlabParser.getHeader(
+                    extractProjectNameFromIssueKey(key),
+                    pipelineHookSuccess.object_attributes.ref,
+                    pipelineHookSuccess.object_attributes.status,
+                ),
+                key,
+                pipeInfo: {
+                    url: pipelineHookSuccess.project.web_url + '/pipelines/' + pipelineHookSuccess.object_attributes.id,
+                    username: pipelineHookSuccess.user.username,
+                    sha: pipelineHookSuccess.object_attributes.sha,
                 },
-            },
+            })),
         };
+
         const expected = [
             {
                 redisKey: REDIS_ROOM_KEY,
@@ -633,7 +627,64 @@ describe('Gitlab actions', () => {
             },
         ];
 
-        const res = hookParser.getFuncAndBody(pipelineHook);
+        const res = hookParser.getFuncAndBody(pipelineHookSuccess);
+
+        assert.deepEqual(res, expected);
+    });
+
+    it('should post pipeline data for failed pipeline hook', () => {
+        const stages = [
+            {
+                'build-release': [
+                    {
+                        'release-image-dind': 'failed',
+                    },
+                ],
+            },
+        ];
+
+        // const filteredOutput = stages.map(items => Lo.filter(items, el =>'failed'));
+        // console.log(filteredOutput);
+
+        const failOutput = {
+            sha: pipelineHookFail.object_attributes.sha,
+            username: pipelineHookFail.user.username,
+            url: pipelineHookFail.project.web_url + '/pipelines/' + pipelineHookFail.object_attributes.id,
+            stages: stages,
+        };
+
+        const postPipelineData: PostPipelineData = {
+            author: `${pipelineHookSuccess.user.username} ${pipelineHookSuccess.user.name}`,
+
+            // issue id is extracted pipelineHook.commit.message
+            //issueKeys: [pipelineHookSuccess.project.path_with_namespace + '-' + 2],
+            pipelineData: extractKeysFromCommitMessage(
+                pipelineHookFail.commit.message,
+                pipelineHookFail.project.path_with_namespace,
+            ).map(key => ({
+                header: GitlabParser.getHeader(
+                    extractProjectNameFromIssueKey(key),
+                    pipelineHookFail.object_attributes.ref,
+                    pipelineHookFail.object_attributes.status,
+                ),
+                key,
+                pipeInfo: failOutput,
+            })) as any,
+        };
+
+        const expected = [
+            {
+                redisKey: REDIS_ROOM_KEY,
+                createRoomData: false,
+            },
+            {
+                redisKey: 'postPipeline_' + fakeTimestamp,
+                funcName: 'postPipeline',
+                data: postPipelineData,
+            },
+        ];
+
+        const res = hookParser.getFuncAndBody(pipelineHookFail);
 
         assert.deepEqual(res, expected);
     });

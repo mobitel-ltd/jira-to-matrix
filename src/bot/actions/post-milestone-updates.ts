@@ -5,13 +5,15 @@ import { getLogger } from '../../modules/log';
 import { redis, getRedisMilestoneKey } from '../../redis-client';
 import { PostMilestoneUpdatesData, MilestoneUpdateStatus } from '../../types';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { BaseAction, RunAction } from './base-action';
+import { BaseAction } from './base-action';
 import { Gitlab } from '../../task-trackers/gitlab';
 import { GitlabIssue, Milestone } from '../../task-trackers/gitlab/types';
 
 const logger = getLogger(module);
 
-export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> implements RunAction {
+type MessageWithSendStatus = { send: boolean; message: string };
+
+export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> {
     static alreadyAddedToMilestoneMessage = (issueKey, milestoneId) =>
         `Issue ${issueKey} is already added to milestone ${milestoneId}`;
 
@@ -24,6 +26,7 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
             [MilestoneUpdateStatus.Created]: options => translate('issueAddedToMilestone', options),
             [MilestoneUpdateStatus.Closed]: options => translate('issueClosedInMilestone', options),
             [MilestoneUpdateStatus.Deleted]: options => translate('issueDeletedFromMilestone', options),
+            [MilestoneUpdateStatus.Reopen]: options => translate('issueReopenInMilestone', options),
         };
 
         return messageMap[status]({ viewUrl, summary, user });
@@ -39,58 +42,6 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         return await this.getAvatarLink(issueKey, colors);
     }
 
-    async postNewIssue(
-        milestone: { key: string; roomId: string },
-        issue: { key: string; summary: string; user: string },
-    ): Promise<string | undefined> {
-        const redisEpicKey = getRedisMilestoneKey(milestone.key);
-        if (await redis.isInMilestone(redisEpicKey, issue.key)) {
-            const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(issue.key, milestone.key);
-            logger.debug(message);
-
-            return message;
-        }
-
-        await redis.addToList(redisEpicKey, issue.key);
-
-        const message = this.getMessage(issue, MilestoneUpdateStatus.Created);
-
-        await this.chatApi.sendHtmlMessage(milestone.roomId, marked(message));
-        logger.info(`Info about issue ${issue.key} added to milestone ${milestone.key}`);
-
-        return message;
-    }
-
-    private async postIssueDeletedInfo(
-        milestone: { key: string; roomId: string },
-        issue: { key: string; summary: string; user: string },
-    ): Promise<string> {
-        const redisEpicKey = getRedisMilestoneKey(milestone.key);
-        if (await redis.isInMilestone(redisEpicKey, issue.key)) {
-            await redis.remFromList(redisEpicKey, issue.key);
-            logger.debug(`Removed issue key ${issue.key} from milestone ${milestone.key} in redis`);
-        }
-
-        const message = this.getMessage(issue, MilestoneUpdateStatus.Deleted);
-
-        await this.chatApi.sendHtmlMessage(milestone.roomId, marked(message));
-        logger.info(`Info about issue ${issue.key} deleting is added to milestone ${milestone.key}`);
-
-        return message;
-    }
-
-    private async postIssueClosedInfo(
-        milestone: { key: string; roomId: string },
-        issue: { key: string; summary: string; user: string },
-    ): Promise<string> {
-        const message = this.getMessage(issue, MilestoneUpdateStatus.Closed);
-
-        await this.chatApi.sendHtmlMessage(milestone.roomId, marked(message));
-        logger.info(`Info about issue ${issue.key} closing is added to milestone ${milestone.key}`);
-
-        return message;
-    }
-
     async inviteNewMembers(
         roomId: string,
         milestoneKey: string,
@@ -101,9 +52,9 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         // const milestoneUrl = this.taskTracker.getMilestoneUrl(issueBody);
         // if (milestoneUrl) {
         //     const milestoneWatchers = await this.taskTracker.getMilestoneWatchers(milestoneUrl);
-        const assignees = this.taskTracker.selectors.getAssigneeDisplayName(issueBody);
+        const assignees = this.taskTracker.selectors.getAssigneeUserId(issueBody);
         const milestoneWatchersChatIds = await Promise.all(
-            assignees.map(displayName => this.currentChatItem.getUserIdByDisplayName(displayName)),
+            assignees.map(userId => this.currentChatItem.getChatUserId(userId)),
         );
         const {
             messenger: { bots },
@@ -124,6 +75,58 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
         // }
     }
 
+    async getMessageByStatus(
+        status: MilestoneUpdateStatus,
+        milestone: { key: string },
+        issue: { key: string; summary: string; user: string },
+    ): Promise<MessageWithSendStatus> {
+        const actionsByStatus: Record<
+            MilestoneUpdateStatus,
+            () => Promise<MessageWithSendStatus> | MessageWithSendStatus
+        > = {
+            [MilestoneUpdateStatus.Created]: async () => {
+                const redisEpicKey = getRedisMilestoneKey(milestone.key);
+                if (await redis.isInMilestone(redisEpicKey, issue.key)) {
+                    const message = PostMilestoneUpdates.alreadyAddedToMilestoneMessage(issue.key, milestone.key);
+                    logger.debug(message);
+
+                    return { send: false, message };
+                }
+
+                await redis.addToList(redisEpicKey, issue.key);
+
+                const message = this.getMessage(issue, MilestoneUpdateStatus.Created);
+
+                return { message, send: true };
+            },
+            [MilestoneUpdateStatus.Closed]: () => {
+                const message = this.getMessage(issue, MilestoneUpdateStatus.Closed);
+
+                return { message, send: true };
+            },
+            [MilestoneUpdateStatus.Reopen]: () => {
+                const message = this.getMessage(issue, MilestoneUpdateStatus.Reopen);
+
+                return { message, send: true };
+            },
+            [MilestoneUpdateStatus.Deleted]: async () => {
+                const redisEpicKey = getRedisMilestoneKey(milestone.key);
+                if (await redis.isInMilestone(redisEpicKey, issue.key)) {
+                    await redis.remFromList(redisEpicKey, issue.key);
+                    logger.debug(`Removed issue key ${issue.key} from milestone ${milestone.key} in redis`);
+                }
+
+                const message = this.getMessage(issue, MilestoneUpdateStatus.Deleted);
+
+                return { message, send: true };
+            },
+        };
+
+        const action = actionsByStatus[status];
+
+        return await action();
+    }
+
     async run({ issueKey, milestoneId, status, user, summary }: PostMilestoneUpdatesData): Promise<string | undefined> {
         try {
             const issue = await this.taskTracker.getIssue(issueKey);
@@ -131,26 +134,29 @@ export class PostMilestoneUpdates extends BaseAction<ChatFasade, Gitlab> impleme
             const milestoneRoomId = await this.chatApi.getRoomId(milestoneKey);
 
             await this.inviteNewMembers(milestoneRoomId, milestoneKey, issue);
+            const roomData = await this.chatApi.getRoomDataById(milestoneRoomId);
+            const roomName = await this.taskTracker.selectors.getMilestoneRoomName(issue);
 
-            if (issue.milestone) {
-                const newAvatarUrl = await this.getNewAvatarUrl(issueKey, issue.milestone);
-                if (newAvatarUrl) {
-                    await this.chatApi.setRoomAvatar(milestoneRoomId, newAvatarUrl);
+            if (roomName && roomData !== roomData?.name) {
+                await this.chatApi.updateRoomName(milestoneRoomId, roomName);
+            }
 
-                    logger.debug(`Room ${milestoneRoomId} have got new avatar ${newAvatarUrl}`);
+            const res = await this.getMessageByStatus(status, { key: milestoneKey }, { key: issueKey, summary, user });
+
+            if (res.send) {
+                await this.chatApi.sendHtmlMessage(milestoneRoomId, res.message, marked(res.message));
+
+                if (issue.milestone) {
+                    const newAvatarUrl = await this.getNewAvatarUrl(issueKey, issue.milestone);
+                    if (newAvatarUrl) {
+                        await this.chatApi.setRoomAvatar(milestoneRoomId, newAvatarUrl);
+
+                        logger.debug(`Room ${milestoneRoomId} have got new avatar ${newAvatarUrl}`);
+                    }
                 }
             }
 
-            const actionsByStatus = {
-                [MilestoneUpdateStatus.Created]: this.postNewIssue,
-                [MilestoneUpdateStatus.Closed]: this.postIssueClosedInfo,
-                [MilestoneUpdateStatus.Deleted]: this.postIssueDeletedInfo,
-            };
-
-            const action = actionsByStatus[status].bind(this);
-            const res = await action({ key: milestoneKey, roomId: milestoneRoomId }, { key: issueKey, summary, user });
-
-            return res;
+            return res.message;
         } catch (err) {
             throw ['Error in PostMilestoneUpdates', err].join('\n');
         }

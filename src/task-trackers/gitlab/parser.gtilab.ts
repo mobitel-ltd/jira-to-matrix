@@ -6,14 +6,22 @@ import {
     InviteNewMembersData,
     PostIssueUpdatesData,
     UploadData,
-    IssueStateEnum,
+    RoomViewStateEnum,
     PushCommitData,
     ActionNames,
     PostPipelineData,
     PostMilestoneUpdatesData,
     MilestoneUpdateStatus,
 } from '../../types';
-import { GitlabSelectors, HookTypes, GitlabPushHook, GitlabPipelineHook, PipelineBuild } from './types';
+import {
+    GitlabSelectors,
+    HookTypes,
+    GitlabPushHook,
+    GitlabPipelineHook,
+    PipelineBuild,
+    GitlabPipeline,
+    successStatus,
+} from './types';
 import Lo from 'lodash/fp';
 
 export class GitlabParser implements Parser {
@@ -25,30 +33,70 @@ export class GitlabParser implements Parser {
         return Boolean(this.features.postIssueUpdates && this.selectors.isPipelineHook(body));
     }
 
-    getPostPipelineData(body: GitlabPipelineHook): PostPipelineData {
+    // private isSuccessAttributes = (
+    //     attrributes: Omit<SuccessAttributes, 'status'> & { status: string },
+    // ): attrributes is SuccessAttributes => successStatus.some(el => el === attrributes.status);
+    static stageFilter = object =>
+        Object.entries(object).reduce((acc, [key, value]) => {
+            if (Array.isArray(value) && value.length) {
+                acc[key] = value;
+            }
+            return acc;
+        }, {});
+
+    private getPipelineData = (body: GitlabPipelineHook): GitlabPipeline => {
+        const baseAtributes = {
+            url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
+            username: body.user.username,
+            sha: body.object_attributes.sha,
+        };
+
+        if (successStatus.some(el => el === body.object_attributes.status)) {
+            return baseAtributes;
+        }
+
         const groupedBuilds = Lo.pipe(
             Lo.path('builds'),
             Lo.groupBy('stage'),
-            Lo.mapValues(Lo.map((el: PipelineBuild) => ({ [el.name]: el.status }))),
+            Lo.mapValues(
+                Lo.pipe(
+                    Lo.filter((el: PipelineBuild) => el.status !== 'success' && el.status !== 'skipped'),
+                    Lo.map((el: PipelineBuild) => ({ [el.name]: el.status })),
+                ),
+            ),
+            GitlabParser.stageFilter,
         )(body);
+
+        const stages = body.object_attributes.stages
+            .filter(el => groupedBuilds[el])
+            .map(el => ({ [el]: groupedBuilds[el] })) as any;
+
+        const failOutput = {
+            ...baseAtributes,
+            username: body.user.username,
+            sha: body.object_attributes.sha,
+            stages: stages,
+        };
+
+        return failOutput;
+    };
+    static getHeader = (project: string, ref: string, status: string) => `${project} (${ref}): ${status}`;
+
+    getPostPipelineData(body: GitlabPipelineHook): PostPipelineData {
+        const issueKeys = this.selectors.getPostKeys(body);
+        const pipelineData: PostPipelineData['pipelineData'] = issueKeys.map(key => {
+            const keyData = this.selectors.transformFromIssueKey(key);
+            const repoName = keyData.namespaceWithProject.split('/').reverse()[0];
+            return {
+                header: GitlabParser.getHeader(repoName, body.object_attributes.ref, body.object_attributes.status),
+                key: key,
+                pipeInfo: this.getPipelineData(body),
+            };
+        });
 
         return {
             author: this.selectors.getFullNameWithId(body),
-            issueKeys: this.selectors.getPostKeys(body),
-            pipelineData: {
-                object_kind: HookTypes.Pipeline,
-                object_attributes: {
-                    url: body.project.web_url + '/pipelines/' + body.object_attributes.id,
-                    status: body.object_attributes.status,
-                    username: body.user.username,
-                    created_at: body.object_attributes.created_at,
-                    duration: body.object_attributes.duration,
-                    ref: body.object_attributes.ref,
-                    sha: body.object_attributes.sha,
-                    tag: body.object_attributes.tag,
-                    stages: body.object_attributes.stages.map(el => ({ [el]: groupedBuilds[el] })) as any,
-                },
-            },
+            pipelineData,
         };
     }
 
@@ -61,6 +109,7 @@ export class GitlabParser implements Parser {
         const keyAndCommits = this.selectors.getCommitKeysBody(body);
 
         return {
+            // projectNamespace: this.selectors.getProjectKey(body)!,
             author,
             keyAndCommits,
         };
@@ -99,13 +148,13 @@ export class GitlabParser implements Parser {
         if (this.selectors.isCorrectWebhook(body, 'close')) {
             newRoomName = this.selectors.composeRoomName(oldKey, {
                 summary: this.selectors.getSummary(body)!,
-                state: IssueStateEnum.close,
+                state: RoomViewStateEnum.close,
             });
         }
         if (this.selectors.isCorrectWebhook(body, 'reopen')) {
             newRoomName = this.selectors.composeRoomName(oldKey, {
                 summary: this.selectors.getSummary(body)!,
-                state: IssueStateEnum.open,
+                state: RoomViewStateEnum.open,
             });
         }
         const isNewStatus = Boolean(changes.find(data => data.field === 'labels' || data.field === 'status'));
@@ -136,7 +185,11 @@ export class GitlabParser implements Parser {
 
         const parsedIssue = { key, summary, projectKey, descriptionFields, hookLabels };
 
-        return { issue: parsedIssue, projectKey, milestoneId };
+        return {
+            issue: parsedIssue,
+            projectKey: this.features.createProjectRoom ? projectKey : undefined,
+            milestoneId,
+        };
     }
 
     getPostCommentData(body): PostCommentData {
@@ -193,6 +246,7 @@ export class GitlabParser implements Parser {
         const status = Lo.cond([
             [isMilestoneDeleted, Lo.always(MilestoneUpdateStatus.Deleted)],
             [el => this.selectors.isCorrectWebhook(el, 'close'), Lo.always(MilestoneUpdateStatus.Closed)],
+            [el => this.selectors.isCorrectWebhook(el, 'reopen'), Lo.always(MilestoneUpdateStatus.Reopen)],
             [Lo.T, Lo.always(MilestoneUpdateStatus.Created)],
         ])(body);
 
@@ -220,7 +274,7 @@ export class GitlabParser implements Parser {
         return {
             uploadInfo: this.selectors.getUploadInfo(body)!,
             issueKey: this.selectors.getIssueKey(body),
-            uploadUrl: this.selectors.getUploadUrl(body)!,
+            uploadUrls: this.selectors.getUploadUrl(body)!,
         };
     }
 
@@ -236,10 +290,10 @@ export class GitlabParser implements Parser {
     }
 
     actionFuncs = {
-        postComment: this.isPostComment,
-        inviteNewMembers: this.isMemberInvite,
-        postIssueUpdates: this.isPostIssueUpdates,
-        upload: this.isUpload,
+        [ActionNames.PostComment]: this.isPostComment,
+        [ActionNames.InviteNewMembers]: this.isMemberInvite,
+        [ActionNames.PostIssueUpdates]: this.isPostIssueUpdates,
+        [ActionNames.Upload]: this.isUpload,
         [ActionNames.PostCommit]: this.isPostPushCommit,
         [ActionNames.Pipeline]: this.isPostPipeline,
         [ActionNames.PostMilestoneUpdates]: this.isPostMilestoneUpdates,

@@ -12,7 +12,7 @@ import {
 } from './types';
 import marked from 'marked';
 import { translate } from '../../locales';
-import { DescriptionFields, IssueChanges, IssueStateEnum } from '../../types';
+import { DescriptionFields, IssueChanges, RoomViewStateEnum } from '../../types';
 import { URL } from 'url';
 
 export enum KeyType {
@@ -97,6 +97,7 @@ interface IssueHookGetters<T = unknown> extends BodyGetters<T> {
 interface PushGetters<T> extends BaseGetters<T> {
     getCommitKeysBody(body: T): Record<string, GitlabPushCommit[]>;
     getFullNameWithId(body: T): string;
+    getProjectKey(body: T): string;
 }
 
 interface PipelineGetters extends BaseGetters<GitlabPipelineHook> {
@@ -115,7 +116,7 @@ interface CommentGetters<T> extends IssueHookGetters<T> {
         body: string;
     };
     isUploadBody(body: T): boolean;
-    getUploadUrl(body: T): string | undefined | null;
+    getUploadUrl(body: T): string[] | undefined | null;
 }
 
 interface IssueGetters<T> extends BodyGetters<T> {
@@ -123,23 +124,30 @@ interface IssueGetters<T> extends BodyGetters<T> {
     getMilestoneKey(body: T, id?: number): string | undefined;
     getMilestoneSummary(body: T): string | undefined;
     getAssigneeDisplayName(body: T): string[];
+    getAssigneeUserId(body: T): string[];
     getMilestoneRoomName(body: T): string | undefined;
     getMilestoneViewUrl(body: T): string;
 }
 
 const missField = translate('miss');
 
-const extractUrl = (text?: string): string | undefined | null => {
-    const res = text && text.match(/\[.*?\]\((.*?)\)/);
+// const extractUrl = (text?: string): string | undefined | null => {
+//     const res = text && text.match(/\[.*?\]\((.*?)\)/);
 
-    return res && res[1];
+//     return res && res[1];
+// };
+
+const extractUrl = (text: string): string[] | undefined | null => {
+    const regexp = /\[.*?\]\((.*?)\)/g;
+    const array = [...text.matchAll(regexp)].map(matched => matched[1]);
+    return array;
 };
 
 const getBodyWebhookEvent = (body: any): string | undefined => body?.object_kind;
 
 const getTypeEvent = body => body?.object_attributes?.action;
 
-const composeRoomName = (key: string, { summary, state = IssueStateEnum.open, milestone = '' }) => {
+const composeRoomName = (key: string, { summary, state = RoomViewStateEnum.open, milestone = '' }) => {
     const data = transformFromKey(key);
     const optionTypes: Record<KeyType, (project: string, id: number) => string[]> = {
         [KeyType.Issue]: (project, id) => [
@@ -269,10 +277,10 @@ const handlers: {
         getDescriptionFields: () => undefined,
         getIssueChanges: (body): any[] => {
             if (isCorrectWebhook(body, 'close')) {
-                return [{ field: 'status', newValue: IssueStateEnum.close }];
+                return [{ field: 'status', newValue: RoomViewStateEnum.close }];
             }
             if (isCorrectWebhook(body, 'reopen')) {
-                return [{ field: 'status', newValue: IssueStateEnum.open }];
+                return [{ field: 'status', newValue: RoomViewStateEnum.open }];
             }
 
             return (
@@ -328,12 +336,13 @@ const handlers: {
             }
 
             const base = body.object_attributes.description.split('(');
-            return body.project.web_url + base[1].slice(0, -1);
+            return [body.project.web_url + base[1].slice(0, -1)];
         },
         isUploadBody: body => body.object_attributes.note.includes('](/uploads/'),
         getFullNameWithId: body => getFullName(handlers.note.getDisplayName(body), handlers.note.getUserId(body)),
     },
     push: {
+        getProjectKey: body => body.project.path_with_namespace,
         getDisplayName: body => body.user_name,
         getUserId: body => body.user_username,
         getCommitKeysBody: body => {
@@ -389,7 +398,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
         const key = issueRequestHandlers.getFullKey(body);
         const summary = issueRequestHandlers.getSummary(body);
         const milestone = body.milestone === null ? '' : body.milestone.title;
-        const state = body.state === 'closed' ? IssueStateEnum.close : IssueStateEnum.open;
+        const state = body.state === RoomViewStateEnum.close ? RoomViewStateEnum.close : RoomViewStateEnum.open;
 
         return composeRoomName(key, { summary, state, milestone });
     },
@@ -398,7 +407,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
             const mil = body.milestone;
             const linkPart = new URL(mil.web_url).pathname.replace('/-/', '/').slice(1);
 
-            const data = ['#' + mil.id, mil.title.slice(0, 60), linkPart];
+            const data = ['#' + mil.id, mil.title.slice(0, 60), mil.state, linkPart];
 
             return data.join(';').concat(';');
         }
@@ -407,6 +416,7 @@ const issueRequestHandlers: IssueGetters<GitlabIssue> = {
     getIssueChanges: () => undefined,
     getMembers: body => [body.author.username, body.assignee?.username].filter(Boolean) as string[],
     getAssigneeDisplayName: body => [body.assignee?.name].filter(Boolean) as string[],
+    getAssigneeUserId: body => [body.assignee?.username].filter(Boolean) as string[],
     getUserId: body => body.author.username,
     getDisplayName: body => body.author.name,
     getIssueId: body => body.iid,
@@ -519,10 +529,16 @@ const getMilestoneId = (body): number | null => runMethod(body, 'getMilestoneId'
 const getMilestoneKey = (body, milestoneId?: number): string | undefined =>
     issueRequestHandlers.getMilestoneKey(body, milestoneId);
 
+export const extractProjectNameFromIssueKey = (key: string): string => {
+    const keyData = this.selectors.transformFromIssueKey(key);
+    return keyData.namespaceWithProject.split('/').reverse()[0];
+};
+
 export const selectors: GitlabSelectors = {
     getMilestoneViewUrl: issueRequestHandlers.getMilestoneViewUrl,
     isIssueRoomName,
     getAssigneeDisplayName: issueRequestHandlers.getAssigneeDisplayName,
+    getAssigneeUserId: issueRequestHandlers.getAssigneeUserId,
     getMilestoneSummary: issueRequestHandlers.getMilestoneSummary,
     transformFromKey,
     getMilestoneKey,
@@ -568,4 +584,5 @@ export const selectors: GitlabSelectors = {
     getSummary,
     getDescriptionFields,
     isIgnoreHookType,
+    extractProjectNameFromIssueKey,
 };

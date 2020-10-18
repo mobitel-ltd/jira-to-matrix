@@ -106,7 +106,6 @@ describe('gitlab comment test', () => {
                 .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
                 .reply(200, projectsJson)
                 .post(`/projects/${projectsJson.id}/issues/${issueId}/notes`)
-                .query({ body: bodyText })
                 .reply(400);
         });
 

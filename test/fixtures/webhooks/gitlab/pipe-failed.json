@@ -1,0 +1,347 @@
+{
+    "object_kind": "pipeline",
+    "object_attributes": {
+        "id": 75933,
+        "ref": "pipeline-to-chat",
+        "tag": false,
+        "sha": "1a2b3b4d5e6f7a8b9c",
+        "before_sha": "70d7c15d4c69d7aa13037c1bf3b5fe8b60e8682d",
+        "source": "push",
+        "status": "fail",
+        "detailed_status": "fail",
+        "stages": ["validate", "build-release", "build-debug", "test"],
+        "created_at": "2020-07-17 10:16:45 +0300",
+        "finished_at": "2020-07-17 10:19:38 +0300",
+        "duration": 165,
+        "variables": []
+    },
+    "merge_request": null,
+    "user": {
+        "name": "Иванов Иван Иванович",
+        "username": "ii_ivanov",
+        "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+    },
+    "project": {
+        "id": 3032,
+        "name": "GitlabToMatrix",
+        "description": "TODO\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+        "web_url": "https://gitlab.example.com/indev/gitlabtomatrix",
+        "avatar_url": "https://gitlab.example.com/uploads/-/system/project/avatar/3035/avatar.png",
+        "git_ssh_url": "git@gitlab.example.com:indev/gitlabtomatrix.git",
+        "git_http_url": "https://gitlab.example.com/indev/gitlabtomatrix.git",
+        "namespace": "v3",
+        "visibility_level": 0,
+        "path_with_namespace": "indev/gitlabtomatrix",
+        "default_branch": "master",
+        "ci_config_path": ".gitlab/templates/projects/k8s-node-v1.yml@hallsystem/main"
+    },
+    "commit": {
+        "id": "1a2b3b4d5e6f7a8b9c",
+        "message": "#2 add commit\n",
+        "timestamp": "2020-07-17T10:16:42+03:00",
+        "url": "https://gitlab.example.com/indev/gitlabtomatrix/commit/1a2b3b4d5e6f7a8b9c",
+        "author": {
+            "name": "ii_ivanov",
+            "email": "ii_ivanov@example.com"
+        }
+    },
+    "builds": [
+        {
+            "id": 171337,
+            "stage": "test",
+            "name": "node-coverage",
+            "status": "skipped",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:19:10 +0300",
+            "finished_at": "2020-07-17 10:19:38 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1395,
+                "description": "runner0.cicd_docker_s3_4",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171336,
+            "stage": "test",
+            "name": "node-unit",
+            "status": "skipped",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:19:10 +0300",
+            "finished_at": "2020-07-17 10:19:36 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1398,
+                "description": "runner0.cicd_docker_s3_5",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171335,
+            "stage": "test",
+            "name": "node-lint",
+            "status": "skipped",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:19:09 +0300",
+            "finished_at": "2020-07-17 10:19:31 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1403,
+                "description": "runner2.cicd_docker_s3_4",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171338,
+            "stage": "test",
+            "name": "security-todo",
+            "status": "skipped",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:19:11 +0300",
+            "finished_at": "2020-07-17 10:19:29 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1403,
+                "description": "runner2.cicd_docker_s3_4",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171334,
+            "stage": "build-debug",
+            "name": "debug-image-dind",
+            "status": "skipped",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:18:01 +0300",
+            "finished_at": "2020-07-17 10:19:08 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1419,
+                "description": "runner1.cicd_privileged_s3_1",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171333,
+            "stage": "build-release",
+            "name": "release-image-dind",
+            "status": "failed",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:17:10 +0300",
+            "finished_at": "2020-07-17 10:18:00 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1429,
+                "description": "runner2.cicd_privileged_s3_1",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171329,
+            "stage": "validate",
+            "name": "lint-dockerfile",
+            "status": "success",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:16:48 +0300",
+            "finished_at": "2020-07-17 10:17:09 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1393,
+                "description": "runner1.cicd_docker_s3_3",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171330,
+            "stage": "validate",
+            "name": "node-gitignore-validate",
+            "status": "success",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:16:48 +0300",
+            "finished_at": "2020-07-17 10:17:08 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1401,
+                "description": "runner1.cicd_docker_s3_6",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171331,
+            "stage": "validate",
+            "name": "dockerignore-validate",
+            "status": "success",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:16:48 +0300",
+            "finished_at": "2020-07-17 10:17:08 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1385,
+                "description": "runner0.cicd_docker_s3_0",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171332,
+            "stage": "validate",
+            "name": "scan-sonarqube",
+            "status": "success",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:16:48 +0300",
+            "finished_at": "2020-07-17 10:17:08 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1403,
+                "description": "runner2.cicd_docker_s3_4",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        },
+        {
+            "id": 171328,
+            "stage": "validate",
+            "name": "node-docs-validate",
+            "status": "success",
+            "created_at": "2020-07-17 10:16:45 +0300",
+            "started_at": "2020-07-17 10:16:48 +0300",
+            "finished_at": "2020-07-17 10:17:07 +0300",
+            "when": "on_success",
+            "manual": false,
+            "allow_failure": false,
+            "user": {
+                "name": "Иванов Иван Иванович",
+                "username": "ii_ivanov",
+                "avatar_url": "https://gitlab.example.com/uploads/-/system/user/avatar/221/avatar.png"
+            },
+            "runner": {
+                "id": 1397,
+                "description": "runner2.cicd_docker_s3_2",
+                "active": true,
+                "is_shared": false
+            },
+            "artifacts_file": {
+                "filename": null,
+                "size": null
+            }
+        }
+    ]
+}

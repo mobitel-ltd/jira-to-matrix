@@ -16,7 +16,14 @@ import watchersBody from '../fixtures/jira-api-requests/watchers.json';
 import projectData from '../fixtures/jira-api-requests/project.json';
 import issueBodyJSON from '../fixtures/jira-api-requests/issue.json';
 import { Jira } from '../../src/task-trackers/jira';
-import { CreateRoomData, CreateRoomOpions, IssueStateEnum, Config } from '../../src/types';
+import {
+    CreateRoomData,
+    CreateRoomOpions,
+    RoomViewStateEnum,
+    Config,
+    MilestoneStateEnum,
+    DefaultLabel,
+} from '../../src/types';
 import { getDefaultErrorLog } from '../../src/lib/utils';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import gitlabCommentCreatedHook from '../fixtures/webhooks/gitlab/commented.json';
@@ -30,11 +37,15 @@ import { setSettingsData } from '../../src/bot/settings';
 import { KeyType, milestonePart } from '../../src/task-trackers/gitlab/selectors';
 import { translate } from '../../src/locales';
 import { schemas } from '../../src/task-trackers/jira/schemas';
+import { GitlabLabel } from '../../src/task-trackers/gitlab/types';
+import gitlabGroups from '../fixtures/gitlab-api-requests/groups.json';
+import { getTaskTracker } from '../../src/task-trackers';
 
 const { expect } = chai;
 chai.use(sinonChai);
 
 describe('Create room test', () => {
+    let chatClass;
     let chatApi;
     let createRoom: CreateRoom;
     const messengerLink = 'lalala';
@@ -119,7 +130,7 @@ describe('Create room test', () => {
     };
 
     beforeEach(() => {
-        const chatClass = getChatClass({
+        chatClass = getChatClass({
             alias: [createRoomData.issue.key, createRoomData.projectKey!],
             roomId: [createRoomData.issue.key, createRoomData.projectKey!],
         });
@@ -129,7 +140,9 @@ describe('Create room test', () => {
 
         createRoom = new CreateRoom(config, taskTracker, chatClass.chatApi);
 
-        const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
+        const roomCreatedMessage = translate('roomCreatedMessage', {
+            link: taskTracker.createLink(chatApi.getRoomLink(roomId), translate('chat')),
+        });
 
         nock(taskTracker.getRestUrl())
             // comment created hook
@@ -363,6 +376,30 @@ describe('Create room test', () => {
         expect(result).to.be.true;
         expect(chatApi.createRoom).to.be.calledWithExactly(expectedOptions);
     });
+    describe('Create Project features is empty', () => {
+        beforeEach(() => {
+            const configCreateProjectRoom: Config = pipe(
+                clone,
+                set('features.createProjectRoom', false),
+            )(config) as Config;
+            createRoom = new CreateRoom(configCreateProjectRoom, taskTracker, chatClass.chatApi);
+        });
+
+        it('Expect project and epic rooms should be created if Epic body we get and no rooms exists and createProjectRoom is Flase', async () => {
+            chatApi.getRoomIdByName.reset();
+            chatApi.getRoomIdByName.resolves(false);
+            const result = await createRoom.run(taskTracker.parser.getCreateRoomData(epicJSON));
+            expect(chatApi.createRoom).to.be.calledOnceWithExactly(expectedEpicRoomOptions);
+            expect(result).to.be.true;
+        });
+
+        it('Expect project should be created if project_created hook we get and no project room exists and createProjectRoom is False', async () => {
+            chatApi.getRoomId.throws();
+            const result = await createRoom.run(taskTracker.parser.getCreateRoomData(projectJSON));
+            expect(chatApi.createRoom).not.to.be.called;
+            expect(result).to.be.true;
+        });
+    });
 });
 
 describe('Create room test with gitlab as task tracker', () => {
@@ -370,14 +407,20 @@ describe('Create room test with gitlab as task tracker', () => {
     let chatApi;
     let createRoom: CreateRoom;
     let roomId;
+    let chatClass;
+    let gitlabConfig: Config;
 
     beforeEach(() => {
-        gitlabTracker = new Gitlab({
-            url: 'https://gitlab.test-example.ru',
-            user: 'gitlab_bot',
-            password: 'fakepasswprd',
-            features: config.features,
-        });
+        gitlabConfig = pipe(
+            clone,
+            set('taskTracker', {
+                type: 'gitlab',
+                url: 'https://gitlab.test-example.ru',
+                user: 'gitlab_bot',
+                password: 'fakepasswprd',
+            }),
+        )(config) as Config;
+        gitlabTracker = getTaskTracker(gitlabConfig) as Gitlab;
     });
 
     afterEach(() => {
@@ -388,29 +431,13 @@ describe('Create room test with gitlab as task tracker', () => {
         let createRoomData: CreateRoomData;
         beforeEach(() => {
             createRoomData = gitlabTracker.parser.getCreateRoomData(gitlabCommentCreatedHook);
-            const chatClass = getChatClass({
+            chatClass = getChatClass({
                 alias: [createRoomData.issue.key, createRoomData.projectKey!],
                 roomId: [createRoomData.issue.key, createRoomData.projectKey!],
             });
             chatApi = chatClass.chatApiSingle;
-            createRoom = new CreateRoom(config, gitlabTracker, chatClass.chatApi);
+            createRoom = new CreateRoom(gitlabConfig, gitlabTracker, chatClass.chatApi);
             roomId = chatClass.getRoomData().id;
-        });
-
-        it('should return correct createRoomData', async () => {
-            const expected: CreateRoomData = {
-                issue: {
-                    key:
-                        gitlabCommentCreatedHook.project.path_with_namespace + '-' + gitlabCommentCreatedHook.issue.iid,
-                    descriptionFields: undefined,
-                    hookLabels: gitlabCommentCreatedHook.issue.labels,
-                    projectKey: gitlabCommentCreatedHook.project.path_with_namespace,
-                    summary: gitlabCommentCreatedHook.issue.description,
-                },
-                projectKey: gitlabCommentCreatedHook.project.path_with_namespace,
-                milestoneId: undefined,
-            };
-            expect(createRoomData).to.be.deep.eq(expected);
         });
 
         describe('Room is exists', () => {
@@ -448,7 +475,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     ';' +
                     gitlabIssueJson.title +
                     ';' +
-                    IssueStateEnum.open +
+                    RoomViewStateEnum.open +
                     ';' +
                     gitlabCommentCreatedHook.project.path_with_namespace +
                     '/issues/' +
@@ -467,7 +494,6 @@ describe('Create room test with gitlab as task tracker', () => {
                     purpose: gitlabIssueJson.title,
                 };
 
-                const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabCommentCreatedHook.project.path_with_namespace)}`)
                     .times(5)
@@ -480,7 +506,6 @@ describe('Create room test with gitlab as task tracker', () => {
                     .post(
                         `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}/notes`,
                     )
-                    .query({ body: roomCreatedMessage })
                     .reply(201)
                     .get(`/projects/${gitlabProjectJson.id}/labels`)
                     .reply(200, gitlabLabelJson);
@@ -576,7 +601,7 @@ describe('Create room test with gitlab as task tracker', () => {
                     ';' +
                     gitlabIssueJson.title +
                     ';' +
-                    IssueStateEnum.open +
+                    RoomViewStateEnum.open +
                     ';' +
                     gitlabIssueCreatedJson.project.path_with_namespace +
                     '/issues/' +
@@ -597,8 +622,6 @@ describe('Create room test with gitlab as task tracker', () => {
                     purpose: gitlabIssueJson.title,
                 };
 
-                //////////////////////////////////////////////////////////////////////
-
                 const milestoneKey = milestonePart + gitlabIssueJson.milestone.id;
                 const milestoneMembers = [gitlabIssueJson.assignee.username].map(name =>
                     getChatClass().chatApiSingle.getChatUserId(name),
@@ -610,6 +633,8 @@ describe('Create room test with gitlab as task tracker', () => {
                     ';' +
                     gitlabIssueJson.milestone.title +
                     ';' +
+                    MilestoneStateEnum.open +
+                    ';' +
                     gitlabIssueJson.milestone.web_url.replace('https://gitlab.example.com/', '').replace('/-', '') +
                     ';';
 
@@ -620,26 +645,26 @@ describe('Create room test with gitlab as task tracker', () => {
                     topic: gitlabIssueJson.milestone.web_url,
                     purpose: gitlabIssueJson.milestone.title,
                 };
-                const roomCreatedMessage = translate('roomCreatedMessage', { link: chatApi.getRoomLink(roomId) });
                 nock(gitlabTracker.getRestUrl())
                     .get(`/projects/${querystring.escape(gitlabIssueCreatedJson.project.path_with_namespace)}`)
-                    .times(5)
+                    // .times(5)
                     .reply(200, gitlabProjectJson)
                     .get(
                         `/groups/${gitlabIssueJson.milestone.group_id}/milestones/${gitlabIssueJson.milestone.id}/issues`,
                     )
                     .reply(200, milestoneIssuesJson)
                     .get(`/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`)
-                    .times(4)
+                    // .times(4)
                     .reply(200, gitlabIssueJson)
                     .get(`/projects/${gitlabProjectJson.id}/members/all`)
                     .reply(200, projectMembersJson)
-                    .get(`/projects/${gitlabProjectJson.id}/labels`)
-                    .reply(200, gitlabLabelJson)
+                    .get(`/groups`)
+                    .times(2)
+                    .query({ search: gitlabProjectJson.namespace.path })
+                    .reply(200, gitlabGroups)
                     .post(
                         `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}/notes`,
                     )
-                    .query({ body: roomCreatedMessage })
                     .reply(201);
             });
 
@@ -652,18 +677,134 @@ describe('Create room test with gitlab as task tracker', () => {
                 expect(result).to.be.true;
             });
 
-            it('should call room creation with avatar if config color projects is set to "all"', async () => {
-                chatApi.getRoomIdByName.reset();
-                chatApi.getRoomIdByName.resolves(false);
-                const configAllProjectsColors: Config = pipe(clone, set('colors.projects', 'all'))(config) as Config;
-                createRoom = new CreateRoom(configAllProjectsColors, gitlabTracker, chatFasade);
+            describe('config color projects is set to "all"', () => {
+                let noLabellData;
+                const unsortedLabel: GitlabLabel = {
+                    id: 306,
+                    name: 'unsorted',
+                    color: '#999999',
+                    description: null,
+                    description_html: '',
+                    text_color: '#FFFFFF',
+                    subscribed: false,
+                    priority: null,
+                    is_project_label: true,
+                };
+                const giltabLabelsWithUnsorted = [...gitlabLabelJson, unsortedLabel];
 
-                const result = await createRoom.run(createRoomData);
-                expect(chatApi.createRoom).to.be.calledWithExactly({
-                    ...expectedIssueRoomOptions,
-                    avatarUrl: messengerLink,
+                beforeEach(() => {
+                    const noLabelIssueHook = pipe(clone, set('labels', []))(gitlabIssueCreatedJson);
+                    noLabellData = gitlabTracker.parser.getCreateRoomData(noLabelIssueHook);
+                    chatApi.getRoomIdByName.reset();
+                    chatApi.getRoomIdByName.resolves(false);
+                    const configAllProjectsColors: Config = pipe(
+                        clone,
+                        set('colors.projects', 'all'),
+                    )(gitlabConfig) as Config;
+                    createRoom = new CreateRoom(configAllProjectsColors, gitlabTracker, chatFasade);
                 });
-                expect(result).to.be.true;
+
+                it('should call room creation with avatar if ', async () => {
+                    const result = await createRoom.run(createRoomData);
+                    expect(chatApi.createRoom).to.be.calledWithExactly({
+                        ...expectedIssueRoomOptions,
+                        avatarUrl: messengerLink,
+                    });
+                    expect(result).to.be.true;
+                });
+
+                it('should call room creation with DEFAULT avatar and send message "LABEL NOT INSTALL" if issue have no Llabel and config has no default label', async () => {
+                    const result = await createRoom.run(noLabellData);
+                    expect(chatApi.createRoom).to.be.calledWithExactly({
+                        ...expectedIssueRoomOptions,
+                        avatarUrl: messengerLink,
+                    });
+                    expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(
+                        roomId,
+                        translate('issueLabelNotExist'),
+                        translate('issueLabelNotExist'),
+                    );
+                    expect(result).to.be.true;
+                });
+
+                describe('Config includes default label', () => {
+                    const defaultLabel: DefaultLabel = {
+                        // color: 'purple',
+                        // description: 'default label',
+                        name: unsortedLabel.name,
+                    };
+                    beforeEach(() => {
+                        const configAllProjectsColors: Config = pipe(
+                            clone,
+                            set('colors.projects', 'all'),
+                            set('taskTracker.defaultLabel', defaultLabel),
+                        )(gitlabConfig) as Config;
+
+                        const gitlabTracker = getTaskTracker(configAllProjectsColors) as Gitlab;
+                        const chatClass = getChatClass({
+                            alias: [createRoomData.issue.key, createRoomData.projectKey!],
+                            roomId: [createRoomData.issue.key, createRoomData.projectKey!],
+                        });
+                        chatApi = chatClass.chatApiSingle;
+                        const chatFasade = chatClass.chatApi;
+                        chatApi.uploadContent.resolves(messengerLink);
+                        chatApi.getRoomIdByName.reset();
+                        chatApi.getRoomIdByName.resolves(false);
+
+                        createRoom = new CreateRoom(configAllProjectsColors, gitlabTracker, chatFasade);
+                    });
+
+                    it('should call room creation with UNSORTED label if group has such label', async () => {
+                        nock(gitlabTracker.getRestUrl())
+                            .get(`/groups/${gitlabProjectJson.namespace.id}/labels`)
+                            .query({ per_page: 100 })
+                            .reply(200, giltabLabelsWithUnsorted)
+                            .put(
+                                `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`,
+                            )
+                            .query({ labels: defaultLabel.name })
+                            .reply(200);
+
+                        const result = await createRoom.run(noLabellData);
+                        expect(chatApi.createRoom).to.be.calledWithExactly({
+                            ...expectedIssueRoomOptions,
+                            avatarUrl: messengerLink,
+                        });
+                        expect(chatApi.sendHtmlMessage).not.to.be.calledWithExactly(
+                            roomId,
+                            translate('issueLabelNotExist'),
+                            translate('issueLabelNotExist'),
+                        );
+                        expect(result).to.be.true;
+                    });
+
+                    it('should call room creation with sending INFO if group doesnt have such label', async () => {
+                        nock(gitlabTracker.getRestUrl())
+                            .get(`/groups/${gitlabProjectJson.namespace.id}/labels`)
+                            .query({ per_page: 100 })
+                            .reply(200, gitlabLabelJson);
+                        // .post(`/groups/${gitlabProjectJson.namespace.id}/labels`, defaultLabel as any)
+                        // .reply(201)
+
+                        // .put(
+                        //     `/projects/${gitlabProjectJson.id}/issues/${gitlabIssueCreatedJson.object_attributes.iid}`,
+                        // )
+                        // .query({ labels: defaultLabel.name })
+                        // .reply(200);
+
+                        const result = await createRoom.run(noLabellData);
+                        expect(chatApi.createRoom).to.be.calledWithExactly({
+                            ...expectedIssueRoomOptions,
+                            avatarUrl: messengerLink,
+                        });
+                        expect(chatApi.sendHtmlMessage).to.be.calledWithExactly(
+                            roomId,
+                            translate('issueLabelNotExist'),
+                            translate('issueLabelNotExist'),
+                        );
+                        expect(result).to.be.true;
+                    });
+                });
             });
         });
     });

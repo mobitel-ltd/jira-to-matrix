@@ -35,7 +35,7 @@
         "iid": 26,
         "last_edited_at": "2020-06-30 14:58:20 +0300",
         "last_edited_by_id": 397,
-        "milestone_id": null,
+        "milestone_id": 103,
         "moved_to_id": null,
         "duplicated_to_id": null,
         "project_id": 3032,
@@ -49,9 +49,7 @@
         "total_time_spent": 0,
         "human_total_time_spent": null,
         "human_time_estimate": null,
-        "assignee_ids": [
-            45
-        ],
+        "assignee_ids": [45],
         "assignee_id": 45,
         "labels": [
             {

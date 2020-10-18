@@ -1,6 +1,5 @@
 import { Config, TaskTracker, ActionNames } from '../../types';
 import { ChatFasade } from '../../messengers/chat-fasade';
-import { RunAction } from './base-action';
 
 import { CreateRoom } from './create-room';
 import { InviteNewMembers } from './invite-new-members';
@@ -12,41 +11,51 @@ import { PostNewLinks } from './post-new-links';
 import { PostLinkedChanges } from './post-linked-changes';
 import { PostLinkDeleted } from './post-link-deleted';
 import { ArchiveProject } from './archive-project';
-import { Jira } from '../../task-trackers/jira';
+// import { Jira } from '../../task-trackers/jira';
 import { Upload } from './upload';
-import { Gitlab } from '../../task-trackers/gitlab';
+// import { Gitlab } from '../../task-trackers/gitlab';
 import { PostCommit } from './post-commit';
 import { PostPipeline } from './post-pipeline';
 import { PostMilestoneUpdates } from './post-milestone-updates';
 
 export class Actions {
-    commandsDict: Record<ActionNames, RunAction>;
+    commandsDict;
 
     constructor(private config: Config, private taskTracker: TaskTracker, private chatApi: ChatFasade) {
-        this.commandsDict = {
-            [ActionNames.CreateRoom]: new CreateRoom(config, taskTracker, chatApi),
-            [ActionNames.InviteNewMembers]: new InviteNewMembers(config, taskTracker, chatApi),
-            [ActionNames.PostComment]: new PostComment(config, taskTracker, chatApi),
-            [ActionNames.PostProjectUpdates]: new PostProjectUpdates(config, taskTracker, chatApi),
-            // JIRA ONLY
-            [ActionNames.PostEpicUpdates]: new PostEpicUpdates(config, taskTracker as Jira, chatApi),
-            [ActionNames.ArchiveProject]: new ArchiveProject(config, taskTracker as Jira, chatApi),
-            [ActionNames.PostIssueUpdates]: new PostIssueUpdates(config, taskTracker as Jira, chatApi),
-            [ActionNames.PostLinkedChanges]: new PostLinkedChanges(config, taskTracker as Jira, chatApi),
-            [ActionNames.PostLinksDeleted]: new PostLinkDeleted(config, taskTracker as Jira, chatApi),
-            [ActionNames.PostNewLinks]: new PostNewLinks(config, taskTracker as Jira, chatApi),
-            // Gitlab only
-            [ActionNames.Upload]: new Upload(config, taskTracker as Gitlab, chatApi),
-            [ActionNames.PostCommit]: new PostCommit(config, taskTracker as Gitlab, chatApi),
-            [ActionNames.Pipeline]: new PostPipeline(config, taskTracker as Gitlab, chatApi),
-            [ActionNames.PostMilestoneUpdates]: new PostMilestoneUpdates(config, taskTracker as Gitlab, chatApi),
+        const commonActions = {
+            [ActionNames.CreateRoom]: CreateRoom,
+            [ActionNames.InviteNewMembers]: InviteNewMembers,
+            [ActionNames.PostComment]: PostComment,
+            [ActionNames.PostProjectUpdates]: PostProjectUpdates,
+            [ActionNames.PostIssueUpdates]: PostIssueUpdates,
         };
+
+        const jiraActions = {
+            [ActionNames.PostEpicUpdates]: PostEpicUpdates,
+            [ActionNames.ArchiveProject]: ArchiveProject,
+            [ActionNames.PostLinkedChanges]: PostLinkedChanges,
+            [ActionNames.PostLinksDeleted]: PostLinkDeleted,
+            [ActionNames.PostNewLinks]: PostNewLinks,
+        };
+
+        const gitlabActions = {
+            [ActionNames.Upload]: Upload,
+            [ActionNames.PostCommit]: PostCommit,
+            [ActionNames.Pipeline]: PostPipeline,
+            [ActionNames.PostMilestoneUpdates]: PostMilestoneUpdates,
+        };
+
+        const trackerActions = config.taskTracker.type === 'gitlab' ? gitlabActions : jiraActions;
+
+        this.commandsDict = { ...commonActions, ...trackerActions };
     }
 
     async run(commandName: ActionNames, commandOptions: any): Promise<boolean | string[] | undefined | string> {
-        const command: RunAction | undefined = this.commandsDict[commandName];
+        const Command = this.commandsDict[commandName];
 
-        if (command) {
+        if (Command) {
+            const command = new Command(this.config, this.taskTracker, this.chatApi);
+
             return await command.run(commandOptions);
         }
     }

@@ -12,7 +12,7 @@
             },
             "name": "Mocha Tests",
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "args": ["--timeout", "999999", "--colors", "${workspaceFolder}/test/**/*.test.js"],
+            "args": ["--timeout", "999999", "--colors", "${workspaceFolder}/test/**/*.test.ts"],
             "internalConsoleOptions": "openOnSessionStart"
         },
         {

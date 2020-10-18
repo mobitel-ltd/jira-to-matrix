@@ -60,7 +60,6 @@ describe('Gitlab api testing', () => {
                 .get(`/projects/${querystring.escape(`${projectNamespace}/${projectKey}`)}`)
                 .reply(200, projectJson)
                 .post(`/projects/${projectJson.id}/issues/${issueId}/notes`)
-                .query({ body: gitlab.getPostCommentBody(sender, bodyText) })
                 .reply(201);
         });
 
@@ -98,7 +97,10 @@ describe('Gitlab api testing', () => {
 
         it('should return issue author and watchers', async () => {
             const res = await gitlab.getIssueWatchers(issueKey);
-            const expected = [(issueJson.assignee as any).name as string, issueJson.author.name];
+            const expected = [
+                { displayName: issueJson.assignee.name, userId: issueJson.assignee.username },
+                { displayName: issueJson.author.name, userId: issueJson.author.username },
+            ];
             expect(res).to.be.deep.eq(expected);
         });
     });
@@ -199,7 +201,7 @@ describe('Gitlab api testing', () => {
                 .query({ per_page: 100 })
                 .reply(200, labelsJson)
                 .get('/groups')
-                .query({ per_page: 100 })
+                .query({ search: projectJson.namespace.path })
                 .reply(200, labelsJson);
 
             const res = await gitlab.getCurrentIssueColor(issueKey);
@@ -225,7 +227,7 @@ describe('Gitlab api testing', () => {
                 .query({ per_page: 100 })
                 .reply(200, labelsJson)
                 .get('/groups')
-                .query({ per_page: 100 })
+                .query({ search: projectJson.namespace.path })
                 .reply(200, labelsJson);
 
             const res = await gitlab.getCurrentIssueColor(issueKey);

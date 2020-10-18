@@ -9,6 +9,7 @@ import { CommandNames } from '../../src/types';
 import { config } from '../../src/config';
 import { Gitlab } from '../../src/task-trackers/gitlab';
 import projectsJson from '../fixtures/gitlab-api-requests/project-search.gitlab.json';
+import { KeyType } from '../../src/task-trackers/gitlab/selectors';
 
 const { expect } = chai;
 chai.use(sinonChai);
@@ -25,7 +26,7 @@ describe('gitlab upload test', () => {
     const commands = new Commands(config, gitlabTracker);
     const projectNamespace = 'indev';
     const projectKey = 'gitlabtomatrix';
-    const issueId = '123';
+    const issueId = 123;
 
     const alias = projectNamespace + '/' + projectKey + '-' + issueId;
 
@@ -67,7 +68,6 @@ describe('gitlab upload test', () => {
                 .post(`/projects/${projectsJson.id}/uploads`)
                 .reply(201, body)
                 .post(`/projects/${projectsJson.id}/issues/${issueId}/notes`)
-                .query({ body: gitlabTracker.getPostCommentBody(sender, body.markdown) })
                 .reply(201);
         });
 
@@ -75,6 +75,23 @@ describe('gitlab upload test', () => {
             const result = await commands.run(commandName, baseOptions);
             expect(chatApi.sendHtmlMessage).not.to.be.called;
             expect(result).to.be.undefined;
+        });
+
+        it('Expect upload not to be sent and return undefined if command made in not issue room', async () => {
+            const roomName = gitlabTracker.selectors.transformToKey(projectNamespace, issueId, KeyType.Milestone);
+            const newOptions = {
+                ...baseOptions,
+                roomData: {
+                    alias: roomName,
+                    id: roomId,
+                    name: 'llalal',
+                    members: [],
+                },
+            };
+            const result = await commands.run(commandName, newOptions);
+            expect(result).to.be.undefined;
+            // with error
+            expect(chatApi.sendHtmlMessage).not.to.be.called;
         });
     });
 });
