@@ -77,7 +77,7 @@
     "eslint-plugin-prettier": "^3.1.2",
     "faker": "latest",
     "fs-extra": "^9.0.0",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "mocha": "latest",
     "nock": "^11.4.0",
     "node-git-server": "^0.6.1",
