@@ -109,7 +109,7 @@
     "joi": "^14.3.1",
     "js-yaml": "^3.14.0",
     "luxon": "^1.23.0",
-    "marked": "^0.8.0",
+    "marked": "^4.0.10",
     "matrix-js-sdk": "mobitel-ltd/matrix-js-sdk",
     "minimist": "^1.2.5",
     "node-polyglot": "^2.4.0",
