@@ -120,7 +120,7 @@
     "request-promise-native": "^1.0.8",
     "rimraf": "^3.0.2",
     "ru-names": "^1.0.7",
-    "simple-git": "^2.5.0",
+    "simple-git": "^3.3.0",
     "tmp-promise": "^2.0.2",
     "winston": "^2.4.4"
   }
