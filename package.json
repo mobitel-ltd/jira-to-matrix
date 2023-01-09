@@ -108,7 +108,7 @@
     "javascript-state-machine": "^3.1.0",
     "joi": "^14.3.1",
     "js-yaml": "^3.14.0",
-    "luxon": "^1.23.0",
+    "luxon": "^1.28.1",
     "marked": "^0.8.0",
     "matrix-js-sdk": "mobitel-ltd/matrix-js-sdk",
     "minimist": "^1.2.5",
